@@ -33,7 +33,7 @@
 
                 <div class="border-t border-gray-200 dark:border-white/10 pt-4">
                     <p class="text-xs text-gray-400 dark:text-slate-500 mb-3">Kosongkan jika tidak ingin mengubah password.</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Password Baru</label>
                             <input id="password" type="password" name="password" autocomplete="new-password"

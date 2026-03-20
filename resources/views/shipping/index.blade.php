@@ -6,7 +6,7 @@
         {{-- Cek Ongkir --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Cek Ongkos Kirim</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                     <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Kota Asal</label>
                     <input id="rate-origin" type="text" placeholder="Contoh: 501"
@@ -42,8 +42,8 @@
         {{-- Lacak Resi --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Lacak Pengiriman</h2>
-            <div class="flex gap-3">
-                <select id="track-courier" class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select id="track-courier" class="w-full sm:w-auto bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                     <option value="jne">JNE</option>
                     <option value="jnt">J&T</option>
                     <option value="sicepat">SiCepat</option>
@@ -70,10 +70,10 @@
                             <th class="px-6 py-3 text-left">Kurir</th>
                             <th class="px-6 py-3 text-left">No. Resi</th>
                             <th class="px-6 py-3 text-left">Tujuan</th>
-                            <th class="px-6 py-3 text-right">Berat</th>
+                            <th class="px-6 py-3 text-right hidden sm:table-cell">Berat</th>
                             <th class="px-6 py-3 text-right">Ongkir</th>
                             <th class="px-6 py-3 text-left">Status</th>
-                            <th class="px-6 py-3 text-left">Estimasi</th>
+                            <th class="px-6 py-3 text-left hidden md:table-cell">Estimasi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-white/5">
@@ -82,7 +82,7 @@
                             <td class="px-6 py-3 font-medium text-gray-900 dark:text-white uppercase">{{ $s->courier }}</td>
                             <td class="px-6 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">{{ $s->tracking_number ?? '—' }}</td>
                             <td class="px-6 py-3 text-gray-700 dark:text-slate-300">{{ $s->destination }}</td>
-                            <td class="px-6 py-3 text-right text-gray-500 dark:text-slate-400">{{ $s->weight }} kg</td>
+                            <td class="px-6 py-3 text-right text-gray-500 dark:text-slate-400 hidden sm:table-cell">{{ $s->weight }} kg</td>
                             <td class="px-6 py-3 text-right font-medium text-gray-900 dark:text-white">Rp {{ number_format($s->cost, 0, ',', '.') }}</td>
                             <td class="px-6 py-3">
                                 @php $colors = ['pending'=>'amber','shipped'=>'blue','delivered'=>'green','returned'=>'red']; @endphp
@@ -90,7 +90,7 @@
                                     {{ ucfirst($s->status) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 text-gray-400 dark:text-slate-500">{{ $s->estimated_delivery?->format('d M Y') ?? '—' }}</td>
+                            <td class="px-6 py-3 text-gray-400 dark:text-slate-500 hidden md:table-cell">{{ $s->estimated_delivery?->format('d M Y') ?? '—' }}</td>
                         </tr>
                         @empty
                         <tr>

@@ -17,12 +17,12 @@
 
         {{-- Tenant Info --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <div class="flex items-start justify-between mb-5">
+            <div class="flex items-start justify-between mb-5 flex-wrap gap-3">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ $tenant->name }}</h2>
                     <p class="text-sm text-gray-400 dark:text-slate-500">{{ $tenant->slug }}</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     @php
                         $planColors = [
                             'trial'      => 'bg-amber-500/20 text-amber-400',
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Email</dt>
                     <dd class="text-gray-900 dark:text-white">{{ $tenant->email }}</dd>
@@ -82,7 +82,7 @@
                 </div>
             </dl>
 
-            <div class="flex items-center gap-2 mt-5 pt-5 border-t border-gray-200 dark:border-white/10">
+            <div class="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-gray-200 dark:border-white/10">
                 <form method="POST" action="{{ route('super-admin.tenants.toggle', $tenant) }}">
                     @csrf @method('PATCH')
                     <button type="submit"
@@ -113,7 +113,7 @@
             <form method="POST" action="{{ route('super-admin.tenants.update-plan', $tenant) }}" class="p-6 space-y-4">
                 @csrf @method('PATCH')
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tipe Plan</label>
                         <select name="plan" required
@@ -139,7 +139,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Trial Berakhir</label>
                         <input type="date" name="trial_ends_at"
@@ -188,11 +188,12 @@
                 <p class="font-semibold text-gray-900 dark:text-white">Pengguna</p>
                 <span class="text-xs bg-[#f8f8f8] dark:bg-white/10 text-gray-500 dark:text-slate-400 font-medium px-2.5 py-1 rounded-lg">{{ $tenant->users->count() }}</span>
             </div>
+            <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>
                     <tr class="bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Nama</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                     </tr>
@@ -208,7 +209,7 @@
                                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-3.5 text-sm text-gray-500 dark:text-slate-400">{{ $user->email }}</td>
+                        <td class="px-6 py-3.5 text-sm text-gray-500 dark:text-slate-400 hidden sm:table-cell">{{ $user->email }}</td>
                         <td class="px-6 py-3.5">
                             <span class="text-xs font-medium text-gray-500 dark:text-slate-400 capitalize">{{ $user->role }}</span>
                         </td>
@@ -222,6 +223,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

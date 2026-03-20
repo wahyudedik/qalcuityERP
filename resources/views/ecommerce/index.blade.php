@@ -43,7 +43,7 @@
                 </summary>
                 <form method="POST" action="{{ route('ecommerce.channels.store') }}" class="px-4 pb-4 pt-2 space-y-3">
                     @csrf
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Platform</label>
                             <select name="platform" class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
@@ -93,7 +93,7 @@
                             <th class="px-6 py-3 text-left">Pelanggan</th>
                             <th class="px-6 py-3 text-right">Total</th>
                             <th class="px-6 py-3 text-left">Status</th>
-                            <th class="px-6 py-3 text-left">Tanggal</th>
+                            <th class="px-6 py-3 text-left hidden sm:table-cell">Tanggal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-white/5">
@@ -111,7 +111,7 @@
                             <td class="px-6 py-3">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">{{ $order->status }}</span>
                             </td>
-                            <td class="px-6 py-3 text-gray-400 dark:text-slate-500">{{ $order->ordered_at?->format('d M Y') }}</td>
+                            <td class="px-6 py-3 text-gray-400 dark:text-slate-500 hidden sm:table-cell">{{ $order->ordered_at?->format('d M Y') }}</td>
                         </tr>
                         @empty
                         <tr>

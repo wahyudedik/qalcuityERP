@@ -3,7 +3,7 @@
     <x-slot name="header">Panel Super Admin</x-slot>
 
     {{-- Stats --}}
-    <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
         @php
         $statCards = [
             ['label' => 'Total Tenant',  'value' => $tenants->total(),                              'color' => 'text-blue-400',  'bg' => 'bg-blue-500/10'],
@@ -20,44 +20,45 @@
     </div>
 
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="overflow-x-auto">
         <table class="min-w-full">
             <thead>
                 <tr class="border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Perusahaan</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Admin</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Trial</th>
-                    <th class="px-6 py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Users</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Perusahaan</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Admin</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Trial</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Users</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                 @forelse($tenants as $tenant)
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4">
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $tenant->name }}</p>
                         <p class="text-xs text-gray-400 dark:text-slate-500">{{ $tenant->slug }}</p>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">{{ $tenant->admins->first()?->email ?? '—' }}</td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-slate-400 hidden md:table-cell">{{ $tenant->admins->first()?->email ?? '—' }}</td>
+                    <td class="px-4 sm:px-6 py-4">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
                             {{ $tenant->plan === 'trial' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400' }}">
                             {{ ucfirst($tenant->plan) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">{{ $tenant->trial_ends_at?->format('d M Y') ?? '—' }}</td>
-                    <td class="px-6 py-4 text-center">
+                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-slate-400 hidden lg:table-cell">{{ $tenant->trial_ends_at?->format('d M Y') ?? '—' }}</td>
+                    <td class="px-4 sm:px-6 py-4 text-center hidden sm:table-cell">
                         <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $tenant->users_count }}</span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium
                             {{ $tenant->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $tenant->is_active ? 'bg-green-500' : 'bg-red-500' }}"></span>
                             {{ $tenant->is_active ? 'Aktif' : 'Nonaktif' }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4">
                         <div class="flex items-center justify-end gap-1">
                             <a href="{{ route('super-admin.tenants.show', $tenant) }}"
                                class="p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition" title="Detail">
@@ -98,5 +99,6 @@
             {{ $tenants->links() }}
         </div>
         @endif
+        </div>{{-- end overflow-x-auto --}}
     </div>
 </x-app-layout>

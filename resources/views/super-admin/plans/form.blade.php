@@ -26,7 +26,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nama Paket</label>
                     <input type="text" name="name" value="{{ old('name', $plan->name) }}" required
@@ -41,7 +41,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Harga Bulanan (Rp)</label>
                     <input type="number" name="price_monthly" value="{{ old('price_monthly', $plan->price_monthly) }}" required min="0"
@@ -56,7 +56,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Maks. User</label>
                     <input type="number" name="max_users" value="{{ old('max_users', $plan->max_users ?? 5) }}" required min="-1"
@@ -86,7 +86,7 @@
                     placeholder="Inventori&#10;Penjualan&#10;Pembelian&#10;AI Chat">{{ old('features', $plan->features ? implode("\n", $plan->features) : '') }}</textarea>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Urutan Tampil</label>
                     <input type="number" name="sort_order" value="{{ old('sort_order', $plan->sort_order ?? 0) }}" required min="0"

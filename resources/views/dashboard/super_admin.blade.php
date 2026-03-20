@@ -56,8 +56,8 @@
             $planColors = ['trial'=>'#f59e0b','basic'=>'#3b82f6','pro'=>'#8b5cf6','enterprise'=>'#10b981'];
             $planLabels = ['trial'=>'Trial','basic'=>'Basic','pro'=>'Pro','enterprise'=>'Enterprise'];
             @endphp
-            <div class="flex items-center gap-6">
-                <div style="height:160px;width:160px;position:relative;flex-shrink:0"><canvas id="planChart"></canvas></div>
+            <div class="flex flex-col sm:flex-row items-center gap-6">
+                <div style="height:160px;width:160px;position:relative;flex-shrink:0" class="mx-auto sm:mx-0"><canvas id="planChart"></canvas></div>
                 <div class="space-y-2 flex-1">
                     @foreach($planDist as $plan => $count)
                     <div class="flex items-center justify-between">

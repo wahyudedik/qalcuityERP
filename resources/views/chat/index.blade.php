@@ -261,9 +261,17 @@
 
     {{-- Header --}}
     <div class="h-14 bg-white border-b border-gray-100 px-5 flex items-center justify-between shrink-0">
-        <div>
-            <p class="text-sm font-semibold text-gray-800" id="chat-title">Percakapan Baru</p>
-            <p class="text-xs text-gray-400" id="model-label">Siap membantu</p>
+        <div class="flex items-center gap-3">
+            {{-- Mobile hamburger for app sidebar --}}
+            <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div>
+                <p class="text-sm font-semibold text-gray-800" id="chat-title">Percakapan Baru</p>
+                <p class="text-xs text-gray-400" id="model-label">Siap membantu</p>
+            </div>
         </div>
         <div class="flex items-center gap-3">
             @php

@@ -10,30 +10,42 @@
     </x-slot>
 
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-        <table class="min-w-full">
+        <div class="overflow-x-auto">
+        <table class="min-w-full w-full">
             <thead>
                 <tr class="border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Pengguna</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
-                    <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Pengguna</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Role</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Status</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                 @forelse($users as $user)
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-gray-900 dark:text-white text-sm font-bold shrink-0">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">{{ $user->email }}</p>
+                                <p class="text-xs text-gray-500 dark:text-slate-400 truncate">{{ $user->email }}</p>
+                                {{-- Role & status shown inline on mobile --}}
+                                <div class="flex items-center gap-1.5 mt-1 sm:hidden">
+                                    @php
+                                    $roleStyle = ['admin' => 'bg-purple-500/20 text-purple-400', 'manager' => 'bg-blue-500/20 text-blue-400', 'staff' => 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300'];
+                                    $roleLabel = ['admin' => 'Admin', 'manager' => 'Manager', 'staff' => 'Staff'];
+                                    @endphp
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium {{ $roleStyle[$user->role] ?? '' }}">{{ $roleLabel[$user->role] ?? $user->role }}</span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium {{ $user->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
+                                        {{ $user->is_active ? 'Aktif' : 'Nonaktif' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
                         @php
                         $roleStyle = ['admin' => 'bg-purple-500/20 text-purple-400', 'manager' => 'bg-blue-500/20 text-blue-400', 'staff' => 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300'];
                         $roleLabel = ['admin' => 'Admin', 'manager' => 'Manager', 'staff' => 'Staff'];
@@ -42,13 +54,13 @@
                             {{ $roleLabel[$user->role] ?? $user->role }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium {{ $user->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-green-400' : 'bg-red-400' }}"></span>
                             {{ $user->is_active ? 'Aktif' : 'Nonaktif' }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-4 sm:px-6 py-4">
                         <div class="flex items-center justify-end gap-1">
                             @unless($user->isAdmin())
                             <a href="{{ route('tenant.users.edit', $user) }}"

@@ -33,7 +33,7 @@
             </select>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Nama Admin</label>
                 <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name"
@@ -63,7 +63,7 @@
             @enderror
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Password</label>
                 <input id="password" type="password" name="password" required autocomplete="new-password"

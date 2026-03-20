@@ -18,26 +18,26 @@
     <div class="flex-1 flex flex-col min-w-0">
 
         {{-- Topbar --}}
-        <div class="flex items-center gap-3 px-4 h-14 bg-gray-900 border-b border-gray-800 shrink-0">
-            <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-white transition">
+        <div class="flex items-center gap-2 px-3 sm:px-4 h-14 bg-gray-900 border-b border-gray-800 shrink-0">
+            <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-white transition shrink-0">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
             </a>
-            <span class="font-semibold text-white">Kasir POS</span>
-            <span class="text-xs text-gray-500 ml-1">{{ now()->format('d M Y, H:i') }}</span>
+            <span class="font-semibold text-white shrink-0">Kasir POS</span>
+            <span class="text-xs text-gray-500 ml-1 hidden sm:inline shrink-0">{{ now()->format('d M Y, H:i') }}</span>
 
             {{-- Barcode search --}}
-            <div class="flex-1 max-w-sm ml-4 relative">
-                <input id="barcode-input" type="text" placeholder="Scan barcode atau cari produk..."
+            <div class="flex-1 max-w-sm ml-2 sm:ml-4 relative">
+                <input id="barcode-input" type="text" placeholder="Scan barcode atau cari..."
                     class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 pr-10">
                 <svg class="absolute right-3 top-2.5 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
 
-            {{-- Category filter --}}
-            <div class="flex gap-1 overflow-x-auto" id="category-tabs">
+            {{-- Category filter (hidden on very small screens) --}}
+            <div class="hidden sm:flex gap-1 overflow-x-auto" id="category-tabs">
                 <button onclick="filterCategory('')" data-cat=""
                     class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white whitespace-nowrap">
                     Semua
@@ -49,6 +49,15 @@
                 </button>
                 @endforeach
             </div>
+
+            {{-- Cart toggle button (mobile only) --}}
+            <button onclick="toggleCart()" id="cart-toggle-btn"
+                class="sm:hidden relative shrink-0 w-9 h-9 bg-gray-800 rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <span id="cart-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center font-bold">0</span>
+            </button>
         </div>
 
         {{-- Product Grid --}}
@@ -83,7 +92,7 @@
     </div>
 
     {{-- ── Right: Cart & Payment ───────────────────────────── --}}
-    <div class="w-80 xl:w-96 bg-gray-900 border-l border-gray-800 flex flex-col shrink-0">
+    <div id="cart-panel" class="fixed inset-y-0 right-0 z-30 w-80 xl:w-96 bg-gray-900 border-l border-gray-800 flex flex-col shrink-0 translate-x-full sm:translate-x-0 sm:relative sm:inset-auto transition-transform duration-300">
 
         {{-- Cart Header --}}
         <div class="flex items-center justify-between px-4 h-14 border-b border-gray-800 shrink-0">
@@ -175,6 +184,9 @@
     </div>
 </div>
 
+{{-- Cart overlay (mobile) --}}
+<div id="cart-overlay" class="fixed inset-0 z-20 bg-black/60 hidden sm:hidden" onclick="toggleCart()"></div>
+
 {{-- Receipt Modal --}}
 <div id="receipt-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
     <div class="bg-white text-gray-900 rounded-2xl w-80 p-6 shadow-2xl">
@@ -202,6 +214,13 @@ let paymentMethod = 'cash';
 let lastReceipt = null;
 
 // ── Cart ──────────────────────────────────────────────────────────────────
+
+function toggleCart() {
+    const panel = document.getElementById('cart-panel');
+    const overlay = document.getElementById('cart-overlay');
+    panel.classList.toggle('translate-x-full');
+    overlay.classList.toggle('hidden');
+}
 
 function addToCart(el) {
     const id    = parseInt(el.dataset.id);
@@ -245,6 +264,7 @@ function renderCart() {
     if (cart.length === 0) {
         container.innerHTML = '<p class="text-center text-gray-600 text-sm py-8">Belum ada item</p>';
         recalculate();
+        updateCartBadge();
         return;
     }
 
@@ -266,6 +286,20 @@ function renderCart() {
     `).join('');
 
     recalculate();
+    updateCartBadge();
+}
+
+function updateCartBadge() {
+    const total = cart.reduce((s, i) => s + i.qty, 0);
+    const badge = document.getElementById('cart-badge');
+    if (total > 0) {
+        badge.textContent = total > 9 ? '9+' : total;
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+    } else {
+        badge.classList.add('hidden');
+        badge.classList.remove('flex');
+    }
 }
 
 // ── Totals ────────────────────────────────────────────────────────────────

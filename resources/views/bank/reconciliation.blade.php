@@ -20,7 +20,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">File CSV Mutasi</label>
                     <input type="file" name="csv_file" accept=".csv,.txt" required
-                        class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        class="w-full sm:w-auto bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-gray-900 dark:text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">
                     Import
@@ -43,9 +43,9 @@
                     <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
                         <tr>
                             <th class="px-6 py-3 text-left">Tanggal</th>
-                            <th class="px-6 py-3 text-left">Rekening</th>
+                            <th class="px-6 py-3 text-left hidden sm:table-cell">Rekening</th>
                             <th class="px-6 py-3 text-left">Deskripsi</th>
-                            <th class="px-6 py-3 text-left">Tipe</th>
+                            <th class="px-6 py-3 text-left hidden sm:table-cell">Tipe</th>
                             <th class="px-6 py-3 text-right">Jumlah</th>
                             <th class="px-6 py-3 text-left">Status</th>
                             <th class="px-6 py-3 text-left">Aksi</th>
@@ -55,9 +55,9 @@
                         @forelse($statements as $stmt)
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
                             <td class="px-6 py-3 text-gray-500 dark:text-slate-400 whitespace-nowrap">{{ $stmt->transaction_date->format('d M Y') }}</td>
-                            <td class="px-6 py-3 text-gray-500 dark:text-slate-400 text-xs">{{ $stmt->bankAccount?->bank_name }}</td>
+                            <td class="px-6 py-3 text-gray-500 dark:text-slate-400 text-xs hidden sm:table-cell">{{ $stmt->bankAccount?->bank_name }}</td>
                             <td class="px-6 py-3 text-gray-900 dark:text-white max-w-xs truncate">{{ $stmt->description }}</td>
-                            <td class="px-6 py-3">
+                            <td class="px-6 py-3 hidden sm:table-cell">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium
                                     {{ $stmt->type === 'credit' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
                                     {{ $stmt->type === 'credit' ? 'Kredit' : 'Debit' }}

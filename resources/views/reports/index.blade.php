@@ -74,15 +74,15 @@
 
             <div class="flex flex-wrap items-end gap-3" id="form-{{ $r['key'] }}">
                 @if($r['date'])
-                <div>
+                <div class="w-full sm:w-auto">
                     <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Dari Tanggal</label>
                     <input type="date" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}"
-                        class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
-                <div>
+                <div class="w-full sm:w-auto">
                     <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="end_date" value="{{ now()->format('Y-m-d') }}"
-                        class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 @endif
 

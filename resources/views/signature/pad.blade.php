@@ -36,7 +36,7 @@
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Tanda Tangan Anda</h3>
             <div class="border-2 border-dashed border-white/20 rounded-xl overflow-hidden bg-white">
-                <canvas id="signature-canvas" width="600" height="200" class="w-full touch-none cursor-crosshair"></canvas>
+                <canvas id="signature-canvas" height="200" class="w-full touch-none cursor-crosshair"></canvas>
             </div>
             <div class="flex gap-2 mt-3">
                 <button onclick="clearPad()" class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">Hapus</button>
@@ -53,10 +53,18 @@
     let drawing   = false;
     let lastX = 0, lastY = 0;
 
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth   = 2;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
+    // Set canvas internal resolution to match CSS width
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width  = rect.width  || 600;
+        canvas.height = rect.height || 200;
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth   = 2;
+        ctx.lineCap     = 'round';
+        ctx.lineJoin    = 'round';
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();

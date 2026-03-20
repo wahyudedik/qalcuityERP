@@ -13,9 +13,9 @@
                     @endforeach
                 </select>
                 <input type="date" name="date_from" value="{{ request('date_from') }}"
-                    class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                    class="w-full sm:w-auto bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                 <input type="date" name="date_to" value="{{ request('date_to') }}"
-                    class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                    class="w-full sm:w-auto bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-gray-900 dark:text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">Filter</button>
                 <a href="{{ route('audit.index') }}" class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">Reset</a>
             </form>
@@ -29,8 +29,8 @@
                         <th class="px-6 py-3 text-left">Pengguna</th>
                         <th class="px-6 py-3 text-left">Aksi</th>
                         <th class="px-6 py-3 text-left">Deskripsi</th>
-                        <th class="px-6 py-3 text-left">Model</th>
-                        <th class="px-6 py-3 text-left">IP</th>
+                        <th class="px-6 py-3 text-left hidden md:table-cell">Model</th>
+                        <th class="px-6 py-3 text-left hidden md:table-cell">IP</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-white/5">
@@ -42,14 +42,14 @@
                             <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">{{ $log->action }}</span>
                         </td>
                         <td class="px-6 py-3 text-gray-700 dark:text-slate-300 max-w-xs truncate">{{ $log->description }}</td>
-                        <td class="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">
+                        <td class="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs hidden md:table-cell">
                             @if($log->model_type)
                                 {{ class_basename($log->model_type) }} #{{ $log->model_id }}
                             @else
                                 —
                             @endif
                         </td>
-                        <td class="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">{{ $log->ip_address }}</td>
+                        <td class="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs hidden md:table-cell">{{ $log->ip_address }}</td>
                     </tr>
                     @empty
                     <tr>
