@@ -1,29 +1,35 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+    <x-slot name="title">Profil — Qalcuity ERP</x-slot>
+    <x-slot name="header">Profil Saya</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+    <div class="max-w-2xl space-y-4">
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
+        {{-- Update Profile --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+            <div class="mb-5">
+                <p class="font-semibold text-gray-900 dark:text-white">Informasi Profil</p>
+                <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Perbarui nama dan alamat email akun Anda.</p>
             </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
+            @include('profile.partials.update-profile-information-form')
         </div>
+
+        {{-- Update Password --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+            <div class="mb-5">
+                <p class="font-semibold text-gray-900 dark:text-white">Ubah Password</p>
+                <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Gunakan password yang panjang dan acak agar akun tetap aman.</p>
+            </div>
+            @include('profile.partials.update-password-form')
+        </div>
+
+        {{-- Delete Account --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-red-500/20 p-6">
+            <div class="mb-5">
+                <p class="font-semibold text-red-400">Hapus Akun</p>
+                <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Setelah dihapus, semua data akan hilang permanen.</p>
+            </div>
+            @include('profile.partials.delete-user-form')
+        </div>
+
     </div>
 </x-app-layout>

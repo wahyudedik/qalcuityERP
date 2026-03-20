@@ -1,0 +1,36 @@
+{
+    "name": "Qalcuity ERP",
+    "short_name": "Qalcuity",
+    "description": "Sistem ERP berbasis AI untuk UMKM dan industri",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Kasir POS",
+            "url": "/pos",
+            "description": "Buka layar kasir"
+        },
+        {
+            "name": "AI Chat",
+            "url": "/chat",
+            "description": "Chat dengan AI ERP"
+        }
+    ]
+}

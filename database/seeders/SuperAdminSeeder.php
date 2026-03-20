@@ -12,7 +12,7 @@ class SuperAdminSeeder extends Seeder
     {
         User::updateOrCreate(
             ['email' => 'superadmin@qalcuity.com'],
-            [
+            [ 
                 'name'      => 'Super Admin',
                 'password'  => Hash::make('password'),
                 'role'      => 'super_admin',
