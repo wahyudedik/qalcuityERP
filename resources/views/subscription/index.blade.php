@@ -164,13 +164,40 @@
                         @endforeach
                     </ul>
 
-                    <a href="mailto:support@qalcuity.com?subject=Upgrade ke {{ $plan->name }} - {{ $tenant?->name }}"
-                       class="block text-center text-sm font-semibold py-2.5 rounded-xl transition
-                           {{ $isCurrent
-                               ? 'bg-blue-500/20 text-blue-400 cursor-default'
-                               : 'bg-blue-600 text-gray-900 dark:text-white hover:bg-blue-500' }}">
-                        {{ $isCurrent ? 'Paket Aktif' : 'Pilih Paket Ini' }}
+                    @if($isCurrent)
+                    <div class="block text-center text-sm font-semibold py-2.5 rounded-xl bg-blue-500/20 text-blue-400">
+                        Paket Aktif
+                    </div>
+                    @elseif(config('services.midtrans.server_key') || config('services.xendit.secret_key'))
+                    <div class="space-y-2">
+                        @if(config('services.midtrans.server_key'))
+                        <form method="POST" action="{{ route('payment.midtrans.checkout') }}">
+                            @csrf
+                            <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                            <input type="hidden" name="billing" value="monthly">
+                            <button type="submit" class="w-full text-sm font-semibold py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition">
+                                Bayar via Midtrans
+                            </button>
+                        </form>
+                        @endif
+                        @if(config('services.xendit.secret_key'))
+                        <form method="POST" action="{{ route('payment.xendit.checkout') }}">
+                            @csrf
+                            <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                            <input type="hidden" name="billing" value="monthly">
+                            <button type="submit" class="w-full text-sm font-semibold py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition">
+                                Bayar via Xendit
+                            </button>
+                        </form>
+                        @endif
+                    </div>
+                    @else
+                    <a href="https://wa.me/6281654932383?text=Halo,%20saya%20ingin%20upgrade%20ke%20paket%20{{ urlencode($plan->name) }}"
+                       target="_blank"
+                       class="block text-center text-sm font-semibold py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition">
+                        Hubungi Kami
                     </a>
+                    @endif
                 </div>
                 @endforeach
             </div>

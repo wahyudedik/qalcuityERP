@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,14 +44,14 @@ class RegisteredUserController extends Controller
 
         // Buat tenant baru
         $tenant = Tenant::create([
-            'name'                 => $request->company_name,
-            'slug'                 => $slug,
-            'email'                => $request->email,
-            'phone'                => $request->phone,
-            'business_type'        => $request->business_type,
-            'plan'                 => 'trial',
-            'is_active'            => true,
-            'trial_ends_at'        => now()->addDays(14),
+            'name'          => $request->company_name,
+            'slug'          => $slug,
+            'email'         => $request->email,
+            'phone'         => $request->phone,
+            'business_type' => $request->business_type,
+            'plan'          => 'trial',
+            'is_active'     => true,
+            'trial_ends_at' => now()->addDays(14),
         ]);
 
         // Buat user admin untuk tenant ini
@@ -63,8 +65,22 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        // Kirim welcome email (queued)
+        $user->notify(new WelcomeNotification($user->load('tenant')));
+
+        // In-app notification: selamat datang
+        ErpNotification::create([
+            'tenant_id' => $tenant->id,
+            'user_id'   => $user->id,
+            'type'      => 'welcome',
+            'title'     => '🎉 Selamat datang di Qalcuity ERP!',
+            'body'      => "Akun trial 14 hari Anda aktif. Mulai dengan mengatur profil perusahaan dan tambahkan produk pertama Anda.",
+            'data'      => ['tenant_id' => $tenant->id],
+        ]);
+
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('onboarding.show');
     }
 }

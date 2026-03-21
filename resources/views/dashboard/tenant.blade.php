@@ -129,37 +129,42 @@
     const tickColor = '#94a3b8';
     const tickFont  = { size: 10, family: 'Inter' };
 
-    new Chart(document.getElementById('salesChart'), {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode(array_column($sales['chart'], 'date')) !!},
-            datasets: [{ label: 'Penjualan', data: {!! json_encode(array_column($sales['chart'], 'total')) !!},
-                backgroundColor: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6',
-                borderWidth: 2, borderRadius: 8, borderSkipped: false }]
-        },
-        options: { ...chartDefaults, scales: {
-            y: { ticks: { callback: v => 'Rp' + (v/1e6).toFixed(1) + 'jt', font: tickFont, color: tickColor }, grid: { color: gridColor } },
-            x: { ticks: { font: tickFont, color: tickColor }, grid: { display: false } }
-        }}
-    });
+    // Delay chart init until layout is fully painted — fixes mobile glitch
+    requestAnimationFrame(() => setTimeout(() => {
 
-    new Chart(document.getElementById('financeChart'), {
-        type: 'line',
-        data: {
-            labels: {!! json_encode(array_column($finance['chart'], 'month')) !!},
-            datasets: [
-                { label: 'Pemasukan',   data: {!! json_encode(array_column($finance['chart'], 'income')) !!},  borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#10b981' },
-                { label: 'Pengeluaran', data: {!! json_encode(array_column($finance['chart'], 'expense')) !!}, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',   tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#ef4444' },
-            ]
-        },
-        options: { ...chartDefaults,
-            plugins: { legend: { display: true, labels: { font: { size: 11, family: 'Inter' }, color: tickColor, boxWidth: 10, usePointStyle: true } } },
-            scales: {
+        new Chart(document.getElementById('salesChart'), {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(array_column($sales['chart'], 'date')) !!},
+                datasets: [{ label: 'Penjualan', data: {!! json_encode(array_column($sales['chart'], 'total')) !!},
+                    backgroundColor: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6',
+                    borderWidth: 2, borderRadius: 8, borderSkipped: false }]
+            },
+            options: { ...chartDefaults, scales: {
                 y: { ticks: { callback: v => 'Rp' + (v/1e6).toFixed(1) + 'jt', font: tickFont, color: tickColor }, grid: { color: gridColor } },
                 x: { ticks: { font: tickFont, color: tickColor }, grid: { display: false } }
+            }}
+        });
+
+        new Chart(document.getElementById('financeChart'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode(array_column($finance['chart'], 'month')) !!},
+                datasets: [
+                    { label: 'Pemasukan',   data: {!! json_encode(array_column($finance['chart'], 'income')) !!},  borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#10b981' },
+                    { label: 'Pengeluaran', data: {!! json_encode(array_column($finance['chart'], 'expense')) !!}, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',   tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#ef4444' },
+                ]
+            },
+            options: { ...chartDefaults,
+                plugins: { legend: { display: true, labels: { font: { size: 11, family: 'Inter' }, color: tickColor, boxWidth: 10, usePointStyle: true } } },
+                scales: {
+                    y: { ticks: { callback: v => 'Rp' + (v/1e6).toFixed(1) + 'jt', font: tickFont, color: tickColor }, grid: { color: gridColor } },
+                    x: { ticks: { font: tickFont, color: tickColor }, grid: { display: false } }
+                }
             }
-        }
-    });
+        });
+
+    }, 50));
     </script>
     @endpush
 </x-app-layout>

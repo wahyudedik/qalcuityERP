@@ -12,14 +12,16 @@ class Tenant extends Model
         'name', 'slug', 'email', 'phone', 'address', 'logo',
         'plan', 'is_active', 'trial_ends_at', 'plan_expires_at',
         'subscription_plan_id', 'business_type', 'business_description',
+        'onboarding_completed',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active'      => 'boolean',
-            'trial_ends_at'  => 'datetime',
-            'plan_expires_at' => 'datetime',
+            'is_active'             => 'boolean',
+            'trial_ends_at'         => 'datetime',
+            'plan_expires_at'       => 'datetime',
+            'onboarding_completed'  => 'boolean',
         ];
     }
 

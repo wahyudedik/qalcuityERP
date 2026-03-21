@@ -25,6 +25,11 @@ class DashboardController extends Controller
 
         $tenantId = $user->tenant_id;
 
+        // Redirect ke onboarding jika belum selesai (admin saja)
+        if ($user->isAdmin() && $user->tenant && !$user->tenant->onboarding_completed) {
+            return redirect()->route('onboarding.show');
+        }
+
         return view('dashboard.tenant', [
             'sales'     => $this->salesStats($tenantId),
             'inventory' => $this->inventoryStats($tenantId),

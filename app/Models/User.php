@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable 
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
@@ -19,6 +21,9 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'avatar',
+        'phone',
+        'bio',
     ];
 
     protected $hidden = [
@@ -75,5 +80,18 @@ class User extends Authenticatable
     public function belongsToTenant(int $tenantId): bool
     {
         return $this->isSuperAdmin() || $this->tenant_id === $tenantId;
+    }
+
+    /**
+     * URL avatar — fallback ke initials avatar jika belum upload.
+     */
+    public function avatarUrl(): string
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        // UI Avatars fallback
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name)
+            . '&background=3b82f6&color=fff&size=128&bold=true';
     }
 }

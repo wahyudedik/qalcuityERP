@@ -21,7 +21,7 @@
     ];
     @endphp
 
-    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         @foreach($cards as $card)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-start justify-between mb-4">
@@ -170,42 +170,47 @@
     const tickColor = '#94a3b8';
     const gridColor = 'rgba(255,255,255,0.06)';
 
-    new Chart(document.getElementById('growthChart'), {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode(array_column($growthChart, 'month')) !!},
-            datasets: [{ label: 'Tenant Baru', data: {!! json_encode(array_column($growthChart, 'count')) !!},
-                backgroundColor: 'rgba(99,102,241,0.2)', borderColor: '#6366f1',
-                borderWidth: 2, borderRadius: 8, borderSkipped: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { ticks: { stepSize: 1, font: tickFont, color: tickColor }, grid: { color: gridColor } },
-                x: { ticks: { font: tickFont, color: tickColor }, grid: { display: false } }
-            }
-        }
-    });
-
     @php
     $planChartData   = array_values($planDist);
     $planChartLabels = array_map(fn($k) => $planLabels[$k] ?? ucfirst($k), array_keys($planDist));
     $planChartColors = array_map(fn($k) => $planColors[$k] ?? '#94a3b8', array_keys($planDist));
     @endphp
 
-    @if(!empty($planDist))
-    new Chart(document.getElementById('planChart'), {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode($planChartLabels) !!},
-            datasets: [{ data: {!! json_encode($planChartData) !!}, backgroundColor: {!! json_encode($planChartColors) !!}, borderWidth: 0, hoverOffset: 4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' tenant' } } },
-            cutout: '70%'
-        }
-    });
-    @endif
+    // Delay chart init until layout is fully painted — fixes mobile glitch
+    requestAnimationFrame(() => setTimeout(() => {
+
+        new Chart(document.getElementById('growthChart'), {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(array_column($growthChart, 'month')) !!},
+                datasets: [{ label: 'Tenant Baru', data: {!! json_encode(array_column($growthChart, 'count')) !!},
+                    backgroundColor: 'rgba(99,102,241,0.2)', borderColor: '#6366f1',
+                    borderWidth: 2, borderRadius: 8, borderSkipped: false }]
+            },
+            options: { responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { stepSize: 1, font: tickFont, color: tickColor }, grid: { color: gridColor } },
+                    x: { ticks: { font: tickFont, color: tickColor }, grid: { display: false } }
+                }
+            }
+        });
+
+        @if(!empty($planDist))
+        new Chart(document.getElementById('planChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($planChartLabels) !!},
+                datasets: [{ data: {!! json_encode($planChartData) !!}, backgroundColor: {!! json_encode($planChartColors) !!}, borderWidth: 0, hoverOffset: 4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' tenant' } } },
+                cutout: '70%'
+            }
+        });
+        @endif
+
+    }, 50));
     </script>
     @endpush
 </x-app-layout>

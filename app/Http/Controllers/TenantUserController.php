@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ErpNotification;
 use App\Models\User;
+use App\Notifications\NewUserAddedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -40,17 +42,32 @@ class TenantUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        User::create([
+        $plainPassword = $request->password;
+
+        $user = User::create([
             'tenant_id' => $this->tenantId(),
             'name'      => $request->name,
             'email'     => $request->email,
             'role'      => $request->role,
-            'password'  => Hash::make($request->password),
+            'password'  => Hash::make($plainPassword),
             'is_active' => true,
         ]);
 
+        // Kirim email kredensial ke user baru
+        $user->notify(new NewUserAddedNotification($user->load('tenant'), $plainPassword));
+
+        // In-app notification untuk admin
+        ErpNotification::create([
+            'tenant_id' => $this->tenantId(),
+            'user_id'   => auth()->id(),
+            'type'      => 'user_added',
+            'title'     => '👤 Pengguna Baru Ditambahkan',
+            'body'      => "Akun untuk {$request->name} ({$request->role}) berhasil dibuat dan email kredensial telah dikirim.",
+            'data'      => ['user_id' => $user->id, 'role' => $request->role],
+        ]);
+
         return redirect()->route('tenant.users.index')
-            ->with('success', 'Pengguna berhasil ditambahkan.');
+            ->with('success', "Pengguna berhasil ditambahkan. Email kredensial dikirim ke {$request->email}.");
     }
 
     public function edit(User $user): View

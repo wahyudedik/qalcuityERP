@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\ApprovalRequest;
 use App\Models\ApprovalWorkflow;
 use App\Models\ActivityLog;
+use App\Models\ErpNotification;
+use App\Notifications\ApprovalRequestNotification;
+use App\Notifications\ApprovalResponseNotification;
 use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
@@ -45,6 +48,20 @@ class ApprovalController extends Controller
 
         ActivityLog::record('approval_approved', "Disetujui: {$approval->workflow?->name}", $approval);
 
+        // Notifikasi ke requester
+        if ($approval->requester) {
+            $approval->requester->notify(new ApprovalResponseNotification($approval->load('workflow', 'approver')));
+
+            ErpNotification::create([
+                'tenant_id' => $approval->tenant_id,
+                'user_id'   => $approval->requested_by,
+                'type'      => 'approval_approved',
+                'title'     => '✅ Permintaan Disetujui',
+                'body'      => "Permintaan \"{$approval->workflow?->name}\" Anda telah disetujui oleh " . auth()->user()->name . ".",
+                'data'      => ['approval_id' => $approval->id],
+            ]);
+        }
+
         return back()->with('success', 'Permintaan disetujui.');
     }
 
@@ -65,6 +82,20 @@ class ApprovalController extends Controller
         }
 
         ActivityLog::record('approval_rejected', "Ditolak: {$approval->workflow?->name}", $approval);
+
+        // Notifikasi ke requester
+        if ($approval->requester) {
+            $approval->requester->notify(new ApprovalResponseNotification($approval->load('workflow', 'approver')));
+
+            ErpNotification::create([
+                'tenant_id' => $approval->tenant_id,
+                'user_id'   => $approval->requested_by,
+                'type'      => 'approval_rejected',
+                'title'     => '❌ Permintaan Ditolak',
+                'body'      => "Permintaan \"{$approval->workflow?->name}\" Anda ditolak. Alasan: {$request->reason}",
+                'data'      => ['approval_id' => $approval->id],
+            ]);
+        }
 
         return back()->with('success', 'Permintaan ditolak.');
     }

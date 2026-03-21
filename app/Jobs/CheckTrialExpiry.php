@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\TrialExpiryNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -63,17 +64,25 @@ class CheckTrialExpiry implements ShouldQueue
 
         $admins = User::where('tenant_id', $tenant->id)
             ->where('role', 'admin')
-            ->pluck('id');
+            ->get();
 
-        foreach ($admins as $userId) {
+        $daysLeft = (int) now()->diffInDays($tenant->trial_ends_at ?? $tenant->plan_expires_at, false);
+
+        foreach ($admins as $admin) {
+            // In-app notification
             ErpNotification::create([
                 'tenant_id' => $tenant->id,
-                'user_id'   => $userId,
+                'user_id'   => $admin->id,
                 'type'      => $type,
                 'title'     => $title,
                 'body'      => $body,
                 'data'      => ['plan' => $tenant->plan, 'expires_at' => $tenant->trial_ends_at ?? $tenant->plan_expires_at],
             ]);
+
+            // Email notification
+            if ($type === 'trial_expiring') {
+                $admin->notify(new TrialExpiryNotification($tenant, $daysLeft));
+            }
         }
     }
 }

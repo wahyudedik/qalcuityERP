@@ -8,6 +8,8 @@ use App\Models\Employee;
 use App\Models\EmployeeReport;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\LowStockEmailNotification;
+use App\Notifications\TrialExpiryNotification;
 
 class NotificationService
 {
@@ -31,6 +33,8 @@ class NotificationService
             ->pluck('id');
 
         $count = 0;
+        $emailItems = [];
+
         foreach ($lowStocks as $stock) {
             // Hindari duplikat notifikasi hari ini
             $exists = ErpNotification::where('tenant_id', $tenantId)
@@ -57,7 +61,22 @@ class NotificationService
                     ],
                 ]);
             }
+
+            $emailItems[] = [
+                'product' => $stock->product->name,
+                'qty'     => $stock->quantity,
+                'unit'    => $stock->product->unit ?? 'pcs',
+                'min'     => $stock->product->stock_min,
+            ];
             $count++;
+        }
+
+        // Kirim 1 email ringkasan per hari ke admin/manager
+        if (!empty($emailItems)) {
+            $adminUsers = User::whereIn('id', $recipients)->get();
+            foreach ($adminUsers as $admin) {
+                $admin->notify(new LowStockEmailNotification($emailItems));
+            }
         }
 
         return $count;
@@ -130,6 +149,54 @@ class NotificationService
             'low_stock'       => $this->checkLowStock($tenantId),
             'missing_reports' => $this->checkMissingReports($tenantId, 'weekly'),
         ];
+    }
+
+    /**
+     * Cek trial yang akan berakhir dan kirim notifikasi (7 hari & 1 hari sebelum).
+     */
+    public function checkTrialExpiry(): int
+    {
+        $count = 0;
+
+        Tenant::where('plan', 'trial')
+            ->where('is_active', true)
+            ->whereNotNull('trial_ends_at')
+            ->get()
+            ->each(function (Tenant $tenant) use (&$count) {
+                $daysLeft = (int) now()->diffInDays($tenant->trial_ends_at, false);
+
+                if (!in_array($daysLeft, [7, 3, 1])) return;
+
+                // Cek sudah kirim hari ini
+                $alreadySent = ErpNotification::where('tenant_id', $tenant->id)
+                    ->where('type', 'trial_expiry')
+                    ->where('data->days_left', $daysLeft)
+                    ->whereDate('created_at', today())
+                    ->exists();
+
+                if ($alreadySent) return;
+
+                $admins = User::where('tenant_id', $tenant->id)
+                    ->whereIn('role', ['admin'])
+                    ->get();
+
+                foreach ($admins as $admin) {
+                    $admin->notify(new TrialExpiryNotification($tenant, $daysLeft));
+
+                    ErpNotification::create([
+                        'tenant_id' => $tenant->id,
+                        'user_id'   => $admin->id,
+                        'type'      => 'trial_expiry',
+                        'title'     => "⏰ Trial berakhir dalam {$daysLeft} hari",
+                        'body'      => "Trial gratis Anda akan berakhir dalam {$daysLeft} hari. Upgrade sekarang untuk tetap menggunakan Qalcuity ERP.",
+                        'data'      => ['days_left' => $daysLeft],
+                    ]);
+                }
+
+                $count++;
+            });
+
+        return $count;
     }
 
     /**
