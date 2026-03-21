@@ -10,6 +10,7 @@ use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
@@ -71,6 +72,9 @@ class ChatController extends Controller
         }
 
         $registry = new ToolRegistry($tenantId, $user->id);
+        // Filter tool declarations berdasarkan role user
+        $allowedTools = $user->allowedAiTools();
+        $toolDeclarations = $registry->getDeclarations($allowedTools);
 
         // Cek limit AI messages per bulan berdasarkan plan tenant
         $tenant = $user->tenant;
@@ -81,7 +85,9 @@ class ChatController extends Controller
             $this->gemini->withTenantContext($tenant->aiBusinessContext());
         }
         if ($maxAi !== -1) {
-            $usedThisMonth = AiUsageLog::tenantMonthlyCount($tenantId);
+            // Cache quota count 60 detik untuk kurangi DB query
+            $cacheKey = "ai_quota_{$tenantId}_" . now()->format('Y-m');
+            $usedThisMonth = Cache::remember($cacheKey, 60, fn() => AiUsageLog::tenantMonthlyCount($tenantId));
             if ($usedThisMonth >= $maxAi) {
                 return response()->json([
                     'session_id' => $session->id,
@@ -97,24 +103,51 @@ class ChatController extends Controller
             $response = $this->gemini->chatWithTools(
                 message: $this->buildSystemPrompt($request->message, $user),
                 history: $history,
-                toolDeclarations: $registry->getDeclarations(),
+                toolDeclarations: $toolDeclarations,
             );
 
             $functionCalls = $response['function_calls'] ?? [];
 
             // Step 2: Jika Gemini tidak memanggil function, langsung return teks
             if (empty($functionCalls)) {
-                $text = $response['text'] ?: 'Maaf, saya tidak dapat memproses permintaan tersebut.';
+                $text = $response['text'] ?? '';
+
+                // Jika teks juga kosong, kemungkinan Gemini gagal generate — retry sekali
+                if (empty(trim($text))) {
+                    Log::warning('ChatController: empty response from Gemini, retrying with explicit instruction');
+                    $retryMessage = $this->buildSystemPrompt($request->message, $user)
+                        . "\n\n[INSTRUKSI: Jika tidak ada tool yang relevan, jawab langsung dengan teks. Jangan kembalikan respons kosong.]";
+                    $retryResponse = $this->gemini->chatWithTools(
+                        message: $retryMessage,
+                        history: $history,
+                        toolDeclarations: $toolDeclarations,
+                    );
+                    $text = $retryResponse['text'] ?? '';
+                    $functionCalls = $retryResponse['function_calls'] ?? [];
+
+                    // Jika retry menghasilkan function calls, lanjutkan ke Step 3
+                    if (!empty($functionCalls)) {
+                        $response = $retryResponse;
+                        goto execute_functions;
+                    }
+                }
+
+                $text = $text ?: 'Maaf, saya tidak dapat memproses permintaan tersebut. Coba ulangi dengan kalimat yang lebih spesifik.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
                 AiUsageLog::track($tenantId, $user->id, strlen($text));
+                // Invalidate quota cache setelah track
+                Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
 
                 return response()->json([
-                    'session_id' => $session->id,
-                    'message'    => $text,
-                    'model'      => $response['model'],
-                    'actions'    => [],
+                    'session_id'    => $session->id,
+                    'session_title' => $session->title,
+                    'message'       => $text,
+                    'model'         => $response['model'],
+                    'actions'       => [],
                 ]);
             }
+
+            execute_functions:
 
             // Step 3: Validasi dan eksekusi setiap function call
             $functionResults = [];
@@ -140,6 +173,13 @@ class ChatController extends Controller
                 $result = $registry->execute($toolName, $args);
                 Log::info("ChatController: executed tool [{$toolName}]", ['result' => $result]);
 
+                // Jika tool result punya field 'actions', inject ke message agar Gemini render actions block
+                if (!empty($result['actions']) && is_array($result['actions'])) {
+                    $actionsJson = json_encode($result['actions'], JSON_UNESCAPED_UNICODE);
+                    $result['message'] = ($result['message'] ?? '') . "\n\n```actions\n{$actionsJson}\n```";
+                    unset($result['actions']); // hindari duplikasi
+                }
+
                 // Simpan args di _args agar bisa dipakai untuk reconstruct model turn di sendFunctionResults
                 $result['_args'] = $args;
                 $functionResults[] = ['name' => $toolName, 'data' => $result];
@@ -151,6 +191,7 @@ class ChatController extends Controller
                 $errorMsg = $this->buildValidationErrorMessage($validationErrors);
                 $this->sessionManager->saveModelMessage($session, $errorMsg, $response['model']);
                 AiUsageLog::track($tenantId, $user->id, strlen($errorMsg));
+                Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
 
                 return response()->json([
                     'session_id'        => $session->id,
@@ -165,7 +206,7 @@ class ChatController extends Controller
             $finalResponse = $this->gemini->sendFunctionResults(
                 originalMessage: $request->message,
                 history: $history,
-                toolDeclarations: $registry->getDeclarations(),
+                toolDeclarations: $toolDeclarations, // reuse, tidak build ulang
                 functionResults: $functionResults,
             );
 
@@ -178,10 +219,11 @@ class ChatController extends Controller
                 $executedActions
             );
             AiUsageLog::track($tenantId, $user->id, strlen($finalText));
+            Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
 
             return response()->json([
                 'session_id'    => $session->id,
-                'session_title' => $session->fresh()->title,
+                'session_title' => $session->title,
                 'message'       => $finalText,
                 'model'         => $finalResponse['model'],
                 'actions'       => $executedActions,
@@ -217,14 +259,31 @@ class ChatController extends Controller
         $history  = $this->sessionManager->getHistory($session);
         $message  = $request->message ?? 'Tolong analisis file/gambar ini.';
 
-        // Encode files to base64 for Gemini
+        // Encode files to base64 for Gemini, and save images to storage for tool use
         $files = [];
         $fileLabels = [];
+        $uploadedImageUrls = []; // URLs gambar yang sudah disimpan ke storage
+
         foreach ($request->file('files') as $file) {
             $mimeType = $file->getMimeType();
             $data     = base64_encode(file_get_contents($file->getRealPath()));
             $files[]  = ['mime_type' => $mimeType, 'data' => $data];
             $fileLabels[] = $file->getClientOriginalName() . ' (' . $this->humanFileSize($file->getSize()) . ')';
+
+            // Simpan gambar ke storage agar bisa dipakai oleh update_product_image tool
+            if (str_starts_with($mimeType, 'image/')) {
+                $ext = $file->getClientOriginalExtension() ?: 'jpg';
+                $path = $file->storeAs('products', uniqid('chat_') . '.' . $ext, 'public');
+                $uploadedImageUrls[] = \Illuminate\Support\Facades\Storage::url($path);
+            }
+        }
+
+        // Inject URL gambar ke context message agar AI bisa pakai di tool call
+        $contextMessage = $message;
+        if (!empty($uploadedImageUrls)) {
+            $urlList = implode(', ', $uploadedImageUrls);
+            $contextMessage .= "\n\n[SISTEM: Gambar telah diupload ke server. URL gambar: {$urlList}. "
+                . "Gunakan URL ini sebagai image_url saat memanggil update_product_image.]";
         }
 
         // Save user message with file info
@@ -236,6 +295,9 @@ class ChatController extends Controller
         if ($tenant && $tenant->business_type) {
             $this->gemini->withTenantContext($tenant->aiBusinessContext());
         }
+
+        // Detect language from user message
+        $this->gemini->withLanguage($this->detectLanguage($message));
 
         // Check AI quota
         if ($tenantId) {
@@ -254,13 +316,16 @@ class ChatController extends Controller
 
         try {
             $registry = $tenantId ? new ToolRegistry($tenantId, $user->id) : null;
-            $contextMessage = $this->buildSystemPrompt($message, $user);
+            $allowedTools = $tenantId ? $user->allowedAiTools() : null;
+
+            // Gabungkan system prompt + context message (sudah include URL gambar jika ada)
+            $fullContextMessage = $this->buildSystemPrompt($contextMessage, $user);
 
             $response = $this->gemini->chatWithMedia(
-                message: $contextMessage,
+                message: $fullContextMessage,
                 files: $files,
                 history: $history,
-                toolDeclarations: $registry ? $registry->getDeclarations() : [],
+                toolDeclarations: $registry ? $registry->getDeclarations($allowedTools) : [],
             );
 
             $functionCalls = $response['function_calls'] ?? [];
@@ -278,7 +343,7 @@ class ChatController extends Controller
                 $finalResponse = $this->gemini->sendFunctionResults(
                     originalMessage: $message,
                     history: $history,
-                    toolDeclarations: $registry->getDeclarations(),
+                    toolDeclarations: $registry->getDeclarations($allowedTools),
                     functionResults: $functionResults,
                 );
                 $text = $finalResponse['text'] ?? $text;
@@ -320,6 +385,18 @@ class ChatController extends Controller
     }
 
     /**
+     * Rename session title.
+     * PATCH /chat/{session}/rename
+     */
+    public function rename(Request $request, ChatSession $session): JsonResponse
+    {
+        abort_if($session->user_id !== $request->user()->id, 403);
+        $request->validate(['title' => 'required|string|max:100']);
+        $session->update(['title' => $request->title]);
+        return response()->json(['success' => true, 'title' => $session->title]);
+    }
+
+    /**
      * Hapus (soft) session.
      * DELETE /chat/{session}
      */
@@ -342,12 +419,114 @@ class ChatController extends Controller
         $tenant = $user->tenant;
         if (!$tenant) return $message;
 
-        $context = "[KONTEKS SISTEM: Kamu sedang melayani pengguna bernama \"{$user->name}\" "
-            . "(role: {$user->role}) dari perusahaan \"{$tenant->name}\". "
-            . "Semua data yang kamu akses melalui tools adalah milik perusahaan ini saja. "
-            . "Jangan pernah menyebut atau mengasumsikan data dari perusahaan lain.]\n\n";
+        $lang = $this->detectLanguage($message);
+        $this->gemini->withLanguage($lang);
+
+        $context = "[SYSTEM CONTEXT: You are serving user \"{$user->name}\" "
+            . "(role: {$user->role}) from company \"{$tenant->name}\". "
+            . "All data accessed via tools belongs exclusively to this company. "
+            . "Never reference or assume data from other companies.]\n\n";
 
         return $context . $message;
+    }
+
+    /**
+     * Detect the primary language of a message using Unicode script ranges
+     * and common word patterns. Returns an ISO 639-1 language code.
+     */
+    protected function detectLanguage(string $text): string
+    {
+        $text = mb_strtolower(trim($text));
+
+        if (empty($text)) return 'id';
+
+        // Script-based detection (fast, no external dependency)
+        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text))  return 'zh'; // Chinese
+        if (preg_match('/[\x{3040}-\x{30ff}]/u', $text))  return 'ja'; // Japanese
+        if (preg_match('/[\x{ac00}-\x{d7af}]/u', $text))  return 'ko'; // Korean
+        if (preg_match('/[\x{0600}-\x{06ff}]/u', $text))  return 'ar'; // Arabic
+        if (preg_match('/[\x{0900}-\x{097f}]/u', $text))  return 'hi'; // Hindi/Devanagari
+        if (preg_match('/[\x{0e00}-\x{0e7f}]/u', $text))  return 'th'; // Thai
+        if (preg_match('/[\x{1e00}-\x{1eff}]/u', $text))  return 'vi'; // Vietnamese extended
+
+        // Latin-script languages — keyword-based
+        $words = preg_split('/\s+/', $text);
+        $wordCount = count($words);
+
+        // Indonesian/Malay markers
+        $idWords = ['yang', 'dan', 'di', 'ke', 'dari', 'untuk', 'dengan', 'ini', 'itu',
+                    'ada', 'tidak', 'bisa', 'saya', 'kami', 'kita', 'anda', 'jual',
+                    'beli', 'stok', 'produk', 'harga', 'laporan', 'catat', 'tambah',
+                    'berapa', 'tolong', 'mohon', 'gimana', 'bagaimana', 'kenapa',
+                    // kata bisnis & percakapan sehari-hari
+                    'grafik', 'omzet', 'hari', 'minggu', 'bulan', 'tahun',
+                    'kamu', 'lakukan', 'saja', 'apa', 'siapa', 'kapan', 'dimana',
+                    'mana', 'buat', 'lihat', 'cek', 'cari', 'hapus', 'ubah', 'ganti',
+                    'kirim', 'bayar', 'terima', 'proses', 'jalankan', 'hitung',
+                    'penjualan', 'pembelian', 'keuangan', 'karyawan', 'pelanggan',
+                    'supplier', 'gudang', 'aset', 'proyek', 'anggaran', 'gaji',
+                    'absensi', 'invoice', 'tagihan', 'piutang', 'hutang', 'laba',
+                    'rugi', 'biaya', 'pendapatan', 'transaksi', 'pembayaran',
+                    'tren', 'ringkasan', 'rekap', 'summary', 'kondisi', 'bisnis',
+                    'fitur', 'menu', 'cara', 'panduan', 'tutorial', 'bantuan',
+                    'bisa', 'boleh', 'mau', 'ingin', 'perlu', 'harus', 'sudah',
+                    'belum', 'sedang', 'akan', 'punya', 'ada', 'tidak', 'jangan',
+                    'semua', 'beberapa', 'banyak', 'sedikit', 'total', 'jumlah'];
+        $msWords = ['saya', 'anda', 'dengan', 'untuk', 'kepada', 'daripada', 'boleh',
+                    'hendak', 'mahu', 'sudah', 'belum', 'juga', 'pula', 'sahaja'];
+
+        // English markers
+        $enWords = ['the', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'will',
+                    'would', 'can', 'could', 'should', 'what', 'how', 'show', 'list',
+                    'get', 'create', 'update', 'delete', 'please', 'help', 'report'];
+
+        // French markers
+        $frWords = ['le', 'la', 'les', 'de', 'du', 'des', 'est', 'sont', 'avec',
+                    'pour', 'dans', 'sur', 'par', 'que', 'qui', 'une', 'un'];
+
+        // Spanish markers
+        $esWords = ['el', 'la', 'los', 'las', 'de', 'del', 'es', 'son', 'con',
+                    'para', 'en', 'por', 'que', 'una', 'un', 'como', 'pero'];
+
+        // Portuguese markers
+        $ptWords = ['o', 'a', 'os', 'as', 'de', 'do', 'da', 'dos', 'das', 'é',
+                    'são', 'com', 'para', 'em', 'por', 'que', 'uma', 'um'];
+
+        // German markers
+        $deWords = ['der', 'die', 'das', 'den', 'dem', 'des', 'ist', 'sind', 'mit',
+                    'für', 'in', 'auf', 'von', 'zu', 'und', 'oder', 'nicht', 'auch'];
+
+        $scores = [
+            'id' => 0, 'ms' => 0, 'en' => 0,
+            'fr' => 0, 'es' => 0, 'pt' => 0, 'de' => 0,
+        ];
+
+        foreach ($words as $word) {
+            $word = preg_replace('/[^a-z]/', '', $word);
+            if (!$word) continue;
+            if (in_array($word, $idWords)) $scores['id']++;
+            if (in_array($word, $msWords)) $scores['ms']++;
+            if (in_array($word, $enWords)) $scores['en']++;
+            if (in_array($word, $frWords)) $scores['fr']++;
+            if (in_array($word, $esWords)) $scores['es']++;
+            if (in_array($word, $ptWords)) $scores['pt']++;
+            if (in_array($word, $deWords)) $scores['de']++;
+        }
+
+        // Normalize by word count to avoid bias on long messages
+        $threshold = max(1, $wordCount * 0.1); // at least 10% of words must match
+
+        arsort($scores);
+        $topLang  = array_key_first($scores);
+        $topScore = $scores[$topLang];
+
+        // If no clear winner, default to Indonesian (primary app language)
+        if ($topScore < 1) return 'id';
+
+        // Disambiguate ID vs MS (very similar) — prefer ID as app default
+        if ($topLang === 'ms' && $scores['id'] >= $scores['ms'] * 0.8) return 'id';
+
+        return $topLang;
     }
 
     protected function buildValidationErrorMessage(array $errors): string

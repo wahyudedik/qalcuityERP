@@ -26,6 +26,9 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\LoyaltyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::post('/onboarding', [OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::get('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
+    Route::post('/onboarding/ai-chat', [OnboardingController::class, 'aiChat'])->name('onboarding.ai-chat');
 });
 
 Route::middleware('auth')->group(function () {
@@ -61,6 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/send', [ChatController::class, 'send'])->name('send');
         Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media');
         Route::get('/{session}/messages', [ChatController::class, 'messages'])->name('messages');
+        Route::patch('/{session}/rename', [ChatController::class, 'rename'])->name('rename');
         Route::delete('/{session}', [ChatController::class, 'destroy'])->name('destroy');
     });
 
@@ -124,7 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/profit-loss/pdf', [ReportController::class, 'exportProfitLossPdf'])->name('profit-loss.pdf');
     });
 
-    // POS Kasir
+    // POS Kasir (semua role tenant bisa akses)
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
         Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
@@ -134,6 +139,7 @@ Route::middleware('auth')->group(function () {
     // Approval Workflow
     Route::prefix('approvals')->name('approvals.')->middleware('role:admin,manager')->group(function () {
         Route::get('/', [ApprovalController::class, 'index'])->name('index');
+        Route::post('/', [ApprovalController::class, 'store'])->name('store');
         Route::post('/{approval}/approve', [ApprovalController::class, 'approve'])->name('approve');
         Route::post('/{approval}/reject', [ApprovalController::class, 'reject'])->name('reject');
     });
@@ -214,10 +220,42 @@ Route::middleware('auth')->group(function () {
     // CRM (admin + manager only)
     Route::prefix('crm')->name('crm.')->middleware('role:admin,manager')->group(function () {
         Route::get('/', [CrmController::class, 'index'])->name('index');
+        Route::get('/kanban', [CrmController::class, 'kanban'])->name('kanban');
         Route::post('/', [CrmController::class, 'store'])->name('store');
         Route::patch('/{lead}/stage', [CrmController::class, 'updateStage'])->name('stage');
+        Route::patch('/{lead}/stage-drag', [CrmController::class, 'updateStageDrag'])->name('stage-drag');
         Route::post('/{lead}/activity', [CrmController::class, 'logActivity'])->name('activity');
         Route::delete('/{lead}', [CrmController::class, 'destroy'])->name('destroy');
+    });
+
+    // Project Management (admin + manager only)
+    Route::prefix('projects')->name('projects.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [ProjectController::class, 'index'])->name('index');
+        Route::post('/', [ProjectController::class, 'store'])->name('store');
+        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+        Route::put('/{project}', [ProjectController::class, 'update'])->name('update');
+        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
+        Route::post('/{project}/tasks', [ProjectController::class, 'storeTask'])->name('tasks.store');
+        Route::patch('/tasks/{task}/status', [ProjectController::class, 'updateTaskStatus'])->name('tasks.status');
+        Route::delete('/tasks/{task}', [ProjectController::class, 'destroyTask'])->name('tasks.destroy');
+        Route::post('/{project}/expenses', [ProjectController::class, 'storeExpense'])->name('expenses.store');
+    });
+
+    // Budget vs Actual (admin + manager only)
+    Route::prefix('budget')->name('budget.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [BudgetController::class, 'index'])->name('index');
+        Route::post('/', [BudgetController::class, 'store'])->name('store');
+        Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
+        Route::delete('/{budget}', [BudgetController::class, 'destroy'])->name('destroy');
+    });
+
+    // Loyalty Program (admin + manager only)
+    Route::prefix('loyalty')->name('loyalty.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [LoyaltyController::class, 'index'])->name('index');
+        Route::post('/program', [LoyaltyController::class, 'saveProgram'])->name('program.save');
+        Route::post('/add-points', [LoyaltyController::class, 'addPoints'])->name('add-points');
+        Route::post('/redeem', [LoyaltyController::class, 'redeemPoints'])->name('redeem');
+        Route::get('/customer/{customer}/transactions', [LoyaltyController::class, 'transactions'])->name('transactions');
     });
 
     // Payroll

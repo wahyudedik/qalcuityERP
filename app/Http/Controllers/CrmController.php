@@ -128,4 +128,44 @@ class CrmController extends Controller
         $lead->delete();
         return back()->with('success', 'Lead berhasil dihapus.');
     }
+
+    public function kanban()
+    {
+        $tid = $this->tenantId();
+
+        $stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
+        $leads  = CrmLead::where('tenant_id', $tid)
+            ->with(['activities' => fn($q) => $q->latest()->limit(1)])
+            ->orderByDesc('estimated_value')
+            ->get()
+            ->groupBy('stage');
+
+        $stageStats = CrmLead::where('tenant_id', $tid)
+            ->whereNotIn('stage', ['won', 'lost'])
+            ->selectRaw('stage, count(*) as count, sum(estimated_value) as total_value')
+            ->groupBy('stage')->get()->keyBy('stage');
+
+        $wonThisMonth  = CrmLead::where('tenant_id', $tid)->where('stage', 'won')
+            ->whereMonth('updated_at', now()->month)->sum('estimated_value');
+        $followUpToday = CrmLead::where('tenant_id', $tid)
+            ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))
+            ->whereNotIn('stage', ['won', 'lost'])->count();
+
+        return view('crm.kanban', compact('leads', 'stages', 'stageStats', 'wonThisMonth', 'followUpToday'));
+    }
+
+    public function updateStageDrag(Request $request, CrmLead $lead)
+    {
+        abort_unless($lead->tenant_id === $this->tenantId(), 403);
+
+        $request->validate(['stage' => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost']);
+
+        $prob = match ($request->stage) {
+            'new' => 10, 'contacted' => 20, 'qualified' => 40,
+            'proposal' => 60, 'negotiation' => 80, 'won' => 100, 'lost' => 0, default => 10,
+        };
+
+        $lead->update(['stage' => $request->stage, 'probability' => $prob, 'last_contact_at' => now()]);
+        return response()->json(['ok' => true]);
+    }
 }

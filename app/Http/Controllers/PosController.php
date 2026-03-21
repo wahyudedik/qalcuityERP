@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\ActivityLog;
+use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -84,10 +85,31 @@ class PosController extends Controller
                         'total'          => $item['qty'] * $item['price'],
                     ]);
 
-                    // Deduct stock from product_stocks (first available warehouse)
-                    $stock = ProductStock::where('product_id', $item['id'])->first();
+                    // Deduct stock — lock row to prevent race condition
+                    $stock = ProductStock::where('product_id', $item['id'])
+                        ->lockForUpdate()
+                        ->first();
+
                     if ($stock) {
+                        if ($stock->quantity < $item['qty']) {
+                            throw new \Exception("Stok produk tidak mencukupi (tersisa {$stock->quantity}).");
+                        }
+
+                        $before = $stock->quantity;
                         $stock->decrement('quantity', $item['qty']);
+
+                        StockMovement::create([
+                            'tenant_id'       => $tenantId,
+                            'product_id'      => $item['id'],
+                            'warehouse_id'    => $stock->warehouse_id,
+                            'user_id'         => auth()->id(),
+                            'type'            => 'out',
+                            'quantity'        => $item['qty'],
+                            'quantity_before' => $before,
+                            'quantity_after'  => $before - $item['qty'],
+                            'reference'       => $order->number,
+                            'notes'           => 'POS Checkout',
+                        ]);
                     }
                 }
 

@@ -98,7 +98,7 @@
                                     class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Tambah Stok">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 </button>
-                                <button onclick="openEditProduct({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->sku }}', '{{ addslashes($product->category ?? '') }}', '{{ $product->unit }}', {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }})"
+                                <button onclick="openEditProduct({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->sku }}', '{{ addslashes($product->category ?? '') }}', '{{ $product->unit }}', {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }}, '{{ $product->image }}')"
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -129,9 +129,23 @@
                 <h3 class="font-semibold text-gray-900 dark:text-white">Tambah Produk</h3>
                 <button onclick="document.getElementById('modal-add-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>
-            <form method="POST" action="{{ route('inventory.store') }}" class="p-6 space-y-4">
+            <form method="POST" action="{{ route('inventory.store') }}" enctype="multipart/form-data" class="p-6 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Image Upload --}}
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Foto Produk</label>
+                        <div class="flex items-center gap-4">
+                            <div id="add-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                                Pilih Gambar
+                                <input type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this, 'add-img-preview')">
+                            </label>
+                            <span class="text-xs text-gray-400">JPG, PNG, WebP. Maks 2MB</span>
+                        </div>
+                    </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Produk *</label>
                         <input type="text" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -188,9 +202,23 @@
                 <h3 class="font-semibold text-gray-900 dark:text-white">Edit Produk</h3>
                 <button onclick="document.getElementById('modal-edit-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>
-            <form id="form-edit-product" method="POST" class="p-6 space-y-4">
+            <form id="form-edit-product" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
                 @csrf @method('PUT')
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Image Upload --}}
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Foto Produk</label>
+                        <div class="flex items-center gap-4">
+                            <div id="edit-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                                Ganti Gambar
+                                <input type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this, 'edit-img-preview')">
+                            </label>
+                            <span class="text-xs text-gray-400">JPG, PNG, WebP. Maks 2MB</span>
+                        </div>
+                    </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Produk *</label>
                         <input type="text" id="edit-name" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -262,12 +290,63 @@
 
     @push('scripts')
     <script>
+    // ── Toast Notification ────────────────────────────────────────
+    function showToast(message, type = 'success') {
+        const colors = {
+            success: 'bg-green-600',
+            error:   'bg-red-600',
+            warning: 'bg-yellow-500',
+            info:    'bg-blue-600',
+        };
+        const icons = {
+            success: '✓',
+            error:   '✕',
+            warning: '⚠',
+            info:    'ℹ',
+        };
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+        toast.innerHTML = `<span class="text-base">${icons[type] || icons.success}</span><span>${message}</span>`;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-4', 'opacity-0');
+        });
+        setTimeout(() => {
+            toast.classList.add('translate-y-4', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Auto-show flash messages as toast
+    @if(session('success'))
+        showToast(@json(session('success')), 'success');
+    @endif
+    @if(session('error'))
+        showToast(@json(session('error')), 'error');
+    @endif
+    @if($errors->any())
+        showToast(@json($errors->first()), 'error');
+    @endif
+
+    // ── Image Preview ─────────────────────────────────────────────
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-xl">`;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openAddStock(id, name, unit) {
         document.getElementById('stock-product-name').textContent = name + ' (' + unit + ')';
         document.getElementById('form-add-stock').action = '/inventory/' + id + '/stock';
         document.getElementById('modal-add-stock').classList.remove('hidden');
     }
-    function openEditProduct(id, name, sku, category, unit, priceSell, priceBuy, stockMin, isActive) {
+
+    function openEditProduct(id, name, sku, category, unit, priceSell, priceBuy, stockMin, isActive, image) {
         document.getElementById('form-edit-product').action = '/inventory/' + id;
         document.getElementById('edit-name').value = name;
         document.getElementById('edit-category').value = category;
@@ -276,6 +355,15 @@
         document.getElementById('edit-price-buy').value = priceBuy;
         document.getElementById('edit-stock-min').value = stockMin;
         document.getElementById('edit-is-active').checked = isActive;
+
+        // Set image preview
+        const preview = document.getElementById('edit-img-preview');
+        if (image) {
+            preview.innerHTML = `<img src="${image}" class="w-full h-full object-cover rounded-xl">`;
+        } else {
+            preview.innerHTML = `<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+        }
+
         document.getElementById('modal-edit-product').classList.remove('hidden');
     }
     </script>

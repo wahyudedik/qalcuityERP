@@ -83,15 +83,20 @@ class ChatSessionManager
             'function_calls' => !empty($functionCalls) ? $functionCalls : null,
         ]);
 
-        // Update total token di session
+        // Update total token di session (single query)
         $session->increment('total_tokens', $tokens);
-        $session->update(['last_model' => $model]);
+        $session->last_model = $model;
+        $session->save();
 
         // Auto-set judul session dari pesan pertama user jika belum ada
         if (!$session->title) {
-            $firstUserMsg = $session->messages()->where('role', 'user')->first();
+            $firstUserMsg = $session->messages()->where('role', 'user')->value('content');
             if ($firstUserMsg) {
-                $session->update(['title' => substr($firstUserMsg->content, 0, 60)]);
+                // Bersihkan context prefix [KONTEKS SISTEM: ...] sebelum dijadikan judul
+                $clean = preg_replace('/^\[KONTEKS SISTEM:.*?\]\n\n/s', '', $firstUserMsg);
+                $title = mb_substr(trim($clean), 0, 60);
+                $session->title = $title;
+                $session->save();
             }
         }
 

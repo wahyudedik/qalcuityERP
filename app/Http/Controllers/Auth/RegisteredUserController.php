@@ -66,8 +66,9 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // Kirim welcome email (queued)
-        $user->notify(new WelcomeNotification($user->load('tenant')));
+        // Kirim welcome email (queued) — load tenant dulu
+        $user->load('tenant');
+        $user->notify(new WelcomeNotification($user));
 
         // In-app notification: selamat datang
         ErpNotification::create([
@@ -81,6 +82,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('onboarding.show');
+        // Arahkan ke verifikasi email dulu, setelah verified baru ke onboarding
+        return redirect()->route('verification.notice');
     }
 }

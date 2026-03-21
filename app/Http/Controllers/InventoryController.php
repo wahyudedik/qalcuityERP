@@ -7,6 +7,7 @@ use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class InventoryController extends Controller
 {
@@ -58,6 +59,7 @@ class InventoryController extends Controller
             'description'   => 'nullable|string',
             'initial_stock' => 'nullable|integer|min:0',
             'warehouse_id'  => 'nullable|exists:warehouses,id',
+            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $tid = $this->tenantId();
@@ -67,6 +69,11 @@ class InventoryController extends Controller
         }
 
         $sku = $data['sku'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 6)) . '-' . rand(100, 999);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
 
         $product = Product::create([
             'tenant_id'   => $tid,
@@ -78,6 +85,7 @@ class InventoryController extends Controller
             'price_buy'   => $data['price_buy'] ?? 0,
             'stock_min'   => $data['stock_min'] ?? 5,
             'description' => $data['description'] ?? null,
+            'image'       => $imagePath ? Storage::url($imagePath) : null,
             'is_active'   => true,
         ]);
 
@@ -117,7 +125,20 @@ class InventoryController extends Controller
             'stock_min'   => 'nullable|integer|min:0',
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama jika ada dan tersimpan di storage lokal
+            if ($product->image && str_starts_with($product->image, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $product->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $imagePath = $request->file('image')->store('products', 'public');
+            $data['image'] = Storage::url($imagePath);
+        } else {
+            unset($data['image']);
+        }
 
         $product->update($data);
 

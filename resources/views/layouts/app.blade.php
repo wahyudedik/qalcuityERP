@@ -30,7 +30,7 @@
 
     {{-- ── Sidebar ──────────────────────────────────────────── --}}
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 z-40 w-60 flex flex-col transition-transform duration-300 lg:translate-x-0 -translate-x-full
+        class="fixed inset-y-0 left-0 z-40 w-60 flex flex-col overflow-hidden transition-transform duration-300 lg:translate-x-0 -translate-x-full
                bg-[#f0f0f0] dark:bg-[#0f172a] border-r border-gray-200 dark:border-white/10">
 
         {{-- Logo --}}
@@ -39,7 +39,7 @@
         </div>
 
         {{-- Nav --}}
-        <nav class="flex-1 overflow-y-auto scrollbar-dark px-3 py-4 space-y-0.5">
+        <nav class="flex-1 overflow-y-auto overflow-x-hidden scrollbar-dark px-3 py-4 space-y-0.5">
 
             @php
             $navLinkClass = fn(bool $active) => 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all '
@@ -94,12 +94,31 @@
             </a>
             @endif
 
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Inventori & Pembelian</p></div>
+            {{-- ── KASIR: hanya POS ── --}}
+            @if(auth()->user()?->isKasir())
+            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Kasir</p></div>
+            <a href="{{ route('pos.index') }}" class="{{ $navLinkClass(request()->routeIs('pos*')) }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                Kasir (POS)
+            </a>
+            @endif
+
+            {{-- ── GUDANG: hanya inventory ── --}}
+            @if(auth()->user()?->isGudang())
+            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Gudang</p></div>
             <a href="{{ route('inventory.index') }}" class="{{ $navLinkClass(request()->routeIs('inventory*')) }}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 Inventori
             </a>
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
+            @endif
+
+            {{-- ── ADMIN / MANAGER / STAFF: menu lengkap ── --}}
+            @if(!auth()->user()?->isKasir() && !auth()->user()?->isGudang())
+            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Inventori & Pembelian</p></div>
+            <a href="{{ route('inventory.index') }}" class="{{ $navLinkClass(request()->routeIs('inventory*')) }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Inventori
+            </a>            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
             <a href="{{ route('purchasing.suppliers') }}" class="{{ $navLinkClass(request()->routeIs('purchasing*')) }}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 Pembelian
@@ -123,6 +142,18 @@
             <a href="{{ route('crm.index') }}" class="{{ $navLinkClass(request()->routeIs('crm*')) }}">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 CRM & Pipeline
+            </a>
+            <a href="{{ route('projects.index') }}" class="{{ $navLinkClass(request()->routeIs('projects*')) }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                Manajemen Proyek
+            </a>
+            <a href="{{ route('budget.index') }}" class="{{ $navLinkClass(request()->routeIs('budget*')) }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Anggaran
+            </a>
+            <a href="{{ route('loyalty.index') }}" class="{{ $navLinkClass(request()->routeIs('loyalty*')) }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                Program Loyalitas
             </a>
             @endif
 
@@ -175,6 +206,7 @@
                 Bot WA/Telegram
             </a>
             @endif
+            @endif {{-- end !isKasir && !isGudang --}}
 
             @if(auth()->user()?->tenant_id)
             <a href="{{ route('subscription.index') }}" class="{{ $navLinkClass(request()->routeIs('subscription.index')) }}">
@@ -195,7 +227,7 @@
                     class="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white dark:ring-white/10">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ auth()->user()?->name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 capitalize">{{ auth()->user()?->role }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ auth()->user()?->roleLabel() }}</p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -244,8 +276,11 @@
 
                 {{-- Notification bell --}}
                 @php
-                    $notifTenantId = auth()->user()?->tenant_id;
-                    $unreadCount = $notifTenantId ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)->whereNull('read_at')->count() : 0;
+                    $authUser      = auth()->user();
+                    $notifTenantId = $authUser?->tenant_id;
+                    $unreadCount   = $notifTenantId
+                        ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)->whereNull('read_at')->count()
+                        : ($authUser?->isSuperAdmin() ? \App\Models\ErpNotification::where('user_id', $authUser->id)->whereNull('read_at')->count() : 0);
                 @endphp
                 <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                     <button @click="open = !open" class="relative p-2 rounded-xl hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition">
@@ -260,7 +295,12 @@
                             <a href="{{ route('notifications.index') }}" class="text-xs text-blue-500 dark:text-blue-400 hover:underline">Lihat semua</a>
                         </div>
                         <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
-                            @forelse(\App\Models\ErpNotification::when(auth()->user()?->tenant_id, fn($q, $tid) => $q->where('tenant_id', $tid))->latest()->take(5)->get() as $notif)
+                            @php
+                                $topbarNotifs = $notifTenantId
+                                    ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)->latest()->take(5)->get()
+                                    : ($authUser?->isSuperAdmin() ? \App\Models\ErpNotification::where('user_id', $authUser->id)->latest()->take(5)->get() : collect());
+                            @endphp
+                            @forelse($topbarNotifs as $notif)
                             <div class="px-4 py-3 hover:bg-[#f0f0f0] dark:hover:bg-white/5 {{ $notif->isRead() ? 'opacity-50' : '' }}">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $notif->title }}</p>
                                 <p class="text-xs text-slate-400 mt-0.5">{{ Str::limit($notif->body, 80) }}</p>

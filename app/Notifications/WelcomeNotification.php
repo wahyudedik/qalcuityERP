@@ -21,10 +21,12 @@ class WelcomeNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $tenantName = $this->user->tenant?->name ?? 'Qalcuity ERP';
+
         return (new MailMessage)
             ->subject('Selamat datang di Qalcuity ERP 🎉')
             ->greeting("Halo, {$this->user->name}!")
-            ->line("Akun Anda untuk **{$this->user->tenant->name}** telah berhasil dibuat.")
+            ->line("Akun Anda untuk **{$tenantName}** telah berhasil dibuat.")
             ->line('Anda mendapatkan akses **trial gratis 14 hari** ke semua fitur Qalcuity ERP.')
             ->action('Mulai Sekarang', url('/dashboard'))
             ->line('Jika ada pertanyaan, balas email ini atau hubungi kami via WhatsApp.')

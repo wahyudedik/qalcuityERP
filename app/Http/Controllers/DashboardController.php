@@ -11,6 +11,7 @@ use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AiInsightService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -30,11 +31,17 @@ class DashboardController extends Controller
             return redirect()->route('onboarding.show');
         }
 
+        // AI Insights — ambil dari cache atau generate on-demand (max 1x per jam)
+        $insights = cache()->remember("ai_insights_{$tenantId}", now()->addHour(), function () use ($tenantId) {
+            return app(AiInsightService::class)->analyze($tenantId);
+        });
+
         return view('dashboard.tenant', [
             'sales'     => $this->salesStats($tenantId),
             'inventory' => $this->inventoryStats($tenantId),
             'finance'   => $this->financeStats($tenantId),
             'hrm'       => $this->hrmStats($tenantId),
+            'insights'  => $insights,
         ]);
     }
 

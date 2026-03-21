@@ -38,7 +38,7 @@ class TenantUserController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'role'     => ['required', 'in:manager,staff'],
+            'role'     => ['required', 'in:manager,staff,kasir,gudang'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -83,7 +83,7 @@ class TenantUserController extends Controller
 
         $request->validate([
             'name'  => ['required', 'string', 'max:255'],
-            'role'  => ['required', 'in:manager,staff'],
+            'role'  => ['required', 'in:manager,staff,kasir,gudang'],
         ]);
 
         $user->update([

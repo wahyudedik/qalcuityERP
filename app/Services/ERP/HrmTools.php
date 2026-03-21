@@ -14,6 +14,19 @@ class HrmTools
     {
         return [
             [
+                'name'        => 'list_employees',
+                'description' => 'Tampilkan daftar semua karyawan. Gunakan untuk: '
+                    . '"daftar karyawan", "siapa saja karyawan kita?", "tampilkan semua pegawai", '
+                    . '"karyawan aktif berapa?", "list staff", "data karyawan semua".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'department' => ['type' => 'string', 'description' => 'Filter per departemen (opsional)'],
+                        'status'     => ['type' => 'string', 'description' => 'Filter status: active, inactive, all (default: active)'],
+                    ],
+                ],
+            ],
+            [
                 'name'        => 'get_attendance_summary',
                 'description' => 'Tampilkan ringkasan kehadiran karyawan.',
                 'parameters'  => [
@@ -307,6 +320,39 @@ class HrmTools
                     'position'   => $e->position,
                 ])->toArray(),
             ],
+        ];
+    }
+
+    public function listEmployees(array $args): array
+    {
+        $query = Employee::where('tenant_id', $this->tenantId);
+
+        $status = $args['status'] ?? 'active';
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        if (!empty($args['department'])) {
+            $query->where('department', 'like', '%' . $args['department'] . '%');
+        }
+
+        $employees = $query->orderBy('name')->get();
+
+        if ($employees->isEmpty()) {
+            return ['status' => 'success', 'message' => 'Belum ada data karyawan.', 'data' => []];
+        }
+
+        return [
+            'status' => 'success',
+            'total'  => $employees->count(),
+            'data'   => $employees->map(fn($e) => [
+                'id'         => $e->employee_id ?? $e->id,
+                'nama'       => $e->name,
+                'posisi'     => $e->position ?? '-',
+                'departemen' => $e->department ?? '-',
+                'status'     => $e->status,
+                'bergabung'  => $e->join_date?->format('d M Y') ?? '-',
+            ])->toArray(),
         ];
     }
 

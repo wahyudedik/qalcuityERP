@@ -28,7 +28,51 @@ class ApprovalController extends Controller
             ->take(50)
             ->get();
 
-        return view('approvals.index', compact('pending', 'history'));
+        $workflows = ApprovalWorkflow::where('tenant_id', $tenantId)->where('is_active', true)->get();
+
+        return view('approvals.index', compact('pending', 'history', 'workflows'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'workflow_id' => 'required|exists:approval_workflows,id',
+            'amount'      => 'nullable|numeric|min:0',
+            'notes'       => 'nullable|string|max:500',
+        ]);
+
+        $tenantId = auth()->user()->tenant_id;
+        $workflow = ApprovalWorkflow::where('tenant_id', $tenantId)->findOrFail($data['workflow_id']);
+
+        $approval = ApprovalRequest::create([
+            'tenant_id'    => $tenantId,
+            'workflow_id'  => $workflow->id,
+            'requested_by' => auth()->id(),
+            'status'       => 'pending',
+            'amount'       => $data['amount'] ?? null,
+            'notes'        => $data['notes'] ?? null,
+        ]);
+
+        // Notifikasi ke semua admin & manager
+        $approvers = \App\Models\User::where('tenant_id', $tenantId)
+            ->whereIn('role', ['admin', 'manager'])
+            ->where('id', '!=', auth()->id())
+            ->get();
+
+        foreach ($approvers as $approver) {
+            $approver->notify(new ApprovalRequestNotification($approval->load('workflow', 'requester')));
+
+            ErpNotification::create([
+                'tenant_id' => $tenantId,
+                'user_id'   => $approver->id,
+                'type'      => 'approval_request',
+                'title'     => '📋 Permintaan Persetujuan Baru',
+                'body'      => auth()->user()->name . " meminta persetujuan untuk: {$workflow->name}",
+                'data'      => ['approval_id' => $approval->id],
+            ]);
+        }
+
+        return back()->with('success', 'Permintaan persetujuan berhasil dikirim.');
     }
 
     public function approve(Request $request, ApprovalRequest $approval)

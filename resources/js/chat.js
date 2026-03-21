@@ -31,7 +31,7 @@ marked.use({
             return `<div class="my-2 rounded-xl overflow-hidden border border-gray-200">
   <div class="bg-gray-800 px-4 py-2 text-xs text-gray-400 flex items-center justify-between">
     <span>${lang}</span>
-    <button onclick="navigator.clipboard.writeText(this.closest('.my-2').querySelector('code').textContent)" class="text-gray-500 hover:text-white transition text-xs">Salin</button>
+    <button onclick="copyToClipboard(this.closest('.my-2').querySelector('code').textContent);this.textContent='✓';setTimeout(()=>this.textContent='Salin',2000)" class="text-gray-500 hover:text-white transition text-xs">Salin</button>
   </div>
   <pre class="bg-gray-900 text-green-400 px-4 py-3 text-xs overflow-x-auto"><code>${escaped}</code></pre>
 </div>`;
@@ -55,6 +55,23 @@ marked.use({
         hr() { return `<hr class="my-3 border-gray-200">`; },
     }
 });
+
+// ── Clipboard helper (works on HTTP + HTTPS) ──────────────────
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+    }
+    // Fallback for HTTP (non-secure context)
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } catch { }
+    document.body.removeChild(ta);
+    return Promise.resolve();
+}
 
 // ── State ─────────────────────────────────────────────────────
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
@@ -80,14 +97,14 @@ function parseMarkdown(text) {
 
 // ── Rich Renderer ─────────────────────────────────────────────
 // Detects special blocks in AI response and renders them richly.
-// Supported: ```chart, ```grid, ```kpi, ```letter, ```invoice, ```print
+// Supported: ```chart, ```grid, ```kpi, ```letter, ```invoice, ```print, ```actions
 
 function renderRichContent(text) {
     const container = document.createElement('div');
     container.className = 'space-y-3';
 
-    // Split by special fenced blocks: ```type\n...\n```
-    const parts = text.split(/(```(?:chart|grid|kpi|letter|invoice|print|actions)[^\n]*\n[\s\S]*?```)/g);
+    // Split by special fenced blocks — handles optional meta on same line as type
+    const parts = text.split(/(```(?:chart|grid|kpi|letter|invoice|print|actions)(?:[^\n]*)?\n[\s\S]*?```)/g);
 
     parts.forEach(part => {
         const fenceMatch = part.match(/^```(chart|grid|kpi|letter|invoice|print|actions)([^\n]*)\n([\s\S]*?)```$/);
@@ -95,6 +112,7 @@ function renderRichContent(text) {
             const [, type, meta, body] = fenceMatch;
             const block = renderSpecialBlock(type.trim(), meta.trim(), body.trim());
             if (block) { container.appendChild(block); return; }
+            // If parse failed, fall through to render as code block
         }
         // Normal markdown
         if (part.trim()) {
@@ -106,6 +124,11 @@ function renderRichContent(text) {
     });
 
     return container;
+}
+
+// Safe JSON parse — returns null on failure instead of throwing
+function safeJson(str) {
+    try { return JSON.parse(str); } catch { return null; }
 }
 
 function renderSpecialBlock(type, meta, body) {
@@ -123,8 +146,14 @@ function renderSpecialBlock(type, meta, body) {
 
 // ── Chart renderer ────────────────────────────────────────────
 function renderChart(meta, body) {
-    let cfg;
-    try { cfg = JSON.parse(body); } catch { return null; }
+    const cfg = safeJson(body);
+    if (!cfg) return renderParseError('chart', body);
+
+    // Normalize: support both cfg.data (Chart.js native) and flat cfg.labels/cfg.datasets
+    if (!cfg.data && cfg.labels) {
+        cfg.data = { labels: cfg.labels, datasets: cfg.datasets || [] };
+    }
+    if (!cfg.data?.datasets?.length) return renderParseError('chart', body);
 
     const id = 'chart-' + (++chartCounter);
     const wrap = document.createElement('div');
@@ -171,10 +200,21 @@ window.downloadChart = function (id) {
     a.click();
 };
 
+// ── Parse error fallback ──────────────────────────────────────
+// Renders a subtle warning instead of silently dropping the block
+function renderParseError(type, body) {
+    const wrap = document.createElement('div');
+    wrap.className = 'my-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700';
+    wrap.innerHTML = `<span class="font-semibold">⚠ Gagal render blok <code>${type}</code>.</span> Data mungkin tidak valid.
+        <details class="mt-1"><summary class="cursor-pointer text-amber-600">Lihat raw</summary>
+        <pre class="mt-1 text-[10px] text-gray-500 overflow-x-auto whitespace-pre-wrap">${body.replace(/</g, '&lt;').slice(0, 500)}</pre></details>`;
+    return wrap;
+}
+
 // ── Grid renderer ─────────────────────────────────────────────
 function renderGrid(body) {
-    let cfg;
-    try { cfg = JSON.parse(body); } catch { return null; }
+    const cfg = safeJson(body);
+    if (!cfg) return renderParseError('grid', body);
 
     const wrap = document.createElement('div');
     wrap.className = 'my-2';
@@ -216,9 +256,11 @@ function renderGrid(body) {
 
             // Badge support
             if (col.badge) {
-                const colors = { success: 'bg-green-100 text-green-700', warning: 'bg-amber-100 text-amber-700', danger: 'bg-red-100 text-red-700', info: 'bg-blue-100 text-blue-700', default: 'bg-gray-100 text-gray-600' };
-                const color = col.badge[val] || 'default';
-                td.innerHTML = `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${colors[color] || colors.default}">${val}</span>`;
+                const colorMap = { success: 'bg-green-100 text-green-700', warning: 'bg-amber-100 text-amber-700', danger: 'bg-red-100 text-red-700', info: 'bg-blue-100 text-blue-700', default: 'bg-gray-100 text-gray-600' };
+                // col.badge maps value → color name (e.g. {"Aktif": "success"})
+                const colorKey = col.badge[val] || 'default';
+                const colorCls = colorMap[colorKey] || colorMap.default;
+                td.innerHTML = `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${colorCls}">${val}</span>`;
             } else {
                 td.textContent = val;
             }
@@ -255,8 +297,8 @@ function exportGridCsv(cols, rows, filename) {
 
 // ── KPI Cards renderer ────────────────────────────────────────
 function renderKpi(body) {
-    let cfg;
-    try { cfg = JSON.parse(body); } catch { return null; }
+    const cfg = safeJson(body);
+    if (!cfg) return renderParseError('kpi', body);
 
     const wrap = document.createElement('div');
     wrap.className = 'my-2';
@@ -291,8 +333,8 @@ function renderKpi(body) {
 
 // ── Letter renderer ───────────────────────────────────────────
 function renderLetter(body) {
-    let cfg;
-    try { cfg = JSON.parse(body); } catch { return null; }
+    const cfg = safeJson(body);
+    if (!cfg) return renderParseError('letter', body);
 
     const wrap = document.createElement('div');
     wrap.className = 'my-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden';
@@ -334,8 +376,8 @@ function renderLetter(body) {
 
 // ── Invoice renderer ──────────────────────────────────────────
 function renderInvoice(body) {
-    let cfg;
-    try { cfg = JSON.parse(body); } catch { return null; }
+    const cfg = safeJson(body);
+    if (!cfg) return renderParseError('invoice', body);
 
     const wrap = document.createElement('div');
     wrap.className = 'my-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden';
@@ -431,19 +473,18 @@ function renderPrintable(meta, body) {
 
 // ── Actions renderer ──────────────────────────────────────────
 function renderActions(body) {
-    let buttons;
-    try { buttons = JSON.parse(body); } catch { return null; }
+    const buttons = safeJson(body);
     if (!Array.isArray(buttons) || buttons.length === 0) return null;
 
     const wrap = document.createElement('div');
-    wrap.className = 'flex flex-wrap gap-2 mt-2';
+    wrap.className = 'flex flex-wrap gap-1.5 mt-2';
 
     const styleMap = {
-        primary: 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-200',
-        success: 'bg-green-600 hover:bg-green-700 text-white shadow-sm shadow-green-200',
-        danger: 'bg-red-500 hover:bg-red-600 text-white shadow-sm shadow-red-200',
-        warning: 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-200',
-        default: 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm',
+        primary: 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200',
+        success: 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200',
+        danger: 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200',
+        warning: 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200',
+        default: 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-200',
     };
 
     buttons.forEach(btn => {
@@ -483,7 +524,7 @@ window.printLetter = function (btn) {
 window.copyLetter = function (btn) {
     const content = btn.closest('.overflow-hidden').querySelector('.letter-content');
     if (!content) return;
-    navigator.clipboard.writeText(content.innerText);
+    copyToClipboard(content.innerText);
     btn.textContent = '✓ Tersalin';
     setTimeout(() => btn.textContent = '📋 Salin', 2000);
 };
@@ -521,7 +562,7 @@ function appendMessage(role, content, modelUsed = null, timestamp = null) {
         copyBtn.className = 'text-xs text-gray-300 hover:text-gray-500 transition flex items-center gap-1';
         copyBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Salin`;
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(content);
+            copyToClipboard(content);
             copyBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Tersalin`;
             setTimeout(() => { copyBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Salin`; }, 2000);
         };
@@ -543,22 +584,23 @@ function appendMessage(role, content, modelUsed = null, timestamp = null) {
 }
 
 // ── Action badges ─────────────────────────────────────────────
+// Ditampilkan sebagai detail kecil di bawah bubble AI, tersembunyi by default
 function appendActionBadges(actions) {
     if (!actions?.length) return;
-    const wrap = document.createElement('div');
-    wrap.className = 'flex justify-start max-w-4xl mx-auto w-full pl-10 mb-2';
-    const inner = document.createElement('div');
-    inner.className = 'flex flex-wrap gap-1.5';
+    // Attach ke bubble terakhir sebagai detail tersembunyi
+    const lastBubble = msgBox.querySelector('.flex.justify-start:last-of-type');
+    if (!lastBubble) return;
     const writeTools = ['add_stock', 'create_purchase_order', 'create_sales_order', 'add_transaction', 'create_quick_sale', 'create_product', 'create_customer', 'create_employee', 'record_attendance', 'create_project', 'transfer_stock', 'create_work_order', 'record_production_output', 'create_recipe', 'produce_with_recipe', 'record_payment'];
+    const detail = document.createElement('div');
+    detail.className = 'flex flex-wrap gap-1 mt-1 pl-10';
     actions.forEach(a => {
         const isWrite = writeTools.includes(a.tool);
         const badge = document.createElement('span');
-        badge.className = `text-xs px-2 py-0.5 rounded-full font-medium ${isWrite ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}`;
+        badge.className = `text-[10px] px-1.5 py-0.5 rounded font-medium ${isWrite ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'}`;
         badge.textContent = `⚡ ${a.tool.replace(/_/g, ' ')}`;
-        inner.appendChild(badge);
+        detail.appendChild(badge);
     });
-    wrap.appendChild(inner);
-    msgBox.appendChild(wrap);
+    lastBubble.appendChild(detail);
 }
 
 // ── Loading state ─────────────────────────────────────────────
@@ -567,6 +609,38 @@ function setLoading(state) {
     btnSend.disabled = state;
     typingEl.classList.toggle('hidden', !state);
     typingEl.classList.toggle('flex', state);
+}
+
+// ── Error message with retry ──────────────────────────────────
+function appendErrorMessage(text, retryText = null) {
+    document.getElementById('empty-state')?.remove();
+    const wrap = document.createElement('div');
+    wrap.className = 'flex justify-start gap-3 max-w-4xl mx-auto w-full mb-4';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'shrink-0 w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center text-red-500 text-xs font-bold mt-1';
+    avatar.textContent = '!';
+    wrap.appendChild(avatar);
+
+    const col = document.createElement('div');
+    col.className = 'flex flex-col gap-1.5';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bg-red-50 border border-red-200 text-red-700 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm';
+    bubble.textContent = text;
+    col.appendChild(bubble);
+
+    if (retryText) {
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'self-start text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 bg-white rounded-lg px-3 py-1.5 transition';
+        retryBtn.textContent = '↺ Coba lagi';
+        retryBtn.onclick = () => { wrap.remove(); sendMessage(retryText); };
+        col.appendChild(retryBtn);
+    }
+
+    wrap.appendChild(col);
+    msgBox.appendChild(wrap);
+    scrollBottom();
 }
 
 function scrollBottom() {
@@ -606,12 +680,12 @@ async function sendTextOnly(text) {
         });
         const data = await res.json();
         if (!res.ok && !data.message) {
-            appendMessage('model', `⚠️ Terjadi kesalahan (${res.status}). Silakan coba lagi.`);
+            appendErrorMessage(`⚠️ Terjadi kesalahan (${res.status}). Silakan coba lagi.`, text);
             return;
         }
         handleChatResponse(data, text);
     } catch {
-        appendMessage('model', '⚠️ Koneksi bermasalah. Silakan coba lagi.');
+        appendErrorMessage('⚠️ Koneksi bermasalah. Silakan coba lagi.', text);
     }
 }
 
@@ -629,12 +703,12 @@ async function sendWithFiles(text, files) {
         });
         const data = await res.json();
         if (!res.ok && !data.message) {
-            appendMessage('model', `⚠️ Terjadi kesalahan (${res.status}). Silakan coba lagi.`);
+            appendErrorMessage(`⚠️ Terjadi kesalahan (${res.status}). Silakan coba lagi.`, text);
             return;
         }
         handleChatResponse(data, text);
     } catch {
-        appendMessage('model', '⚠️ Gagal mengirim file. Pastikan ukuran file tidak melebihi 20MB.');
+        appendErrorMessage('⚠️ Gagal mengirim file. Pastikan ukuran file tidak melebihi 20MB.', text);
     }
 }
 
@@ -657,12 +731,13 @@ function handleChatResponse(data, originalText) {
 
     // Handle HTTP error responses
     if (data.error || (!data.message && !data.session_id)) {
-        appendMessage('model', data.message ?? 'Terjadi kesalahan pada server.', null, new Date().toISOString());
+        appendErrorMessage(data.message ?? 'Terjadi kesalahan pada server.', originalText);
         return;
     }
 
     appendMessage('model', data.message ?? 'Terjadi kesalahan.', data.model, new Date().toISOString());
     appendActionBadges(data.actions);
+    appendSuggestedFollowUps();
 }
 
 // ── File handling ─────────────────────────────────────────────
@@ -796,6 +871,7 @@ function appendMessageWithFiles(role, content, files) {
 // ── Load session ──────────────────────────────────────────────
 async function loadSession(sessionId, title) {
     currentSessionId = sessionId;
+    aiMessageCount = 0;
     chatTitle.textContent = title ?? 'Percakapan';
     msgBox.innerHTML = '';
     setLoading(true);
@@ -816,6 +892,7 @@ async function loadSession(sessionId, title) {
 
 // ── Sidebar helpers ───────────────────────────────────────────
 function addSessionToSidebar(id, title) {
+    document.getElementById('empty-sessions-msg')?.remove();
     sessionList.querySelector('p')?.remove();
     const div = document.createElement('div');
     div.className = 'session-item group flex items-center rounded-xl hover:bg-gray-50 bg-blue-50 transition cursor-pointer';
@@ -823,17 +900,41 @@ function addSessionToSidebar(id, title) {
     div.dataset.title = title;
     div.innerHTML = `
         <button class="flex-1 text-left px-3 py-2.5 text-sm text-gray-600 truncate session-btn">${title}</button>
-        <button class="session-delete hidden group-hover:flex items-center px-2 py-2 text-gray-300 hover:text-red-500" data-session="${id}">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>`;
+        <div class="hidden group-hover:flex items-center gap-0.5 pr-1">
+            <button class="session-rename flex items-center p-1.5 text-gray-300 hover:text-blue-500 transition rounded" data-session="${id}" title="Ganti nama">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button class="session-delete flex items-center p-1.5 text-gray-300 hover:text-red-500 transition rounded" data-session="${id}" title="Hapus">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>`;
     div.querySelector('.session-btn').addEventListener('click', () => loadSession(id, title));
+    div.querySelector('.session-rename').addEventListener('click', e => { e.stopPropagation(); renameSession(id, div); });
     div.querySelector('.session-delete').addEventListener('click', e => { e.stopPropagation(); deleteSession(id, div); });
     sessionList.prepend(div);
 }
 
 function updateSessionTitle(id, title) {
     const el = sessionList.querySelector(`[data-session="${id}"] .session-btn`);
-    if (el) el.textContent = title;
+    if (el) { el.textContent = title; el.closest('.session-item').dataset.title = title; }
+}
+
+async function renameSession(id, el) {
+    const currentTitle = el.querySelector('.session-btn').textContent.trim();
+    const newTitle = prompt('Ganti nama percakapan:', currentTitle);
+    if (!newTitle || newTitle.trim() === currentTitle) return;
+    try {
+        const res = await fetch(`/chat/${id}/rename`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ title: newTitle.trim() }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            updateSessionTitle(id, data.title);
+            if (currentSessionId == id) chatTitle.textContent = data.title;
+        }
+    } catch { /* silent */ }
 }
 
 async function deleteSession(id, el) {
@@ -845,6 +946,9 @@ async function deleteSession(id, el) {
         msgBox.innerHTML = '';
         chatTitle.textContent = 'Percakapan Baru';
     }
+    if (!sessionList.querySelector('.session-item')) {
+        sessionList.innerHTML = '<p class="text-xs text-gray-400 px-3 py-3" id="empty-sessions-msg">Belum ada percakapan</p>';
+    }
 }
 
 // ── Event listeners ───────────────────────────────────────────
@@ -854,21 +958,31 @@ input.addEventListener('keydown', e => {
 });
 input.addEventListener('input', () => {
     input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 144) + 'px';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
 });
 document.getElementById('btn-new-chat').addEventListener('click', () => {
     currentSessionId = null;
+    aiMessageCount = 0;
     chatTitle.textContent = 'Percakapan Baru';
-    modelLabel.textContent = 'Siap membantu';
+    modelLabel.textContent = 'Qalcuity AI · Siap membantu';
     msgBox.innerHTML = `<div id="empty-state" class="flex flex-col items-center justify-center h-full text-center text-gray-400 py-16"><p class="text-sm">Mulai percakapan baru...</p></div>`;
     document.querySelectorAll('.session-item').forEach(el => el.classList.remove('bg-blue-50'));
     input.focus();
 });
 document.querySelectorAll('.hint-btn').forEach(btn =>
-    btn.addEventListener('click', () => sendMessage(btn.textContent.trim())));
+    btn.addEventListener('click', () => {
+        // Ambil teks dari span kedua saja (bukan emoji span pertama)
+        const spans = btn.querySelectorAll('span');
+        const text = spans.length > 1 ? spans[spans.length - 1].textContent.trim() : btn.textContent.trim();
+        sendMessage(text);
+    }));
 document.querySelectorAll('.session-item').forEach(item => {
     item.querySelector('.session-btn')?.addEventListener('click', () =>
         loadSession(item.dataset.session, item.dataset.title));
+    item.querySelector('.session-rename')?.addEventListener('click', e => {
+        e.stopPropagation();
+        renameSession(item.dataset.session, item);
+    });
     item.querySelector('.session-delete')?.addEventListener('click', e => {
         e.stopPropagation();
         deleteSession(item.dataset.session, item);
@@ -904,4 +1018,67 @@ document.addEventListener('paste', e => {
     }
 });
 
+// ── Session search ────────────────────────────────────────────
+const sessionSearch = document.getElementById('session-search');
+if (sessionSearch) {
+    sessionSearch.addEventListener('input', () => {
+        const q = sessionSearch.value.toLowerCase().trim();
+        document.querySelectorAll('.session-item').forEach(item => {
+            const title = (item.dataset.title || '').toLowerCase();
+            item.style.display = (!q || title.includes(q)) ? '' : 'none';
+        });
+    });
+}
+
+// ── Suggested follow-up ───────────────────────────────────────
+const FOLLOW_UPS = [
+    'Tampilkan dalam grafik',
+    'Ekspor ke CSV',
+    'Bandingkan dengan bulan lalu',
+    'Buat laporan lengkap',
+    'Apa rekomendasi Anda?',
+    'Tampilkan detail lebih lanjut',
+    'Buat invoice untuk ini',
+    'Kirim ringkasan ke email saya',
+];
+
+let aiMessageCount = 0; // track jumlah pesan AI
+
+function appendSuggestedFollowUps() {
+    aiMessageCount++;
+    // Tampilkan hanya setiap 3 pesan AI, bukan setiap saat
+    if (aiMessageCount % 3 !== 0) return;
+
+    const shuffled = [...FOLLOW_UPS].sort(() => Math.random() - 0.5).slice(0, 3);
+    const wrap = document.createElement('div');
+    wrap.className = 'flex justify-start max-w-4xl mx-auto w-full pl-10 mb-3 mt-1';
+    const inner = document.createElement('div');
+    inner.className = 'flex flex-wrap gap-1.5';
+    shuffled.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'text-xs bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm';
+        btn.textContent = text;
+        btn.onclick = () => { wrap.remove(); sendMessage(text); };
+        inner.appendChild(btn);
+    });
+    wrap.appendChild(inner);
+    msgBox.appendChild(wrap);
+    scrollBottom();
+}
+
 input.focus();
+
+// ── Pre-fill from URL ?q= param (e.g. from dashboard insight links) ──────────
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q && q.trim()) {
+        input.value = q.trim();
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+        // Auto-send after short delay so UI is ready
+        setTimeout(() => sendMessage(q.trim()), 400);
+        // Clean URL without reload
+        history.replaceState(null, '', window.location.pathname);
+    }
+})();

@@ -6,48 +6,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline — Qalcuity ERP</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: Inter, sans-serif;
+            font-family: Inter, system-ui, sans-serif;
             background: #0f172a;
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
+            padding: 1rem;
         }
 
         .card {
             text-align: center;
-            padding: 2rem;
+            max-width: 360px;
+            width: 100%;
         }
 
         .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
+            font-size: 3.5rem;
+            margin-bottom: 1.25rem;
         }
 
         h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.375rem;
+            font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
         p {
             color: #94a3b8;
             font-size: 0.875rem;
+            line-height: 1.6;
         }
 
-        button {
-            margin-top: 1.5rem;
+        .actions {
+            margin-top: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .btn {
             padding: 0.75rem 1.5rem;
+            border-radius: 0.875rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity .15s;
+        }
+
+        .btn:active {
+            opacity: .8;
+        }
+
+        .btn-primary {
             background: #3b82f6;
             color: #fff;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+
+        .queue-info {
+            margin-top: 1.5rem;
+            padding: 0.875rem 1rem;
+            background: #1e293b;
+            border-radius: 0.875rem;
+            border: 1px solid #334155;
+            text-align: left;
+            display: none;
+        }
+
+        .queue-info.visible {
+            display: block;
+        }
+
+        .queue-info p {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .queue-info strong {
+            color: #f59e0b;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-right: 6px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
         }
     </style>
 </head>
@@ -56,9 +129,46 @@
     <div class="card">
         <div class="icon">📡</div>
         <h1>Tidak Ada Koneksi</h1>
-        <p>Periksa koneksi internet Anda dan coba lagi.</p>
-        <button onclick="location.reload()">Coba Lagi</button>
+        <p>Periksa koneksi internet Anda. Transaksi POS yang dibuat saat offline akan otomatis tersinkronisasi saat
+            koneksi pulih.</p>
+
+        <div class="queue-info" id="queue-info">
+            <p><span class="status-dot"></span><strong id="queue-count">0</strong> transaksi menunggu sinkronisasi</p>
+            <p style="margin-top:4px">Akan dikirim otomatis saat online kembali.</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="location.reload()">Coba Lagi</button>
+            <button class="btn btn-secondary" onclick="history.back()">Kembali</button>
+        </div>
     </div>
+
+    <script>
+        // Cek antrian POS offline
+        async function checkQueue() {
+            try {
+                const req = indexedDB.open('qalcuity-pos', 1);
+                req.onsuccess = e => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('pos_queue')) return;
+                    const tx = db.transaction('pos_queue', 'readonly');
+                    const store = tx.objectStore('pos_queue');
+                    const countReq = store.count();
+                    countReq.onsuccess = () => {
+                        const count = countReq.result;
+                        if (count > 0) {
+                            document.getElementById('queue-count').textContent = count;
+                            document.getElementById('queue-info').classList.add('visible');
+                        }
+                    };
+                };
+            } catch { }
+        }
+        checkQueue();
+
+        // Auto-reload saat online kembali
+        window.addEventListener('online', () => location.reload());
+    </script>
 </body>
 
 </html>

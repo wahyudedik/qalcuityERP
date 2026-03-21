@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use Illuminate\Support\Facades\Storage;
 
 class InventoryTools
 {
@@ -135,6 +136,35 @@ class InventoryTools
                         'address' => ['type' => 'string', 'description' => 'Alamat gudang (opsional)'],
                     ],
                     'required' => ['name'],
+                ],
+            ],
+            [
+                'name'        => 'update_product_image',
+                'description' => 'Simpan gambar ke produk tertentu. Gunakan setelah user mengirim foto produk via chat. '
+                    . 'Sistem akan otomatis menyediakan image_url dari file yang diupload. '
+                    . 'Contoh: "simpan gambar ini untuk produk Kopi Hitam", "set foto produk Teh Botol".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'product_name' => ['type' => 'string', 'description' => 'Nama atau SKU produk yang akan diupdate fotonya'],
+                        'image_url'    => ['type' => 'string', 'description' => 'URL gambar — diisi otomatis oleh sistem dari file yang diupload user'],
+                    ],
+                    'required' => ['product_name'],
+                ],
+            ],
+            [
+                'name'        => 'identify_product_from_image',
+                'description' => 'Identifikasi produk dari gambar yang dikirim user, lalu cocokkan dengan produk yang ada di sistem. '
+                    . 'Gunakan tool ini PERTAMA KALI ketika user mengirim foto produk tanpa menyebut nama produk secara eksplisit. '
+                    . 'Tool ini akan mencari produk yang paling cocok berdasarkan nama yang kamu deteksi dari gambar.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'detected_name' => ['type' => 'string', 'description' => 'Nama produk yang kamu deteksi/identifikasi dari gambar'],
+                        'confidence'    => ['type' => 'string', 'description' => 'Tingkat keyakinan: high, medium, low'],
+                        'description'   => ['type' => 'string', 'description' => 'Deskripsi singkat apa yang terlihat di gambar'],
+                    ],
+                    'required' => ['detected_name'],
                 ],
             ],
         ];
@@ -484,6 +514,158 @@ class InventoryTools
         return [
             'status'  => 'success',
             'message' => "Produk **{$product->name}** berhasil dinonaktifkan. Produk tidak akan muncul di daftar aktif, tapi riwayat transaksinya tetap tersimpan.",
+        ];
+    }
+
+    public function updateProductImage(array $args): array
+    {
+        $product = Product::where('tenant_id', $this->tenantId)
+            ->where(fn($q) => $q->where('name', 'like', "%{$args['product_name']}%")
+                ->orWhere('sku', $args['product_name']))
+            ->first();
+
+        if (!$product) {
+            return ['status' => 'error', 'message' => "Produk \"{$args['product_name']}\" tidak ditemukan."];
+        }
+
+        $imageUrl = $args['image_url'] ?? null;
+
+        // Jika tidak ada URL (AI tidak kirim), cek apakah ada pending_image_url di session
+        if (!$imageUrl) {
+            return [
+                'status'  => 'error',
+                'message' => "URL gambar tidak tersedia. Pastikan kamu mengirim gambar bersamaan dengan perintah.",
+            ];
+        }
+
+        // Jika URL adalah path lokal storage (dari upload chat), gunakan langsung
+        if (str_starts_with($imageUrl, '/storage/') || str_starts_with($imageUrl, 'http')) {
+            // Hapus gambar lama jika ada
+            if ($product->image && str_starts_with($product->image, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $product->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $product->update(['image' => $imageUrl]);
+
+            return [
+                'status'  => 'success',
+                'message' => "✅ Foto produk **{$product->name}** berhasil disimpan.",
+                'data'    => ['product_id' => $product->id, 'product' => $product->name, 'image_url' => $imageUrl],
+                'actions' => [
+                    ['label' => 'Lihat di Inventori', 'message' => "tampilkan detail produk {$product->name}", 'style' => 'primary', 'icon' => '📦'],
+                    ['label' => 'Update Produk Lain', 'message' => 'kirim foto produk lain untuk diupdate', 'style' => 'default', 'icon' => '📷'],
+                ],
+            ];
+        }
+
+        // Fallback: download dari URL eksternal
+        try {
+            $contents = @file_get_contents($imageUrl);
+            if ($contents === false) {
+                $product->update(['image' => $imageUrl]);
+                return ['status' => 'success', 'message' => "✅ Foto produk **{$product->name}** berhasil diperbarui."];
+            }
+
+            $ext      = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+            $ext      = in_array(strtolower($ext), ['jpg','jpeg','png','webp','gif']) ? strtolower($ext) : 'jpg';
+            $filename = 'products/' . uniqid('prod_') . '.' . $ext;
+
+            Storage::disk('public')->put($filename, $contents);
+
+            if ($product->image && str_starts_with($product->image, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $product->image);
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $storedUrl = Storage::url($filename);
+            $product->update(['image' => $storedUrl]);
+
+            return [
+                'status'  => 'success',
+                'message' => "✅ Foto produk **{$product->name}** berhasil disimpan.",
+                'data'    => ['product_id' => $product->id, 'product' => $product->name, 'image_url' => $storedUrl],
+            ];
+        } catch (\Throwable $e) {
+            return ['status' => 'error', 'message' => 'Gagal menyimpan gambar: ' . $e->getMessage()];
+        }
+    }
+
+    public function identifyProductFromImage(array $args): array
+    {
+        $detectedName = $args['detected_name'] ?? '';
+        $confidence   = $args['confidence'] ?? 'medium';
+        $description  = $args['description'] ?? '';
+
+        if (!$detectedName) {
+            return ['status' => 'error', 'message' => 'Tidak dapat mendeteksi nama produk dari gambar.'];
+        }
+
+        // Cari produk yang cocok di database
+        $products = Product::where('tenant_id', $this->tenantId)
+            ->where('is_active', true)
+            ->where(fn($q) => $q
+                ->where('name', 'like', "%{$detectedName}%")
+                ->orWhere('sku', 'like', "%{$detectedName}%")
+                ->orWhere('category', 'like', "%{$detectedName}%")
+            )
+            ->limit(5)
+            ->get(['id', 'name', 'sku', 'category', 'unit', 'price_sell']);
+
+        if ($products->isEmpty()) {
+            // Coba fuzzy match — ambil semua produk dan cari yang paling mirip
+            $allProducts = Product::where('tenant_id', $this->tenantId)
+                ->where('is_active', true)
+                ->get(['id', 'name', 'sku', 'category']);
+
+            $bestMatch = null;
+            $bestScore = 0;
+            foreach ($allProducts as $p) {
+                similar_text(strtolower($detectedName), strtolower($p->name), $pct);
+                if ($pct > $bestScore) {
+                    $bestScore = $pct;
+                    $bestMatch = $p;
+                }
+            }
+
+            if ($bestMatch && $bestScore > 40) {
+                $products = collect([$bestMatch->fresh(['id', 'name', 'sku', 'category', 'unit', 'price_sell'])]);
+            }
+        }
+
+        $confidenceLabel = match($confidence) {
+            'high'   => 'tinggi',
+            'medium' => 'sedang',
+            default  => 'rendah',
+        };
+
+        if ($products->isEmpty()) {
+            return [
+                'status'      => 'not_found',
+                'detected'    => $detectedName,
+                'description' => $description,
+                'message'     => "Gambar terdeteksi sebagai **{$detectedName}** (keyakinan: {$confidenceLabel}), tapi tidak ada produk yang cocok di sistem.",
+                'actions'     => [
+                    ['label' => "Buat Produk Baru: {$detectedName}", 'message' => "buat produk baru bernama {$detectedName}", 'style' => 'primary', 'icon' => '➕'],
+                    ['label' => 'Cari Produk Manual', 'message' => 'tampilkan semua produk', 'style' => 'default', 'icon' => '🔍'],
+                ],
+            ];
+        }
+
+        $matchList = $products->map(fn($p) => [
+            'id'       => $p->id,
+            'name'     => $p->name,
+            'sku'      => $p->sku,
+            'category' => $p->category ?? '-',
+        ])->toArray();
+
+        return [
+            'status'      => 'found',
+            'detected'    => $detectedName,
+            'confidence'  => $confidence,
+            'description' => $description,
+            'matches'     => $matchList,
+            'message'     => "Gambar terdeteksi sebagai **{$detectedName}** (keyakinan: {$confidenceLabel}). Ditemukan " . count($matchList) . " produk yang cocok.",
         ];
     }
 }

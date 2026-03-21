@@ -15,6 +15,7 @@ class AuditController extends Controller
             ->with('user')
             ->when($request->action, fn($q) => $q->where('action', $request->action))
             ->when($request->user_id, fn($q) => $q->where('user_id', $request->user_id))
+            ->when($request->filled('is_ai'), fn($q) => $q->where('is_ai_action', (bool) $request->is_ai))
             ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
             ->latest()
@@ -23,6 +24,11 @@ class AuditController extends Controller
         $actions = ActivityLog::where('tenant_id', $tenantId)
             ->distinct()->pluck('action');
 
-        return view('audit.index', compact('logs', 'actions'));
+        $aiCount = ActivityLog::where('tenant_id', $tenantId)
+            ->where('is_ai_action', true)
+            ->whereDate('created_at', today())
+            ->count();
+
+        return view('audit.index', compact('logs', 'actions', 'aiCount'));
     }
 }

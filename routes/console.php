@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\CheckTrialExpiry;
+use App\Jobs\GenerateAiInsights;
 use App\Jobs\GenerateTenantReport;
 use App\Models\AiUsageLog;
 use App\Models\ChatMessage;
@@ -14,6 +15,24 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// ─── AI Insights ─────────────────────────────────────────────────────────────
+
+// Generate insight harian untuk semua tenant — setiap hari jam 07:00
+Schedule::call(function () {
+    Tenant::where('is_active', true)->each(function ($tenant) {
+        GenerateAiInsights::dispatch($tenant->id, 'daily')
+            ->delay(now()->addSeconds(rand(1, 60)));
+    });
+})->dailyAt('07:00')->name('generate-ai-insights-daily')->withoutOverlapping();
+
+// Generate insight mingguan — Senin jam 08:00
+Schedule::call(function () {
+    Tenant::where('is_active', true)->each(function ($tenant) {
+        GenerateAiInsights::dispatch($tenant->id, 'weekly')
+            ->delay(now()->addSeconds(rand(1, 60)));
+    });
+})->weeklyOn(1, '08:00')->name('generate-ai-insights-weekly')->withoutOverlapping();
 
 // ─── ERP Notifications ────────────────────────────────────────────────────────
 

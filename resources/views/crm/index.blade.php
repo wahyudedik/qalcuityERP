@@ -1,5 +1,10 @@
 <x-app-layout>
-    <x-slot name="header">CRM & Pipeline Penjualan</x-slot>
+    <x-slot name="header">
+        <div class="flex items-center gap-3">
+            CRM & Pipeline Penjualan
+            <a href="{{ route('crm.kanban') }}" class="text-xs text-gray-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">Tampilan Kanban →</a>
+        </div>
+    </x-slot>
 
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

@@ -124,6 +124,26 @@ class ReportTools
                     ],
                 ],
             ],
+            [
+                'name'        => 'export_report_pdf',
+                'description' => 'Generate link download laporan PDF. Gunakan ketika user ingin download/export laporan ke PDF. '
+                    . 'Contoh: "download laporan penjualan bulan ini", "export PDF inventori", '
+                    . '"cetak laporan keuangan minggu ini", "unduh laporan kehadiran bulan lalu", '
+                    . '"export laporan piutang ke PDF", "download laporan laba rugi".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'report_type' => [
+                            'type'        => 'string',
+                            'description' => 'Jenis laporan: sales (penjualan), finance (keuangan), inventory (inventori), hrm (kehadiran), receivables (piutang), profit_loss (laba rugi)',
+                        ],
+                        'start_date' => ['type' => 'string', 'description' => 'Tanggal mulai YYYY-MM-DD (opsional, default: awal bulan ini)'],
+                        'end_date'   => ['type' => 'string', 'description' => 'Tanggal akhir YYYY-MM-DD (opsional, default: hari ini)'],
+                        'period'     => ['type' => 'string', 'description' => 'Shortcut periode: today, this_week, this_month, last_month, this_year (opsional, override start/end_date)'],
+                    ],
+                    'required' => ['report_type'],
+                ],
+            ],
         ];
     }
 
@@ -536,5 +556,50 @@ class ReportTools
             'this_year'   => [now()->startOfYear(), now()->endOfYear()],
             default       => [now()->startOfMonth(), now()->endOfMonth()],
         };
+    }
+
+    public function exportReportPdf(array $args): array
+    {
+        [$start, $end] = $this->resolveDateRange($args);
+        $reportType = $args['report_type'] ?? 'sales';
+        $startStr   = $start->format('Y-m-d');
+        $endStr     = $end->format('Y-m-d');
+
+        $routeMap = [
+            'sales'       => ['name' => 'reports.sales.pdf',       'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
+            'finance'     => ['name' => 'reports.finance.pdf',     'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
+            'inventory'   => ['name' => 'reports.inventory.pdf',   'params' => []],
+            'hrm'         => ['name' => 'reports.hrm.pdf',         'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
+            'receivables' => ['name' => 'reports.receivables.pdf', 'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
+            'profit_loss' => ['name' => 'reports.profit-loss.pdf', 'params' => ['start_date' => $startStr, 'end_date' => $endStr]],
+        ];
+
+        if (!isset($routeMap[$reportType])) {
+            return ['status' => 'error', 'message' => "Jenis laporan '{$reportType}' tidak dikenali. Pilih: sales, finance, inventory, hrm, receivables, profit_loss."];
+        }
+
+        $route  = $routeMap[$reportType];
+        $url    = route($route['name'], $route['params']);
+        $labels = [
+            'sales'       => 'Laporan Penjualan',
+            'finance'     => 'Laporan Keuangan',
+            'inventory'   => 'Laporan Inventori',
+            'hrm'         => 'Laporan Kehadiran',
+            'receivables' => 'Laporan Piutang',
+            'profit_loss' => 'Laporan Laba Rugi',
+        ];
+
+        $periodLabel = $reportType === 'inventory'
+            ? 'per ' . now()->format('d M Y')
+            : $start->format('d M Y') . ' s/d ' . $end->format('d M Y');
+
+        return [
+            'status'      => 'success',
+            'report_type' => $reportType,
+            'label'       => $labels[$reportType],
+            'period'      => $periodLabel,
+            'download_url'=> $url,
+            'message'     => "📄 **{$labels[$reportType]}** ({$periodLabel}) siap diunduh.\n\n[⬇️ Download PDF]({$url})",
+        ];
     }
 }

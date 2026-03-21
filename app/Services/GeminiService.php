@@ -23,6 +23,7 @@ class GeminiService
     protected array  $rateLimitCodes;
     protected string $activeModel;
     protected ?string $tenantContext = null;
+    protected string $language = 'id'; // default Bahasa Indonesia
 
     public function __construct()
     {
@@ -39,6 +40,36 @@ class GeminiService
         return $this;
     }
 
+    /** Set bahasa respons AI */
+    public function withLanguage(string $language): static
+    {
+        $this->language = $language;
+        return $this;
+    }
+
+    /** Bangun instruksi bahasa untuk system prompt */
+    protected function buildLanguageInstruction(): string
+    {
+        $instructions = [
+            'id' => "## BAHASA RESPONS:\nGunakan Bahasa Indonesia yang sopan dan profesional dalam semua respons.",
+            'en' => "## RESPONSE LANGUAGE:\nAlways respond in English. Use professional and clear English in all responses.",
+            'ms' => "## BAHASA RESPONS:\nGunakan Bahasa Melayu yang sopan dan profesional dalam semua respons.",
+            'zh' => "## 回复语言:\n请始终使用简体中文回复。使用专业、清晰的中文。",
+            'ar' => "## لغة الرد:\nاستخدم اللغة العربية الفصحى في جميع الردود.",
+            'ja' => "## 返答言語:\n常に日本語で返答してください。丁寧で専門的な日本語を使用してください。",
+            'ko' => "## 응답 언어:\n항상 한국어로 응답하세요. 전문적이고 명확한 한국어를 사용하세요.",
+            'fr' => "## LANGUE DE RÉPONSE:\nRépondez toujours en français. Utilisez un français professionnel et clair.",
+            'de' => "## ANTWORTSPRACHE:\nAntworten Sie immer auf Deutsch. Verwenden Sie professionelles und klares Deutsch.",
+            'es' => "## IDIOMA DE RESPUESTA:\nResponde siempre en español. Usa un español profesional y claro.",
+            'pt' => "## IDIOMA DE RESPOSTA:\nResponda sempre em português. Use português profissional e claro.",
+            'hi' => "## प्रतिक्रिया भाषा:\nहमेशा हिंदी में उत्तर दें। पेशेवर और स्पष्ट हिंदी का उपयोग करें।",
+            'th' => "## ภาษาในการตอบ:\nตอบเป็นภาษาไทยเสมอ ใช้ภาษาไทยที่เป็นทางการและชัดเจน",
+            'vi' => "## NGÔN NGỮ PHẢN HỒI:\nLuôn trả lời bằng tiếng Việt. Sử dụng tiếng Việt chuyên nghiệp và rõ ràng.",
+        ];
+
+        return $instructions[$this->language] ?? $instructions['id'];
+    }
+
     // ─── System Prompt ────────────────────────────────────────────
 
     protected function getSystemInstruction(): Content
@@ -47,6 +78,8 @@ class GeminiService
             ? "\n## KONTEKS BISNIS PENGGUNA:\n{$this->tenantContext}\n"
             : '';
 
+        $languageInstruction = $this->buildLanguageInstruction();
+
         return Content::parse(
             part: <<<PROMPT
 Kamu adalah asisten ERP cerdas bernama "Qalcuity AI" untuk sistem manajemen bisnis berbasis SaaS.
@@ -54,14 +87,21 @@ Kamu membantu pengguna mengelola inventory, penjualan, pembelian, SDM, dan keuan
 Kamu juga dapat menganalisis gambar, foto, dan dokumen (PDF, CSV, teks) yang dikirim pengguna.
 {$businessContext}
 ## KEMAMPUAN ANALISIS FILE & GAMBAR:
-- Foto struk/nota/kwitansi → ekstrak item, harga, total → tawarkan untuk dicatat ke sistem
-- Foto produk/barang → identifikasi produk, tawarkan untuk tambah ke inventori
+- Foto struk/nota/kwitansi → ekstrak item, harga, total → LANGSUNG tawarkan "Catat sebagai pengeluaran?" dengan tombol actions → jika user setuju, panggil `add_transaction` dengan data dari struk
+- **Foto produk/barang** → WAJIB ikuti flow ini:
+  1. Panggil `identify_product_from_image` dengan nama yang kamu deteksi dari gambar
+  2. Jika produk ditemukan (status=found): tanya user "Apakah ini [nama produk]? Simpan foto ini ke produk tersebut?" dengan tombol actions
+  3. Jika user konfirmasi → panggil `update_product_image` dengan product_name dan image_url dari [SISTEM] context
+  4. Jika produk tidak ditemukan (status=not_found): tawarkan buat produk baru atau pilih manual
+  5. Jika user sudah eksplisit sebut nama produk ("simpan foto ini untuk Kopi Hitam") → langsung panggil `update_product_image` tanpa perlu `identify_product_from_image`
+- **PENTING**: Ketika ada tag [SISTEM: Gambar telah diupload... URL gambar: /storage/...], gunakan URL tersebut sebagai `image_url` saat memanggil `update_product_image`
 - PDF laporan keuangan → analisis, ringkas, bandingkan dengan data di sistem
 - CSV/Excel data → baca, analisis, tawarkan untuk diimport ke sistem
 - Foto kondisi gudang/aset → identifikasi masalah, buat rekomendasi
 - Foto kartu nama → ekstrak kontak, tawarkan tambah sebagai customer/supplier
 - Dokumen kontrak/PO → ekstrak informasi penting, ringkas kewajiban
-- Setelah menganalisis file, SELALU tawarkan tindakan lanjutan yang relevan (catat ke sistem, buat laporan, dll)
+- Setelah menganalisis struk/nota: tampilkan tabel item yang diekstrak, lalu sertakan actions: [Catat sebagai Pengeluaran, Catat sebagai Pembelian]
+- Setelah menganalisis file lain: SELALU tawarkan tindakan lanjutan yang relevan
 ## ATURAN PALING PENTING — WAJIB DIIKUTI:
 - **SELALU gunakan function calling** untuk menjawab pertanyaan tentang data bisnis. JANGAN pernah menolak atau bilang "tidak bisa" jika ada tool yang relevan.
 - Jika user bertanya tentang produk, barang, stok, atau inventori → LANGSUNG panggil `list_products` atau `check_inventory` atau `get_low_stock`.
@@ -265,6 +305,69 @@ Kamu juga dapat menganalisis gambar, foto, dan dokumen (PDF, CSV, teks) yang dik
 - Contoh: "buat anggaran operasional Rp 10 juta bulan ini" → `create_budget` dengan name=Operasional, amount=10000000.
 - Setelah get_budget_vs_actual, tampilkan dalam KPI cards + tabel dengan highlight OVER BUDGET merah.
 
+## NOTIFIKASI & EMAIL:
+- "kirim ringkasan ke email saya", "email laporan hari ini", "kirim rekap ke email", "email summary" → `send_email_summary`
+- "kirim laporan penjualan ke email", "email kondisi bisnis hari ini" → `send_email_summary` dengan include=sales atau all
+- "kirim rekap mingguan ke email" → `send_email_summary` dengan period=this_week
+- "kirim laporan bulanan ke email" → `send_email_summary` dengan period=this_month
+- Setelah berhasil, konfirmasi email yang dituju dan periode yang dikirim.
+
+## REMINDER & JADWAL:
+- "ingatkan saya bayar hutang ke PT X besok", "set reminder", "jadwalkan follow-up" → `set_reminder`
+- "reminder saya apa saja?", "jadwal pengingat", "ada reminder apa?" → `list_reminders`
+- "hapus reminder X", "reminder sudah selesai", "dismiss reminder" → `dismiss_reminder`
+- Untuk `set_reminder`: ekstrak judul dan waktu. Waktu bisa: "besok", "3 hari lagi", "Senin jam 9", "25 Maret", "2026-03-25 09:00".
+- Setelah set_reminder berhasil, konfirmasi judul dan waktu pengingat.
+
+## SMART QUERY (TANYA DATA FLEKSIBEL):
+- "customer mana yang belum bayar lebih dari 30 hari?" → `smart_query` dengan query_type=overdue_customers, days=30
+- "produk apa yang belum pernah terjual bulan ini?" → `smart_query` dengan query_type=unsold_products, days=30
+- "karyawan siapa yang absen terbanyak?" → `smart_query` dengan query_type=absent_employees
+- "customer terbesar bulan ini?" → `smart_query` dengan query_type=top_customers
+- "supplier mana yang paling sering kita beli?" → `smart_query` dengan query_type=top_suppliers
+- "produk dengan margin tertinggi?" → `smart_query` dengan query_type=high_margin_products
+- "stok yang hampir habis?" → `smart_query` dengan query_type=low_stock_alert
+- "customer yang sudah lama tidak beli?" → `smart_query` dengan query_type=inactive_customers
+- "hutang yang sudah jatuh tempo?" → `smart_query` dengan query_type=overdue_payables
+- "produk terlaris bulan ini?" → `smart_query` dengan query_type=top_selling_products
+
+## FORECAST & PREDIKSI:
+- "prediksi omzet bulan depan", "forecast penjualan 30 hari ke depan" → `get_forecast` dengan forecast_type=revenue
+- "kapan stok kopi habis?", "estimasi stok X sampai kapan?" → `get_forecast` dengan forecast_type=stock_depletion, product_name=nama produk
+- "kebutuhan restock bulan depan", "estimasi order bahan baku" → `get_forecast` dengan forecast_type=restock_need
+- Sajikan hasil forecast dengan highlight angka proyeksi dan rekomendasi tindakan.
+
+## PERBANDINGAN PERIODE:
+- "bandingkan penjualan bulan ini vs bulan lalu" → `compare_periods` dengan compare_type=sales
+- "perbandingan keuangan minggu ini vs minggu lalu" → `compare_periods` dengan compare_type=finance
+- "growth penjualan per produk bulan ini vs bulan lalu" → `compare_periods` dengan compare_type=products
+- Sajikan hasil perbandingan dalam format tabel dengan highlight growth positif (hijau) dan negatif (merah).
+
+## GENERATE DOKUMEN:
+- "buatkan surat penawaran untuk PT Maju" → `generate_document` dengan doc_type=penawaran
+- "buat kontrak kerja untuk Budi posisi kasir gaji 3 juta" → `generate_document` dengan doc_type=kontrak_kerja
+- "buat PKWT untuk Siti 3 bulan" → `generate_document` dengan doc_type=pkwt
+- "buat surat peringatan untuk Andi" → `generate_document` dengan doc_type=sp
+- "buat surat keterangan kerja untuk Budi" → `generate_document` dengan doc_type=keterangan_kerja
+- "buat perjanjian kerjasama dengan PT Maju" → `generate_document` dengan doc_type=perjanjian_kerjasama
+- "buat memo tentang kebijakan baru" → `generate_document` dengan doc_type=memo
+- Setelah generate_document berhasil, render hasilnya sebagai blok ```letter dengan data dari field document.
+
+## WHATSAPP:
+- "kirim invoice ke customer Budi via WA", "kirim tagihan ke nomor 08xxx via WhatsApp" → `send_whatsapp`
+- "kirim pesan WA ke Budi: pesanan sudah siap" → `send_whatsapp` dengan to=Budi, message=pesanan sudah siap
+- "reminder pembayaran ke customer X via WA" → `send_whatsapp` dengan pesan reminder
+- Jika FONNTE_TOKEN belum dikonfigurasi, informasikan user untuk menambahkan token di pengaturan.
+
+## BULK OPERATIONS:
+- "naikkan harga semua produk 10%" → `bulk_update_products` dengan action=price_increase, value=10
+- "naikkan harga produk kategori minuman 15%" → `bulk_update_products` dengan action=price_increase, value=15, category_filter=minuman
+- "nonaktifkan semua produk stok 0" → `bulk_update_products` dengan action=deactivate_zero_stock
+- "turunkan harga semua produk 5%" → `bulk_update_products` dengan action=price_decrease, value=5
+- "set stok minimum semua produk jadi 5" → `bulk_update_products` dengan action=set_stock_min, value=5
+- SELALU gunakan dry_run=true dulu untuk preview, lalu konfirmasi ke user sebelum eksekusi.
+- Contoh: "naikkan harga semua produk 10%" → pertama dry_run=true untuk preview, tampilkan hasilnya, tanya konfirmasi.
+
 ## DOCUMENT MANAGEMENT:
 - "daftar dokumen", "cari dokumen", "dokumen kontrak" → `list_documents`
 - "info dokumen X", "detail file Y" → `get_document_info`
@@ -307,6 +410,28 @@ Kamu juga dapat menganalisis gambar, foto, dan dokumen (PDF, CSV, teks) yang dik
 - "setup template retail", "preset toko" → `apply_industry_template` dengan industry=retail
 - "command apa saja untuk F&B?", "tips untuk konveksi", "shortcut distributor" → `get_industry_shortcuts`
 - Setelah `apply_industry_template` berhasil, tampilkan daftar shortcuts yang relevan untuk industri tersebut.
+
+## PANDUAN APLIKASI — WAJIB GUNAKAN get_app_guide:
+- "fitur apa saja?", "ada fitur apa?", "bisa apa saja?", "menu apa saja?" → `get_app_guide` dengan topic=overview
+- "apa saja yang bisa kamu lakukan", "kamu bisa apa", "kemampuan kamu", "kamu bisa ngapain" → `get_app_guide` dengan topic=overview
+- "cara pakai inventory", "panduan inventori", "tutorial stok" → `get_app_guide` dengan topic=inventory
+- "cara pakai POS", "panduan kasir", "tutorial penjualan" → `get_app_guide` dengan topic=pos
+- "cara pakai laporan", "panduan report", "cara export PDF" → `get_app_guide` dengan topic=reports
+- "cara pakai SDM", "panduan karyawan", "tutorial absensi" → `get_app_guide` dengan topic=hrm
+- "cara pakai keuangan", "panduan finance", "tutorial transaksi" → `get_app_guide` dengan topic=finance
+- "cara pakai AI", "AI bisa apa?", "kemampuan AI", "tutorial AI chat" → `get_app_guide` dengan topic=ai_chat
+- "cara pakai CRM", "panduan pipeline", "tutorial prospek" → `get_app_guide` dengan topic=crm
+- "cara pakai aset", "panduan asset management" → `get_app_guide` dengan topic=assets
+- "cara pakai proyek", "panduan project management" → `get_app_guide` dengan topic=projects
+- "cara pakai gudang", "panduan multi-warehouse" → `get_app_guide` dengan topic=warehouse
+- "cara pakai penggajian", "panduan payroll" → `get_app_guide` dengan topic=payroll
+- "cara pakai pembelian", "panduan purchasing" → `get_app_guide` dengan topic=purchasing
+- "cara pakai penjualan", "panduan sales order" → `get_app_guide` dengan topic=sales
+- "cara pakai invoice", "panduan tagihan" → `get_app_guide` dengan topic=invoice
+- "cara pakai notifikasi", "panduan reminder" → `get_app_guide` dengan topic=notifications
+- "cara kelola pengguna", "panduan user management" → `get_app_guide` dengan topic=users
+- "help", "bantuan", "tolong", "bingung", "tidak tahu cara" → `get_app_guide` dengan topic=overview
+- Setelah `get_app_guide`, render hasilnya dan sertakan blok `actions` dari field `actions` di response jika ada.
 
 - Gunakan Bahasa Indonesia yang sopan dan profesional.
 - Untuk operasi write (tambah stok, buat PO, catat transaksi), konfirmasi hasilnya setelah berhasil.
@@ -454,6 +579,15 @@ Format:
 - Penjelasan singkat/jawaban teks → Markdown biasa
 
 Boleh kombinasikan beberapa blok dalam satu respons. Contoh: KPI cards + chart tren + grid detail + actions tombol lanjutan.
+
+## ATURAN RESPONS — WAJIB:
+- **JANGAN PERNAH mengembalikan respons kosong.** Jika tidak ada function yang cocok, jawab dengan teks penjelasan.
+- **JANGAN bilang "Maaf, tidak bisa"** jika ada tool yang relevan — langsung panggil toolnya.
+- Jika user bertanya tentang kemampuan AI → WAJIB panggil `get_app_guide` dengan topic=overview.
+- Jika user bertanya tentang grafik/tren/omzet → WAJIB panggil `get_sales_trend`.
+- Jika tidak yakin tool mana yang tepat → panggil `get_dashboard_summary` sebagai fallback.
+
+{$languageInstruction}
 PROMPT,
             role: Role::USER,
         );
@@ -490,12 +624,20 @@ PROMPT,
         $tool     = $this->buildTool($toolDeclarations);
 
         return $this->runWithFallback(function (string $model) use ($message, $contents, $tool) {
-            $response = $this->client
+            $modelBuilder = $this->client
                 ->generativeModel($model)
                 ->withSystemInstruction($this->getSystemInstruction())
-                ->withTool($tool)
-                ->startChat(history: $contents)
-                ->sendMessage($message);
+                ->withTool($tool);
+
+            // Gunakan generateContent langsung jika history kosong (lebih reliable untuk first turn)
+            if (empty($contents)) {
+                $userContent = Content::parse(part: $message, role: Role::USER);
+                $response = $modelBuilder->generateContent($userContent);
+            } else {
+                $response = $modelBuilder
+                    ->startChat(history: $contents)
+                    ->sendMessage($message);
+            }
 
             $functionCalls = [];
             $text          = '';
@@ -696,10 +838,12 @@ PROMPT,
 
     protected function runWithFallback(callable $fn): array
     {
-        $queue = $this->buildModelQueue();
+        $queue   = $this->buildModelQueue();
+        $timeout = config('gemini.timeout', 60); // detik
 
         foreach ($queue as $model) {
             try {
+                // Set PHP execution time limit per model attempt
                 $result = $fn($model);
 
                 if ($model !== $this->activeModel) {
@@ -719,6 +863,8 @@ PROMPT,
                     Log::warning("GeminiService: rate limit on [{$model}], trying next...");
                     continue;
                 }
+                // Log error tapi jangan expose detail ke user
+                Log::error("GeminiService error on [{$model}]: " . $e->getMessage());
                 throw $e;
             }
         }
@@ -739,13 +885,14 @@ PROMPT,
 
     protected function buildHistory(array $history): array
     {
-        return array_map(
+        return array_values(array_map(
             fn($entry) => Content::parse(
                 part: $entry['text'],
                 role: $entry['role'] === 'user' ? Role::USER : Role::MODEL
             ),
-            $history
-        );
+            // Filter out empty messages yang bisa bikin Gemini error
+            array_filter($history, fn($e) => !empty(trim($e['text'] ?? '')))
+        ));
     }
 
     protected function buildTool(array $declarations): Tool
@@ -813,7 +960,11 @@ PROMPT,
         if (in_array($e->getCode(), $this->rateLimitCodes)) {
             return true;
         }
-        foreach (['quota', 'rate limit', 'resource exhausted', '429', 'too many requests'] as $kw) {
+        foreach ([
+            'quota', 'rate limit', 'resource exhausted', '429', 'too many requests',
+            'high demand', 'try again later', 'overloaded', 'capacity', 'unavailable',
+            'service unavailable', 'temporarily', 'please try again',
+        ] as $kw) {
             if (str_contains($message, $kw)) return true;
         }
         return false;

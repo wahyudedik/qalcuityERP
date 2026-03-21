@@ -27,9 +27,12 @@
                     <label for="role" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Role</label>
                     <select id="role" name="role"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }}>Manager</option>
-                        <option value="staff"   {{ old('role') === 'staff'   ? 'selected' : '' }}>Staff</option>
+                        <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }}>Manajer — akses penuh semua modul</option>
+                        <option value="staff"   {{ old('role') === 'staff'   ? 'selected' : '' }}>Staff — akses terbatas (baca + POS)</option>
+                        <option value="kasir"   {{ old('role') === 'kasir'   ? 'selected' : '' }}>Kasir — hanya akses POS & penjualan</option>
+                        <option value="gudang"  {{ old('role') === 'gudang'  ? 'selected' : '' }}>Gudang — hanya akses inventori & stok</option>
                     </select>
+                    <p class="text-xs text-slate-500 mt-1.5">Pilih role sesuai divisi pengguna. Role menentukan menu dan AI tools yang bisa diakses.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
