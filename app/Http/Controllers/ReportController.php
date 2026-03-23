@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BalanceSheetExport;
+use App\Exports\BudgetReportExport;
+use App\Exports\CashFlowExport;
 use App\Exports\FinanceReportExport;
 use App\Exports\HrmReportExport;
 use App\Exports\InventoryReportExport;
 use App\Exports\ReceivablesReportExport;
 use App\Exports\SalesReportExport;
 use App\Models\Attendance;
+use App\Models\Budget;
 use App\Models\Invoice;
 use App\Models\SalesOrder;
 use App\Models\Transaction;
 use App\Models\ProductStock;
+use App\Services\FinancialStatementService;
+use App\Services\CashFlowProjectionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -319,5 +325,148 @@ class ReportController extends Controller
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download('laporan-laba-rugi-' . $request->start_date . '.pdf');
+    }
+
+    // ─── Balance Sheet ────────────────────────────────────────────
+
+    public function exportBalanceSheetExcel(Request $request)
+    {
+        $request->validate(['as_of' => 'required|date']);
+        $tenantId   = $this->requireTenantId($request);
+        $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
+        $filename   = 'neraca-' . $request->as_of . '.xlsx';
+
+        return Excel::download(
+            new BalanceSheetExport($tenantId, $request->as_of, $tenantName),
+            $filename
+        );
+    }
+
+    public function exportBalanceSheetPdf(Request $request)
+    {
+        $request->validate(['as_of' => 'required|date']);
+        $tenantId = $this->requireTenantId($request);
+        $asOf     = $request->as_of;
+        $data     = app(FinancialStatementService::class)->balanceSheet($tenantId, $asOf);
+        $tenant   = $request->user()->tenant;
+
+        $pdf = Pdf::loadView('accounting.pdf.balance-sheet', compact('data', 'asOf', 'tenant'))
+                   ->setPaper('a4', 'portrait');
+
+        return $pdf->download('neraca-' . $asOf . '.pdf');
+    }
+
+    // ─── Cash Flow Statement ──────────────────────────────────────
+
+    public function exportCashFlowExcel(Request $request)
+    {
+        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $tenantId   = $this->requireTenantId($request);
+        $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
+        $filename   = 'arus-kas-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
+
+        return Excel::download(
+            new CashFlowExport($tenantId, $request->start_date, $request->end_date, $tenantName),
+            $filename
+        );
+    }
+
+    public function exportCashFlowPdf(Request $request)
+    {
+        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $tenantId = $this->requireTenantId($request);
+        $from     = $request->start_date;
+        $to       = $request->end_date;
+        $data     = app(FinancialStatementService::class)->cashFlowStatement($tenantId, $from, $to);
+        $tenant   = $request->user()->tenant;
+
+        $pdf = Pdf::loadView('accounting.pdf.cash-flow', compact('data', 'from', 'to', 'tenant'))
+                   ->setPaper('a4', 'portrait');
+
+        return $pdf->download('arus-kas-' . $from . '-sd-' . $to . '.pdf');
+    }
+
+    // ─── Budget vs Actual ─────────────────────────────────────────
+
+    public function exportBudgetExcel(Request $request)
+    {
+        $request->validate(['period' => 'required|string|regex:/^\d{4}-\d{2}$/']);
+        $tenantId = $this->requireTenantId($request);
+        $filename = 'budget-vs-aktual-' . $request->period . '.xlsx';
+
+        return Excel::download(
+            new BudgetReportExport($tenantId, $request->period),
+            $filename
+        );
+    }
+
+    // ─── Cash Flow Projection ─────────────────────────────────────
+
+    public function cashFlowProjection(Request $request)
+    {
+        $tenantId = $this->requireTenantId($request);
+        $days     = (int) $request->get('days', 90);
+        $days     = in_array($days, [30, 60, 90]) ? $days : 90;
+
+        $data = app(CashFlowProjectionService::class)->project($tenantId, $days);
+
+        return view('reports.cash-flow-projection', compact('data', 'days'));
+    }
+
+    public function cashFlowProjectionData(Request $request)
+    {
+        $tenantId = $this->requireTenantId($request);
+        $days     = (int) $request->get('days', 90);
+        $days     = in_array($days, [30, 60, 90]) ? $days : 90;
+
+        $data = app(CashFlowProjectionService::class)->project($tenantId, $days);
+
+        // Return chart-friendly arrays
+        $labels   = array_keys($data['daily']);
+        $balances = array_column(array_values($data['daily']), 'balance');
+        $inflows  = array_column(array_values($data['daily']), 'inflow');
+        $outflows = array_column(array_values($data['daily']), 'outflow');
+
+        return response()->json([
+            'labels'   => $labels,
+            'balances' => $balances,
+            'inflows'  => $inflows,
+            'outflows' => $outflows,
+            'weeks'    => $data['weeks'],
+            'alerts'   => $data['alerts'],
+            'totals'   => $data['totals'],
+            'opening'  => $data['opening_balance'],
+        ]);
+    }
+
+    public function exportBudgetPdf(Request $request)
+    {
+        $request->validate(['period' => 'required|string|regex:/^\d{4}-\d{2}$/']);
+        $tenantId = $this->requireTenantId($request);
+        $period   = $request->period;
+
+        $budgets = Budget::where('tenant_id', $tenantId)
+            ->where('period', $period)
+            ->where('status', 'active')
+            ->orderBy('department')
+            ->orderBy('name')
+            ->get();
+
+        $totalBudget   = $budgets->sum('amount');
+        $totalRealized = $budgets->sum('realized');
+        $overCount     = $budgets->filter(fn($b) => $b->realized > $b->amount)->count();
+        $usagePct      = $totalBudget > 0 ? round($totalRealized / $totalBudget * 100, 1) : 0;
+
+        $pdf = Pdf::loadView('reports.budget-pdf', [
+            'tenant_name'    => $request->user()->tenant?->name ?? 'Qalcuity ERP',
+            'period'         => $period,
+            'budgets'        => $budgets,
+            'total_budget'   => $totalBudget,
+            'total_realized' => $totalRealized,
+            'over_count'     => $overCount,
+            'usage_pct'      => $usagePct,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('budget-vs-aktual-' . $period . '.pdf');
     }
 }

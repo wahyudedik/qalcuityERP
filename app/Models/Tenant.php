@@ -13,6 +13,14 @@ class Tenant extends Model
         'plan', 'is_active', 'trial_ends_at', 'plan_expires_at',
         'subscription_plan_id', 'business_type', 'business_description',
         'onboarding_completed',
+        // Company profile
+        'costing_method',
+        'npwp', 'website', 'city', 'province', 'postal_code',
+        'bank_name', 'bank_account', 'bank_account_name', 'tagline',
+        'stamp_image', 'director_signature', 'invoice_footer_notes',
+        'invoice_payment_terms', 'letter_head_color', 'doc_number_prefix',
+        // Module visibility
+        'enabled_modules',
     ];
 
     protected function casts(): array
@@ -22,7 +30,24 @@ class Tenant extends Model
             'trial_ends_at'         => 'datetime',
             'plan_expires_at'       => 'datetime',
             'onboarding_completed'  => 'boolean',
+            'enabled_modules'       => 'array',
         ];
+    }
+
+    /**
+     * Check if a module is enabled for this tenant.
+     * null = all enabled (backward compat for existing tenants).
+     */
+    public function isModuleEnabled(string $key): bool
+    {
+        if ($this->enabled_modules === null) return true;
+        return in_array($key, $this->enabled_modules, true);
+    }
+
+    /** Return list of enabled module keys, or all keys if null. */
+    public function enabledModules(): array
+    {
+        return $this->enabled_modules ?? \App\Services\ModuleRecommendationService::ALL_MODULES;
     }
 
     public function users(): HasMany

@@ -8,6 +8,7 @@ use App\Models\ProductStock;
 use App\Models\Warehouse;
 use App\Services\ERP\OnboardingTools;
 use App\Services\GeminiService;
+use Database\Seeders\DefaultCoaSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -106,6 +107,9 @@ class OnboardingController extends Controller
                 ]
             );
         }
+
+        // Seed COA default Indonesia untuk tenant baru
+        DefaultCoaSeeder::seedForTenant($tenant->id);
 
         return redirect()->route('dashboard')->with('success', 'Setup awal selesai! Selamat datang di Qalcuity ERP.');
     }

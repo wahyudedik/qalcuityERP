@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Supplier extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'tenant_id', 'name', 'email', 'phone', 'company', 'address',
         'npwp', 'bank_name', 'bank_account', 'bank_holder', 'is_active',

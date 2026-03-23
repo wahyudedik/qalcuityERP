@@ -153,3 +153,39 @@
 .scrollbar-accent {
     scrollbar-color: #bfdbfe transparent;
 }
+
+/* ── Select / Dropdown Dark Mode Fix ─────────────────────── */
+
+/* Force dark background on native select options in dark mode */
+.dark select {
+    color-scheme: dark;
+}
+
+/* Chromium-based browsers: style the option elements */
+.dark select option {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+
+.dark select option:hover,
+.dark select option:focus,
+.dark select option:checked {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* ── Form Input Global Consistency ───────────────────────── */
+@layer components {
+    .form-input {
+        @apply w-full px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+    }
+
+    .form-select {
+        @apply w-full px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+        color-scheme: light dark;
+    }
+
+    .form-textarea {
+        @apply w-full px-3 py-2 rounded-lg text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none;
+    }
+}

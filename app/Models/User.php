@@ -5,7 +5,9 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Services\PermissionService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -23,6 +25,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'phone',
         'bio',
+        'two_factor_secret',
+        'two_factor_enabled',
+        'two_factor_confirmed_at',
+        'two_factor_recovery_codes',
     ];
 
     protected $hidden = [
@@ -33,9 +39,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'email_verified_at'          => 'datetime',
+            'password'                   => 'hashed',
+            'is_active'                  => 'boolean',
+            'two_factor_enabled'         => 'boolean',
+            'two_factor_recovery_codes'  => 'array',
+            'two_factor_confirmed_at'    => 'datetime',
         ];
     }
 
@@ -44,6 +53,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function userPermissions(): HasMany
+    {
+        return $this->hasMany(UserPermission::class);
     }
 
     // ─── Role Helpers ─────────────────────────────────────────────
@@ -133,6 +147,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function belongsToTenant(int $tenantId): bool
     {
         return $this->isSuperAdmin() || $this->tenant_id === $tenantId;
+    }
+
+    /**
+     * Granular permission check — delegates to PermissionService.
+     */
+    public function hasPermission(string $module, string $action = 'view'): bool
+    {
+        return app(PermissionService::class)->check($this, $module, $action);
     }
 
     /**

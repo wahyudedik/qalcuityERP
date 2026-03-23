@@ -9,7 +9,28 @@
                 class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Tampilkan</button>
         </form>
-        <a href="{{ route('hrm.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">← Kembali ke Karyawan</a>
+        <div class="flex gap-2 ml-auto">
+            <button id="btn-anomaly-check" onclick="loadAnomalies()"
+                class="px-4 py-2 text-sm bg-amber-600/80 hover:bg-amber-600 text-white rounded-xl flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                Deteksi Anomali AI
+            </button>
+            <a href="{{ route('hrm.index') }}" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">← Karyawan</a>
+        </div>
+    </div>
+
+    {{-- AI Anomaly Panel --}}
+    <div id="ai-anomaly-panel" class="hidden mb-6 bg-white dark:bg-[#1e293b] border border-amber-500/30 rounded-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-amber-500/20 bg-amber-500/10">
+            <div class="flex items-center gap-2 text-amber-300 font-medium text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                Deteksi Anomali Absensi AI — 3 Bulan Terakhir
+            </div>
+            <button onclick="document.getElementById('ai-anomaly-panel').classList.add('hidden')" class="text-slate-400 hover:text-white text-lg leading-none">✕</button>
+        </div>
+        <div id="ai-anomaly-content" class="p-4">
+            <div class="animate-pulse text-slate-500 text-sm">Menganalisis pola absensi...</div>
+        </div>
     </div>
 
     {{-- Summary --}}
@@ -73,4 +94,63 @@
             @endif
         </form>
     </div>
+
+    <script>
+    const anomalyUrl = '{{ route("hrm.ai.attendance-anomalies") }}';
+    const riskColor  = { high: 'text-red-400', medium: 'text-amber-400', low: 'text-yellow-300' };
+    const riskBg     = { high: 'bg-red-500/10 border-red-500/20', medium: 'bg-amber-500/10 border-amber-500/20', low: 'bg-yellow-500/10 border-yellow-500/20' };
+
+    async function loadAnomalies() {
+        const panel   = document.getElementById('ai-anomaly-panel');
+        const content = document.getElementById('ai-anomaly-content');
+        panel.classList.remove('hidden');
+        content.innerHTML = '<div class="animate-pulse text-slate-500 text-sm">Menganalisis pola absensi...</div>';
+
+        const btn = document.getElementById('btn-anomaly-check');
+        btn.disabled = true;
+
+        try {
+            const res  = await fetch(anomalyUrl + '?months=3', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+
+            if (!data.anomalies?.length) {
+                content.innerHTML = '<p class="text-green-400 text-sm">✓ Tidak ada anomali absensi terdeteksi dalam 3 bulan terakhir.</p>';
+                return;
+            }
+
+            let html = `<p class="text-xs text-slate-400 mb-3">${data.total} karyawan dengan pola absensi tidak wajar ditemukan.</p>`;
+            html += '<div class="space-y-3">';
+
+            for (const emp of data.anomalies) {
+                const bg = riskBg[emp.risk] ?? riskBg.low;
+                const col = riskColor[emp.risk] ?? riskColor.low;
+                html += `<div class="p-3 rounded-xl border ${bg}">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-medium text-white text-sm">${esc(emp.employee_name)}</span>
+                        <div class="flex items-center gap-2">
+                            ${emp.position ? `<span class="text-xs text-slate-400">${esc(emp.position)}</span>` : ''}
+                            <span class="text-xs px-2 py-0.5 rounded-full ${bg} ${col} border">Risiko ${emp.risk.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <ul class="space-y-0.5">`;
+                for (const a of emp.anomalies) {
+                    const c = riskColor[a.severity] ?? 'text-slate-400';
+                    html += `<li class="text-xs ${c}">• ${esc(a.message)}</li>`;
+                }
+                html += `</ul></div>`;
+            }
+
+            html += '</div>';
+            content.innerHTML = html;
+        } catch (e) {
+            content.innerHTML = '<p class="text-red-400 text-sm">Gagal memuat analisis AI.</p>';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    </script>
 </x-app-layout>

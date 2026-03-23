@@ -1,0 +1,92 @@
+<x-app-layout>
+    <x-slot name="header">Kategori Pengeluaran</x-slot>
+
+    <div class="max-w-4xl mx-auto space-y-5">
+
+        @if(session('success'))
+            <div class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl px-4 py-3 text-sm">{{ session('success') }}</div>
+        @endif
+
+        {{-- Form Tambah --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+            <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Tambah Kategori</h2>
+            <form method="POST" action="{{ route('expenses.categories.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @csrf
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Nama Kategori</label>
+                    <input type="text" name="name" value="{{ old('name') }}" required placeholder="cth: Biaya Operasional"
+                        class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('name') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Kode</label>
+                    <input type="text" name="code" value="{{ old('code') }}" required placeholder="cth: OPS"
+                        class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Tipe</label>
+                    <select name="type" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="operational">Operasional</option>
+                        <option value="cogs">HPP (COGS)</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="hr">SDM / HR</option>
+                        <option value="admin">Administrasi</option>
+                        <option value="other">Lainnya</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Deskripsi</label>
+                    <input type="text" name="description" value="{{ old('description') }}" placeholder="Opsional"
+                        class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="sm:col-span-2 flex justify-end">
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Tambah Kategori</button>
+                </div>
+            </form>
+        </div>
+
+        {{-- Daftar --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+                <h2 class="font-semibold text-gray-900 dark:text-white">Daftar Kategori</h2>
+                <a href="{{ route('expenses.index') }}" class="text-sm text-gray-400 hover:text-white transition">← Kembali</a>
+            </div>
+            @if($categories->isEmpty())
+                <div class="px-6 py-10 text-center text-gray-400 text-sm">Belum ada kategori.</div>
+            @else
+                <div class="divide-y divide-gray-100 dark:divide-white/5">
+                    @foreach($categories as $cat)
+                        <div class="px-6 py-4 flex items-center gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium text-gray-900 dark:text-white text-sm">{{ $cat->name }}</span>
+                                    <span class="font-mono text-xs px-2 py-0.5 bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-slate-400 rounded-full">{{ $cat->code }}</span>
+                                    @if(!$cat->is_active)
+                                        <span class="text-xs px-2 py-0.5 bg-gray-500/20 text-gray-400 rounded-full">Nonaktif</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                    {{ ucfirst($cat->type) }} &bull; {{ $cat->expense_count }} transaksi
+                                    @if($cat->description) &bull; {{ $cat->description }} @endif
+                                </p>
+                            </div>
+                            <form method="POST" action="{{ route('expenses.categories.update', $cat) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="name" value="{{ $cat->name }}">
+                                <input type="hidden" name="code" value="{{ $cat->code }}">
+                                <input type="hidden" name="type" value="{{ $cat->type }}">
+                                <input type="hidden" name="description" value="{{ $cat->description }}">
+                                <input type="hidden" name="is_active" value="{{ $cat->is_active ? '0' : '1' }}">
+                                <button type="submit"
+                                    class="text-xs px-3 py-1.5 rounded-lg border {{ $cat->is_active ? 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10' : 'border-green-500/30 text-green-400 hover:bg-green-500/10' }} transition">
+                                    {{ $cat->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+</x-app-layout>

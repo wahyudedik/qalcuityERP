@@ -10,18 +10,18 @@ marked.use({
     renderer: {
         table(token) {
             const headerCells = token.header.map(cell =>
-                `<th class="px-4 py-2.5 text-left text-xs uppercase tracking-wide text-gray-500 font-semibold bg-gray-50">${this.parser.parseInline(cell.tokens)}</th>`
+                `<th class="px-4 py-2.5 text-left text-xs uppercase tracking-wide font-semibold bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-slate-400">${this.parser.parseInline(cell.tokens)}</th>`
             ).join('');
             const rows = token.rows.map((row, i) => {
                 const cells = row.map(cell =>
-                    `<td class="px-4 py-2.5 text-gray-700 text-sm">${this.parser.parseInline(cell.tokens)}</td>`
+                    `<td class="px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300">${this.parser.parseInline(cell.tokens)}</td>`
                 ).join('');
-                return `<tr class="${i % 2 === 0 ? '' : 'bg-gray-50/50'} hover:bg-blue-50/30 transition">${cells}</tr>`;
+                return `<tr class="${i % 2 === 0 ? '' : 'bg-gray-50/50 dark:bg-white/[0.02]'} hover:bg-blue-50/30 dark:hover:bg-blue-500/10 transition">${cells}</tr>`;
             }).join('');
-            return `<div class="overflow-x-auto my-3 rounded-xl border border-gray-200 shadow-sm">
+            return `<div class="overflow-x-auto my-3 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm">
   <table class="min-w-full text-sm">
     <thead><tr>${headerCells}</tr></thead>
-    <tbody class="divide-y divide-gray-100 bg-white">${rows}</tbody>
+    <tbody class="divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-transparent">${rows}</tbody>
   </table>
 </div>`;
         },
@@ -37,22 +37,22 @@ marked.use({
 </div>`;
         },
         blockquote(token) {
-            return `<blockquote class="border-l-4 border-blue-400 pl-4 my-2 text-gray-600 italic bg-blue-50/40 py-2 rounded-r-lg">${this.parser.parse(token.tokens)}</blockquote>`;
+            return `<blockquote class="border-l-4 border-blue-400 pl-4 my-2 text-gray-600 dark:text-slate-400 italic bg-blue-50/40 dark:bg-blue-500/10 py-2 rounded-r-lg">${this.parser.parse(token.tokens)}</blockquote>`;
         },
         list(token) {
             const tag = token.ordered ? 'ol' : 'ul';
             const cls = token.ordered ? 'list-decimal' : 'list-disc';
-            const items = token.items.map(item => `<li class="text-sm text-gray-700">${this.parser.parse(item.tokens)}</li>`).join('');
+            const items = token.items.map(item => `<li class="text-sm text-gray-700 dark:text-slate-300">${this.parser.parse(item.tokens)}</li>`).join('');
             return `<${tag} class="${cls} pl-5 my-2 space-y-1">${items}</${tag}>`;
         },
         heading(token) {
             const sizes = { 1: 'text-lg', 2: 'text-base', 3: 'text-sm' };
             const text = this.parser.parseInline(token.tokens);
-            return `<h${token.depth} class="${sizes[token.depth] ?? 'text-sm'} font-semibold text-gray-800 mt-4 mb-1.5">${text}</h${token.depth}>`;
+            return `<h${token.depth} class="${sizes[token.depth] ?? 'text-sm'} font-semibold text-gray-800 dark:text-slate-100 mt-4 mb-1.5">${text}</h${token.depth}>`;
         },
-        strong(token) { return `<strong class="font-semibold text-gray-900">${this.parser.parseInline(token.tokens)}</strong>`; },
-        em(token) { return `<em class="italic text-gray-600">${this.parser.parseInline(token.tokens)}</em>`; },
-        hr() { return `<hr class="my-3 border-gray-200">`; },
+        strong(token) { return `<strong class="font-semibold text-gray-900 dark:text-slate-100">${this.parser.parseInline(token.tokens)}</strong>`; },
+        em(token) { return `<em class="italic text-gray-600 dark:text-slate-400">${this.parser.parseInline(token.tokens)}</em>`; },
+        hr() { return `<hr class="my-3 border-gray-200 dark:border-white/10">`; },
     }
 });
 
@@ -117,7 +117,7 @@ function renderRichContent(text) {
         // Normal markdown
         if (part.trim()) {
             const div = document.createElement('div');
-            div.className = 'prose-chat text-sm text-gray-800 leading-relaxed';
+            div.className = 'prose-chat text-sm leading-relaxed text-gray-800 dark:text-slate-200';
             div.innerHTML = parseMarkdown(part);
             container.appendChild(div);
         }
@@ -157,13 +157,13 @@ function renderChart(meta, body) {
 
     const id = 'chart-' + (++chartCounter);
     const wrap = document.createElement('div');
-    wrap.className = 'bg-white rounded-2xl border border-gray-200 p-4 shadow-sm my-2';
+    wrap.className = 'bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 shadow-sm my-2';
 
     const title = cfg.title || meta || 'Grafik';
     wrap.innerHTML = `
         <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-gray-800">${title}</p>
-            <button onclick="downloadChart('${id}')" class="text-xs text-blue-600 hover:underline">Unduh</button>
+            <p class="text-sm font-semibold text-gray-800 dark:text-slate-100">${title}</p>
+            <button onclick="downloadChart('${id}')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Unduh</button>
         </div>
         <div style="position:relative;height:${cfg.height || 220}px">
             <canvas id="${id}"></canvas>
@@ -204,10 +204,10 @@ window.downloadChart = function (id) {
 // Renders a subtle warning instead of silently dropping the block
 function renderParseError(type, body) {
     const wrap = document.createElement('div');
-    wrap.className = 'my-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700';
+    wrap.className = 'my-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-xs text-amber-700 dark:text-amber-300';
     wrap.innerHTML = `<span class="font-semibold">⚠ Gagal render blok <code>${type}</code>.</span> Data mungkin tidak valid.
-        <details class="mt-1"><summary class="cursor-pointer text-amber-600">Lihat raw</summary>
-        <pre class="mt-1 text-[10px] text-gray-500 overflow-x-auto whitespace-pre-wrap">${body.replace(/</g, '&lt;').slice(0, 500)}</pre></details>`;
+        <details class="mt-1"><summary class="cursor-pointer text-amber-600 dark:text-amber-400">Lihat raw</summary>
+        <pre class="mt-1 text-[10px] text-gray-500 dark:text-slate-400 overflow-x-auto whitespace-pre-wrap">${body.replace(/</g, '&lt;').slice(0, 500)}</pre></details>`;
     return wrap;
 }
 
@@ -221,7 +221,7 @@ function renderGrid(body) {
 
     if (cfg.title) {
         const h = document.createElement('p');
-        h.className = 'text-sm font-semibold text-gray-800 mb-2';
+        h.className = 'text-sm font-semibold text-gray-800 dark:text-slate-100 mb-2';
         h.textContent = cfg.title;
         wrap.appendChild(h);
     }
@@ -230,7 +230,7 @@ function renderGrid(body) {
     const rows = cfg.rows || [];
 
     const tableWrap = document.createElement('div');
-    tableWrap.className = 'overflow-x-auto rounded-xl border border-gray-200 shadow-sm';
+    tableWrap.className = 'overflow-x-auto rounded-xl border border-gray-200 dark:border-white/10 shadow-sm';
 
     const table = document.createElement('table');
     table.className = 'min-w-full text-sm';
@@ -238,21 +238,21 @@ function renderGrid(body) {
     // Header
     const thead = document.createElement('thead');
     thead.innerHTML = `<tr>${cols.map(c =>
-        `<th class="px-4 py-2.5 text-left text-xs uppercase tracking-wide text-gray-500 font-semibold bg-gray-50">${c.label || c}</th>`
+        `<th class="px-4 py-2.5 text-left text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400 font-semibold bg-gray-50 dark:bg-white/5">${c.label || c}</th>`
     ).join('')}</tr>`;
     table.appendChild(thead);
 
     // Body
     const tbody = document.createElement('tbody');
-    tbody.className = 'divide-y divide-gray-100 bg-white';
+    tbody.className = 'divide-y divide-gray-100 dark:divide-white/5 bg-white dark:bg-transparent';
     rows.forEach((row, i) => {
         const tr = document.createElement('tr');
-        tr.className = (i % 2 ? 'bg-gray-50/40' : '') + ' hover:bg-blue-50/30 transition';
+        tr.className = (i % 2 ? 'bg-gray-50/40 dark:bg-white/[0.02]' : '') + ' hover:bg-blue-50/30 dark:hover:bg-blue-500/10 transition';
         cols.forEach(col => {
             const key = col.key || col;
             const val = row[key] ?? '-';
             const td = document.createElement('td');
-            td.className = 'px-4 py-2.5 text-gray-700';
+            td.className = 'px-4 py-2.5 text-gray-700 dark:text-slate-300';
 
             // Badge support
             if (col.badge) {
@@ -305,7 +305,7 @@ function renderKpi(body) {
 
     if (cfg.title) {
         const h = document.createElement('p');
-        h.className = 'text-sm font-semibold text-gray-800 mb-2';
+        h.className = 'text-sm font-semibold text-gray-800 dark:text-slate-100 mb-2';
         h.textContent = cfg.title;
         wrap.appendChild(h);
     }
@@ -313,17 +313,17 @@ function renderKpi(body) {
     const grid = document.createElement('div');
     grid.className = `grid gap-3 ${cfg.cards?.length > 3 ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'}`;
 
-    const colorMap = { blue: 'bg-blue-50 text-blue-600', green: 'bg-green-50 text-green-600', red: 'bg-red-50 text-red-600', amber: 'bg-amber-50 text-amber-600', purple: 'bg-purple-50 text-purple-600', gray: 'bg-gray-50 text-gray-500' };
+    const colorMap = { blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400', green: 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400', red: 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400', amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400', purple: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400', gray: 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-slate-400' };
 
     (cfg.cards || []).forEach(card => {
         const color = colorMap[card.color] || colorMap.blue;
         const div = document.createElement('div');
-        div.className = 'bg-white rounded-xl border border-gray-100 p-4 shadow-sm';
+        div.className = 'bg-white dark:bg-[#1e293b] rounded-xl border border-gray-100 dark:border-white/10 p-4 shadow-sm';
         div.innerHTML = `
-            <p class="text-xs text-gray-500 mb-2">${card.label}</p>
-            <p class="text-xl font-bold text-gray-800">${card.value}</p>
-            ${card.sub ? `<p class="text-xs text-gray-400 mt-1">${card.sub}</p>` : ''}
-            ${card.trend ? `<p class="text-xs mt-1 font-medium ${card.trend >= 0 ? 'text-green-600' : 'text-red-600'}">${card.trend >= 0 ? '▲' : '▼'} ${Math.abs(card.trend)}%</p>` : ''}`;
+            <p class="text-xs text-gray-500 dark:text-slate-400 mb-2">${card.label}</p>
+            <p class="text-xl font-bold text-gray-800 dark:text-slate-100">${card.value}</p>
+            ${card.sub ? `<p class="text-xs text-gray-400 dark:text-slate-500 mt-1">${card.sub}</p>` : ''}
+            ${card.trend ? `<p class="text-xs mt-1 font-medium ${card.trend >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${card.trend >= 0 ? '▲' : '▼'} ${Math.abs(card.trend)}%</p>` : ''}`;
         grid.appendChild(div);
     });
 
@@ -337,22 +337,22 @@ function renderLetter(body) {
     if (!cfg) return renderParseError('letter', body);
 
     const wrap = document.createElement('div');
-    wrap.className = 'my-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden';
+    wrap.className = 'my-2 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden';
 
     // Toolbar
     const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200';
+    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10';
     toolbar.innerHTML = `
-        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">📄 ${cfg.type || 'Surat'}</span>
+        <span class="text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wide">📄 ${cfg.type || 'Surat'}</span>
         <div class="flex gap-2">
             <button onclick="printLetter(this)" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition">🖨 Cetak</button>
-            <button onclick="copyLetter(this)" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg transition">📋 Salin</button>
+            <button onclick="copyLetter(this)" class="text-xs bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-lg transition">📋 Salin</button>
         </div>`;
     wrap.appendChild(toolbar);
 
     // Letter body
     const letterBody = document.createElement('div');
-    letterBody.className = 'letter-content p-8 font-serif text-sm text-gray-800 leading-relaxed max-w-2xl mx-auto';
+    letterBody.className = 'letter-content p-8 font-serif text-sm text-gray-800 dark:text-slate-200 leading-relaxed max-w-2xl mx-auto';
     letterBody.style.fontFamily = "'Times New Roman', serif";
 
     // Header
@@ -380,12 +380,12 @@ function renderInvoice(body) {
     if (!cfg) return renderParseError('invoice', body);
 
     const wrap = document.createElement('div');
-    wrap.className = 'my-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden';
+    wrap.className = 'my-2 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden';
 
     const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200';
+    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10';
     toolbar.innerHTML = `
-        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">🧾 Invoice / Faktur</span>
+        <span class="text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wide">🧾 Invoice / Faktur</span>
         <div class="flex gap-2">
             <button onclick="printLetter(this)" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition">🖨 Cetak</button>
         </div>`;
@@ -404,49 +404,49 @@ function renderInvoice(body) {
     inv.innerHTML = `
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h2 class="text-xl font-bold text-gray-800">${cfg.company || 'Perusahaan'}</h2>
-                <p class="text-gray-500 text-xs mt-1">${cfg.company_address || ''}</p>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-100">${cfg.company || 'Perusahaan'}</h2>
+                <p class="text-gray-500 dark:text-slate-400 text-xs mt-1">${cfg.company_address || ''}</p>
             </div>
             <div class="text-right">
-                <p class="text-2xl font-bold text-blue-600">INVOICE</p>
-                <p class="text-xs text-gray-500 mt-1">No: <strong>${cfg.number || '-'}</strong></p>
-                <p class="text-xs text-gray-500">Tanggal: ${cfg.date || new Date().toLocaleDateString('id-ID')}</p>
-                ${cfg.due_date ? `<p class="text-xs text-red-500">Jatuh Tempo: ${cfg.due_date}</p>` : ''}
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">INVOICE</p>
+                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">No: <strong>${cfg.number || '-'}</strong></p>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal: ${cfg.date || new Date().toLocaleDateString('id-ID')}</p>
+                ${cfg.due_date ? `<p class="text-xs text-red-500 dark:text-red-400">Jatuh Tempo: ${cfg.due_date}</p>` : ''}
             </div>
         </div>
-        <div class="mb-6 p-3 bg-gray-50 rounded-xl">
-            <p class="text-xs text-gray-500 mb-1">Tagihan Kepada:</p>
-            <p class="font-semibold">${cfg.to?.name || '-'}</p>
-            <p class="text-xs text-gray-500">${cfg.to?.address || ''}</p>
+        <div class="mb-6 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Tagihan Kepada:</p>
+            <p class="font-semibold text-gray-800 dark:text-slate-200">${cfg.to?.name || '-'}</p>
+            <p class="text-xs text-gray-500 dark:text-slate-400">${cfg.to?.address || ''}</p>
         </div>
-        <div class="overflow-x-auto rounded-xl border border-gray-200 mb-4">
+        <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-white/10 mb-4">
             <table class="min-w-full text-sm">
-                <thead><tr class="bg-gray-50">
-                    <th class="px-4 py-2.5 text-left text-xs text-gray-500 font-semibold">Deskripsi</th>
-                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 font-semibold">Qty</th>
-                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 font-semibold">Harga</th>
-                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 font-semibold">Subtotal</th>
+                <thead><tr class="bg-gray-50 dark:bg-white/5">
+                    <th class="px-4 py-2.5 text-left text-xs text-gray-500 dark:text-slate-400 font-semibold">Deskripsi</th>
+                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 dark:text-slate-400 font-semibold">Qty</th>
+                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 dark:text-slate-400 font-semibold">Harga</th>
+                    <th class="px-4 py-2.5 text-right text-xs text-gray-500 dark:text-slate-400 font-semibold">Subtotal</th>
                 </tr></thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                     ${items.map(i => `<tr>
-                        <td class="px-4 py-2.5">${i.name}</td>
-                        <td class="px-4 py-2.5 text-right">${i.qty} ${i.unit || ''}</td>
-                        <td class="px-4 py-2.5 text-right">${fmt(i.price)}</td>
-                        <td class="px-4 py-2.5 text-right font-medium">${fmt(i.qty * i.price)}</td>
+                        <td class="px-4 py-2.5 text-gray-700 dark:text-slate-300">${i.name}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-700 dark:text-slate-300">${i.qty} ${i.unit || ''}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-700 dark:text-slate-300">${fmt(i.price)}</td>
+                        <td class="px-4 py-2.5 text-right font-medium text-gray-800 dark:text-slate-200">${fmt(i.qty * i.price)}</td>
                     </tr>`).join('')}
                 </tbody>
             </table>
         </div>
         <div class="flex justify-end">
             <div class="w-64 space-y-1.5 text-sm">
-                <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span>${fmt(subtotal)}</span></div>
-                ${cfg.discount ? `<div class="flex justify-between text-red-600"><span>Diskon</span><span>- ${fmt(cfg.discount)}</span></div>` : ''}
-                ${tax ? `<div class="flex justify-between text-gray-500"><span>Pajak ${cfg.tax_percent ? cfg.tax_percent + '%' : ''}</span><span>${fmt(tax)}</span></div>` : ''}
-                <div class="flex justify-between font-bold text-base border-t border-gray-200 pt-2 mt-2"><span>Total</span><span class="text-blue-600">${fmt(total)}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500 dark:text-slate-400">Subtotal</span><span class="text-gray-800 dark:text-slate-200">${fmt(subtotal)}</span></div>
+                ${cfg.discount ? `<div class="flex justify-between text-red-600 dark:text-red-400"><span>Diskon</span><span>- ${fmt(cfg.discount)}</span></div>` : ''}
+                ${tax ? `<div class="flex justify-between text-gray-500 dark:text-slate-400"><span>Pajak ${cfg.tax_percent ? cfg.tax_percent + '%' : ''}</span><span>${fmt(tax)}</span></div>` : ''}
+                <div class="flex justify-between font-bold text-base border-t border-gray-200 dark:border-white/10 pt-2 mt-2"><span class="text-gray-800 dark:text-slate-100">Total</span><span class="text-blue-600 dark:text-blue-400">${fmt(total)}</span></div>
             </div>
         </div>
-        ${cfg.notes ? `<div class="mt-4 p-3 bg-amber-50 rounded-xl text-xs text-amber-700"><strong>Catatan:</strong> ${cfg.notes}</div>` : ''}
-        ${cfg.payment_info ? `<div class="mt-3 p-3 bg-blue-50 rounded-xl text-xs text-blue-700"><strong>Info Pembayaran:</strong> ${cfg.payment_info}</div>` : ''}`;
+        ${cfg.notes ? `<div class="mt-4 p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl text-xs text-amber-700 dark:text-amber-300"><strong>Catatan:</strong> ${cfg.notes}</div>` : ''}
+        ${cfg.payment_info ? `<div class="mt-3 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-xl text-xs text-blue-700 dark:text-blue-300"><strong>Info Pembayaran:</strong> ${cfg.payment_info}</div>` : ''}`;
 
     wrap.appendChild(inv);
     return wrap;
@@ -455,17 +455,17 @@ function renderInvoice(body) {
 // ── Printable block ───────────────────────────────────────────
 function renderPrintable(meta, body) {
     const wrap = document.createElement('div');
-    wrap.className = 'my-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden';
+    wrap.className = 'my-2 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden';
 
     const toolbar = document.createElement('div');
-    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200';
+    toolbar.className = 'flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10';
     toolbar.innerHTML = `
-        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">🖨 ${meta || 'Dokumen'}</span>
+        <span class="text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wide">🖨 ${meta || 'Dokumen'}</span>
         <button onclick="printLetter(this)" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition">Cetak</button>`;
     wrap.appendChild(toolbar);
 
     const content = document.createElement('div');
-    content.className = 'letter-content p-6 text-sm text-gray-800 leading-relaxed';
+    content.className = 'letter-content p-6 text-sm text-gray-800 dark:text-slate-200 leading-relaxed';
     content.innerHTML = parseMarkdown(body);
     wrap.appendChild(content);
     return wrap;
@@ -480,11 +480,11 @@ function renderActions(body) {
     wrap.className = 'flex flex-wrap gap-1.5 mt-2';
 
     const styleMap = {
-        primary: 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200',
-        success: 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200',
-        danger: 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200',
-        warning: 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200',
-        default: 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-200',
+        primary: 'bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30',
+        success: 'bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30',
+        danger: 'bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30',
+        warning: 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30',
+        default: 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10',
     };
 
     buttons.forEach(btn => {
@@ -559,7 +559,7 @@ function appendMessage(role, content, modelUsed = null, timestamp = null) {
         meta.className = 'mt-1.5 flex items-center gap-3';
 
         const copyBtn = document.createElement('button');
-        copyBtn.className = 'text-xs text-gray-300 hover:text-gray-500 transition flex items-center gap-1';
+        copyBtn.className = 'text-xs text-slate-500 hover:text-slate-300 transition flex items-center gap-1';
         copyBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Salin`;
         copyBtn.onclick = () => {
             copyToClipboard(content);
@@ -571,7 +571,7 @@ function appendMessage(role, content, modelUsed = null, timestamp = null) {
         if (timestamp) {
             const d = new Date(timestamp);
             const timeSpan = document.createElement('span');
-            timeSpan.className = 'text-xs text-gray-300';
+            timeSpan.className = 'text-xs text-slate-500';
             timeSpan.textContent = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             meta.appendChild(timeSpan);
         }
@@ -586,21 +586,8 @@ function appendMessage(role, content, modelUsed = null, timestamp = null) {
 // ── Action badges ─────────────────────────────────────────────
 // Ditampilkan sebagai detail kecil di bawah bubble AI, tersembunyi by default
 function appendActionBadges(actions) {
-    if (!actions?.length) return;
-    // Attach ke bubble terakhir sebagai detail tersembunyi
-    const lastBubble = msgBox.querySelector('.flex.justify-start:last-of-type');
-    if (!lastBubble) return;
-    const writeTools = ['add_stock', 'create_purchase_order', 'create_sales_order', 'add_transaction', 'create_quick_sale', 'create_product', 'create_customer', 'create_employee', 'record_attendance', 'create_project', 'transfer_stock', 'create_work_order', 'record_production_output', 'create_recipe', 'produce_with_recipe', 'record_payment'];
-    const detail = document.createElement('div');
-    detail.className = 'flex flex-wrap gap-1 mt-1 pl-10';
-    actions.forEach(a => {
-        const isWrite = writeTools.includes(a.tool);
-        const badge = document.createElement('span');
-        badge.className = `text-[10px] px-1.5 py-0.5 rounded font-medium ${isWrite ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'}`;
-        badge.textContent = `⚡ ${a.tool.replace(/_/g, ' ')}`;
-        detail.appendChild(badge);
-    });
-    lastBubble.appendChild(detail);
+    // Action badges disembunyikan dari UI — tidak perlu ditampilkan ke user
+    return;
 }
 
 // ── Loading state ─────────────────────────────────────────────
@@ -626,13 +613,13 @@ function appendErrorMessage(text, retryText = null) {
     col.className = 'flex flex-col gap-1.5';
 
     const bubble = document.createElement('div');
-    bubble.className = 'bg-red-50 border border-red-200 text-red-700 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm';
+    bubble.className = 'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm';
     bubble.textContent = text;
     col.appendChild(bubble);
 
     if (retryText) {
         const retryBtn = document.createElement('button');
-        retryBtn.className = 'self-start text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 bg-white rounded-lg px-3 py-1.5 transition';
+        retryBtn.className = 'self-start text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-500/30 hover:border-red-400 bg-white dark:bg-transparent rounded-lg px-3 py-1.5 transition';
         retryBtn.textContent = '↺ Coba lagi';
         retryBtn.onclick = () => { wrap.remove(); sendMessage(retryText); };
         col.appendChild(retryBtn);
@@ -1046,7 +1033,6 @@ let aiMessageCount = 0; // track jumlah pesan AI
 
 function appendSuggestedFollowUps() {
     aiMessageCount++;
-    // Tampilkan hanya setiap 3 pesan AI, bukan setiap saat
     if (aiMessageCount % 3 !== 0) return;
 
     const shuffled = [...FOLLOW_UPS].sort(() => Math.random() - 0.5).slice(0, 3);
@@ -1056,7 +1042,7 @@ function appendSuggestedFollowUps() {
     inner.className = 'flex flex-wrap gap-1.5';
     shuffled.forEach(text => {
         const btn = document.createElement('button');
-        btn.className = 'text-xs bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm';
+        btn.className = 'text-xs bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-slate-400 hover:border-blue-500/50 hover:text-blue-400 hover:bg-blue-500/10 transition';
         btn.textContent = text;
         btn.onclick = () => { wrap.remove(); sendMessage(text); };
         inner.appendChild(btn);

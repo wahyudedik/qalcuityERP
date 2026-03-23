@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPayment;
+use App\Models\ErpNotification;
+use App\Models\User;
+use App\Notifications\SubscriptionPaymentFailedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -96,16 +99,8 @@ class PaymentGatewayController extends Controller
 
     public function midtransWebhook(Request $request)
     {
-        $serverKey  = config('services.midtrans.server_key');
-        $orderId    = $request->order_id;
-        $statusCode = $request->status_code;
-        $grossAmount= $request->gross_amount;
-
-        // Verify signature
-        $signatureKey = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
-        if ($signatureKey !== $request->signature_key) {
-            return response()->json(['message' => 'Invalid signature'], 403);
-        }
+        // Signature sudah diverifikasi oleh VerifyWebhookSignature middleware
+        $orderId = $request->order_id;
 
         $payment = SubscriptionPayment::where('order_id', $orderId)->first();
         if (!$payment) return response()->json(['message' => 'Order not found'], 404);
@@ -114,6 +109,7 @@ class PaymentGatewayController extends Controller
             $this->activatePlan($payment);
         } elseif (in_array($request->transaction_status, ['cancel', 'deny', 'expire'])) {
             $payment->update(['status' => 'failed']);
+            $this->notifyPaymentFailed($payment, $request->transaction_status);
         }
 
         return response()->json(['message' => 'OK']);
@@ -185,12 +181,7 @@ class PaymentGatewayController extends Controller
 
     public function xenditWebhook(Request $request)
     {
-        // Verify Xendit webhook token
-        $callbackToken = config('services.xendit.webhook_token');
-        if ($request->header('x-callback-token') !== $callbackToken) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
+        // Signature sudah diverifikasi oleh VerifyWebhookSignature middleware
         $externalId = $request->external_id;
         $status     = $request->status;
 
@@ -201,6 +192,7 @@ class PaymentGatewayController extends Controller
             $this->activatePlan($payment);
         } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
             $payment->update(['status' => 'failed']);
+            $this->notifyPaymentFailed($payment, $status);
         }
 
         return response()->json(['message' => 'OK']);
@@ -227,5 +219,53 @@ class PaymentGatewayController extends Controller
             'plan_expires_at'      => $expiresAt,
             'is_active'            => true,
         ]);
+    }
+
+    private function notifyPaymentFailed(SubscriptionPayment $payment, string $reason): void
+    {
+        $payment->load(['tenant', 'plan']);
+        $tenant = $payment->tenant;
+        if (!$tenant) return;
+
+        $reasonLabel = match (strtolower($reason)) {
+            'cancel'  => 'Dibatalkan oleh pengguna',
+            'deny'    => 'Ditolak oleh bank/penyedia pembayaran',
+            'expire'  => 'Waktu pembayaran habis',
+            'expired' => 'Waktu pembayaran habis',
+            'failed'  => 'Gagal diproses',
+            default   => $reason,
+        };
+
+        $admins = User::where('tenant_id', $tenant->id)
+            ->where('role', 'admin')
+            ->get();
+
+        foreach ($admins as $admin) {
+            // In-app notification
+            ErpNotification::create([
+                'tenant_id' => $tenant->id,
+                'user_id'   => $admin->id,
+                'type'      => 'payment_failed',
+                'title'     => '❌ Pembayaran Langganan Gagal',
+                'body'      => "Pembayaran paket {$payment->plan?->name} senilai Rp " .
+                               number_format($payment->amount, 0, ',', '.') .
+                               " gagal. Alasan: {$reasonLabel}.",
+                'data'      => [
+                    'order_id' => $payment->order_id,
+                    'amount'   => $payment->amount,
+                    'reason'   => $reasonLabel,
+                    'gateway'  => $payment->gateway,
+                ],
+            ]);
+
+            // Email notification
+            $admin->notify(new SubscriptionPaymentFailedNotification(
+                tenantName: $tenant->name,
+                plan:       $payment->plan?->name ?? $payment->gateway,
+                amount:     (float) $payment->amount,
+                reason:     $reasonLabel,
+                orderId:    $payment->order_id,
+            ));
+        }
     }
 }

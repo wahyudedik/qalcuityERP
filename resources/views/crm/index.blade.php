@@ -75,6 +75,7 @@
                         <th class="px-4 py-3 text-right hidden md:table-cell">Nilai</th>
                         <th class="px-4 py-3 text-center hidden md:table-cell">Prob.</th>
                         <th class="px-4 py-3 text-left hidden lg:table-cell">Last Contact</th>
+                        <th class="px-4 py-3 text-center hidden sm:table-cell">AI Score</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -104,8 +105,15 @@
                         </td>
                         <td class="px-4 py-3 text-center hidden md:table-cell text-gray-500 dark:text-slate-400">{{ $lead->probability }}%</td>
                         <td class="px-4 py-3 hidden lg:table-cell text-xs text-gray-500 dark:text-slate-400">{{ $lead->last_contact_at?->diffForHumans() ?? '-' }}</td>
+                        <td class="px-4 py-3 text-center hidden sm:table-cell">
+                            <span id="score-badge-{{ $lead->id }}" class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400">...</span>
+                        </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
+                                <button onclick="openAiModal({{ $lead->id }}, '{{ addslashes($lead->name) }}')"
+                                    class="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="AI Score & Follow-up">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 01-4.95 0l-.347-.347z"/></svg>
+                                </button>
                                 <button onclick="openActivity({{ $lead->id }}, '{{ addslashes($lead->name) }}')"
                                     class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Log Aktivitas">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -132,6 +140,24 @@
         @if($leads->hasPages())
         <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $leads->links() }}</div>
         @endif
+    </div>
+
+    {{-- Modal AI Score & Follow-up --}}
+    <div id="modal-ai" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
+                <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 01-4.95 0l-.347-.347z"/></svg>
+                    AI Insight Lead
+                </h3>
+                <button onclick="document.getElementById('modal-ai').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <div id="ai-modal-body" class="p-6">
+                <div class="flex items-center justify-center py-8">
+                    <svg class="animate-spin w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- Modal Tambah Lead --}}
@@ -275,6 +301,95 @@
 
     @push('scripts')
     <script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+    // Batch load AI scores on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('{{ route("crm.ai.score-all") }}');
+            const data = await res.json();
+            const tierClasses = {
+                hot:  'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+                warm: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+                cold: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+            };
+            Object.entries(data).forEach(([id, s]) => {
+                const el = document.getElementById('score-badge-' + id);
+                if (el) {
+                    el.textContent = s.tier_label + ' ' + s.score;
+                    el.className = 'px-2 py-0.5 rounded-full text-xs ' + (tierClasses[s.tier] || '');
+                }
+            });
+        } catch(e) {}
+    });
+
+    async function openAiModal(id, name) {
+        document.getElementById('modal-ai').classList.remove('hidden');
+        document.getElementById('ai-modal-body').innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <svg class="animate-spin w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            </div>`;
+
+        const [scoreRes, followRes] = await Promise.all([
+            fetch(`/crm/ai/score/${id}`),
+            fetch(`/crm/ai/follow-up/${id}`),
+        ]);
+        const score = await scoreRes.json();
+        const follow = await followRes.json();
+
+        const tierClasses = {
+            hot:  'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+            warm: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+            cold: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+        };
+        const priorityClasses = {
+            high:   'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20 text-red-700 dark:text-red-400',
+            normal: 'bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 text-blue-700 dark:text-blue-400',
+            low:    'bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10 text-gray-600 dark:text-slate-400',
+        };
+
+        const breakdownRows = score.breakdown.map(b =>
+            `<tr class="border-t border-gray-100 dark:border-white/5">
+                <td class="py-1.5 text-gray-600 dark:text-slate-400">${b.label}</td>
+                <td class="py-1.5 text-gray-500 dark:text-slate-500 text-xs">${b.value}</td>
+                <td class="py-1.5 text-right font-medium text-gray-900 dark:text-white">+${b.points}</td>
+            </tr>`
+        ).join('');
+
+        const suggestionItems = (follow.suggestions || []).map(s =>
+            `<li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">•</span><span>${s}</span></li>`
+        ).join('');
+
+        document.getElementById('ai-modal-body').innerHTML = `
+            <p class="text-sm font-semibold text-gray-900 dark:text-white mb-4">${name}</p>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-4 ${score.score >= 70 ? 'border-red-400 text-red-600 dark:text-red-400' : score.score >= 40 ? 'border-amber-400 text-amber-600 dark:text-amber-400' : 'border-blue-400 text-blue-600 dark:text-blue-400'}">
+                    ${score.score}
+                </div>
+                <div>
+                    <span class="px-2 py-0.5 rounded-full text-xs ${tierClasses[score.tier]}">${score.tier_label}</span>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Lead Score</p>
+                </div>
+            </div>
+
+            <table class="w-full text-sm mb-5">
+                <thead><tr class="text-xs text-gray-400 dark:text-slate-500 uppercase">
+                    <th class="text-left pb-1">Faktor</th><th class="text-left pb-1">Detail</th><th class="text-right pb-1">Poin</th>
+                </tr></thead>
+                <tbody>${breakdownRows}</tbody>
+            </table>
+
+            <div class="border-t border-gray-100 dark:border-white/10 pt-4">
+                <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-2">Saran Follow-up AI</p>
+                <div class="p-3 rounded-xl border ${priorityClasses[follow.priority] || priorityClasses.normal} mb-3">
+                    <p class="text-sm font-medium">${follow.action_label}: ${follow.message}</p>
+                    ${follow.days_since_last !== null ? `<p class="text-xs mt-1 opacity-75">Terakhir kontak: ${follow.days_since_last} hari lalu</p>` : ''}
+                </div>
+                <ul class="space-y-1 text-sm text-gray-600 dark:text-slate-300">${suggestionItems}</ul>
+            </div>`;
+    }
+
     function openStage(id, name, stage, prob) {
         document.getElementById('form-stage').action = '/crm/' + id + '/stage';
         document.getElementById('stage-lead-name').textContent = name;

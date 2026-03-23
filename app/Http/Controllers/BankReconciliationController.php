@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\BankAccount;
 use App\Models\BankStatement;
 use App\Models\ActivityLog;
+use App\Services\BankReconciliationAiService;
 use Illuminate\Http\Request;
 
 class BankReconciliationController extends Controller
 {
+    public function __construct(private BankReconciliationAiService $ai) {}
+
     public function index()
     {
         $tenantId = auth()->user()->tenant_id;
@@ -61,5 +64,29 @@ class BankReconciliationController extends Controller
         abort_if($statement->tenant_id !== auth()->user()->tenant_id, 403);
         $statement->update(['status' => 'matched', 'matched_transaction_id' => $request->transaction_id]);
         return back()->with('success', 'Transaksi berhasil dicocokkan.');
+    }
+
+    // ── AI endpoints ─────────────────────────────────────────────────
+
+    public function aiMatchAll()
+    {
+        $results = $this->ai->matchAll(auth()->user()->tenant_id);
+        return response()->json($results);
+    }
+
+    public function aiMatchOne(BankStatement $statement)
+    {
+        abort_if($statement->tenant_id !== auth()->user()->tenant_id, 403);
+        $statement->load('bankAccount');
+        return response()->json($this->ai->matchStatement($statement, auth()->user()->tenant_id));
+    }
+
+    public function aiApplyMatch(Request $request, BankStatement $statement)
+    {
+        abort_if($statement->tenant_id !== auth()->user()->tenant_id, 403);
+        $request->validate(['transaction_id' => 'required|integer']);
+        $this->ai->applyMatch($statement, $request->transaction_id);
+        ActivityLog::record('bank_ai_match', "AI match: statement #{$statement->id} → transaksi #{$request->transaction_id}");
+        return response()->json(['ok' => true]);
     }
 }

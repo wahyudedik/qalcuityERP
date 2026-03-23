@@ -27,7 +27,7 @@
             <form method="GET" class="flex gap-2 flex-1 flex-wrap">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari no. invoice / customer..."
                     class="flex-1 min-w-0 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <select name="status" class="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="status" class="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Semua Status</option>
                     <option value="unpaid"  {{ request('status') === 'unpaid'  ? 'selected' : '' }}>Belum Dibayar</option>
                     <option value="partial" {{ request('status') === 'partial' ? 'selected' : '' }}>Sebagian</option>
@@ -93,6 +93,10 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold {{ $statusColor }}">{{ $statusLabel }}</span>
+                                {{-- Task 35: Posting status --}}
+                                @if(($invoice->posting_status ?? 'draft') !== 'posted')
+                                <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold {{ $invoice->postingStatusColor() }}">{{ $invoice->postingStatusLabel() }}</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">

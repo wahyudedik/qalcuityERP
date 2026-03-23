@@ -50,14 +50,14 @@
 
         {{-- Step indicator --}}
         <div class="flex items-center justify-center gap-2 mb-5" id="ai-step-indicator">
-            @foreach([1 => 'Jenis Bisnis', 2 => 'Chat AI', 3 => 'Selesai!'] as $n => $label)
+            @foreach([1 => 'Jenis Bisnis', 2 => 'Chat AI', 3 => 'Modul', 4 => 'Selesai!'] as $n => $label)
             <div class="flex items-center gap-2">
                 <div class="ai-step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all
                     {{ $n === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500' }}" data-step="{{ $n }}">
                     {{ $n }}
                 </div>
                 <span class="text-xs hidden sm:block {{ $n === 1 ? 'text-blue-600 font-medium' : 'text-gray-400' }}" data-ai-step-label="{{ $n }}">{{ $label }}</span>
-                @if($n < 3)<div class="w-8 h-px bg-gray-200 mx-1"></div>@endif
+                @if($n < 4)<div class="w-8 h-px bg-gray-200 mx-1"></div>@endif
             </div>
             @endforeach
         </div>
@@ -141,8 +141,29 @@
             </div>
         </div>
 
-        {{-- AI Step 3: Selesai --}}
+        {{-- AI Step 3: Pilih Modul --}}
         <div id="ai-step-3" class="ai-step-panel hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="font-semibold text-gray-900 text-lg">Modul yang direkomendasikan AI</h2>
+                    <span id="module-ai-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium hidden">✨ AI Rekomendasi</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Aktifkan atau nonaktifkan modul sesuai kebutuhan. Anda bisa mengubah ini kapan saja di Pengaturan Modul.</p>
+                <div id="module-loading" class="flex items-center gap-2 text-sm text-gray-400 py-4">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    AI sedang menganalisis industri Anda...
+                </div>
+                <div id="module-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 hidden"></div>
+                <p id="module-reason" class="text-xs text-blue-600 bg-blue-50 rounded-xl px-3 py-2 mt-3 hidden"></p>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button onclick="goAiStep(2)" class="text-sm text-gray-400 hover:text-gray-600 transition py-2">← Kembali</button>
+                <button onclick="saveModulesAndFinish()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">Lanjut →</button>
+            </div>
+        </div>
+
+        {{-- AI Step 4: Selesai --}}
+        <div id="ai-step-4" class="ai-step-panel hidden">
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center space-y-4">
                 <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto text-3xl">🎉</div>
                 <h2 class="font-bold text-gray-900 text-xl">Setup Selesai!</h2>
@@ -165,7 +186,7 @@
                         Qalcuity AI siap membantu Anda
                     </div>
                 </div>
-                <a href="{{ route('dashboard') }}" class="inline-block px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition mt-2">
+                <a href="{{ route('dashboard') }}" id="finish-btn" class="inline-block px-8 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition mt-2">
                     Mulai Gunakan ERP 🚀
                 </a>
             </div>
@@ -179,15 +200,15 @@
     <div id="manual-mode" class="hidden">
 
         {{-- Step indicator --}}
-        <div class="flex items-center justify-center gap-2 mb-5">
-            @foreach([1 => 'Bisnis', 2 => 'Gudang & Produk', 3 => 'Siap!'] as $n => $label)
+        <div class="flex items-center justify-center gap-2 mb-5" id="manual-step-indicator">
+            @foreach([1 => 'Bisnis', 2 => 'Gudang & Produk', 3 => 'Modul', 4 => 'Siap!'] as $n => $label)
             <div class="flex items-center gap-2">
                 <div class="step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all
                     {{ $n === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500' }}" data-step="{{ $n }}">
                     {{ $n }}
                 </div>
                 <span class="text-xs hidden sm:block {{ $n === 1 ? 'text-blue-600 font-medium' : 'text-gray-400' }}" data-step-label="{{ $n }}">{{ $label }}</span>
-                @if($n < 3)<div class="w-8 h-px bg-gray-200 mx-1"></div>@endif
+                @if($n < 4)<div class="manual-connector w-8 h-px bg-gray-200 mx-1"></div>@endif
             </div>
             @endforeach
         </div>
@@ -315,8 +336,36 @@
                 </div>
             </div>
 
-            {{-- Step 3: Konfirmasi --}}
+            {{-- Step 3: Pilih Modul --}}
             <div class="step-panel hidden" data-panel="3">
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                    <h2 class="font-semibold text-gray-900 text-lg mb-1">Pilih Modul yang Dibutuhkan</h2>
+                    <p class="text-sm text-gray-500 mb-4">Aktifkan modul sesuai kebutuhan bisnis Anda. Bisa diubah kapan saja di Pengaturan Modul.</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="manual-module-grid">
+                        @foreach(\App\Services\ModuleRecommendationService::MODULE_META as $key => $m)
+                        @php $isOn = true; @endphp
+                        <label class="manual-module-card flex items-center gap-2 p-2.5 rounded-xl border-2 cursor-pointer transition text-sm border-blue-500 bg-blue-50">
+                            <input type="checkbox" name="modules[]" value="{{ $key }}" checked class="sr-only" onchange="toggleManualModule(this)">
+                            <span class="text-lg shrink-0">{{ $m['icon'] }}</span>
+                            <span class="font-medium text-gray-800 leading-tight">{{ $m['label'] }}</span>
+                            <span class="manual-module-check ml-auto text-xs text-blue-500">✓</span>
+                        </label>
+                        @endforeach
+                    </div>
+                    <div class="flex gap-3 mt-3">
+                        <button type="button" onclick="manualSelectAll(true)" class="text-xs text-blue-600 hover:underline">Aktifkan semua</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" onclick="manualSelectAll(false)" class="text-xs text-gray-500 hover:underline">Nonaktifkan semua</button>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-4">
+                    <button type="button" onclick="nextStep(2)" class="text-sm text-gray-500 hover:text-gray-700 transition py-2">← Kembali</button>
+                    <button type="button" onclick="nextStep(4)" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">Lanjut →</button>
+                </div>
+            </div>
+
+            {{-- Step 4: Konfirmasi --}}
+            <div class="step-panel hidden" data-panel="4">
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-center space-y-4">
                     <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
                         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -327,10 +376,11 @@
                         <div class="flex items-center gap-2 text-gray-600"><svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Profil bisnis dikonfigurasi</div>
                         <div class="flex items-center gap-2 text-gray-600"><svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Gudang utama dibuat</div>
                         <div class="flex items-center gap-2 text-gray-600"><svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Produk & kategori pengeluaran siap</div>
+                        <div class="flex items-center gap-2 text-gray-600 manual-module-summary-line"><svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Modul dipilih</span></div>
                     </div>
                 </div>
                 <div class="flex justify-between mt-4">
-                    <button type="button" onclick="nextStep(2)" class="text-sm text-gray-500 hover:text-gray-700 transition py-2">← Kembali</button>
+                    <button type="button" onclick="nextStep(3)" class="text-sm text-gray-500 hover:text-gray-700 transition py-2">← Kembali</button>
                     <button type="submit" class="px-8 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition">Mulai Gunakan ERP 🚀</button>
                 </div>
             </div>
@@ -388,7 +438,7 @@ function goAiStep(n) {
 
     document.querySelectorAll('.ai-step-dot').forEach(d => {
         const s = parseInt(d.dataset.step);
-        d.className = d.className.replace(/bg-\w+-\d+|text-\w+-\d+/g, '');
+        d.className = 'ai-step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all';
         if (s < n) {
             d.classList.add('bg-green-500', 'text-white');
             d.innerHTML = '&#10003;';
@@ -401,12 +451,26 @@ function goAiStep(n) {
         }
     });
 
+    // Update connector lines between steps
+    document.querySelectorAll('#ai-step-indicator .w-8.h-px').forEach((line, idx) => {
+        // idx 0 = connector between step 1-2, idx 1 = 2-3, idx 2 = 3-4
+        if (idx + 2 <= n) {
+            line.classList.remove('bg-gray-200');
+            line.classList.add('bg-green-400');
+        } else {
+            line.classList.remove('bg-green-400');
+            line.classList.add('bg-gray-200');
+        }
+    });
+
     document.querySelectorAll('[data-ai-step-label]').forEach(l => {
         const s = parseInt(l.dataset.aiStepLabel);
         l.className = l.className.replace(/text-\w+-\d+|font-medium/g, '');
         l.classList.add(s === n ? 'text-blue-600' : 'text-gray-400');
         if (s === n) l.classList.add('font-medium');
     });
+    if (n === 3) loadModuleRecommendations();
+    if (n === 4) updateSetupSummary();
 }
 
 function appendAiMessage(role, text) {
@@ -501,6 +565,102 @@ async function callAiChat(message) {
     }
 }
 
+// ── Module Selection (Step 3) ────────────────────────────────────
+const moduleRecommendEndpoint = '{{ route('settings.modules.recommend') }}';
+const moduleSaveEndpoint = '{{ route('settings.modules.update') }}';
+const allModuleMeta = @json(\App\Services\ModuleRecommendationService::MODULE_META);
+let selectedModules = [];
+
+async function loadModuleRecommendations() {
+    const grid = document.getElementById('module-grid');
+    const loading = document.getElementById('module-loading');
+    const reason = document.getElementById('module-reason');
+    const badge = document.getElementById('module-ai-badge');
+
+    loading.classList.remove('hidden');
+    grid.classList.add('hidden');
+    reason.classList.add('hidden');
+
+    try {
+        const res = await fetch(moduleRecommendEndpoint + '?industry=' + encodeURIComponent(selectedIndustry));
+        const data = await res.json();
+        selectedModules = [...data.modules];
+
+        grid.innerHTML = '';
+        Object.entries(allModuleMeta).forEach(([key, m]) => {
+            const isOn = selectedModules.includes(key);
+            const card = document.createElement('label');
+            card.className = 'module-toggle-card flex items-center gap-2 p-2.5 rounded-xl border-2 cursor-pointer transition text-sm ' +
+                (isOn ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300');
+            card.innerHTML =
+                '<input type="checkbox" class="sr-only" value="' + key + '" ' + (isOn ? 'checked' : '') + ' onchange="toggleModule(this)">' +
+                '<span class="text-lg shrink-0">' + m.icon + '</span>' +
+                '<span class="font-medium text-gray-800 leading-tight">' + m.label + '</span>' +
+                (isOn ? '<span class="module-check ml-auto text-xs text-blue-500">✓</span>' : '');
+            grid.appendChild(card);
+        });
+
+        if (data.reason) {
+            reason.textContent = '💡 ' + data.reason;
+            reason.classList.remove('hidden');
+        }
+        badge.classList.remove('hidden');
+        loading.classList.add('hidden');
+        grid.classList.remove('hidden');
+    } catch (e) {
+        loading.textContent = 'Gagal memuat rekomendasi. Semua modul akan diaktifkan.';
+        selectedModules = Object.keys(allModuleMeta);
+    }
+}
+
+function toggleModule(checkbox) {
+    const key = checkbox.value;
+    const card = checkbox.closest('label');
+    // Remove existing checkmark if any
+    const existingCheck = card.querySelector('.module-check');
+    if (existingCheck) existingCheck.remove();
+
+    if (checkbox.checked) {
+        selectedModules.push(key);
+        card.classList.add('border-blue-500', 'bg-blue-50');
+        card.classList.remove('border-gray-200');
+        const check = document.createElement('span');
+        check.className = 'module-check ml-auto text-xs text-blue-500';
+        check.textContent = '✓';
+        card.appendChild(check);
+    } else {
+        selectedModules = selectedModules.filter(k => k !== key);
+        card.classList.remove('border-blue-500', 'bg-blue-50');
+        card.classList.add('border-gray-200');
+    }
+}
+
+async function saveModulesAndFinish() {
+    try {
+        const form = new FormData();
+        form.append('_method', 'PUT');
+        form.append('_token', csrfToken);
+        selectedModules.forEach(m => form.append('modules[]', m));
+        await fetch(moduleSaveEndpoint, { method: 'POST', body: form });
+    } catch (e) { /* non-blocking */ }
+    goAiStep(4);
+}
+
+function updateSetupSummary() {
+    const summary = document.getElementById('setup-summary');
+    if (!summary) return;
+    const count = selectedModules.length;
+    // Update or insert the module count line
+    let moduleLine = summary.querySelector('.module-count-line');
+    if (!moduleLine) {
+        moduleLine = document.createElement('div');
+        moduleLine.className = 'module-count-line flex items-center gap-2 text-gray-600';
+        moduleLine.innerHTML = '<svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span></span>';
+        summary.insertBefore(moduleLine, summary.children[1]);
+    }
+    moduleLine.querySelector('span').textContent = count + ' modul diaktifkan';
+}
+
 // ── Manual Mode ─────────────────────────────────────────────────
 function nextStep(n) {
     document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
@@ -508,7 +668,7 @@ function nextStep(n) {
 
     document.querySelectorAll('.step-dot').forEach(d => {
         const s = parseInt(d.dataset.step);
-        d.className = d.className.replace(/bg-\w+-\d+|text-\w+-\d+/g, '');
+        d.className = 'step-dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all';
         if (s < n) {
             d.classList.add('bg-green-500', 'text-white');
             d.innerHTML = '&#10003;';
@@ -521,11 +681,49 @@ function nextStep(n) {
         }
     });
 
+    // Update connector lines
+    document.querySelectorAll('.manual-connector').forEach((line, idx) => {
+        if (idx + 2 <= n) {
+            line.classList.remove('bg-gray-200');
+            line.classList.add('bg-green-400');
+        } else {
+            line.classList.remove('bg-green-400');
+            line.classList.add('bg-gray-200');
+        }
+    });
+
     document.querySelectorAll('[data-step-label]').forEach(l => {
         const s = parseInt(l.dataset.stepLabel);
         l.className = l.className.replace(/text-\w+-\d+|font-medium/g, '');
         l.classList.add(s === n ? 'text-blue-600' : 'text-gray-400');
         if (s === n) l.classList.add('font-medium');
+    });
+
+    if (n === 4) {
+        const count = document.querySelectorAll('#manual-module-grid input:checked').length;
+        const line = document.querySelector('.manual-module-summary-line span');
+        if (line) line.textContent = count + ' modul diaktifkan';
+    }
+}
+
+function toggleManualModule(checkbox) {
+    const card = checkbox.closest('label');
+    const check = card.querySelector('.manual-module-check');
+    if (checkbox.checked) {
+        card.classList.add('border-blue-500', 'bg-blue-50');
+        card.classList.remove('border-gray-200');
+        if (check) check.style.display = '';
+    } else {
+        card.classList.remove('border-blue-500', 'bg-blue-50');
+        card.classList.add('border-gray-200');
+        if (check) check.style.display = 'none';
+    }
+}
+
+function manualSelectAll(state) {
+    document.querySelectorAll('#manual-module-grid input[type=checkbox]').forEach(cb => {
+        cb.checked = state;
+        toggleManualModule(cb);
     });
 }
 

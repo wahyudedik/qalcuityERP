@@ -92,6 +92,7 @@
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-xs text-gray-400 dark:text-slate-500">{{ $lead->last_contact_at?->diffForHumans() ?? 'Belum dihubungi' }}</span>
                             <div class="flex gap-1">
+                                <span id="kb-score-{{ $lead->id }}" class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-slate-500"></span>
                                 <button onclick="openActivity({{ $lead->id }}, '{{ addslashes($lead->name) }}')"
                                     class="p-1 rounded text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Log Aktivitas">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -235,6 +236,26 @@
     @push('scripts')
     <script>
     let draggedId = null;
+
+    // Batch load AI scores
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('{{ route("crm.ai.score-all") }}');
+            const data = await res.json();
+            const tierClasses = {
+                hot:  'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+                warm: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+                cold: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+            };
+            Object.entries(data).forEach(([id, s]) => {
+                const el = document.getElementById('kb-score-' + id);
+                if (el) {
+                    el.textContent = s.tier_label + ' ' + s.score;
+                    el.className = 'text-xs px-1.5 py-0.5 rounded-full ' + (tierClasses[s.tier] || '');
+                }
+            });
+        } catch(e) {}
+    });
 
     function dragStart(event, id) {
         draggedId = id;

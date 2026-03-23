@@ -68,6 +68,7 @@
                         <th class="px-4 py-3 text-left hidden md:table-cell">Kategori</th>
                         <th class="px-4 py-3 text-right">Harga Jual</th>
                         <th class="px-4 py-3 text-right">Stok</th>
+                        <th class="px-4 py-3 text-center hidden lg:table-cell">Prediksi AI</th>
                         <th class="px-4 py-3 text-center hidden sm:table-cell">Status</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
@@ -87,6 +88,10 @@
                             <span class="font-semibold {{ $isLow ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">{{ $totalStock }}</span>
                             @if($isLow)<span class="ml-1 text-xs text-red-500">⚠</span>@endif
                         </td>
+                        {{-- AI Prediction Cell --}}
+                        <td class="px-4 py-3 text-center hidden lg:table-cell">
+                            <div id="ai-inv-{{ $product->id }}" class="text-xs text-slate-500 italic">—</div>
+                        </td>
                         <td class="px-4 py-3 text-center hidden sm:table-cell">
                             <span class="px-2 py-0.5 rounded-full text-xs {{ $product->is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' }}">
                                 {{ $product->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -97,6 +102,10 @@
                                 <button onclick="openAddStock({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->unit }}')"
                                     class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Tambah Stok">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                                <button onclick="openAiDetail({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->unit }}')"
+                                    class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="Analisis AI">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                                 </button>
                                 <button onclick="openEditProduct({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->sku }}', '{{ addslashes($product->category ?? '') }}', '{{ $product->unit }}', {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }}, '{{ $product->image }}')"
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
@@ -288,6 +297,17 @@
         </div>
     </div>
 
+    {{-- Modal AI Inventory Detail --}}
+    <div id="modal-ai-inventory" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                <h3 id="ai-modal-title" class="font-semibold text-gray-900 dark:text-white text-sm">Analisis AI Stok</h3>
+                <button onclick="document.getElementById('modal-ai-inventory').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <div id="ai-modal-content" class="p-6 space-y-4"></div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
     // ── Toast Notification ────────────────────────────────────────
@@ -366,6 +386,132 @@
 
         document.getElementById('modal-edit-product').classList.remove('hidden');
     }
+
+    // ── AI: Batch analyze all products on page load ───────────────
+    const analyzeAllUrl  = '{{ route("inventory.ai.analyze-all") }}';
+    const stockoutBase   = '/inventory/ai/stockout/';
+    const reorderBase    = '/inventory/ai/reorder/';
+
+    const urgencyBadge = {
+        critical: 'px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/20',
+        warning:  'px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20',
+        ok:       'px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/20',
+        unknown:  'px-2 py-0.5 rounded-full bg-white/10 text-slate-400',
+    };
+    const urgencyLabel = {
+        critical: '🔴 Kritis',
+        warning:  '🟡 Perhatian',
+        ok:       '✓ Aman',
+        unknown:  '— Belum ada data',
+    };
+    const trendIcon = { increasing: '↑', stable: '→', decreasing: '↓', unknown: '—' };
+
+    async function loadBatchAnalysis() {
+        try {
+            const res  = await fetch(analyzeAllUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            const analysis = data.analysis ?? {};
+
+            for (const [id, info] of Object.entries(analysis)) {
+                const el = document.getElementById(`ai-inv-${id}`);
+                if (!el) continue;
+                const badge = urgencyBadge[info.urgency] ?? urgencyBadge.unknown;
+                const label = urgencyLabel[info.urgency] ?? '—';
+                const days  = info.days_remaining != null ? ` · ${info.days_remaining}h` : '';
+                el.className = `text-xs ${badge}`;
+                el.textContent = label + days;
+                el.title = info.days_remaining != null
+                    ? `Stok habis ~${info.days_remaining} hari lagi (avg keluar: ${info.avg_daily_out}/hari)`
+                    : 'Tidak ada data penjualan';
+            }
+        } catch (e) { /* silent */ }
+    }
+
+    async function openAiDetail(productId, productName, unit) {
+        document.getElementById('ai-modal-title').textContent = 'Analisis AI — ' + productName;
+        document.getElementById('ai-modal-content').innerHTML =
+            '<div class="animate-pulse text-slate-500 text-sm text-center py-4">Menganalisis...</div>';
+        document.getElementById('modal-ai-inventory').classList.remove('hidden');
+
+        try {
+            const [predRes, reorderRes] = await Promise.all([
+                fetch(stockoutBase + productId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
+                fetch(reorderBase  + productId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
+            ]);
+            const predData   = await predRes.json();
+            const reorderData = await reorderRes.json();
+            const p = predData.prediction;
+            const r = reorderData.suggestion;
+
+            const urgColors = { critical: 'text-red-400 bg-red-500/10 border-red-500/20', warning: 'text-amber-400 bg-amber-500/10 border-amber-500/20', ok: 'text-green-400 bg-green-500/10 border-green-500/20', unknown: 'text-slate-400 bg-white/5 border-white/10' };
+            const confColor = { high: 'text-green-400', medium: 'text-yellow-400', low: 'text-slate-400' };
+            const urg = urgColors[p.urgency] ?? urgColors.unknown;
+
+            let html = `
+                <div class="p-3 rounded-xl border ${urg} text-sm mb-1">
+                    <div class="font-medium mb-0.5">${urgencyLabel[p.urgency] ?? '—'}</div>
+                    <div class="text-xs opacity-80">${esc(p.message)}</div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-white/5 rounded-xl p-2 border border-white/10">
+                        <p class="text-xs text-slate-400">Stok Saat Ini</p>
+                        <p class="font-bold text-white">${p.current_stock} <span class="text-xs font-normal text-slate-400">${esc(unit)}</span></p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-2 border border-white/10">
+                        <p class="text-xs text-slate-400">Hari Tersisa</p>
+                        <p class="font-bold text-white">${p.days_remaining ?? '—'}</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-2 border border-white/10">
+                        <p class="text-xs text-slate-400">Tren</p>
+                        <p class="font-bold text-white">${trendIcon[p.trend] ?? '—'} <span class="text-xs font-normal text-slate-400">${p.trend ?? ''}</span></p>
+                    </div>
+                </div>
+                ${p.stockout_date ? `<p class="text-xs text-slate-400 text-center">Estimasi habis: <span class="text-white font-medium">${p.stockout_date}</span></p>` : ''}
+                <hr class="border-white/10">
+                <div>
+                    <p class="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wide">Saran Reorder</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-purple-500/10 rounded-xl p-3 border border-purple-500/20 text-center">
+                            <p class="text-xs text-slate-400">Qty Reorder</p>
+                            <p class="text-xl font-bold text-purple-300">${r.reorder_qty}</p>
+                            <p class="text-xs text-slate-500">${esc(unit)}</p>
+                        </div>
+                        <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
+                            <p class="text-xs text-slate-400">Safety Stock</p>
+                            <p class="text-xl font-bold text-white">${r.safety_stock}</p>
+                            <p class="text-xs text-slate-500">${esc(unit)}</p>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs space-y-0.5">
+                        <p class="${confColor[r.confidence] ?? 'text-slate-400'}">${esc(r.basis)}</p>
+                        <p class="text-slate-500">Lead time: ${r.lead_time_days} hari · Cover: ${r.cover_days} hari · EOQ: ${r.economic_order} ${esc(unit)}</p>
+                    </div>
+                </div>
+                <button onclick="prefillAddStock(${productId}, ${r.reorder_qty}, '${esc(productName)}', '${esc(unit)}')"
+                    class="w-full py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-xl mt-1">
+                    + Tambah Stok (${r.reorder_qty} ${esc(unit)})
+                </button>`;
+
+            document.getElementById('ai-modal-content').innerHTML = html;
+        } catch (e) {
+            document.getElementById('ai-modal-content').innerHTML =
+                '<p class="text-red-400 text-sm">Gagal memuat analisis AI.</p>';
+        }
+    }
+
+    function prefillAddStock(productId, qty, name, unit) {
+        document.getElementById('modal-ai-inventory').classList.add('hidden');
+        document.getElementById('stock-product-name').textContent = name + ' (' + unit + ')';
+        document.getElementById('form-add-stock').action = '/inventory/' + productId + '/stock';
+        document.querySelector('#modal-add-stock input[name="quantity"]').value = qty;
+        document.getElementById('modal-add-stock').classList.remove('hidden');
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadBatchAnalysis);
     </script>
     @endpush
 </x-app-layout>

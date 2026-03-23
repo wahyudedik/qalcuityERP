@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AiUsageLog;
+use App\Models\AnomalyAlert;
 use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\ProductStock;
@@ -36,13 +37,74 @@ class DashboardController extends Controller
             return app(AiInsightService::class)->analyze($tenantId);
         });
 
+        // Anomali open terbaru untuk highlight di dashboard
+        $openAnomalies = AnomalyAlert::where('tenant_id', $tenantId)
+            ->where('status', 'open')
+            ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('dashboard.tenant', [
-            'sales'     => $this->salesStats($tenantId),
-            'inventory' => $this->inventoryStats($tenantId),
-            'finance'   => $this->financeStats($tenantId),
-            'hrm'       => $this->hrmStats($tenantId),
-            'insights'  => $insights,
+            'sales'          => $this->salesStats($tenantId),
+            'inventory'      => $this->inventoryStats($tenantId),
+            'finance'        => $this->financeStats($tenantId),
+            'hrm'            => $this->hrmStats($tenantId),
+            'insights'       => $insights,
+            'openAnomalies'  => $openAnomalies,
         ]);
+    }
+
+    /**
+     * AJAX: refresh insights + anomalies tanpa reload halaman.
+     * Bust cache dan generate ulang.
+     */
+    public function refreshInsights(Request $request)
+    {
+        $tenantId = $request->user()->tenant_id;
+
+        // Bust cache dan generate ulang
+        cache()->forget("ai_insights_{$tenantId}");
+        $insights = cache()->remember("ai_insights_{$tenantId}", now()->addHour(), function () use ($tenantId) {
+            return app(AiInsightService::class)->analyze($tenantId);
+        });
+
+        // Ambil anomali open terbaru (max 5)
+        $anomalies = AnomalyAlert::where('tenant_id', $tenantId)
+            ->where('status', 'open')
+            ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
+            ->latest()
+            ->limit(5)
+            ->get(['id', 'type', 'severity', 'title', 'description', 'created_at'])
+            ->map(fn($a) => [
+                'id'          => $a->id,
+                'severity'    => $a->severity,
+                'title'       => $a->title,
+                'description' => $a->description,
+                'age'         => $a->created_at->diffForHumans(),
+            ]);
+
+        return response()->json([
+            'insights'  => array_slice($insights, 0, 6),
+            'anomalies' => $anomalies,
+            'updated_at'=> now()->format('H:i'),
+        ]);
+    }
+
+    /**
+     * AJAX: acknowledge anomaly dari dashboard.
+     */
+    public function acknowledgeAnomaly(Request $request, AnomalyAlert $anomaly)
+    {
+        abort_if($anomaly->tenant_id !== $request->user()->tenant_id, 403);
+
+        $anomaly->update([
+            'status'          => 'acknowledged',
+            'acknowledged_by' => auth()->id(),
+            'acknowledged_at' => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
     }
 
     // ─── Super Admin Stats ────────────────────────────────────────
@@ -60,12 +122,30 @@ class DashboardController extends Controller
 
         $totalUsers = User::where('role', '!=', 'super_admin')->count();
 
-        // New tenants this month
+        // New tenants this month & this week
         $newThisMonth = Tenant::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)->count();
+        $newThisWeek = Tenant::where('created_at', '>=', now()->startOfWeek())->count();
 
         // AI usage this month across all tenants
         $aiThisMonth = AiUsageLog::where('month', now()->format('Y-m'))->sum('message_count');
+
+        // MRR estimate — sum price_monthly of active paid tenants with a subscription plan
+        $mrrEstimate = \App\Models\SubscriptionPlan::join('tenants', 'subscription_plans.id', '=', 'tenants.subscription_plan_id')
+            ->where('tenants.is_active', true)
+            ->where('tenants.plan', '!=', 'trial')
+            ->sum('subscription_plans.price_monthly');
+
+        // Tenants expiring in 7 / 14 / 30 days (trial or paid)
+        $expiringIn7  = Tenant::where('is_active', true)->where(fn($q) => $q
+            ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(7)]))
+            ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(7)]))
+        )->get();
+
+        $expiringIn30 = Tenant::where('is_active', true)->where(fn($q) => $q
+            ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(30)]))
+            ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(30)]))
+        )->with('admins')->orderByRaw("COALESCE(trial_ends_at, plan_expires_at) ASC")->get();
 
         // Tenant growth chart — last 6 months
         $growthChart = [];
@@ -98,7 +178,8 @@ class DashboardController extends Controller
 
         return compact(
             'totalTenants', 'activeTenants', 'trialTenants', 'expiredTenants',
-            'totalUsers', 'newThisMonth', 'aiThisMonth',
+            'totalUsers', 'newThisMonth', 'newThisWeek', 'aiThisMonth',
+            'mrrEstimate', 'expiringIn7', 'expiringIn30',
             'growthChart', 'planDist', 'recentTenants', 'topAiTenants'
         );
     }
@@ -151,11 +232,21 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Produk akan expired dalam 7 hari
+        $expiringCount = \App\Models\ProductBatch::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->where('quantity', '>', 0)
+            ->where('expiry_date', '>=', today())
+            ->where('expiry_date', '<=', today()->addDays(7))
+            ->whereHas('product', fn($q) => $q->where('has_expiry', true))
+            ->count();
+
         return [
-            'total_products'  => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
-            'total_warehouses'=> \App\Models\Warehouse::where('tenant_id', $tenantId)->count(),
-            'low_stock_count' => $lowStock->count(),
-            'low_stock_items' => $lowStock,
+            'total_products'   => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
+            'total_warehouses' => \App\Models\Warehouse::where('tenant_id', $tenantId)->count(),
+            'low_stock_count'  => $lowStock->count(),
+            'low_stock_items'  => $lowStock,
+            'expiring_soon'    => $expiringCount,
         ];
     }
 
@@ -179,12 +270,30 @@ class DashboardController extends Controller
             ];
         }
 
+        // Top expense categories this month
+        $topExpenses = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
+            ->whereMonth('date', now()->month)->whereYear('date', now()->year)
+            ->selectRaw('expense_category_id, SUM(amount) as total')
+            ->groupBy('expense_category_id')
+            ->with('category')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // Overdue invoices
+        $overdueInvoices = \App\Models\Invoice::where('tenant_id', $tenantId)
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->where('due_date', '<', today())
+            ->count();
+
         return [
-            'income'         => $income,
-            'expense'        => $expense,
-            'profit'         => $income - $expense,
-            'pending_po'     => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
-            'chart'          => $chartData,
+            'income'           => $income,
+            'expense'          => $expense,
+            'profit'           => $income - $expense,
+            'pending_po'       => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
+            'overdue_invoices' => $overdueInvoices,
+            'top_expenses'     => $topExpenses,
+            'chart'            => $chartData,
         ];
     }
 

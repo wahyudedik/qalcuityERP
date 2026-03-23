@@ -12,14 +12,39 @@ use Illuminate\View\View;
 
 class TenantController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $tenants = Tenant::withCount('users')
-            ->with('admins')
-            ->latest()
-            ->paginate(20);
+        $query = Tenant::withCount('users')->with('admins');
 
-        return view('super-admin.tenants.index', compact('tenants'));
+        if ($search = $request->input('search')) {
+            $query->where(fn($q) => $q->where('name', 'like', "%{$search}%")
+                ->orWhere('slug', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%"));
+        }
+
+        if ($status = $request->input('status')) {
+            if ($status === 'active')   $query->where('is_active', true);
+            if ($status === 'inactive') $query->where('is_active', false);
+            if ($status === 'expired')  $query->where('is_active', true)->where(fn($q) => $q
+                ->where(fn($q2) => $q2->where('plan', 'trial')->where('trial_ends_at', '<', now()))
+                ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereNotNull('plan_expires_at')->where('plan_expires_at', '<', now())));
+        }
+
+        if ($plan = $request->input('plan')) {
+            $query->where('plan', $plan);
+        }
+
+        $tenants = $query->latest()->paginate(20)->withQueryString();
+
+        // Stats from DB (not paginated collection)
+        $stats = [
+            'total'    => Tenant::count(),
+            'active'   => Tenant::where('is_active', true)->count(),
+            'inactive' => Tenant::where('is_active', false)->count(),
+            'trial'    => Tenant::where('plan', 'trial')->count(),
+        ];
+
+        return view('super-admin.tenants.index', compact('tenants', 'stats'));
     }
 
     public function show(Tenant $tenant): View

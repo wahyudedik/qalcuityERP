@@ -144,6 +144,72 @@ class ApprovalController extends Controller
         return back()->with('success', 'Permintaan ditolak.');
     }
 
+    // ─── Workflow Builder ─────────────────────────────────────────────────────
+
+    public function workflowIndex()
+    {
+        $tenantId  = auth()->user()->tenant_id;
+        $workflows = ApprovalWorkflow::where('tenant_id', $tenantId)->latest()->get();
+        return view('approvals.workflows', compact('workflows'));
+    }
+
+    public function workflowStore(Request $request)
+    {
+        $data = $request->validate([
+            'name'           => 'required|string|max:255',
+            'model_type'     => 'nullable|string|max:100',
+            'min_amount'     => 'nullable|numeric|min:0',
+            'max_amount'     => 'nullable|numeric|min:0',
+            'approver_roles' => 'required|array|min:1',
+            'approver_roles.*' => 'in:admin,manager,staff,kasir,gudang',
+        ]);
+
+        ApprovalWorkflow::create([
+            'tenant_id'      => auth()->user()->tenant_id,
+            'name'           => $data['name'],
+            'model_type'     => $data['model_type'] ?? null,
+            'min_amount'     => $data['min_amount'] ?? 0,
+            'max_amount'     => $data['max_amount'] ?? null,
+            'approver_roles' => $data['approver_roles'],
+            'is_active'      => true,
+        ]);
+
+        return back()->with('success', 'Workflow persetujuan berhasil dibuat.');
+    }
+
+    public function workflowUpdate(Request $request, ApprovalWorkflow $workflow)
+    {
+        abort_if($workflow->tenant_id !== auth()->user()->tenant_id, 403);
+
+        $data = $request->validate([
+            'name'           => 'required|string|max:255',
+            'model_type'     => 'nullable|string|max:100',
+            'min_amount'     => 'nullable|numeric|min:0',
+            'max_amount'     => 'nullable|numeric|min:0',
+            'approver_roles' => 'required|array|min:1',
+            'approver_roles.*' => 'in:admin,manager,staff,kasir,gudang',
+            'is_active'      => 'boolean',
+        ]);
+
+        $workflow->update([
+            'name'           => $data['name'],
+            'model_type'     => $data['model_type'] ?? null,
+            'min_amount'     => $data['min_amount'] ?? 0,
+            'max_amount'     => $data['max_amount'] ?? null,
+            'approver_roles' => $data['approver_roles'],
+            'is_active'      => $request->boolean('is_active'),
+        ]);
+
+        return back()->with('success', 'Workflow berhasil diperbarui.');
+    }
+
+    public function workflowDestroy(ApprovalWorkflow $workflow)
+    {
+        abort_if($workflow->tenant_id !== auth()->user()->tenant_id, 403);
+        $workflow->delete();
+        return back()->with('success', 'Workflow dihapus.');
+    }
+
     private function authorize_tenant(ApprovalRequest $approval): void
     {
         abort_if($approval->tenant_id !== auth()->user()->tenant_id, 403);

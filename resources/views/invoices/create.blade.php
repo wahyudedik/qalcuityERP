@@ -10,7 +10,7 @@
                 {{-- Customer --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Customer <span class="text-red-500">*</span></label>
-                    <select name="customer_id" required class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="customer_id" required class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih Customer --</option>
                         @foreach($customers as $c)
                         <option value="{{ $c->id }}" {{ old('customer_id') == $c->id ? 'selected' : '' }}>
@@ -24,7 +24,7 @@
                 {{-- Sales Order (optional) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Sales Order <span class="text-gray-400 font-normal">(opsional)</span></label>
-                    <select name="sales_order_id" id="sales_order_id" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="sales_order_id" id="sales_order_id" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Tanpa Sales Order --</option>
                         @foreach($orders as $o)
                         <option value="{{ $o->id }}" data-total="{{ $o->total }}" {{ old('sales_order_id') == $o->id ? 'selected' : '' }}>

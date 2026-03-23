@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductBatch;
 use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -57,8 +59,13 @@ class InventoryController extends Controller
             'price_buy'     => 'nullable|numeric|min:0',
             'stock_min'     => 'nullable|integer|min:0',
             'description'   => 'nullable|string',
+            'has_expiry'    => 'boolean',
+            'expiry_alert_days' => 'nullable|integer|min:1|max:365',
             'initial_stock' => 'nullable|integer|min:0',
             'warehouse_id'  => 'nullable|exists:warehouses,id',
+            'batch_number'  => 'nullable|string|max:100',
+            'expiry_date'   => 'nullable|date|after:today',
+            'manufacture_date' => 'nullable|date',
             'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -76,18 +83,22 @@ class InventoryController extends Controller
         }
 
         $product = Product::create([
-            'tenant_id'   => $tid,
-            'name'        => $data['name'],
-            'sku'         => $sku,
-            'category'    => $data['category'] ?? null,
-            'unit'        => $data['unit'],
-            'price_sell'  => $data['price_sell'],
-            'price_buy'   => $data['price_buy'] ?? 0,
-            'stock_min'   => $data['stock_min'] ?? 5,
-            'description' => $data['description'] ?? null,
-            'image'       => $imagePath ? Storage::url($imagePath) : null,
-            'is_active'   => true,
+            'tenant_id'         => $tid,
+            'name'              => $data['name'],
+            'sku'               => $sku,
+            'category'          => $data['category'] ?? null,
+            'unit'              => $data['unit'],
+            'price_sell'        => $data['price_sell'],
+            'price_buy'         => $data['price_buy'] ?? 0,
+            'stock_min'         => $data['stock_min'] ?? 5,
+            'description'       => $data['description'] ?? null,
+            'image'             => $imagePath ? Storage::url($imagePath) : null,
+            'is_active'         => true,
+            'has_expiry'        => $request->boolean('has_expiry'),
+            'expiry_alert_days' => $data['expiry_alert_days'] ?? 2,
         ]);
+
+        ActivityLog::record('product_created', "Produk baru: {$product->name} (SKU: {$product->sku})", $product, [], $product->toArray());
 
         if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
             ProductStock::create([
@@ -106,6 +117,20 @@ class InventoryController extends Controller
                 'quantity_after'  => $data['initial_stock'],
                 'notes'           => 'Stok awal produk baru',
             ]);
+
+            // Buat batch jika produk has_expiry dan expiry_date diisi
+            if ($product->has_expiry && !empty($data['expiry_date'])) {
+                ProductBatch::create([
+                    'tenant_id'        => $tid,
+                    'product_id'       => $product->id,
+                    'warehouse_id'     => $data['warehouse_id'],
+                    'batch_number'     => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
+                    'quantity'         => $data['initial_stock'],
+                    'manufacture_date' => $data['manufacture_date'] ?? null,
+                    'expiry_date'      => $data['expiry_date'],
+                    'status'           => 'active',
+                ]);
+            }
         }
 
         return back()->with('success', "Produk {$product->name} berhasil ditambahkan.");
@@ -140,7 +165,9 @@ class InventoryController extends Controller
             unset($data['image']);
         }
 
+        $old = $product->getOriginal();
         $product->update($data);
+        ActivityLog::record('product_updated', "Produk diperbarui: {$product->name}", $product, $old, $product->fresh()->toArray());
 
         return back()->with('success', "Produk {$product->name} berhasil diperbarui.");
     }
@@ -152,9 +179,11 @@ class InventoryController extends Controller
         $hasSales = \App\Models\SalesOrderItem::where('product_id', $product->id)->exists();
         if ($hasSales) {
             $product->update(['is_active' => false]);
+            ActivityLog::record('product_deactivated', "Produk dinonaktifkan (sudah pernah terjual): {$product->name}", $product);
             return back()->with('success', "Produk dinonaktifkan (sudah pernah terjual).");
         }
 
+        ActivityLog::record('product_deleted', "Produk dihapus: {$product->name} (SKU: {$product->sku})", $product, $product->toArray());
         $product->productStocks()->delete();
         $product->delete();
 
@@ -166,10 +195,18 @@ class InventoryController extends Controller
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'quantity'     => 'required|integer|min:1',
-            'notes'        => 'nullable|string',
+            'warehouse_id'     => 'required|exists:warehouses,id',
+            'quantity'         => 'required|integer|min:1',
+            'notes'            => 'nullable|string',
+            'batch_number'     => 'nullable|string|max:100',
+            'expiry_date'      => 'nullable|date|after:today',
+            'manufacture_date' => 'nullable|date',
         ]);
+
+        // Validasi: jika produk has_expiry, expiry_date wajib
+        if ($product->has_expiry && empty($data['expiry_date'])) {
+            return back()->withErrors(['expiry_date' => 'Produk ini memerlukan tanggal expired.'])->withInput();
+        }
 
         $stock = ProductStock::firstOrCreate(
             ['product_id' => $product->id, 'warehouse_id' => $data['warehouse_id']],
@@ -191,7 +228,48 @@ class InventoryController extends Controller
             'notes'           => $data['notes'] ?? null,
         ]);
 
+        // Buat batch jika produk has_expiry
+        if ($product->has_expiry && !empty($data['expiry_date'])) {
+            ProductBatch::create([
+                'tenant_id'        => $this->tenantId(),
+                'product_id'       => $product->id,
+                'warehouse_id'     => $data['warehouse_id'],
+                'batch_number'     => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($product->sku, 0, 4)) . '-' . now()->format('ymd') . '-' . rand(10, 99),
+                'quantity'         => $data['quantity'],
+                'manufacture_date' => $data['manufacture_date'] ?? null,
+                'expiry_date'      => $data['expiry_date'],
+                'status'           => 'active',
+            ]);
+        }
+
+        ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → " . ($before + $data['quantity']) . ")", $product);
+
         return back()->with('success', "Stok berhasil ditambah {$data['quantity']} {$product->unit}.");
+    }
+
+    public function batches(Request $request, Product $product)
+    {
+        abort_unless($product->tenant_id === $this->tenantId(), 403);
+
+        $batches = ProductBatch::with('warehouse')
+            ->where('product_id', $product->id)
+            ->orderBy('expiry_date')
+            ->paginate(20);
+
+        return view('inventory.batches', compact('product', 'batches'));
+    }
+
+    public function updateBatchStatus(Request $request, ProductBatch $batch)
+    {
+        abort_unless($batch->tenant_id === $this->tenantId(), 403);
+
+        $data = $request->validate([
+            'status' => 'required|in:active,expired,recalled,consumed',
+        ]);
+
+        $batch->update($data);
+
+        return back()->with('success', "Status batch {$batch->batch_number} diperbarui.");
     }
 
     public function warehouses(Request $request)

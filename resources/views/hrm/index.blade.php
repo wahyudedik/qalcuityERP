@@ -95,6 +95,10 @@
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
+                                <button onclick="openSalarySuggest({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
+                                    class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="Saran Gaji AI">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
+                                </button>
                                 <form method="POST" action="{{ route('hrm.destroy', $emp) }}" onsubmit="return confirm('Tandai karyawan ini sebagai resign?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Resign">
@@ -218,6 +222,17 @@
         </div>
     </div>
 
+    {{-- Modal Saran Gaji AI --}}
+    <div id="modal-salary-suggest" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
+                <h3 id="salary-modal-title" class="font-semibold text-gray-900 dark:text-white text-sm">Saran Gaji AI</h3>
+                <button onclick="document.getElementById('modal-salary-suggest').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <div id="salary-modal-content" class="p-6"></div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
     function openEditEmp(id, name, position, department, salary, phone, email, joinDate, status) {
@@ -231,6 +246,92 @@
         document.getElementById('ee-join-date').value = joinDate;
         document.getElementById('ee-status').value = status;
         document.getElementById('modal-edit-emp').classList.remove('hidden');
+    }
+
+    // ── AI: Salary Suggestion ─────────────────────────────────────
+    const salaryBaseUrl = '/hrm/ai/salary-suggest/';
+
+    async function openSalarySuggest(empId, empName) {
+        document.getElementById('salary-modal-title').textContent = 'Saran Gaji AI — ' + empName;
+        document.getElementById('salary-modal-content').innerHTML =
+            '<div class="animate-pulse text-slate-500 text-sm py-4 text-center">Menganalisis data...</div>';
+        document.getElementById('modal-salary-suggest').classList.remove('hidden');
+
+        try {
+            const res  = await fetch(salaryBaseUrl + empId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            const s    = data.suggestion;
+
+            const fmt = v => v != null ? 'Rp ' + Number(v).toLocaleString('id-ID') : '—';
+            const confColor = { high: 'text-green-400', medium: 'text-yellow-400', low: 'text-slate-400' };
+
+            let html = `
+                <div class="space-y-4">
+                    ${s.benchmark_note ? `<p class="text-xs text-slate-400 bg-white/5 rounded-lg px-3 py-2">${esc(s.benchmark_note)}</p>` : ''}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white/5 rounded-xl p-3 border border-white/10">
+                            <p class="text-xs text-slate-400 mb-1">Gaji Saat Ini</p>
+                            <p class="text-lg font-bold text-white">${fmt(s.current_salary)}</p>
+                        </div>
+                        <div class="bg-purple-500/10 rounded-xl p-3 border border-purple-500/30">
+                            <p class="text-xs text-slate-400 mb-1">Total Saran AI</p>
+                            <p class="text-lg font-bold text-purple-300">${fmt(s.total_suggested)}</p>
+                        </div>
+                    </div>
+                    <table class="w-full text-sm">
+                        <thead><tr class="text-xs text-slate-500 border-b border-white/10">
+                            <th class="py-2 text-left">Komponen</th>
+                            <th class="py-2 text-right">Saran</th>
+                            <th class="py-2 text-left pl-3 hidden sm:table-cell">Basis</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-white/5">
+                            <tr>
+                                <td class="py-2 text-white">Gaji Pokok</td>
+                                <td class="py-2 text-right font-semibold text-white">${fmt(s.base_salary.suggested)}</td>
+                                <td class="py-2 pl-3 hidden sm:table-cell ${confColor[s.base_salary.confidence] ?? 'text-slate-400'} text-xs">${esc(s.base_salary.basis)}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-slate-300">Tunjangan Transport</td>
+                                <td class="py-2 text-right text-slate-300">${fmt(s.allowance_transport.suggested)}</td>
+                                <td class="py-2 pl-3 hidden sm:table-cell text-slate-500 text-xs">${esc(s.allowance_transport.basis)}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-slate-300">Tunjangan Makan</td>
+                                <td class="py-2 text-right text-slate-300">${fmt(s.allowance_meal.suggested)}</td>
+                                <td class="py-2 pl-3 hidden sm:table-cell text-slate-500 text-xs">${esc(s.allowance_meal.basis)}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-slate-300">Tunjangan Jabatan</td>
+                                <td class="py-2 text-right text-slate-300">${fmt(s.allowance_position.suggested)}</td>
+                                <td class="py-2 pl-3 hidden sm:table-cell text-slate-500 text-xs">${esc(s.allowance_position.basis)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button onclick="applySalary(${s.employee_id}, ${s.base_salary.suggested})"
+                            class="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-xl">
+                            Terapkan Gaji Pokok
+                        </button>
+                    </div>
+                </div>`;
+
+            document.getElementById('salary-modal-content').innerHTML = html;
+        } catch (e) {
+            document.getElementById('salary-modal-content').innerHTML =
+                '<p class="text-red-400 text-sm">Gagal memuat saran AI.</p>';
+        }
+    }
+
+    function applySalary(empId, salary) {
+        document.getElementById('modal-salary-suggest').classList.add('hidden');
+        // Pre-fill edit modal with suggested salary
+        document.getElementById('form-edit-emp').action = '/hrm/' + empId;
+        document.getElementById('ee-salary').value = salary;
+        document.getElementById('modal-edit-emp').classList.remove('hidden');
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
     </script>
     @endpush

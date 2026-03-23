@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
+use App\Services\AiMemoryService;
 
 class ChatSessionManager
 {
@@ -100,7 +101,45 @@ class ChatSessionManager
             }
         }
 
+        // Rekam pola aksi ke AI memory (Task 52)
+        if (!empty($functionCalls) && $session->user_id && $session->tenant_id) {
+            $this->recordActionsToMemory($session->tenant_id, $session->user_id, $functionCalls);
+        }
+
         return $message;
+    }
+
+    /**
+     * Rekam pola tool calls ke AI memory untuk pembelajaran preferensi.
+     */
+    private function recordActionsToMemory(int $tenantId, int $userId, array $functionCalls): void
+    {
+        try {
+            $memoryService = app(AiMemoryService::class);
+            foreach ($functionCalls as $call) {
+                $toolName = $call['tool'] ?? '';
+                $args     = $call['args'] ?? [];
+
+                // Rekam metode pembayaran
+                if (!empty($args['payment_method'])) {
+                    $memoryService->recordAction($tenantId, $userId, 'payment_method', ['value' => $args['payment_method']]);
+                }
+                // Rekam gudang default
+                if (!empty($args['warehouse_name'])) {
+                    $memoryService->recordAction($tenantId, $userId, 'warehouse', ['value' => $args['warehouse_name']]);
+                }
+                // Rekam customer yang sering digunakan
+                if (!empty($args['customer_name'])) {
+                    $memoryService->recordAction($tenantId, $userId, 'customer', ['value' => $args['customer_name']]);
+                }
+                // Rekam produk yang sering digunakan
+                if (!empty($args['product_name'])) {
+                    $memoryService->recordAction($tenantId, $userId, 'product', ['value' => $args['product_name']]);
+                }
+            }
+        } catch (\Throwable) {
+            // Jangan biarkan error memory mengganggu flow utama
+        }
     }
 
     public function getUserSessions(User $user, int $limit = 20): \Illuminate\Database\Eloquent\Collection

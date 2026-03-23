@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\CrmActivity;
 use App\Models\CrmLead;
 use Illuminate\Http\Request;
@@ -64,13 +65,15 @@ class CrmController extends Controller
             'notes'               => 'nullable|string',
         ]);
 
-        CrmLead::create([
+        $lead = CrmLead::create([
             'tenant_id'   => $this->tenantId(),
             'assigned_to' => auth()->id(),
             'stage'       => 'new',
             'probability' => 10,
             'last_contact_at' => now(),
         ] + $data);
+
+        ActivityLog::record('lead_created', "Lead baru: {$lead->name}" . ($lead->company ? " ({$lead->company})" : ''), $lead, [], $lead->toArray());
 
         return back()->with('success', "Lead {$data['name']} berhasil ditambahkan.");
     }
@@ -125,6 +128,7 @@ class CrmController extends Controller
     public function destroy(CrmLead $lead)
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
+        ActivityLog::record('lead_deleted', "Lead dihapus: {$lead->name}" . ($lead->company ? " ({$lead->company})" : ''), $lead, $lead->toArray());
         $lead->delete();
         return back()->with('success', 'Lead berhasil dihapus.');
     }

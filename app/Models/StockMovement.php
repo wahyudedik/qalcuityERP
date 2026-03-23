@@ -9,7 +9,8 @@ class StockMovement extends Model
 {
     protected $fillable = [
         'tenant_id', 'product_id', 'warehouse_id', 'to_warehouse_id', 'user_id',
-        'type', 'quantity', 'quantity_before', 'quantity_after', 'reference', 'notes',
+        'type', 'quantity', 'cost_price', 'cost_total',
+        'quantity_before', 'quantity_after', 'reference', 'notes',
     ];
 
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }

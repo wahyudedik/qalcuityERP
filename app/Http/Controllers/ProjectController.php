@@ -7,6 +7,8 @@ use App\Models\ProjectTask;
 use App\Models\ProjectExpense;
 use App\Models\Customer;
 use App\Models\User;
+use App\Models\ErpNotification;
+use App\Notifications\ProjectTaskAssignedNotification;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -112,12 +114,37 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        ProjectTask::create([
+        $task = ProjectTask::create([
             'project_id' => $project->id,
             'tenant_id'  => $this->tid(),
             'status'     => 'todo',
             'weight'     => $data['weight'] ?? 1,
         ] + $data);
+
+        // Notifikasi ke user yang di-assign (jika bukan diri sendiri)
+        if (!empty($data['assigned_to']) && $data['assigned_to'] !== auth()->id()) {
+            $assignee = User::find($data['assigned_to']);
+            if ($assignee) {
+                $task->load('project');
+
+                // In-app notification
+                ErpNotification::create([
+                    'tenant_id' => $this->tid(),
+                    'user_id'   => $assignee->id,
+                    'type'      => 'task_assigned',
+                    'title'     => '📋 Task Baru Ditugaskan',
+                    'body'      => "Anda mendapat task baru: \"{$task->name}\" di proyek {$project->name}.",
+                    'data'      => [
+                        'task_id'    => $task->id,
+                        'project_id' => $project->id,
+                        'due_date'   => $task->due_date?->toDateString(),
+                    ],
+                ]);
+
+                // Email notification
+                $assignee->notify(new ProjectTaskAssignedNotification($task));
+            }
+        }
 
         $project->recalculateProgress();
         return back()->with('success', 'Task berhasil ditambahkan.');

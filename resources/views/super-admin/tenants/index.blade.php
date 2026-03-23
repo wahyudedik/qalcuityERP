@@ -1,14 +1,15 @@
 <x-app-layout>
-    <x-slot name="title">Semua Tenant â€” Qalcuity ERP</x-slot>
+    <x-slot name="title">Semua Tenant — Qalcuity ERP</x-slot>
     <x-slot name="header">Panel Super Admin</x-slot>
 
-    {{-- Stats --}}
-    <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+    {{-- Stats (from DB, not paginated collection) --}}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         @php
         $statCards = [
-            ['label' => 'Total Tenant',  'value' => $tenants->total(),                              'color' => 'text-blue-400',  'bg' => 'bg-blue-500/10'],
-            ['label' => 'Aktif',         'value' => $tenants->where('is_active', true)->count(),    'color' => 'text-green-400', 'bg' => 'bg-green-500/10'],
-            ['label' => 'Nonaktif',      'value' => $tenants->where('is_active', false)->count(),   'color' => 'text-red-400',   'bg' => 'bg-red-500/10'],
+            ['label' => 'Total Tenant', 'value' => $stats['total'],    'color' => 'text-blue-400',  'bg' => 'bg-blue-500/10'],
+            ['label' => 'Aktif',        'value' => $stats['active'],   'color' => 'text-green-400', 'bg' => 'bg-green-500/10'],
+            ['label' => 'Nonaktif',     'value' => $stats['inactive'], 'color' => 'text-red-400',   'bg' => 'bg-red-500/10'],
+            ['label' => 'Trial',        'value' => $stats['trial'],    'color' => 'text-amber-400', 'bg' => 'bg-amber-500/10'],
         ];
         @endphp
         @foreach($statCards as $sc)
@@ -19,6 +20,29 @@
         @endforeach
     </div>
 
+    {{-- Search & Filter --}}
+    <form method="GET" action="{{ route('super-admin.tenants.index') }}" class="flex flex-wrap gap-3 mb-4">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, slug, email..."
+            class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select name="status" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Semua Status</option>
+            <option value="active"   @selected(request('status')==='active')>Aktif</option>
+            <option value="inactive" @selected(request('status')==='inactive')>Nonaktif</option>
+            <option value="expired"  @selected(request('status')==='expired')>Expired</option>
+        </select>
+        <select name="plan" class="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Semua Plan</option>
+            <option value="trial"      @selected(request('plan')==='trial')>Trial</option>
+            <option value="basic"      @selected(request('plan')==='basic')>Basic</option>
+            <option value="pro"        @selected(request('plan')==='pro')>Pro</option>
+            <option value="enterprise" @selected(request('plan')==='enterprise')>Enterprise</option>
+        </select>
+        <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">Filter</button>
+        @if(request()->hasAny(['search','status','plan']))
+        <a href="{{ route('super-admin.tenants.index') }}" class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-slate-300 text-sm font-medium transition">Reset</a>
+        @endif
+    </form>
+
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="overflow-x-auto">
         <table class="min-w-full">
@@ -27,7 +51,7 @@
                     <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Perusahaan</th>
                     <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Admin</th>
                     <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
-                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Trial</th>
+                    <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Expired</th>
                     <th class="px-4 sm:px-6 py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Users</th>
                     <th class="px-4 sm:px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                     <th class="px-4 sm:px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
@@ -35,19 +59,32 @@
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                 @forelse($tenants as $tenant)
+                @php
+                $expiryDate = $tenant->plan === 'trial' ? $tenant->trial_ends_at : $tenant->plan_expires_at;
+                $isExpiringSoon = $expiryDate && $expiryDate->isFuture() && $expiryDate->diffInDays(now()) <= 7;
+                @endphp
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
                     <td class="px-4 sm:px-6 py-4">
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $tenant->name }}</p>
                         <p class="text-xs text-gray-400 dark:text-slate-500">{{ $tenant->slug }}</p>
                     </td>
-                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-slate-400 hidden md:table-cell">{{ $tenant->admins->first()?->email ?? 'â€”' }}</td>
+                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-slate-400 hidden md:table-cell">{{ $tenant->admins->first()?->email ?? '—' }}</td>
                     <td class="px-4 sm:px-6 py-4">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
-                            {{ $tenant->plan === 'trial' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400' }}">
+                            {{ match($tenant->plan) { 'trial'=>'bg-amber-500/20 text-amber-400', 'pro'=>'bg-purple-500/20 text-purple-400', 'enterprise'=>'bg-green-500/20 text-green-400', default=>'bg-blue-500/20 text-blue-400' } }}">
                             {{ ucfirst($tenant->plan) }}
                         </span>
                     </td>
-                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-slate-400 hidden lg:table-cell">{{ $tenant->trial_ends_at?->format('d M Y') ?? 'â€”' }}</td>
+                    <td class="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                        @if($expiryDate)
+                        <span class="text-sm {{ $isExpiringSoon ? 'text-red-400 font-semibold' : 'text-gray-500 dark:text-slate-400' }}">
+                            {{ $expiryDate->format('d M Y') }}
+                            @if($isExpiringSoon)<span class="text-xs ml-1">({{ $expiryDate->diffForHumans() }})</span>@endif
+                        </span>
+                        @else
+                        <span class="text-sm text-gray-400 dark:text-slate-500">—</span>
+                        @endif
+                    </td>
                     <td class="px-4 sm:px-6 py-4 text-center hidden sm:table-cell">
                         <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $tenant->users_count }}</span>
                     </td>
@@ -87,7 +124,7 @@
                 @empty
                 <tr>
                     <td colspan="7" class="px-6 py-12 text-center">
-                        <p class="text-sm text-gray-400 dark:text-slate-500">Belum ada tenant terdaftar.</p>
+                        <p class="text-sm text-gray-400 dark:text-slate-500">Tidak ada tenant ditemukan.</p>
                     </td>
                 </tr>
                 @endforelse
@@ -99,6 +136,6 @@
             {{ $tenants->links() }}
         </div>
         @endif
-        </div>{{-- end overflow-x-auto --}}
+        </div>
     </div>
 </x-app-layout>

@@ -11,17 +11,35 @@
         <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{{ now()->translatedFormat('l, d F Y') }} · Platform Overview</p>
     </div>
 
+    {{-- Alert: Expiring in 7 days --}}
+    @if($expiringIn7->isNotEmpty())
+    <div class="mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-red-400">{{ $expiringIn7->count() }} tenant akan expired dalam 7 hari</p>
+                <p class="text-xs text-red-300/80 mt-0.5">
+                    {{ $expiringIn7->pluck('name')->join(', ') }}
+                </p>
+            </div>
+            <a href="{{ route('super-admin.tenants.index') }}?status=expired" class="text-xs text-red-400 hover:underline shrink-0">Lihat →</a>
+        </div>
+    </div>
+    @endif
+
     @php
     $activeCount = $activeTenants->count();
     $cards = [
-        ['label'=>'Total Tenant',   'value'=>$totalTenants,  'sub'=>'+' . $newThisMonth . ' bulan ini',                    'icon'=>'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'bg'=>'bg-blue-500/20',   'ic'=>'text-blue-400'],
+        ['label'=>'Total Tenant',   'value'=>$totalTenants,  'sub'=>'+' . $newThisMonth . ' bulan ini · +' . $newThisWeek . ' minggu ini', 'icon'=>'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'bg'=>'bg-blue-500/20',   'ic'=>'text-blue-400'],
         ['label'=>'Tenant Aktif',   'value'=>$activeCount,   'sub'=>$trialTenants . ' dalam masa trial',                   'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                                                                                                    'bg'=>'bg-green-500/20',  'ic'=>'text-green-400'],
         ['label'=>'Tenant Expired', 'value'=>$expiredTenants,'sub'=>'Perlu tindak lanjut',                                 'icon'=>'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',                                                                                                                                                                                'bg'=>$expiredTenants>0?'bg-red-500/20':'bg-gray-50 dark:bg-white/5', 'ic'=>$expiredTenants>0?'text-red-400':'text-gray-500 dark:text-slate-400'],
         ['label'=>'Total User',     'value'=>$totalUsers,    'sub'=>'AI: ' . number_format($aiThisMonth) . ' pesan bulan ini', 'icon'=>'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'bg'=>'bg-purple-500/20', 'ic'=>'text-purple-400'],
+        ['label'=>'Est. MRR',       'value'=>'Rp ' . number_format($mrrEstimate, 0, ',', '.'), 'sub'=>'Monthly Recurring Revenue', 'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'bg'=>'bg-emerald-500/20', 'ic'=>'text-emerald-400'],
+        ['label'=>'Expiring 30 Hari','value'=>$expiringIn30->count(), 'sub'=>$expiringIn7->count() . ' dalam 7 hari ke depan', 'icon'=>'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'bg'=>$expiringIn30->count()>0?'bg-amber-500/20':'bg-gray-50 dark:bg-white/5', 'ic'=>$expiringIn30->count()>0?'text-amber-400':'text-gray-500 dark:text-slate-400'],
     ];
     @endphp
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
         @foreach($cards as $card)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-start justify-between mb-4">
@@ -32,7 +50,7 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $card['value'] }}</p>
+            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ $card['value'] }}</p>
             <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">{{ $card['sub'] }}</p>
         </div>
         @endforeach
@@ -74,6 +92,40 @@
         </div>
     </div>
 
+    {{-- Expiring Soon List --}}
+    @if($expiringIn30->isNotEmpty())
+    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">Akan Expired dalam 30 Hari</p>
+            <span class="text-xs bg-amber-500/20 text-amber-400 font-medium px-2 py-0.5 rounded-full">{{ $expiringIn30->count() }} tenant</span>
+        </div>
+        <div class="divide-y divide-gray-100 dark:divide-white/5">
+            @foreach($expiringIn30 as $tenant)
+            @php
+            $expiryDate = $tenant->plan === 'trial' ? $tenant->trial_ends_at : $tenant->plan_expires_at;
+            $daysLeft = $expiryDate ? now()->diffInDays($expiryDate, false) : null;
+            $urgency = $daysLeft !== null && $daysLeft <= 7 ? 'text-red-400' : 'text-amber-400';
+            @endphp
+            <div class="flex items-center justify-between py-2.5">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        {{ strtoupper(substr($tenant->name, 0, 1)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $tenant->name }}</p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500">{{ $tenant->admins->first()?->email ?? $tenant->slug }}</p>
+                    </div>
+                </div>
+                <div class="text-right shrink-0 ml-3">
+                    <p class="text-xs font-semibold {{ $urgency }}">{{ $expiryDate?->format('d M Y') }}</p>
+                    <p class="text-xs text-gray-400 dark:text-slate-500">{{ $daysLeft !== null ? $daysLeft . ' hari lagi' : '—' }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-center justify-between mb-4">
@@ -90,7 +142,7 @@
                     'active'        => 'bg-green-500/20 text-green-400',
                     'trial'         => 'bg-amber-500/20 text-amber-400',
                     'trial_expired','expired' => 'bg-red-500/20 text-red-400',
-                    default         => 'bg-[#f8f8f8] dark:bg-white/10 text-gray-500 dark:text-slate-400',
+                    default         => 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-slate-400',
                 };
                 $statusLabel = match($tenant->subscriptionStatus()) {
                     'active'=>'Aktif','trial'=>'Trial','trial_expired'=>'Trial Expired','expired'=>'Expired',default=>'Nonaktif',
@@ -98,7 +150,7 @@
                 @endphp
                 <div class="flex items-center justify-between py-2.5">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-gray-900 dark:text-white text-xs font-bold shrink-0">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {{ strtoupper(substr($tenant->name, 0, 1)) }}
                         </div>
                         <div class="min-w-0">
@@ -128,7 +180,7 @@
                                 <span class="text-xs text-gray-400 dark:text-slate-500 shrink-0 ml-2">{{ number_format($log->total) }} pesan</span>
                             </div>
                             @php $maxAi=$log->tenant?->maxAiMessages()??100; $pct=$maxAi>0?min(100,round(($log->total/$maxAi)*100)):0; @endphp
-                            <div class="w-full bg-[#f8f8f8] dark:bg-white/10 rounded-full h-1.5">
+                            <div class="w-full bg-gray-100 dark:bg-white/10 rounded-full h-1.5">
                                 <div class="h-1.5 rounded-full {{ $pct>=90?'bg-red-500':($pct>=70?'bg-amber-500':'bg-blue-500') }}" style="width:{{ $pct }}%"></div>
                             </div>
                         </div>
@@ -166,9 +218,11 @@
 
     @push('scripts')
     <script>
+    // Adaptive chart colors based on current theme
+    const isDark = document.getElementById('html-root')?.classList.contains('dark');
     const tickFont  = { size: 10, family: 'Inter' };
-    const tickColor = '#94a3b8';
-    const gridColor = 'rgba(255,255,255,0.06)';
+    const tickColor = isDark ? '#94a3b8' : '#6b7280';
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
     @php
     $planChartData   = array_values($planDist);
@@ -176,7 +230,6 @@
     $planChartColors = array_map(fn($k) => $planColors[$k] ?? '#94a3b8', array_keys($planDist));
     @endphp
 
-    // Delay chart init until layout is fully painted — fixes mobile glitch
     requestAnimationFrame(() => setTimeout(() => {
 
         new Chart(document.getElementById('growthChart'), {

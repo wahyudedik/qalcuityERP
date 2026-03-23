@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AiUsageLog;
 use App\Models\ChatSession;
+use App\Services\AiMemoryService;
 use App\Services\ChatSessionManager;
 use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
@@ -19,6 +20,7 @@ class ChatController extends Controller
         protected GeminiService      $gemini,
         protected ChatSessionManager $sessionManager,
         protected GeminiWriteValidator $validator,
+        protected AiMemoryService    $memoryService,
     ) {}
 
     /**
@@ -426,6 +428,12 @@ class ChatController extends Controller
             . "(role: {$user->role}) from company \"{$tenant->name}\". "
             . "All data accessed via tools belongs exclusively to this company. "
             . "Never reference or assume data from other companies.]\n\n";
+
+        // Inject AI memory context (Task 52)
+        $memoryContext = $this->memoryService->buildMemoryContext($tenant->id, $user->id);
+        if ($memoryContext) {
+            $context .= $memoryContext . "\n\n";
+        }
 
         return $context . $message;
     }

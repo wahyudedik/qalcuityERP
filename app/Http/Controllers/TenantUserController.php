@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ErpNotification;
 use App\Models\User;
 use App\Notifications\NewUserAddedNotification;
+use App\Services\PermissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class TenantUserController extends Controller
 {
+    public function __construct(private PermissionService $permissions) {}
+
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
@@ -121,5 +124,51 @@ class TenantUserController extends Controller
 
         return redirect()->route('tenant.users.index')
             ->with('success', 'Pengguna dihapus.');
+    }
+
+    // ─── Granular Permissions ─────────────────────────────────────
+
+    public function permissions(User $user): View
+    {
+        abort_if($user->tenant_id !== $this->tenantId(), 403);
+        abort_if($user->isAdmin() || $user->isSuperAdmin(), 403, 'Admin memiliki akses penuh.');
+
+        $userPerms   = $this->permissions->getUserPermissions($user);
+        $modules     = PermissionService::MODULES;
+        $roleDefault = PermissionService::ROLE_DEFAULTS[$user->role] ?? [];
+
+        return view('tenant.users.permissions', compact('user', 'userPerms', 'modules', 'roleDefault'));
+    }
+
+    public function savePermissions(Request $request, User $user): RedirectResponse
+    {
+        abort_if($user->tenant_id !== $this->tenantId(), 403);
+        abort_if($user->isAdmin() || $user->isSuperAdmin(), 403);
+
+        // Build permission map from checkboxes
+        // Checkbox name format: perms[sales.view] = "1"
+        $submitted = $request->input('perms', []);
+        $allPerms  = [];
+
+        foreach (PermissionService::MODULES as $module => $actions) {
+            foreach ($actions as $action) {
+                $allPerms["{$module}.{$action}"] = isset($submitted["{$module}.{$action}"]);
+            }
+        }
+
+        $this->permissions->saveUserPermissions($user, $allPerms);
+
+        return redirect()->route('tenant.users.permissions', $user)
+            ->with('success', 'Izin akses berhasil disimpan.');
+    }
+
+    public function resetPermissions(User $user): RedirectResponse
+    {
+        abort_if($user->tenant_id !== $this->tenantId(), 403);
+
+        $this->permissions->resetUserPermissions($user);
+
+        return redirect()->route('tenant.users.permissions', $user)
+            ->with('success', 'Izin akses direset ke default role.');
     }
 }

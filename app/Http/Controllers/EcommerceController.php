@@ -29,14 +29,23 @@ class EcommerceController extends Controller
         $request->validate([
             'platform'   => 'required|in:shopee,tokopedia,lazada',
             'shop_name'  => 'required|string|max:100',
-            'api_key'    => 'required|string',
-            'api_secret' => 'required|string',
+            'api_key'    => 'required|string|max:500',
+            'api_secret' => 'required|string|max:500',
         ]);
 
         $tenantId = auth()->user()->tenant_id;
+
+        // updateOrCreate akan trigger mutator enkripsi otomatis
         EcommerceChannel::updateOrCreate(
             ['tenant_id' => $tenantId, 'platform' => $request->platform],
-            $request->only(['shop_name', 'shop_id', 'api_key', 'api_secret', 'is_active'])
+            [
+                'shop_name'    => $request->shop_name,
+                'shop_id'      => $request->shop_id,
+                'api_key'      => $request->api_key,
+                'api_secret'   => $request->api_secret,
+                'access_token' => $request->access_token,
+                'is_active'    => $request->boolean('is_active', true),
+            ]
         );
 
         ActivityLog::record('ecommerce_channel_saved', "Channel {$request->platform} disimpan");

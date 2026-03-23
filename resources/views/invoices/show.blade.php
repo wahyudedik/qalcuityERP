@@ -3,6 +3,27 @@
 
     <x-slot name="topbarActions">
         <div class="flex items-center gap-2">
+            {{-- Task 35: State machine actions --}}
+            @if($invoice->isDraft())
+            <form method="POST" action="{{ route('invoices.post', $invoice) }}">
+                @csrf
+                <button type="submit"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Posting
+                </button>
+            </form>
+            <button onclick="document.getElementById('modal-cancel-invoice').classList.remove('hidden')"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 text-sm font-medium hover:bg-red-200 dark:hover:bg-red-500/30 transition">
+                Batalkan
+            </button>
+            @elseif($invoice->isPosted() && $invoice->paid_amount == 0)
+            <button onclick="document.getElementById('modal-void-invoice').classList.remove('hidden')"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 text-sm font-medium hover:bg-orange-200 dark:hover:bg-orange-500/30 transition">
+                Void Invoice
+            </button>
+            @endif
+
             <a href="{{ route('invoices.pdf', $invoice) }}"
                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -47,6 +68,10 @@
                         };
                     @endphp
                     <span class="inline-flex px-3 py-1.5 rounded-full text-sm font-semibold {{ $statusColor }}">{{ $statusLabel }}</span>
+                    {{-- Task 35: Posting status badge --}}
+                    <span class="inline-flex px-3 py-1.5 rounded-full text-xs font-semibold {{ $invoice->postingStatusColor() }}">
+                        {{ $invoice->postingStatusLabel() }}
+                    </span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
@@ -168,6 +193,20 @@
 
             {{-- Record payment --}}
             @if($invoice->status !== 'paid')
+            {{-- AI: Late Payment Risk Widget --}}
+            @if($invoice->customer_id)
+            <div class="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-4" id="ai-payment-risk">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-5 h-5 rounded-md bg-indigo-500/20 flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs font-semibold text-gray-900 dark:text-white">Prediksi Pembayaran AI</p>
+                </div>
+                <div id="ai-risk-content" class="text-xs text-gray-400">Memuat analisis...</div>
+            </div>
+            @endif
             <div class="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-6">
                 <p class="font-semibold text-gray-900 dark:text-white text-sm mb-4">Catat Pembayaran</p>
                 <form method="POST" action="{{ route('invoices.payment', $invoice) }}" class="space-y-3">
@@ -181,7 +220,7 @@
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Metode</label>
-                        <select name="method" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="method" class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="cash">Cash</option>
                             <option value="transfer">Transfer Bank</option>
                             <option value="qris">QRIS</option>
@@ -223,4 +262,96 @@
             </a>
         </div>
     </div>
+
+    {{-- Task 35: Modal Cancel Invoice --}}
+    <div id="modal-cancel-invoice" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batalkan Invoice</h3>
+            <form method="POST" action="{{ route('invoices.cancel', $invoice) }}">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Alasan Pembatalan</label>
+                    <textarea name="reason" rows="3" required
+                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="Masukkan alasan pembatalan..."></textarea>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="document.getElementById('modal-cancel-invoice').classList.add('hidden')"
+                        class="px-4 py-2 rounded-xl text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10 transition">Batal</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">Batalkan Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Task 35: Modal Void Invoice --}}
+    <div id="modal-void-invoice" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Void Invoice</h3>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mb-4">Invoice yang di-void akan membuat jurnal pembalik otomatis. Tindakan ini tidak bisa dibatalkan.</p>
+            <form method="POST" action="{{ route('invoices.void', $invoice) }}">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Alasan Void</label>
+                    <textarea name="reason" rows="3" required
+                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Masukkan alasan void..."></textarea>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="document.getElementById('modal-void-invoice').classList.add('hidden')"
+                        class="px-4 py-2 rounded-xl text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10 transition">Batal</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium transition">Void Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if($invoice->status !== 'paid' && $invoice->customer_id)
+    @push('scripts')
+    <script>
+    (function() {
+        const RISK_URL   = '{{ route('sales.ai.late-payment-risk') }}?customer_id={{ $invoice->customer_id }}';
+        const container  = document.getElementById('ai-risk-content');
+        if (!container) return;
+
+        fetch(RISK_URL)
+            .then(r => r.json())
+            .then(data => {
+                const riskColors = {
+                    high:   { bg: 'bg-red-500/10 border-red-500/30',    text: 'text-red-400',    label: 'Risiko Tinggi',   bar: 'bg-red-500' },
+                    medium: { bg: 'bg-yellow-500/10 border-yellow-500/30', text: 'text-yellow-400', label: 'Risiko Sedang', bar: 'bg-yellow-500' },
+                    low:    { bg: 'bg-green-500/10 border-green-500/30',  text: 'text-green-400',  label: 'Risiko Rendah',  bar: 'bg-green-500' },
+                };
+                const c = riskColors[data.risk] || riskColors.low;
+
+                const tips = (data.tips || []).map(t => `<li class="flex gap-1"><span>•</span><span>${t}</span></li>`).join('');
+
+                container.innerHTML = `
+                    <div class="rounded-lg border ${c.bg} p-2.5 mb-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="${c.text} font-semibold">${c.label}</span>
+                            <span class="${c.text} font-bold">${data.probability}%</span>
+                        </div>
+                        <div class="w-full bg-white/10 rounded-full h-1.5 mb-1.5">
+                            <div class="${c.bar} h-1.5 rounded-full" style="width:${data.probability}%"></div>
+                        </div>
+                        <p class="text-gray-400 leading-snug">${data.reason}</p>
+                    </div>
+                    ${tips ? `<ul class="text-gray-400 space-y-0.5 leading-snug">${tips}</ul>` : ''}
+                `;
+
+                // Update border warna widget jika high risk
+                if (data.risk === 'high') {
+                    document.getElementById('ai-payment-risk')?.classList.add('border-red-500/30');
+                }
+            })
+            .catch(() => {
+                container.textContent = 'Tidak dapat memuat prediksi.';
+            });
+    })();
+    </script>
+    @endpush
+    @endif
 </x-app-layout>

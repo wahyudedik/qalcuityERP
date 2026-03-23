@@ -7,6 +7,18 @@ use App\Models\Tenant;
 use App\Services\AiInsightService;
 use Illuminate\Console\Command;
 
+/**
+ * Artisan command untuk generate AI insights secara manual via CLI.
+ *
+ * Untuk scheduled/otomatis, gunakan GenerateAiInsights job yang sudah
+ * terdaftar di routes/console.php (bukan command ini).
+ *
+ * Usage:
+ *   php artisan erp:generate-insights                    # semua tenant, daily, via queue
+ *   php artisan erp:generate-insights --sync             # sinkron, tanpa queue
+ *   php artisan erp:generate-insights --tenant=5         # tenant tertentu
+ *   php artisan erp:generate-insights --period=weekly    # periode mingguan
+ */
 class GenerateInsightsCommand extends Command
 {
     protected $signature = 'erp:generate-insights

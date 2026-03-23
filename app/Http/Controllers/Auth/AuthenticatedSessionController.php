@@ -26,7 +26,24 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // Cek apakah user memerlukan 2FA
+        $user = Auth::user();
+        if ($user->two_factor_enabled) {
+            // Simpan user ID di session, logout sementara
+            $remember = $request->boolean('remember');
+            Auth::logout();
+            $request->session()->put('2fa_user_id', $user->id);
+            $request->session()->put('2fa_remember', $remember);
+            return redirect()->route('two-factor.challenge');
+        }
+
         $request->session()->regenerate();
+
+        // Admin wajib 2FA — paksa setup sebelum bisa akses apapun
+        if ($user->isAdmin() && !$user->two_factor_enabled) {
+            return redirect()->route('two-factor.setup')
+                ->with('warning', 'Sebagai Admin, Anda wajib mengaktifkan Two-Factor Authentication sebelum melanjutkan.');
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

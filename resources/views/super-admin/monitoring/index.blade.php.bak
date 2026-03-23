@@ -1,0 +1,199 @@
+<x-app-layout>
+<x-slot name="title">Monitoring — Qalcuity ERP</x-slot>
+<x-slot name="header">Monitoring & Log</x-slot>
+
+@if(session('success'))
+<div class="mb-4 px-4 py-3 bg-green-500/20 border border-green-500/30 text-green-400 text-sm rounded-xl">{{ session('success') }}</div>
+@endif
+
+{{-- ═══════════════════════════
+     UNIVERSAL DETAIL MODAL (Alpine)
+═══════════════════════════════════════════════════════════ --}}
+<div x-data="detailModal()" x-cloak>
+
+{{-- Backdrop --}}
+<div x-show="open" x-transition.opacity
+     class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
+     @click="close()"></div>
+
+{{-- Modal --}}
+<div x-show="open" x-transition
+     class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl">
+
+        {{-- Header --}}
+        <div class="flex items-start justify-between gap-4 px-6 py-4border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 border"
+                      :class="badgeClass()">
+                    <span x-text="badgeLabel()"></span>
+                </span>
+        ncate" x-text="title()"></p>
+            </div>
+      
+fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+
+            {{id --}}
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <template x-for="m in metaFields()" :key="m.label">
+                    <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1" x-text="m.label"></p>
+                        <p class="text-xs font-medium break-all" :class="m.color || 'text-slate-200'" x-text="m.value || '—'"></p>
+                    </div>
+                </template>
+            </div>
+
+            {{-- ERROR: file path --}}
+            <template x-if="type==='error' && d.file">
+te/10 rounded-xl px-4 py-3">
+                    <p claate-500 uppercase tracking-wider mb-1">File</p>
+                    <p class="text-xs text-amber-300 font-mono break-all" x-text="d.file + ':' + d.line"></p>
+                </div>
+            </template>
+
+            {{-- ERROR / ACTIVITY: request info --}}
+            <template x-if="(type==='error' || type==='activity') && (d.url || d.ip_address)">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p -wider mb-1">Request</p>
+                    <template x-if="d.url">
+                        <p class="text-xs text-slate-200 font-mono break-all">
+                            <span class="text-blue-400 font-bold mr-2" x-text="d.method"></span>
+                            <span x-text="d.url"></span>
+                        </p>
+                    </template>
+                    <template x-if="d.ip || d.ip_address">
+                        <p class="text-[10px] text-slate-500 mt-1">IP: <span class="text-slate-400 font-mono" x-text="d.ip || d.ip_address"></span></p>
+                    </template>
+                    <template x-if="d.user_agent">
+                        <p class="text-[10px] text-slate-500 mt-0.5 break-all">UA: <span class="text-slate-400" x-text="d.user_agent"></span></p>
+               /template>
+                </div>
+            </template>
+
+            {{-- ACTIVITY: old/new values --}}
+            <template x-if="type==='activity' && (d.old_values || d.new_values)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <template x-if="d.old_values">
+                        <div class="bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3">
+                            <p class="text-[10px] text-red-400 uppercase tracking-wider mb-2">Nilai Lama</p>
+                            <pre class="text-[11px] text-slate-300 font-mono whitespace-pre-wrap break-all" x-text="JSON.stringify(d.old_values, null, 2)"></pre>
+                        </div>
+                    </template>
+                    <template x-if="d.new_values">
+                        <div class="bg-green-500/5 border border-green-500/20 rounded-xl px-4 py-3">
+                            <p class="text-[10px] text-green-400 uppercase tracking-wider mb-2">Nilai Baru</p>
+                            <pre class="text-[11px] text-slate-300 font-mono whitespace-pre-wrap break-all" x-text="JSON.stringify(d.new_values, null, 2)"></pre>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            {{-- AI USAGE: monthly breakdown --}}
+            <template x-if="type==='ai' && d.breakdown">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-ider mb-3">Riwayat Bulanan</p>
+                    <div class="space-y-2">
+                        <template x-for="b in d.breakdown" :key="b.month">
+                            <div class="flex items-center gap-3">
+                                <span class="text-[11px] text-slate-400 w-16 shrink-0" x-text="b.month"></span>
+                                <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                         width:'+b.pct+'%'"></div>
+                                </div>
+                                <span class="text-[11px] text-slate-300 w-20 text-right shrink-0" x-text="b.messages.toLocaleString()+' msg'"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            {{-- ANOMALY: description full --}}
+            <template x-if="type==='anomaly' && d.description">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Deskripsi</p>
+                    <p class="text-sm text-slate-200 leading-relaxed" x-text="d.description"></p>
+                </div>
+            </template>
+
+            {{-- ANOMALY: data payload --}}
+            <template x-if="type==='anomaly' && d.data">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Data</p>
+                    <pre class="text-[11px] text-slate-300 font-mono whitespace-pre-wrap break-all" x-text="JSON.stringify(d.data, null, 2)"></pre>
+                </div>
+            </template>
+
+            {{-- ERROR: context --}}
+            <template x-if="type==='error' && d.context">
+                <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wir mb-2">Context</p>
+                    <pre class="text-[11px] text-slate-300 font-mono whitespace-pre-wrap break-all" x-text="JSON.stringify(d.context, null, 2)"></pre>
+                </div>
+            </template>
+
+            {{-- ERROR: stack trace --}}
+            <template x-if="type==='error' && d.trace">
+                <div class="bg-black/40 border border-white/10 rounded-xl px-4 py-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="tx] text-slate-500 uppercase tracking-wider">Stack Trace</p>
+                        <button @click="copy(d.trace)"
+                                class="text-[10px] text-blue-400 hover:text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-lg transition"
+                                x-text="copied ? '✓ Tersalin' : 'Salin'"></button>
+                    </div>
+                    <pre class="text-[11px] text-slate-400 font-mono whitespace-pre-wrap break-all leading-relaxed" x-text="d.trace"></pre>
+                </div>
+            </template>
+
+        </div>
+
+        {{-- Footer --}}
+        <div class="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
+            <span class="text-[11px] text-slate-500" x-text="footerText()"></span>
+            <div class="flex gap-2">
+                {{-- Error: resolve action --}}
+                <template x-if="type==='error' && !d.is_resolved">
+                    <form :action="'/super-admin/monitor" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 text-xs bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30 rounded-xl transition">
+                            ✓ Tandai Resolved
+                        </button>
+                    </form>
+                </template>
+ transition">Tutup</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════════════════
+     TAB NAVIGATION
+═══════════════════════════════════════════════════════════ --}}
+<div class="flex gap-1 mb-6 bg-white/5 border border-white/10 rounded-2xl p-1 w-fit flex-wrap">
+    @foreach([
+        ['tab'=>'errors',   'label'=>-.77 1.333.192 3 1.732 3z'],
+        ['tab'=>'ai',       'label'=>'AI Usage',      'icon'=>'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2'],
+        ['tab'=>'activity', 'label'=>'Activity Log',  'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+        ['tab'=>'anomaly',  'label'=>'Anomali',       'icon'=>'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'],
+        ['tab'=>'health',   'label'=>'System Health', 'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+    ] as $t)
+    <a href="?tab={{ $t['tab'] }}"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition
+ $tab === $t['tab'] ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/10' }}">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $t['icon'] }}"/>
+        </svg>
+        {{ $t['label'] }}
+        @if($t['tab'] === 'errors' && $errorStats['unresolved'] > 0)
+            <span class="text-[10px] bg-red-500 text-white p{ $errorStats['unresolved'] }}</span>
+        @endif
+        @if($t['tab'] === 'anomaly' && $anomalyStats['critical'] > 0)
+            <span class="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">{{ $anomalyStats['critical'] }}</span>
+        @endif
+    </a>
+    @endforeach
+</div>

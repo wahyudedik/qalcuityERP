@@ -76,7 +76,17 @@ class DocumentGeneratorTools
 
         return [
             'type' => 'Surat Penawaran',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => [
+                'name'    => $tenant?->name ?? 'Perusahaan',
+                'address' => $tenant?->address ?? '',
+                'city'    => $tenant?->city ?? '',
+                'phone'   => $tenant?->phone ?? '',
+                'email'   => $tenant?->email ?? '',
+                'npwp'    => $tenant?->npwp ?? '',
+                'logo'    => $tenant?->logo ?? '',
+                'stamp'   => $tenant?->stamp_image ?? '',
+                'color'   => $tenant?->letter_head_color ?? '#1d4ed8',
+            ],
             'to'   => ['name' => $recipient, 'address' => ''],
             'date' => $date,
             'subject' => 'Penawaran Produk/Jasa',
@@ -84,6 +94,22 @@ class DocumentGeneratorTools
             'closing' => 'Hormat kami,',
             'signer'  => $tenant?->name ?? 'Pimpinan',
             'position'=> 'Direktur',
+        ];
+    }
+
+    private function tenantFrom($tenant): array
+    {
+        return [
+            'name'    => $tenant?->name ?? 'Perusahaan',
+            'address' => $tenant?->address ?? '',
+            'city'    => $tenant?->city ?? '',
+            'phone'   => $tenant?->phone ?? '',
+            'email'   => $tenant?->email ?? '',
+            'npwp'    => $tenant?->npwp ?? '',
+            'logo'    => $tenant?->logo ?? '',
+            'stamp'   => $tenant?->stamp_image ?? '',
+            'color'   => $tenant?->letter_head_color ?? '#1d4ed8',
+            'tagline' => $tenant?->tagline ?? '',
         ];
     }
 
@@ -97,7 +123,7 @@ class DocumentGeneratorTools
 
         return [
             'type' => 'Kontrak Kerja',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => $employeeName, 'address' => ''],
             'date' => $date,
             'subject' => "Perjanjian Kerja — {$posisi}",
@@ -115,7 +141,7 @@ class DocumentGeneratorTools
 
         return [
             'type' => 'PKWT (Perjanjian Kerja Waktu Tertentu)',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => $employeeName, 'address' => ''],
             'date' => $date,
             'subject' => "PKWT — {$employeeName}",
@@ -130,7 +156,7 @@ class DocumentGeneratorTools
     {
         return [
             'type' => 'Surat Peringatan',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => $employeeName, 'address' => ''],
             'date' => $date,
             'subject' => "Surat Peringatan — {$employeeName}",
@@ -148,7 +174,7 @@ class DocumentGeneratorTools
 
         return [
             'type' => 'Surat Keterangan Kerja',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => 'Yang Berkepentingan', 'address' => ''],
             'date' => $date,
             'subject' => "Surat Keterangan Kerja — {$employeeName}",
@@ -163,7 +189,7 @@ class DocumentGeneratorTools
     {
         return [
             'type' => 'Perjanjian Kerjasama',
-            'from' => ['name' => $tenant?->name ?? 'Perusahaan', 'address' => $tenant?->address ?? '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => $partnerName, 'address' => ''],
             'date' => $date,
             'subject' => "Perjanjian Kerjasama antara {$tenant?->name} dan {$partnerName}",
@@ -178,7 +204,7 @@ class DocumentGeneratorTools
     {
         return [
             'type' => 'Memo Internal',
-            'from' => ['name' => $tenant?->name ?? 'Manajemen', 'address' => '', 'city' => ''],
+            'from' => $this->tenantFrom($tenant),
             'to'   => ['name' => $to, 'address' => ''],
             'date' => $date,
             'subject' => 'Memo Internal',

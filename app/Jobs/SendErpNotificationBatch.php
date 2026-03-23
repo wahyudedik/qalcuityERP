@@ -26,9 +26,13 @@ class SendErpNotificationBatch implements ShouldQueue
     public function handle(NotificationService $service): void
     {
         match ($this->checkType) {
-            'low_stock'       => $service->checkLowStock($this->tenantId),
-            'missing_reports' => $service->checkMissingReports($this->tenantId, $this->reportType),
-            default           => $service->runChecksForTenant($this->tenantId),
+            'low_stock'             => $service->checkLowStock($this->tenantId),
+            'missing_reports'       => $service->checkMissingReports($this->tenantId, $this->reportType),
+            'invoice_overdue'       => $service->checkInvoiceOverdue($this->tenantId),
+            'asset_maintenance_due' => $service->checkAssetMaintenanceDue($this->tenantId),
+            'budget_exceeded'       => $service->checkBudgetExceeded($this->tenantId),
+            'product_expiry'        => $service->checkProductExpiry($this->tenantId),
+            default                 => $service->runChecksForTenant($this->tenantId),
         };
 
         Log::info("SendErpNotificationBatch: tenant={$this->tenantId} type={$this->checkType}");

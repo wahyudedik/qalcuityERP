@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'tenant_id', 'user_id', 'employee_id', 'name', 'email', 'phone',
         'position', 'department', 'join_date', 'resign_date', 'status',
@@ -25,6 +27,21 @@ class Employee extends Model
 
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function manager(): BelongsTo { return $this->belongsTo(Employee::class, 'manager_id'); }
+    public function subordinates(): HasMany { return $this->hasMany(Employee::class, 'manager_id'); }
     public function attendances(): HasMany { return $this->hasMany(Attendance::class); }
     public function reports(): HasMany { return $this->hasMany(EmployeeReport::class); }
+    public function leaveRequests(): HasMany { return $this->hasMany(LeaveRequest::class); }
+    public function performanceReviews(): HasMany { return $this->hasMany(PerformanceReview::class); }
+
+    /** Sisa cuti tahunan tahun ini */
+    public function remainingAnnualLeave(int $quota = 12): int
+    {
+        $used = $this->leaveRequests()
+            ->where('type', 'annual')
+            ->where('status', 'approved')
+            ->whereYear('start_date', now()->year)
+            ->sum('days');
+        return max(0, $quota - $used);
+    }
 }
