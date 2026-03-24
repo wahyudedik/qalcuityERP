@@ -484,6 +484,68 @@ class GlPostingService
         );
     }
 
+    // ─── Expense ──────────────────────────────────────────────────
+
+    /**
+     * Pengeluaran dicatat → Dr Beban / Cr Kas atau Bank
+     *
+     * Kode akun beban ditentukan dari:
+     * 1. expense_categories.coa_account_code (jika diset manual)
+     * 2. Default berdasarkan category.type
+     */
+    public function postExpense(
+        int    $tenantId,
+        int    $userId,
+        string $expenseNumber,
+        int    $expenseId,
+        float  $amount,
+        string $paymentMethod,   // cash, transfer, card, other
+        string $categoryType,    // operational, cogs, marketing, hr, admin, other
+        string $categoryName,
+        string $date = null,
+        ?string $coaAccountCode = null
+    ): ?JournalEntry {
+        $date ??= today()->toDateString();
+
+        // Resolve beban account code
+        $expenseCode = $coaAccountCode ?? $this->defaultExpenseCode($categoryType);
+
+        // Resolve kas/bank account
+        $cashCode = match($paymentMethod) {
+            'cash'  => '1101',
+            default => '1102', // transfer, card, other → Bank
+        };
+
+        return $this->createAndPost(
+            tenantId:    $tenantId,
+            userId:      $userId,
+            date:        $date,
+            description: "Auto: Pengeluaran {$expenseNumber} ({$categoryName})",
+            reference:   $expenseNumber,
+            refType:     'expense',
+            refId:       $expenseId,
+            lines: [
+                ['code' => $expenseCode, 'debit' => $amount, 'credit' => 0,      'desc' => "Beban {$categoryName} — {$expenseNumber}"],
+                ['code' => $cashCode,    'debit' => 0,        'credit' => $amount, 'desc' => "Bayar {$expenseNumber} via {$paymentMethod}"],
+            ]
+        );
+    }
+
+    /**
+     * Default COA code berdasarkan tipe kategori pengeluaran.
+     */
+    private function defaultExpenseCode(string $categoryType): string
+    {
+        return match($categoryType) {
+            'cogs'        => '5101', // HPP Barang
+            'marketing'   => '5205', // Beban Pemasaran
+            'hr'          => '5201', // Beban Gaji / SDM
+            'admin'       => '5206', // Beban Administrasi
+            'operational' => '5202', // Beban Sewa / Operasional
+            default       => '5208', // Beban Lain-lain
+        };
+    }
+
     // ─── Core Engine ──────────────────────────────────────────────
 
     /**

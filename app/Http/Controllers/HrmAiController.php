@@ -42,4 +42,33 @@ class HrmAiController extends Controller
 
         return response()->json(['suggestion' => $suggestion]);
     }
+
+    /**
+     * GET /hrm/ai/career-path/{employee}
+     * Prediksi jalur karir karyawan berdasarkan histori performance + tenure + departemen.
+     */
+    public function careerPath(Employee $employee)
+    {
+        abort_unless($employee->tenant_id === $this->tid(), 403);
+
+        $prediction = $this->ai->careerPathPrediction($this->tid(), $employee->id);
+
+        return response()->json($prediction);
+    }
+
+    /**
+     * GET /hrm/ai/turnover-risk
+     * Hitung skor risiko resign untuk semua karyawan aktif.
+     */
+    public function turnoverRisk()
+    {
+        $results = $this->ai->turnoverRiskScore($this->tid());
+
+        return response()->json([
+            'employees' => $results,
+            'total'     => count($results),
+            'critical'  => collect($results)->where('risk_level', 'critical')->count(),
+            'high'      => collect($results)->where('risk_level', 'high')->count(),
+        ]);
+    }
 }

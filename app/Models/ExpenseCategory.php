@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExpenseCategory extends Model
 {
-    protected $fillable = ['tenant_id', 'name', 'code', 'type', 'description', 'is_active'];
+    protected $fillable = ['tenant_id', 'name', 'code', 'type', 'coa_account_code', 'description', 'is_active'];
 
     protected function casts(): array
     {

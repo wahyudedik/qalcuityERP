@@ -24,4 +24,11 @@ class Transaction extends Model
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function category(): BelongsTo { return $this->belongsTo(ExpenseCategory::class, 'expense_category_id'); }
+
+    /** Jurnal GL yang di-auto-post untuk transaksi ini */
+    public function journalEntry(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(JournalEntry::class, 'reference', 'number')
+            ->where('reference_type', 'expense');
+    }
 }

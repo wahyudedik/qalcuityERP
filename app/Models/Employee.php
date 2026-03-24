@@ -33,6 +33,7 @@ class Employee extends Model
     public function reports(): HasMany { return $this->hasMany(EmployeeReport::class); }
     public function leaveRequests(): HasMany { return $this->hasMany(LeaveRequest::class); }
     public function performanceReviews(): HasMany { return $this->hasMany(PerformanceReview::class); }
+    public function salaryComponents(): HasMany { return $this->hasMany(EmployeeSalaryComponent::class); }
 
     /** Sisa cuti tahunan tahun ini */
     public function remainingAnnualLeave(int $quota = 12): int

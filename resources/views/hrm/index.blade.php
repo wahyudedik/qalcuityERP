@@ -54,6 +54,33 @@
         </div>
     </div>
 
+    {{-- AI Turnover Risk Panel --}}
+    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-4">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                </div>
+                <p class="font-semibold text-gray-900 dark:text-white text-sm">AI Turnover Risk Score</p>
+                <span class="text-xs text-gray-400 dark:text-slate-500">— deteksi dini risiko resign karyawan</span>
+            </div>
+            <button onclick="loadTurnoverRisk()" id="turnover-btn"
+                class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-1.5 disabled:opacity-50">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                Analisis Risiko
+            </button>
+        </div>
+        <div id="turnover-result" class="hidden">
+            <div id="turnover-loading" class="hidden py-6 text-center">
+                <div class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Menganalisis pola karyawan...
+                </div>
+            </div>
+            <div id="turnover-content"></div>
+        </div>
+    </div>
+
     {{-- Table --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="overflow-x-auto">
@@ -332,6 +359,120 @@
 
     function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── AI: Turnover Risk Score ───────────────────────────────────
+    async function loadTurnoverRisk() {
+        const btn = document.getElementById('turnover-btn');
+        btn.disabled = true;
+        document.getElementById('turnover-result').classList.remove('hidden');
+        document.getElementById('turnover-loading').classList.remove('hidden');
+        document.getElementById('turnover-content').innerHTML = '';
+
+        try {
+            const res  = await fetch('/hrm/ai/turnover-risk');
+            const data = await res.json();
+            document.getElementById('turnover-loading').classList.add('hidden');
+            document.getElementById('turnover-content').innerHTML = renderTurnoverRisk(data);
+        } catch(e) {
+            document.getElementById('turnover-loading').classList.add('hidden');
+            document.getElementById('turnover-content').innerHTML =
+                '<p class="text-sm text-red-500 dark:text-red-400">Gagal memuat analisis risiko. Coba lagi.</p>';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function renderTurnoverRisk(data) {
+        if (!data.employees || data.employees.length === 0) {
+            return '<p class="text-sm text-gray-400 dark:text-slate-500 py-4 text-center">Tidak ada sinyal risiko resign yang terdeteksi. Semua karyawan tampak stabil.</p>';
+        }
+
+        const levelCfg = {
+            critical: { bg: 'bg-red-50 dark:bg-red-500/10',    border: 'border-red-200 dark:border-red-500/30',    badge: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',    bar: 'bg-red-500',    label: 'Kritis' },
+            high:     { bg: 'bg-orange-50 dark:bg-orange-500/10', border: 'border-orange-200 dark:border-orange-500/30', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400', bar: 'bg-orange-500', label: 'Tinggi' },
+            medium:   { bg: 'bg-amber-50 dark:bg-amber-500/10',  border: 'border-amber-200 dark:border-amber-500/30',  badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',  bar: 'bg-amber-500',  label: 'Sedang' },
+            low:      { bg: 'bg-blue-50 dark:bg-blue-500/10',   border: 'border-blue-200 dark:border-blue-500/30',   badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',   bar: 'bg-blue-500',   label: 'Rendah' },
+        };
+
+        const signalIcon = {
+            performance:  '📉',
+            attendance:   '🗓️',
+            compensation: '💰',
+            tenure:       '⏱️',
+            burnout:      '🔥',
+            engagement:   '💤',
+        };
+
+        const prioColor = {
+            high:   'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+            medium: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+            low:    'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400',
+        };
+
+        // Summary bar
+        const summary = `
+        <div class="flex flex-wrap gap-3 mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+            <span class="text-xs text-gray-500 dark:text-slate-400 self-center">Terdeteksi ${data.total} karyawan berisiko:</span>
+            ${data.critical > 0 ? `<span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 font-semibold">${data.critical} Kritis</span>` : ''}
+            ${data.high > 0    ? `<span class="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 font-semibold">${data.high} Tinggi</span>` : ''}
+        </div>`;
+
+        const cards = data.employees.map(emp => {
+            const cfg = levelCfg[emp.risk_level] || levelCfg.medium;
+
+            const signals = emp.signals.map(s =>
+                `<div class="flex items-start gap-1.5 text-xs text-gray-600 dark:text-slate-300">
+                    <span class="shrink-0">${signalIcon[s.type] || '⚠️'}</span>
+                    <span>${esc(s.message)}</span>
+                </div>`
+            ).join('');
+
+            const recs = emp.recommendations.map(r =>
+                `<div class="flex items-start gap-2">
+                    <span class="text-xs px-1.5 py-0.5 rounded-full shrink-0 mt-0.5 ${prioColor[r.priority]}">${r.priority === 'high' ? 'Segera' : r.priority === 'medium' ? 'Disarankan' : 'Opsional'}</span>
+                    <p class="text-xs text-gray-600 dark:text-slate-300">${esc(r.action)}</p>
+                </div>`
+            ).join('');
+
+            return `
+            <div class="border ${cfg.border} ${cfg.bg} rounded-xl p-4 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="font-semibold text-gray-900 dark:text-white text-sm">${esc(emp.name)}</p>
+                            <span class="text-xs px-2 py-0.5 rounded-full ${cfg.badge} font-semibold">${cfg.label}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${esc(emp.position)} · ${esc(emp.department)} · ${esc(emp.tenure_label)}</p>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0">
+                        <span class="text-2xl font-black text-gray-900 dark:text-white">${emp.risk_score}</span>
+                        <span class="text-xs text-gray-400">/ 100</span>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-white/10 rounded-full h-1.5">
+                    <div class="${cfg.bar} h-1.5 rounded-full transition-all" style="width:${emp.risk_score}%"></div>
+                </div>
+                <details class="group">
+                    <summary class="text-xs text-gray-500 dark:text-slate-400 cursor-pointer hover:text-gray-700 dark:hover:text-slate-200 select-none flex items-center gap-1">
+                        <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        ${emp.signals.length} sinyal risiko · ${emp.recommendations.length} rekomendasi
+                    </summary>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-1.5">Sinyal Terdeteksi</p>
+                            <div class="space-y-1.5">${signals}</div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-1.5">Rekomendasi HRD</p>
+                            <div class="space-y-2">${recs}</div>
+                        </div>
+                    </div>
+                </details>
+            </div>`;
+        }).join('');
+
+        return `${summary}<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">${cards}</div>`;
     }
     </script>
     @endpush

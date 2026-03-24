@@ -57,6 +57,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left">Karyawan</th>
                             <th class="px-4 py-3 text-left hidden sm:table-cell">Jabatan</th>
+                            <th class="px-4 py-3 text-left hidden lg:table-cell">Shift</th>
                             <th class="px-4 py-3 text-center">Status</th>
                             <th class="px-4 py-3 text-left hidden md:table-cell">Catatan</th>
                         </tr>
@@ -69,6 +70,9 @@
                                 <p class="font-medium text-gray-900 dark:text-white">{{ $emp->name }}</p>
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell text-gray-500 dark:text-slate-400">{{ $emp->position ?? '-' }}</td>
+                            <td class="px-4 py-3 hidden lg:table-cell">
+                                <span class="shift-badge-{{ $emp->id }} text-xs text-gray-400 dark:text-slate-500">—</span>
+                            </td>
                             <td class="px-4 py-3">
                                 <select name="records[{{ $i }}][status]" class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     @foreach(['present'=>'Hadir','late'=>'Terlambat','leave'=>'Izin','sick'=>'Sakit','absent'=>'Absen'] as $val=>$lbl)
@@ -152,5 +156,23 @@
     function esc(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
+
+    // Load shift schedule for the current date
+    (async function loadShifts() {
+        try {
+            const date = '{{ $date->format("Y-m-d") }}';
+            const res  = await fetch(`/hrm/shifts/today?date=${date}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            for (const [empId, shift] of Object.entries(data.schedules ?? {})) {
+                const badge = document.querySelector(`.shift-badge-${empId}`);
+                if (badge) {
+                    badge.innerHTML = `<span class="inline-flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full inline-block" style="background:${esc(shift.shift_color)}"></span>
+                        ${esc(shift.shift_name)} <span class="text-slate-500">${esc(shift.shift_time)}</span>
+                    </span>`;
+                }
+            }
+        } catch (e) { /* shift data optional */ }
+    })();
     </script>
 </x-app-layout>

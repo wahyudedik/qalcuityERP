@@ -99,6 +99,11 @@ class DefaultCoaSeeder extends Seeder
             ['code' => '5206', 'name' => 'Beban Administrasi',          'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'parent_code' => '5200'],
             ['code' => '5207', 'name' => 'Beban Pajak',                 'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'parent_code' => '5200'],
             ['code' => '5208', 'name' => 'Beban Lain-lain',             'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'parent_code' => '5200'],
+            ['code' => '5209', 'name' => 'Beban BPJS Perusahaan',       'type' => 'expense',   'normal_balance' => 'debit',  'level' => 3, 'parent_code' => '5200'],
+
+            // ── Akun Payroll (Hutang Gaji & Kewajiban) ────────────────────
+            ['code' => '2108', 'name' => 'Hutang Gaji',                 'type' => 'liability', 'normal_balance' => 'credit', 'level' => 3, 'parent_code' => '2100'],
+            ['code' => '2109', 'name' => 'Hutang BPJS',                 'type' => 'liability', 'normal_balance' => 'credit', 'level' => 3, 'parent_code' => '2100'],
         ];
     }
 }

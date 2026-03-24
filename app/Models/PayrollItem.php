@@ -18,4 +18,5 @@ class PayrollItem extends Model
 
     public function employee() { return $this->belongsTo(Employee::class); }
     public function payrollRun() { return $this->belongsTo(PayrollRun::class); }
+    public function components() { return $this->hasMany(PayrollItemComponent::class); }
 }

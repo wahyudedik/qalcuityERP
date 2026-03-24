@@ -378,6 +378,74 @@ Route::middleware('auth')->group(function () {
         // HRM AI — contextual (AJAX)
         Route::get('/ai/attendance-anomalies', [\App\Http\Controllers\HrmAiController::class, 'attendanceAnomalies'])->name('ai.attendance-anomalies');
         Route::get('/ai/salary-suggest/{employee}', [\App\Http\Controllers\HrmAiController::class, 'salarySuggest'])->name('ai.salary-suggest');
+        Route::get('/ai/career-path/{employee}', [\App\Http\Controllers\HrmAiController::class, 'careerPath'])->name('ai.career-path');
+        Route::get('/ai/turnover-risk', [\App\Http\Controllers\HrmAiController::class, 'turnoverRisk'])->name('ai.turnover-risk');
+        // Rekrutmen & Onboarding
+        Route::prefix('recruitment')->name('recruitment.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\RecruitmentController::class, 'index'])->name('index');
+            Route::post('/postings', [\App\Http\Controllers\RecruitmentController::class, 'storePosting'])->name('posting.store');
+            Route::put('/postings/{posting}', [\App\Http\Controllers\RecruitmentController::class, 'updatePosting'])->name('posting.update');
+            Route::delete('/postings/{posting}', [\App\Http\Controllers\RecruitmentController::class, 'destroyPosting'])->name('posting.destroy');
+            Route::get('/postings/{posting}/applications', [\App\Http\Controllers\RecruitmentController::class, 'applications'])->name('applications');
+            Route::post('/postings/{posting}/applications', [\App\Http\Controllers\RecruitmentController::class, 'storeApplication'])->name('application.store');
+            Route::patch('/applications/{application}/stage', [\App\Http\Controllers\RecruitmentController::class, 'updateStage'])->name('application.stage');
+        });
+        Route::prefix('onboarding')->name('onboarding.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\RecruitmentController::class, 'onboarding'])->name('index');
+            Route::post('/start', [\App\Http\Controllers\RecruitmentController::class, 'startOnboarding'])->name('start');
+            Route::get('/{onboarding}', [\App\Http\Controllers\RecruitmentController::class, 'onboardingDetail'])->name('detail');
+            Route::patch('/tasks/{task}/toggle', [\App\Http\Controllers\RecruitmentController::class, 'toggleTask'])->name('task.toggle');
+        });
+        // Shift Management
+        Route::prefix('shifts')->name('shifts.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\ShiftController::class, 'index'])->name('index');
+            Route::post('/shifts', [\App\Http\Controllers\ShiftController::class, 'storeShift'])->name('shift.store');
+            Route::put('/shifts/{shift}', [\App\Http\Controllers\ShiftController::class, 'updateShift'])->name('shift.update');
+            Route::delete('/shifts/{shift}', [\App\Http\Controllers\ShiftController::class, 'destroyShift'])->name('shift.destroy');
+            Route::post('/assign', [\App\Http\Controllers\ShiftController::class, 'assignShift'])->name('assign');
+            Route::post('/copy-week', [\App\Http\Controllers\ShiftController::class, 'copyWeek'])->name('copy-week');
+            Route::get('/schedule-data', [\App\Http\Controllers\ShiftController::class, 'scheduleData'])->name('schedule-data');
+            Route::get('/today', [\App\Http\Controllers\ShiftController::class, 'todaySchedule'])->name('today');
+            Route::get('/conflicts', [\App\Http\Controllers\ShiftController::class, 'conflictDetect'])->name('conflicts');
+        });
+        // Overtime / Lembur
+        Route::prefix('overtime')->name('overtime.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\OvertimeController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\OvertimeController::class, 'store'])->name('store');
+            Route::patch('/{overtime}/approve', [\App\Http\Controllers\OvertimeController::class, 'approve'])->name('approve');
+            Route::patch('/{overtime}/reject', [\App\Http\Controllers\OvertimeController::class, 'reject'])->name('reject');
+            Route::delete('/{overtime}', [\App\Http\Controllers\OvertimeController::class, 'destroy'])->name('destroy');
+        });
+        // Pelatihan & Sertifikasi
+        Route::prefix('training')->name('training.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\TrainingController::class, 'index'])->name('index');
+            // Programs
+            Route::post('/programs', [\App\Http\Controllers\TrainingController::class, 'storeProgram'])->name('programs.store');
+            Route::put('/programs/{program}', [\App\Http\Controllers\TrainingController::class, 'updateProgram'])->name('programs.update');
+            Route::delete('/programs/{program}', [\App\Http\Controllers\TrainingController::class, 'destroyProgram'])->name('programs.destroy');
+            // Sessions
+            Route::post('/sessions', [\App\Http\Controllers\TrainingController::class, 'storeSession'])->name('sessions.store');
+            Route::get('/sessions/{session}', [\App\Http\Controllers\TrainingController::class, 'sessionDetail'])->name('sessions.detail');
+            Route::patch('/sessions/{session}/status', [\App\Http\Controllers\TrainingController::class, 'updateSessionStatus'])->name('sessions.status');
+            Route::delete('/sessions/{session}', [\App\Http\Controllers\TrainingController::class, 'destroySession'])->name('sessions.destroy');
+            // Participants
+            Route::post('/sessions/{session}/participants', [\App\Http\Controllers\TrainingController::class, 'addParticipant'])->name('sessions.participants.add');
+            Route::patch('/participants/{participant}', [\App\Http\Controllers\TrainingController::class, 'updateParticipant'])->name('participants.update');
+            Route::delete('/participants/{participant}', [\App\Http\Controllers\TrainingController::class, 'removeParticipant'])->name('participants.remove');
+            // Certifications
+            Route::post('/certifications', [\App\Http\Controllers\TrainingController::class, 'storeCertification'])->name('certifications.store');
+            Route::delete('/certifications/{certification}', [\App\Http\Controllers\TrainingController::class, 'destroyCertification'])->name('certifications.destroy');
+        });
+        // Surat Peringatan & Disiplin
+        Route::prefix('disciplinary')->name('disciplinary.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\DisciplinaryController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\DisciplinaryController::class, 'store'])->name('store');
+            Route::get('/{letter}', [\App\Http\Controllers\DisciplinaryController::class, 'show'])->name('show');
+            Route::patch('/{letter}/acknowledge', [\App\Http\Controllers\DisciplinaryController::class, 'acknowledge'])->name('acknowledge');
+            Route::patch('/{letter}/expire', [\App\Http\Controllers\DisciplinaryController::class, 'expire'])->name('expire');
+            Route::delete('/{letter}', [\App\Http\Controllers\DisciplinaryController::class, 'destroy'])->name('destroy');
+            Route::post('/ai-draft', [\App\Http\Controllers\DisciplinaryController::class, 'aiDraft'])->name('ai-draft');
+        });
     });
 
     // Purchasing (admin + manager only)
@@ -462,6 +530,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [PayrollController::class, 'index'])->name('index');
         Route::post('/process', [PayrollController::class, 'process'])->name('process');
         Route::patch('/{run}/paid', [PayrollController::class, 'markPaid'])->name('paid');
+        Route::post('/{run}/gl-journal', [PayrollController::class, 'createGlJournal'])->name('gl-journal');
+
+        // Komponen Gaji
+        Route::prefix('components')->name('components.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\SalaryComponentController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\SalaryComponentController::class, 'store'])->name('store');
+            Route::put('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'update'])->name('update');
+            Route::delete('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'destroy'])->name('destroy');
+            // Per karyawan
+            Route::get('/employee/{employee}/json', [\App\Http\Controllers\SalaryComponentController::class, 'employeeComponentsJson'])->name('employee.json');
+            Route::post('/employee/{employee}/save', [\App\Http\Controllers\SalaryComponentController::class, 'saveEmployeeComponents'])->name('employee.save');
+        });
+    });
+
+    // Slip Gaji Self-Service (semua role tenant)
+    Route::prefix('payroll/slip')->name('payroll.slip.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PayslipController::class, 'index'])->name('index');
+        Route::get('/{item}', [\App\Http\Controllers\PayslipController::class, 'show'])->name('show');
+    });
+
+    // Self-Service Karyawan: Cuti & Absensi (semua role tenant)
+    Route::prefix('self-service')->name('self-service.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'profile'])->name('profile');
+        Route::post('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveIndex'])->name('leave.index');
+        Route::post('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveStore'])->name('leave.store');
+        Route::delete('/leave/{leave}', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveCancel'])->name('leave.cancel');
+        Route::get('/attendance', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'attendanceIndex'])->name('attendance.index');
+        Route::post('/attendance/clock-in', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockIn'])->name('attendance.clock-in');
+        Route::post('/attendance/clock-out', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockOut'])->name('attendance.clock-out');
     });
 
     // Assets

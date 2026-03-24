@@ -36,6 +36,14 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+                        Kode Akun GL
+                        <span class="text-gray-400 font-normal">(opsional — override akun beban di jurnal)</span>
+                    </label>
+                    <input type="text" name="coa_account_code" value="{{ old('coa_account_code') }}" placeholder="cth: 5206 (kosong = otomatis)"
+                        class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                </div>
+                <div>
                     <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Deskripsi</label>
                     <input type="text" name="description" value="{{ old('description') }}" placeholder="Opsional"
                         class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -68,6 +76,11 @@
                                 </div>
                                 <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                                     {{ ucfirst($cat->type) }} &bull; {{ $cat->expense_count }} transaksi
+                                    @if($cat->coa_account_code)
+                                    &bull; <span class="font-mono text-blue-500 dark:text-blue-400">GL: {{ $cat->coa_account_code }}</span>
+                                    @else
+                                    &bull; <span class="text-gray-400">GL: otomatis</span>
+                                    @endif
                                     @if($cat->description) &bull; {{ $cat->description }} @endif
                                 </p>
                             </div>
@@ -76,6 +89,7 @@
                                 <input type="hidden" name="name" value="{{ $cat->name }}">
                                 <input type="hidden" name="code" value="{{ $cat->code }}">
                                 <input type="hidden" name="type" value="{{ $cat->type }}">
+                                <input type="hidden" name="coa_account_code" value="{{ $cat->coa_account_code }}">
                                 <input type="hidden" name="description" value="{{ $cat->description }}">
                                 <input type="hidden" name="is_active" value="{{ $cat->is_active ? '0' : '1' }}">
                                 <button type="submit"

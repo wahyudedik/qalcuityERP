@@ -126,6 +126,7 @@
                                         <th class="px-4 py-3 text-left">Keterangan</th>
                                         <th class="px-4 py-3 text-right">Jumlah</th>
                                         <th class="px-4 py-3 text-left">Metode</th>
+                                        <th class="px-4 py-3 text-left">GL</th>
                                         <th class="px-4 py-3"></th>
                                     </tr>
                                 </thead>
@@ -151,6 +152,16 @@
                                                 Rp {{ number_format($exp->amount, 0, ',', '.') }}
                                             </td>
                                             <td class="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 capitalize">{{ $exp->payment_method }}</td>
+                                            <td class="px-4 py-3">
+                                                @if($exp->journalEntry)
+                                                    <span title="Jurnal: {{ $exp->journalEntry->number }}"
+                                                        class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">
+                                                        ✓ GL
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs text-gray-400 dark:text-slate-600">—</span>
+                                                @endif
+                                            </td>
                                             <td class="px-4 py-3">
                                                 <form method="POST" action="{{ route('expenses.destroy', $exp) }}"
                                                     onsubmit="return confirm('Hapus pengeluaran ini?')">

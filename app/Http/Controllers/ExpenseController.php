@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\ExpenseCategory;
 use App\Models\Transaction;
+use App\Services\GlPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -37,7 +38,7 @@ class ExpenseController extends Controller
                 ->orWhere('number', 'like', "%$s%"));
         }
 
-        $expenses   = $query->latest('date')->paginate(20)->withQueryString();
+        $expenses   = $query->with('journalEntry')->latest('date')->paginate(20)->withQueryString();
         $categories = ExpenseCategory::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
 
         // Stats
@@ -118,6 +119,20 @@ class ExpenseController extends Controller
             "Pengeluaran dicatat: {$number} - {$category->name} Rp " . number_format($data['amount'], 0, ',', '.'),
             $expense);
 
+        // ── GL Auto-Posting ───────────────────────────────────────
+        app(GlPostingService::class)->postExpense(
+            tenantId:       $tid,
+            userId:         auth()->id(),
+            expenseNumber:  $number,
+            expenseId:      $expense->id,
+            amount:         (float) $data['amount'],
+            paymentMethod:  $data['payment_method'],
+            categoryType:   $category->type,
+            categoryName:   $category->name,
+            date:           $data['date'],
+            coaAccountCode: $category->coa_account_code ?: null,
+        );
+
         return back()->with('success', "Pengeluaran {$number} berhasil dicatat.");
     }
 
@@ -151,10 +166,11 @@ class ExpenseController extends Controller
     public function storeCategory(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'code'        => 'required|string|max:20',
-            'type'        => 'required|in:operational,cogs,marketing,hr,admin,other',
-            'description' => 'nullable|string|max:255',
+            'name'             => 'required|string|max:100',
+            'code'             => 'required|string|max:20',
+            'type'             => 'required|in:operational,cogs,marketing,hr,admin,other',
+            'coa_account_code' => 'nullable|string|max:20',
+            'description'      => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tid();
@@ -173,11 +189,12 @@ class ExpenseController extends Controller
         abort_if($category->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'code'        => 'required|string|max:20',
-            'type'        => 'required|in:operational,cogs,marketing,hr,admin,other',
-            'description' => 'nullable|string|max:255',
-            'is_active'   => 'boolean',
+            'name'             => 'required|string|max:100',
+            'code'             => 'required|string|max:20',
+            'type'             => 'required|in:operational,cogs,marketing,hr,admin,other',
+            'coa_account_code' => 'nullable|string|max:20',
+            'description'      => 'nullable|string|max:255',
+            'is_active'        => 'boolean',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');

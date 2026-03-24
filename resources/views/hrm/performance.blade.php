@@ -29,6 +29,45 @@
         </form>
     </div>
 
+    {{-- AI Career Path Panel --}}
+    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-4">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <p class="font-semibold text-gray-900 dark:text-white text-sm">AI Career Path Prediction</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <select id="career-emp-select" class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <option value="">Pilih karyawan...</option>
+                    @foreach($employees as $emp)
+                    <option value="{{ $emp->id }}">{{ $emp->name }} — {{ $emp->position ?? '-' }}</option>
+                    @endforeach
+                </select>
+                <button onclick="loadCareerPath()" id="career-btn"
+                    class="px-3 py-1.5 text-sm bg-violet-600 text-white rounded-xl hover:bg-violet-700 flex items-center gap-1.5 disabled:opacity-50">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    Analisis
+                </button>
+            </div>
+        </div>
+
+        {{-- Result area --}}
+        <div id="career-result" class="hidden">
+            {{-- Loading --}}
+            <div id="career-loading" class="hidden py-6 text-center">
+                <div class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Menganalisis data kinerja...
+                </div>
+            </div>
+
+            {{-- Content --}}
+            <div id="career-content"></div>
+        </div>
+    </div>
+
     {{-- Table --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="overflow-x-auto">
@@ -225,6 +264,140 @@
     <script>
     // Detail modal placeholder — bisa dikembangkan
     function openDetail(id) { /* future: show detail panel */ }
+
+    // ── AI Career Path ──────────────────────────────────────────
+    async function loadCareerPath() {
+        const empId = document.getElementById('career-emp-select').value;
+        if (!empId) { alert('Pilih karyawan terlebih dahulu.'); return; }
+
+        const btn = document.getElementById('career-btn');
+        btn.disabled = true;
+        document.getElementById('career-result').classList.remove('hidden');
+        document.getElementById('career-loading').classList.remove('hidden');
+        document.getElementById('career-content').innerHTML = '';
+
+        try {
+            const res  = await fetch(`/hrm/ai/career-path/${empId}`);
+            const data = await res.json();
+            document.getElementById('career-loading').classList.add('hidden');
+            document.getElementById('career-content').innerHTML = renderCareerPath(data);
+        } catch(e) {
+            document.getElementById('career-loading').classList.add('hidden');
+            document.getElementById('career-content').innerHTML = `<p class="text-sm text-red-500 dark:text-red-400">Gagal memuat prediksi. Coba lagi.</p>`;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function renderCareerPath(d) {
+        const colorMap = {
+            green:  { bg: 'bg-green-100 dark:bg-green-500/20', text: 'text-green-700 dark:text-green-400', ring: 'ring-green-500', bar: 'bg-green-500' },
+            blue:   { bg: 'bg-blue-100 dark:bg-blue-500/20',   text: 'text-blue-700 dark:text-blue-400',   ring: 'ring-blue-500',  bar: 'bg-blue-500' },
+            amber:  { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400', ring: 'ring-amber-500', bar: 'bg-amber-500' },
+            orange: { bg: 'bg-orange-100 dark:bg-orange-500/20',text:'text-orange-700 dark:text-orange-400',ring:'ring-orange-500',bar:'bg-orange-500' },
+            red:    { bg: 'bg-red-100 dark:bg-red-500/20',     text: 'text-red-700 dark:text-red-400',     ring: 'ring-red-500',   bar: 'bg-red-500' },
+        };
+        const c = colorMap[d.readiness_color] || colorMap.blue;
+        const trendIcon = d.trend === 'improving' ? '↑' : d.trend === 'declining' ? '↓' : '→';
+        const trendColor = d.trend === 'improving' ? 'text-green-500' : d.trend === 'declining' ? 'text-red-500' : 'text-gray-400';
+
+        // Data quality warning
+        const dqWarn = d.data_quality !== 'good'
+            ? `<div class="mb-4 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl text-xs text-amber-700 dark:text-amber-400">
+                ⚠ Data ${d.data_quality === 'insufficient' ? 'tidak mencukupi' : 'terbatas'} (${d.review_count} review). Prediksi mungkin kurang akurat — tambahkan lebih banyak data penilaian kinerja.
+               </div>` : '';
+
+        // Readiness gauge
+        const gauge = `
+        <div class="flex flex-col sm:flex-row gap-5 mb-5">
+            <div class="flex flex-col items-center justify-center ${c.bg} rounded-2xl p-5 min-w-[140px]">
+                <div class="relative w-24 h-24 mb-2">
+                    <svg class="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="2.5" class="text-gray-200 dark:text-white/10"/>
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-dasharray="${d.readiness_score} ${100 - d.readiness_score}"
+                            stroke-linecap="round"
+                            class="${c.text}"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-2xl font-black ${c.text}">${d.readiness_score}</span>
+                        <span class="text-xs ${c.text} opacity-70">/ 100</span>
+                    </div>
+                </div>
+                <span class="text-sm font-bold ${c.text}">${d.readiness_label}</span>
+            </div>
+            <div class="flex-1 space-y-3">
+                <div>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Karyawan</p>
+                    <p class="font-semibold text-gray-900 dark:text-white">${d.employee.name}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">${d.employee.position} · ${d.employee.department} · ${d.employee.tenure_label}</p>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                        <p class="text-xs text-gray-400 dark:text-slate-500">Rata-rata Skor</p>
+                        <p class="text-lg font-bold text-gray-900 dark:text-white">${d.avg_score !== null ? parseFloat(d.avg_score).toFixed(1) : '—'}<span class="text-xs text-gray-400">/5</span></p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                        <p class="text-xs text-gray-400 dark:text-slate-500">Tren Kinerja</p>
+                        <p class="text-lg font-bold ${trendColor}">${trendIcon} ${d.trend_label}</p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                        <p class="text-xs text-gray-400 dark:text-slate-500">Estimasi Promosi</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white leading-tight">${d.promotion_eta}</p>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        // Suggested roles
+        const fitColor = { high: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400', medium: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400', low: 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' };
+        const roles = d.suggested_roles.map(r => `
+            <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl">
+                <svg class="w-4 h-4 text-violet-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">${r.title}</p>
+                        <span class="text-xs px-1.5 py-0.5 rounded-full ${fitColor[r.fit] || fitColor.medium}">${r.fit === 'high' ? 'Cocok' : r.fit === 'medium' ? 'Potensial' : 'Jangka Panjang'}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">${r.note}</p>
+                </div>
+            </div>`).join('');
+
+        // Factors
+        const posFactors = d.factors.positive.map(f => `<li class="flex items-start gap-1.5 text-xs text-gray-700 dark:text-slate-300"><span class="text-green-500 shrink-0 mt-0.5">✓</span>${f}</li>`).join('');
+        const negFactors = d.factors.negative.map(f => `<li class="flex items-start gap-1.5 text-xs text-gray-700 dark:text-slate-300"><span class="text-red-500 shrink-0 mt-0.5">✗</span>${f}</li>`).join('');
+
+        // Action plan
+        const prioColor = { high: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400', medium: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400', low: 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' };
+        const prioLabel = { high: 'Prioritas', medium: 'Disarankan', low: 'Opsional' };
+        const actions = d.action_plan.map(a => `
+            <div class="flex items-start gap-2.5">
+                <span class="text-xs px-1.5 py-0.5 rounded-full shrink-0 mt-0.5 ${prioColor[a.priority]}">${prioLabel[a.priority]}</span>
+                <p class="text-xs text-gray-700 dark:text-slate-300">${a.action}</p>
+            </div>`).join('');
+
+        return `
+        ${dqWarn}
+        ${gauge}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-2">Jalur Karir yang Disarankan</p>
+                ${roles}
+            </div>
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-2">Faktor Penilaian</p>
+                <div class="space-y-3">
+                    ${posFactors ? `<ul class="space-y-1.5">${posFactors}</ul>` : ''}
+                    ${negFactors ? `<ul class="space-y-1.5 mt-2">${negFactors}</ul>` : ''}
+                    ${!posFactors && !negFactors ? '<p class="text-xs text-gray-400 dark:text-slate-500">Tidak cukup data untuk analisis faktor.</p>' : ''}
+                </div>
+            </div>
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-2">Rencana Tindak Lanjut</p>
+                <div class="space-y-2">${actions}</div>
+            </div>
+        </div>`;
+    }
     </script>
     @endpush
 </x-app-layout>
