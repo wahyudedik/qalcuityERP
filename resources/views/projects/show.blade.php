@@ -1,18 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('projects.index') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            </a>
-            <span>{{ $project->name }}</span>
-            @php $statusColors=['planning'=>'gray','active'=>'blue','on_hold'=>'amber','completed'=>'green','cancelled'=>'red'];
-                 $statusLabels=['planning'=>'Perencanaan','active'=>'Aktif','on_hold'=>'Ditunda','completed'=>'Selesai','cancelled'=>'Dibatalkan'];
-                 $c=$statusColors[$project->status]??'gray'; @endphp
-            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 dark:bg-{{ $c }}-500/20 dark:text-{{ $c }}-400">
-                {{ $statusLabels[$project->status] ?? $project->status }}
-            </span>
-        </div>
-    </x-slot>
+    <x-slot name="header">{{ $project->name }}</x-slot>
 
     @if(session('success'))
     <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">{{ session('success') }}</div>

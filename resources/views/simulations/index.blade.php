@@ -1,12 +1,10 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Simulasi Bisnis (What If)</h2>
-            <a href="{{ route('simulations.create') }}"
-               class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">
-                + Simulasi Baru
-            </a>
-        </div>
+    <x-slot name="header">Simulasi Bisnis (What If)</x-slot>
+    <x-slot name="topbarActions">
+        <a href="{{ route('simulations.create') }}"
+           class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 text-sm font-medium transition">
+            + Simulasi Baru
+        </a>
     </x-slot>
 
     <div class="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

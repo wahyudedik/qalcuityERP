@@ -18,519 +18,366 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
     <script>
-        // Apply theme before render to avoid flash
         if (localStorage.getItem('theme') === 'light') {
             document.getElementById('html-root')?.classList.remove('dark');
         }
     </script>
+    <style>
+        /* ═══════════════════════════════════════════════
+           QALCUITY SIDEBAR — Orbital Design System
+           Rail: 56px | Panel: 240px | Frosted glass
+        ═══════════════════════════════════════════════ */
+
+        /* Rail */
+        #sidebar-rail {
+            width: 56px;
+            background: linear-gradient(180deg, #080f1e 0%, #0a1628 60%, #080f1e 100%);
+            border-right: 1px solid rgba(255,255,255,0.04);
+        }
+
+        /* Panel */
+        #sidebar-panel {
+            width: 240px;
+            transform: translateX(-244px);
+            transition: transform 0.26s cubic-bezier(.16,1,.3,1), opacity 0.2s;
+            opacity: 0;
+            pointer-events: none;
+            background: rgba(10,18,38,0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 4px 0 32px rgba(0,0,0,0.5);
+        }
+        #sidebar-panel.panel-open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Rail button */
+        .rail-btn {
+            position: relative;
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: none; background: transparent;
+            transition: all 0.18s cubic-bezier(.4,0,.2,1);
+            color: #475569;
+        }
+        .rail-btn:hover { color: #e2e8f0; transform: scale(1.08); }
+        .rail-btn.rail-active {
+            color: var(--group-color, #60a5fa);
+            background: rgba(var(--group-rgb, 96,165,250), 0.12);
+        }
+
+        /* Glow dot indicator */
+        .rail-btn::before {
+            content: '';
+            position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 0; border-radius: 0 3px 3px 0;
+            background: var(--group-color, #60a5fa);
+            transition: height 0.2s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 0 8px var(--group-color, #60a5fa);
+        }
+        .rail-btn.rail-active::before { height: 20px; }
+
+        /* Tooltip */
+        .rail-btn .rail-tip {
+            position: absolute; left: 52px; top: 50%; transform: translateY(-50%);
+            background: #1e293b; color: #f1f5f9; font-size: 11px; font-weight: 600;
+            padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+            pointer-events: none; opacity: 0; transition: opacity 0.15s, left 0.15s;
+            border: 1px solid rgba(255,255,255,0.08); z-index: 200;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        .rail-btn:hover .rail-tip { opacity: 1; left: 56px; }
+
+        /* Badge on rail icon */
+        .rail-badge {
+            position: absolute; top: 4px; right: 4px;
+            min-width: 14px; height: 14px; border-radius: 7px;
+            background: #ef4444; color: #fff; font-size: 9px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px; border: 1.5px solid #080f1e;
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+        }
+
+        /* Panel header accent line */
+        #panel-accent {
+            height: 2px;
+            background: var(--group-color, #60a5fa);
+            box-shadow: 0 0 12px var(--group-color, #60a5fa);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        /* Panel search */
+        #panel-search {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #e2e8f0; font-size: 12px;
+            padding: 7px 12px 7px 32px;
+            width: 100%; outline: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        #panel-search:focus {
+            border-color: rgba(var(--group-rgb, 96,165,250), 0.4);
+            background: rgba(255,255,255,0.07);
+        }
+        #panel-search::placeholder { color: #475569; }
+
+        /* Panel nav link */
+        .panel-link {
+            display: flex; align-items: center; gap: 9px;
+            padding: 6px 12px; border-radius: 9px; font-size: 12.5px; font-weight: 500;
+            color: #64748b; transition: all 0.15s; cursor: pointer;
+            text-decoration: none; position: relative; margin: 1px 0;
+        }
+        .panel-link:hover {
+            background: rgba(255,255,255,0.06);
+            color: #cbd5e1;
+            padding-left: 16px;
+        }
+        .panel-link.active {
+            background: rgba(var(--group-rgb, 96,165,250), 0.12);
+            color: var(--group-color, #60a5fa);
+            font-weight: 600;
+        }
+        .panel-link.active::before {
+            content: '';
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 2px; height: 14px; border-radius: 0 2px 2px 0;
+            background: var(--group-color, #60a5fa);
+        }
+
+        /* Panel section label */
+        .panel-section {
+            font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #334155;
+            padding: 12px 12px 3px; margin-top: 4px;
+        }
+
+        /* Badge */
+        .panel-link .badge {
+            margin-left: auto; font-size: 10px; font-weight: 700;
+            padding: 1px 6px; border-radius: 20px;
+            background: rgba(245,158,11,0.15); color: #fbbf24;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+        .panel-link .badge.badge-red {
+            background: rgba(239,68,68,0.15); color: #f87171;
+            border-color: rgba(239,68,68,0.2);
+        }
+
+        /* Scrollbar */
+        .scrollbar-thin::-webkit-scrollbar { width: 3px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+        /* Logo glow */
+        #rail-logo:hover { filter: drop-shadow(0 0 8px rgba(96,165,250,0.6)); }
+
+        /* Mobile responsiveness */
+        @media (max-width: 1023px) {
+            #sidebar-rail {
+                width: 100vw !important;
+                flex-direction: row !important;
+                height: auto !important;
+                bottom: 0 !important;
+                top: auto !important;
+                padding: 8px 12px !important;
+                gap: 0 !important;
+                justify-content: space-around !important;
+                border-right: none !important;
+                border-top: 1px solid rgba(255,255,255,0.06) !important;
+                transform: translateY(100%) !important;
+            }
+            #sidebar-rail.mobile-open {
+                transform: translateY(0) !important;
+            }
+            #sidebar-panel {
+                left: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                top: 0 !important;
+                bottom: 0 !important;
+            }
+            #main-wrap { padding-left: 0 !important; transition: none !important; }
+            #panel-backdrop { display: none !important; }
+            .rail-btn .rail-tip { display: none !important; }
+            .rail-btn::before { display: none !important; }
+        }
+
+        /* Light mode overrides */
+        html:not(.dark) #sidebar-rail {
+            background: linear-gradient(180deg, #1e293b 0%, #1a2744 100%);
+        }
+        html:not(.dark) #sidebar-panel {
+            background: rgba(248,250,252,0.98);
+            border-color: #e2e8f0;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+        }
+        html:not(.dark) .panel-link { color: #64748b; }
+        html:not(.dark) .panel-link:hover { background: #f1f5f9; color: #1e293b; }
+        html:not(.dark) .panel-link.active { background: rgba(var(--group-rgb,59,130,246),0.08); color: var(--group-color,#2563eb); }
+        html:not(.dark) .panel-section { color: #94a3b8; }
+        html:not(.dark) #panel-search { background: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
+        html:not(.dark) #panel-search::placeholder { color: #94a3b8; }
+    </style>
 </head>
-<body class="h-full font-[Inter,sans-serif] antialiased transition-colors duration-200
-             bg-[#f8f8f8] dark:bg-[#0f172a] text-gray-900 dark:text-gray-100">
+<body class="h-full font-[Inter,sans-serif] antialiased bg-[#f8f8f8] dark:bg-[#0f172a] text-gray-900 dark:text-gray-100">
 <div class="flex h-full">
 
-    {{-- ── Sidebar ──────────────────────────────────────────── --}}
-    <aside id="sidebar"
-        class="fixed inset-y-0 left-0 z-40 w-60 flex flex-col overflow-hidden transition-transform duration-300 lg:translate-x-0 -translate-x-full
-               bg-[#f0f0f0] dark:bg-[#0f172a] border-r border-gray-200 dark:border-white/10">
+    {{-- ── ICON RAIL (always visible on desktop, slide-in on mobile) ── --}}
+    <aside id="sidebar-rail"
+        class="fixed inset-y-0 left-0 z-50 flex flex-col items-center py-3 gap-0.5 shrink-0
+               -translate-x-full lg:translate-x-0 transition-transform duration-300">
 
-        {{-- Logo --}}
-        <div class="flex items-center gap-3 px-5 h-16 border-b border-gray-200 dark:border-white/10 shrink-0 bg-[#f0f0f0] dark:bg-[#0f172a]">
-            <img src="/logo.png" alt="Qalcuity" class="h-8 w-auto object-contain brightness-0 dark:brightness-100">
-        </div>
+        {{-- Logo: always white since rail bg is always dark --}}
+        <a href="{{ route('dashboard') }}" id="rail-logo"
+            class="flex items-center justify-center w-9 h-9 mb-3 rounded-xl transition-all duration-200">
+            <img src="/logo.png" alt="Q" class="h-6 w-auto object-contain" style="filter: brightness(0) invert(1);">
+        </a>
 
-        {{-- Nav --}}
-        <nav class="flex-1 overflow-y-auto overflow-x-hidden scrollbar-dark px-3 py-4 space-y-0.5">
+        @php
+        $user      = auth()->user();
+        $navTenant = $user?->tenant;
+        // Active group detection
+        $activeGroup = match(true) {
+            request()->routeIs('dashboard')                                                    => 'home',
+            request()->routeIs('chat*')                                                        => 'ai',
+            request()->routeIs('quotations*','invoices*','delivery-orders*','down-payments*',
+                               'sales-returns*','crm*','loyalty*','pos*','sales.*',
+                               'sales.index','price-lists*')                           => 'sales',
+            request()->routeIs('inventory*','purchasing*','purchase-returns*')                 => 'inventory',
+            request()->routeIs('production*','shipping*','approvals*','ecommerce*','documents*',
+                               'projects*','timesheets*') => 'ops',
+            request()->routeIs('hrm*','payroll*','self-service*')                              => 'hrm',
+            request()->routeIs('accounting*','expenses*','bank.*',
+                               'receivables*','payables*','bulk-payments*','assets*','budget*',
+                               'cost-centers*','deferred*','writeoffs*')               => 'finance',
+            request()->routeIs('reports*','kpi*','anomalies*','zero-input*','simulations*') => 'analytics',
+            request()->routeIs('company-profile*','settings*','tenant.users*','reminders*',
+                               'import*','audit*','notifications*','bot*','api-settings*',
+                               'subscription*','cost-centers*','ai-memory*','taxes*',
+                               'custom-fields*','constraints*','company-groups*')      => 'settings',
+            request()->routeIs('super-admin*')                                                 => 'superadmin',
+            default                                                                            => '',
+        };
+        @endphp
 
-            @php
-            $navLinkClass = fn(bool $active) => 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all '
-                . ($active
-                    ? 'bg-blue-100 text-blue-700 dark:bg-white/10 dark:text-white'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-[#e4e4e4] dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5');
-            $sectionLabel = 'text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500';
-            @endphp
-
-            @if(auth()->user()?->isSuperAdmin())
-            {{-- ── SUPER ADMIN NAV ── --}}
-            <a href="{{ route('dashboard') }}" class="{{ $navLinkClass(request()->routeIs('dashboard')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                Dashboard
-            </a>
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Manajemen</p></div>
-            <a href="{{ route('super-admin.tenants.index') }}" class="{{ $navLinkClass(request()->routeIs('super-admin.tenants*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                Semua Tenant
-            </a>
-            <a href="{{ route('super-admin.plans.index') }}" class="{{ $navLinkClass(request()->routeIs('super-admin.plans*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                Kelola Paket
-            </a>
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Monitoring</p></div>
-            <a href="{{ route('super-admin.monitoring.index') }}" class="{{ $navLinkClass(request()->routeIs('super-admin.monitoring*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                Monitoring
-                @php $openErrors = \App\Models\ErrorLog::where('is_resolved', false)->count(); @endphp
-                @if($openErrors > 0)
-                <span class="ml-auto text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-medium">{{ $openErrors }}</span>
-                @endif
-            </a>
-            @else
-            {{-- ── TENANT USER NAV ── --}}
-            @php $navTenant = auth()->user()?->tenant; @endphp
-
-            {{-- 1. Dashboard --}}
-            <a href="{{ route('dashboard') }}" class="{{ $navLinkClass(request()->routeIs('dashboard')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                Dashboard
-            </a>
-
-            {{-- 2. AI Chat --}}
-            <a href="{{ route('chat.index') }}" class="{{ $navLinkClass(request()->routeIs('chat*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                AI Chat
-            </a>
-
-            {{-- ── KASIR: hanya POS ── --}}
-            @if(auth()->user()?->isKasir())
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Kasir</p></div>
-            <a href="{{ route('pos.index') }}" class="{{ $navLinkClass(request()->routeIs('pos*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Kasir (POS)
-            </a>
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Saya</p></div>
-            <a href="{{ route('self-service.attendance.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.attendance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Absensi Saya
-            </a>
-            <a href="{{ route('self-service.leave.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.leave*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Cuti Saya
-            </a>
-            <a href="{{ route('payroll.slip.index') }}" class="{{ $navLinkClass(request()->routeIs('payroll.slip*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Slip Gaji
-            </a>
+        @if($user?->isSuperAdmin())
+            @include('layouts._rail_btn', ['group'=>'home',       'icon'=>'home',       'label'=>'Dashboard'])
+            @include('layouts._rail_btn', ['group'=>'superadmin', 'icon'=>'building',   'label'=>'Admin'])
+        @else
+            @include('layouts._rail_btn', ['group'=>'home',      'icon'=>'home',      'label'=>'Dashboard'])
+            @include('layouts._rail_btn', ['group'=>'ai',        'icon'=>'sparkle',   'label'=>'AI Chat'])
+            @if(!$user?->isGudang())
+            @include('layouts._rail_btn', ['group'=>'sales',     'icon'=>'tag',       'label'=>'Penjualan'])
             @endif
+            @include('layouts._rail_btn', ['group'=>'inventory', 'icon'=>'cube',      'label'=>'Inventori'])
+            @if(!$user?->isKasir() && !$user?->isGudang())
+            @include('layouts._rail_btn', ['group'=>'ops',       'icon'=>'cog',       'label'=>'Operasional'])
+            @endif
+            @include('layouts._rail_btn', ['group'=>'hrm',       'icon'=>'users',     'label'=>'SDM'])
+            @if(!$user?->isKasir() && !$user?->isGudang())
+            @include('layouts._rail_btn', ['group'=>'finance',   'icon'=>'currency',  'label'=>'Keuangan'])
+            @include('layouts._rail_btn', ['group'=>'analytics', 'icon'=>'chart',     'label'=>'Analitik'])
+            @include('layouts._rail_btn', ['group'=>'settings',  'icon'=>'gear',      'label'=>'Pengaturan'])
+            @endif
+        @endif
 
-            {{-- ── GUDANG: hanya inventory ── --}}
-            @if(auth()->user()?->isGudang())
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Gudang</p></div>
-            <a href="{{ route('inventory.index') }}" class="{{ $navLinkClass(request()->routeIs('inventory*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                Inventori
-            </a>
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Saya</p></div>
-            <a href="{{ route('self-service.attendance.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.attendance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Absensi Saya
-            </a>
-            <a href="{{ route('self-service.leave.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.leave*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Cuti Saya
-            </a>
-            <a href="{{ route('payroll.slip.index') }}" class="{{ $navLinkClass(request()->routeIs('payroll.slip*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Slip Gaji
-            </a>
-            @endif
+        {{-- Spacer --}}
+        <div class="flex-1"></div>
 
-            {{-- ── ADMIN / MANAGER / STAFF: menu lengkap ── --}}
-            @if(!auth()->user()?->isKasir() && !auth()->user()?->isGudang())
-
-            {{-- 3. Penjualan (admin/manager) --}}
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            @if($navTenant?->isModuleEnabled('invoicing') ?? true)
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Penjualan</p></div>
-            <a href="{{ route('quotations.index') }}" class="{{ $navLinkClass(request()->routeIs('quotations*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Penawaran (Quotation)
-            </a>
-            <a href="{{ route('invoices.index') }}" class="{{ $navLinkClass(request()->routeIs('invoices*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Invoice
-            </a>
-            <a href="{{ route('delivery-orders.index') }}" class="{{ $navLinkClass(request()->routeIs('delivery-orders*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                Surat Jalan
-            </a>
-            <a href="{{ route('down-payments.index') }}" class="{{ $navLinkClass(request()->routeIs('down-payments*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                Uang Muka (DP)
-            </a>
-            <a href="{{ route('sales-returns.index') }}" class="{{ $navLinkClass(request()->routeIs('sales-returns*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                Retur Penjualan
-            </a>
-            @endif {{-- invoicing --}}
-            @if($navTenant?->isModuleEnabled('crm') ?? true)
-            <a href="{{ route('crm.index') }}" class="{{ $navLinkClass(request()->routeIs('crm*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                CRM & Pipeline
-            </a>
-            @endif
-            @if($navTenant?->isModuleEnabled('loyalty') ?? true)
-            <a href="{{ route('loyalty.index') }}" class="{{ $navLinkClass(request()->routeIs('loyalty*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                Program Loyalitas
-            </a>
-            @endif
-            @endif {{-- admin/manager --}}
-
-            {{-- 4. Inventori & Pembelian --}}
-            @if($navTenant?->isModuleEnabled('inventory') ?? true)
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Inventori & Pembelian</p></div>
-            <a href="{{ route('inventory.index') }}" class="{{ $navLinkClass(request()->routeIs('inventory*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                Inventori
-            </a>
-            @endif
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            @if($navTenant?->isModuleEnabled('purchasing') ?? true)
-            <a href="{{ route('purchasing.suppliers') }}" class="{{ $navLinkClass(request()->routeIs('purchasing.suppliers*') || request()->routeIs('purchasing.orders*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                Pembelian
-            </a>
-            <a href="{{ route('purchasing.requisitions') }}" class="{{ $navLinkClass(request()->routeIs('purchasing.requisitions*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Purchase Requisition
-            </a>
-            <a href="{{ route('purchasing.rfq') }}" class="{{ $navLinkClass(request()->routeIs('purchasing.rfq*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                RFQ
-            </a>
-            <a href="{{ route('purchasing.goods-receipts') }}" class="{{ $navLinkClass(request()->routeIs('purchasing.goods-receipts*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                Goods Receipt
-            </a>
-            <a href="{{ route('purchasing.matching') }}" class="{{ $navLinkClass(request()->routeIs('purchasing.matching*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                3-Way Matching
-            </a>
-            <a href="{{ route('purchase-returns.index') }}" class="{{ $navLinkClass(request()->routeIs('purchase-returns*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6"/></svg>
-                Retur Pembelian
-            </a>
-            @endif {{-- purchasing --}}
-            @endif {{-- admin/manager --}}
-
-            {{-- 5. Operasional --}}
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Operasional</p></div>
-            @if($navTenant?->isModuleEnabled('pos') ?? true)
-            <a href="{{ route('pos.index') }}" class="{{ $navLinkClass(request()->routeIs('pos*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Kasir (POS)
-            </a>
-            @endif
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            @if($navTenant?->isModuleEnabled('production') ?? true)
-            <a href="{{ route('production.index') }}" class="{{ $navLinkClass(request()->routeIs('production*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                Produksi / WO
-            </a>
-            @endif
-            <a href="{{ route('shipping.index') }}" class="{{ $navLinkClass(request()->routeIs('shipping*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                Pengiriman
-            </a>
-            <a href="{{ route('approvals.index') }}" class="{{ $navLinkClass(request()->routeIs('approvals*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Persetujuan
-                @php $pendingCount = auth()->user()?->tenant_id ? \App\Models\ApprovalRequest::where('tenant_id', auth()->user()->tenant_id)->where('status','pending')->count() : 0; @endphp
-                @if($pendingCount > 0)<span class="ml-auto text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md font-medium">{{ $pendingCount }}</span>@endif
-            </a>
-            @if($navTenant?->isModuleEnabled('ecommerce') ?? true)
-            <a href="{{ route('ecommerce.index') }}" class="{{ $navLinkClass(request()->routeIs('ecommerce*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                E-Commerce
-            </a>
-            @endif
-            <a href="{{ route('documents.index') }}" class="{{ $navLinkClass(request()->routeIs('documents*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
-                Dokumen
-            </a>
-            @endif {{-- admin/manager --}}
-
-            {{-- 6. SDM --}}
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            @if($navTenant?->isModuleEnabled('hrm') ?? true)
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">SDM</p></div>
-            <a href="{{ route('hrm.recruitment.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.recruitment*') || request()->routeIs('hrm.onboarding*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Rekrutmen
-            </a>
-            <a href="{{ route('hrm.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.index') || request()->routeIs('hrm.store') || request()->routeIs('hrm.update') || request()->routeIs('hrm.destroy') || request()->routeIs('hrm.attendance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                SDM & Karyawan
-            </a>
-            <a href="{{ route('hrm.leave') }}" class="{{ $navLinkClass(request()->routeIs('hrm.leave*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Manajemen Cuti
-            </a>
-            <a href="{{ route('hrm.performance') }}" class="{{ $navLinkClass(request()->routeIs('hrm.performance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                Penilaian Kinerja
-            </a>
-            <a href="{{ route('hrm.orgchart') }}" class="{{ $navLinkClass(request()->routeIs('hrm.orgchart')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                Struktur Organisasi
-            </a>
-            <a href="{{ route('hrm.shifts.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.shifts*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Jadwal Shift
-            </a>
-            <a href="{{ route('hrm.overtime.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.overtime*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Lembur
-                @php $pendingOt = \App\Models\OvertimeRequest::where('tenant_id', auth()->user()->tenant_id ?? 0)->where('status','pending')->count(); @endphp
-                @if($pendingOt > 0)
-                <span class="ml-auto text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md font-medium">{{ $pendingOt }}</span>
-                @endif
-            </a>
-            <a href="{{ route('hrm.training.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.training*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-                Pelatihan & Sertifikasi
-                @php $expCerts = \App\Models\EmployeeCertification::where('tenant_id', auth()->user()->tenant_id ?? 0)->where('status','active')->whereNotNull('expiry_date')->where('expiry_date','<=',now()->addDays(90))->count(); @endphp
-                @if($expCerts > 0)
-                <span class="ml-auto text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-medium">{{ $expCerts }}</span>
-                @endif
-            </a>
-            <a href="{{ route('hrm.disciplinary.index') }}" class="{{ $navLinkClass(request()->routeIs('hrm.disciplinary*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                Surat Peringatan
-                @php $activeSp = \App\Models\DisciplinaryLetter::where('tenant_id', auth()->user()->tenant_id ?? 0)->whereIn('status',['issued','acknowledged'])->count(); @endphp
-                @if($activeSp > 0)
-                <span class="ml-auto text-xs bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-md font-medium">{{ $activeSp }}</span>
-                @endif
-            </a>
-            @endif {{-- hrm --}}
-            @if($navTenant?->isModuleEnabled('payroll') ?? true)
-            <a href="{{ route('payroll.index') }}" class="{{ $navLinkClass(request()->routeIs('payroll.index') || request()->routeIs('payroll.store') || request()->routeIs('payroll.show') || request()->routeIs('payroll.process') || request()->routeIs('payroll.run*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                Penggajian
-            </a>
-            @endif
-            {{-- ESS Portal — semua karyawan --}}
-            <a href="{{ route('self-service.dashboard') }}" class="{{ $navLinkClass(request()->routeIs('self-service.dashboard') || request()->routeIs('self-service.profile*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                Portal Karyawan
-            </a>
-            <a href="{{ route('payroll.slip.index') }}" class="{{ $navLinkClass(request()->routeIs('payroll.slip*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Slip Gaji
-            </a>
-            <a href="{{ route('self-service.attendance.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.attendance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Absensi Saya
-            </a>
-            <a href="{{ route('self-service.leave.index') }}" class="{{ $navLinkClass(request()->routeIs('self-service.leave*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Cuti Saya
-            </a>
-            @if($navTenant?->isModuleEnabled('projects') ?? true)
-            <a href="{{ route('projects.index') }}" class="{{ $navLinkClass(request()->routeIs('projects*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                Manajemen Proyek
-            </a>
-            <a href="{{ route('timesheets.index') }}" class="{{ $navLinkClass(request()->routeIs('timesheets*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Timesheet
-            </a>
-            @endif
-            @endif {{-- admin/manager --}}
-
-            {{-- 7. Keuangan & Akuntansi --}}
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Keuangan & Akuntansi</p></div>
-            @if($navTenant?->isModuleEnabled('budget') ?? true)
-            <a href="{{ route('budget.index') }}" class="{{ $navLinkClass(request()->routeIs('budget*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Anggaran
-            </a>
-            @endif
-            @if($navTenant?->isModuleEnabled('assets') ?? true)
-            <a href="{{ route('assets.index') }}" class="{{ $navLinkClass(request()->routeIs('assets*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                Aset
-            </a>
-            @endif
-            @if($navTenant?->isModuleEnabled('invoicing') ?? true)
-            <a href="{{ route('receivables.index') }}" class="{{ $navLinkClass(request()->routeIs('receivables*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
-                Piutang & Hutang
-            </a>
-            <a href="{{ route('bulk-payments.index') }}" class="{{ $navLinkClass(request()->routeIs('bulk-payments*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                Bulk Payment
-            </a>
-            @endif
-            @if($navTenant?->isModuleEnabled('bank_reconciliation') ?? true)
-            <a href="{{ route('bank.reconciliation') }}" class="{{ $navLinkClass(request()->routeIs('bank*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                Rekonsiliasi Bank
-            </a>
-            @endif
-            @if($navTenant?->isModuleEnabled('accounting') ?? true)
-            <a href="{{ route('accounting.coa') }}" class="{{ $navLinkClass(request()->routeIs('accounting.coa*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                Bagan Akun (COA)
-            </a>
-            <a href="{{ route('journals.index') }}" class="{{ $navLinkClass(request()->routeIs('journals*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Jurnal Umum
-            </a>
-            <a href="{{ route('accounting.periods') }}" class="{{ $navLinkClass(request()->routeIs('accounting.periods*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                Periode Akuntansi
-            </a>
-            @if(auth()->user()?->isAdmin())
-            <a href="{{ route('accounting.period-lock.index') }}" class="{{ $navLinkClass(request()->routeIs('accounting.period-lock*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                Kunci Periode & Backup
-            </a>
-            @endif
-            <a href="{{ route('accounting.trial-balance') }}" class="{{ $navLinkClass(request()->routeIs('accounting.trial-balance*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                Neraca Saldo
-            </a>
-            <a href="{{ route('accounting.balance-sheet') }}" class="{{ $navLinkClass(request()->routeIs('accounting.balance-sheet*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                Neraca (Balance Sheet)
-            </a>
-            <a href="{{ route('accounting.income-statement') }}" class="{{ $navLinkClass(request()->routeIs('accounting.income-statement*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                Laba Rugi (P&L)
-            </a>
-            <a href="{{ route('accounting.cash-flow') }}" class="{{ $navLinkClass(request()->routeIs('accounting.cash-flow*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-                Arus Kas (Cash Flow)
-            </a>
-            @endif {{-- accounting --}}
-            @endif {{-- admin/manager --}}
-
-            {{-- 8. Analitik (admin/manager) --}}
-            @if(auth()->user()?->isAdmin() || auth()->user()?->isManager())
-            @if($navTenant?->isModuleEnabled('reports') ?? true)
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Analitik</p></div>
-            <a href="{{ route('reports.index') }}" class="{{ $navLinkClass(request()->routeIs('reports.index')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Laporan
-            </a>
-            <a href="{{ route('kpi.index') }}" class="{{ $navLinkClass(request()->routeIs('kpi*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                KPI Dashboard
-            </a>
-            <a href="{{ route('reports.cash-flow-projection') }}" class="{{ $navLinkClass(request()->routeIs('reports.cash-flow-projection*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-                Proyeksi Arus Kas
-            </a>
-            @endif {{-- reports --}}
-            @endif {{-- admin/manager --}}
-
-            {{-- 9. Pengaturan (admin only, always at bottom) --}}
-            @if(auth()->user()?->isAdmin())
-            <div class="pt-4 pb-1 px-3"><p class="{{ $sectionLabel }}">Pengaturan</p></div>
-            <a href="{{ route('company-profile.index') }}" class="{{ $navLinkClass(request()->routeIs('company-profile*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                Profil Perusahaan
-            </a>
-            <a href="{{ route('settings.modules.index') }}" class="{{ $navLinkClass(request()->routeIs('settings.modules*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h7"/></svg>
-                Pengaturan Modul
-            </a>
-            <a href="{{ route('tenant.users.index') }}" class="{{ $navLinkClass(request()->routeIs('tenant.users*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                Kelola Pengguna
-            </a>
-            <a href="{{ route('reminders.index') }}" class="{{ $navLinkClass(request()->routeIs('reminders*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                Pengingat
-            </a>
-            <a href="{{ route('import.index') }}" class="{{ $navLinkClass(request()->routeIs('import*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                Import CSV
-            </a>
-            <a href="{{ route('audit.index') }}" class="{{ $navLinkClass(request()->routeIs('audit*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                Audit Trail
-            </a>
-            <a href="{{ route('notifications.index') }}" class="{{ $navLinkClass(request()->routeIs('notifications*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                Notifikasi
-            </a>
-            <a href="{{ route('bot.settings') }}" class="{{ $navLinkClass(request()->routeIs('bot*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                Bot WA/Telegram
-            </a>
-            <a href="{{ route('api-settings.index') }}" class="{{ $navLinkClass(request()->routeIs('api-settings*')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                API & Webhook
-            </a>
-            @endif {{-- admin --}}
-
-            @endif {{-- end !isKasir && !isGudang --}}
-
-            @if(auth()->user()?->tenant_id)
-            <a href="{{ route('subscription.index') }}" class="{{ $navLinkClass(request()->routeIs('subscription.index')) }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                Langganan
-                @php $tenant = auth()->user()->tenant; @endphp
-                @if($tenant && $tenant->plan === 'trial')<span class="ml-auto text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md font-medium">Trial</span>
-                @elseif($tenant && $tenant->isPlanExpired())<span class="ml-auto text-xs bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded-md font-medium">Expired</span>@endif
-            </a>
-            @endif
-            @endif {{-- end isSuperAdmin else --}}
-        </nav>
-
-        {{-- User Footer --}}
-        <div class="px-3 py-3 border-t border-gray-200 dark:border-white/10 shrink-0 bg-[#f0f0f0] dark:bg-[#0f172a]">
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[#e4e4e4] dark:hover:bg-white/5 transition group">
-                <img src="{{ auth()->user()?->avatarUrl() }}" alt="{{ auth()->user()?->name }}"
-                    class="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white dark:ring-white/10">
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ auth()->user()?->name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ auth()->user()?->roleLabel() }}</p>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" title="Keluar" class="text-slate-500 hover:text-red-400 transition opacity-0 group-hover:opacity-100">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                    </button>
-                </form>
-            </a>
-        </div>
+        {{-- User Avatar --}}
+        <button onclick="toggleGroup('profile')"
+            class="rail-btn w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/10 hover:ring-blue-500/50 transition mb-1 relative"
+            data-group="profile" data-color="#60a5fa" data-rgb="96,165,250"
+            style="--group-color:#60a5fa;--group-rgb:96,165,250">
+            <img src="{{ $user?->avatarUrl() }}" alt="{{ $user?->name }}" class="w-full h-full object-cover">
+            <span class="rail-tip">{{ $user?->name }}</span>
+        </button>
     </aside>
 
-    {{-- Sidebar overlay (mobile) --}}
-    <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/50 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    {{-- ── SLIDE PANEL (240px, appears on group click) ── --}}
+    <div id="sidebar-panel"
+        class="fixed inset-y-0 left-0 lg:left-14 z-40 flex flex-col overflow-hidden">
 
-    {{-- ── Main ─────────────────────────────────────────────── --}}
-    <div class="flex-1 flex flex-col min-w-0 lg:pl-60">
+        {{-- Accent line --}}
+        <div id="panel-accent"></div>
+
+        {{-- Panel Header --}}
+        <div class="flex items-center justify-between px-4 h-14 border-b border-white/10 shrink-0">
+            <span id="panel-title" class="text-xs font-bold uppercase tracking-widest text-slate-400"></span>
+            <button onclick="closePanel()" class="text-slate-600 hover:text-white transition p-1.5 rounded-lg hover:bg-white/10">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- Search --}}
+        <div class="px-3 py-2.5 border-b border-white/5 shrink-0">
+            <div class="relative">
+                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input id="panel-search" type="text" placeholder="Cari menu..." oninput="filterPanel(this.value)">
+            </div>
+        </div>
+
+        {{-- Panel Content --}}
+        <nav class="flex-1 overflow-y-auto scrollbar-thin py-2 px-2" id="panel-nav">
+            {{-- Filled by JS --}}
+        </nav>
+    </div>
+
+    {{-- Panel backdrop (click outside to close) --}}
+    <div id="panel-backdrop" class="fixed inset-0 z-30 hidden" onclick="closePanel()"></div>
+
+    {{-- Mobile sidebar overlay --}}
+    <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/50 hidden lg:hidden" onclick="closeMobileSidebar()" style="pointer-events:auto"></div>
+
+
+    {{-- ── MAIN CONTENT ── --}}
+    <div class="flex-1 flex flex-col min-w-0 pl-0 lg:pl-14" id="main-wrap">
 
         {{-- Topbar --}}
-        <header class="sticky top-0 z-20 h-16 backdrop-blur border-b flex items-center px-4 sm:px-6 gap-4
+        <header class="sticky top-0 z-20 h-14 backdrop-blur border-b flex items-center px-4 sm:px-6 gap-4
                        bg-[#f0f0f0]/95 dark:bg-[#0f172a]/95 border-gray-200 dark:border-white/10">
-            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400">
+
+            {{-- Mobile menu --}}
+            <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
 
-            <div class="flex-1">
+            {{-- Breadcrumb / Page title --}}
+            <div class="flex-1 flex items-center gap-2 min-w-0">
+                <span class="text-xs text-slate-400 hidden sm:block">{{ config('app.name') }}</span>
+                <span class="text-xs text-slate-600 hidden sm:block">/</span>
                 @if(isset($header))
-                    <h1 class="text-base font-semibold text-gray-900 dark:text-white">{{ $header }}</h1>
+                    @if(is_string($header) && !str_contains($header, '<'))
+                        <h1 class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $header }}</h1>
+                    @else
+                        {!! $header !!}
+                    @endif
                 @elseif(View::hasSection('header'))
-                    <h1 class="text-base font-semibold text-gray-900 dark:text-white">@yield('header')</h1>
+                    <h1 class="text-sm font-semibold text-gray-900 dark:text-white truncate">@yield('header')</h1>
                 @endif
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
                 @isset($topbarActions){{ $topbarActions }}@endisset
 
-                {{-- Dark/Light Toggle --}}
+                {{-- Theme toggle --}}
                 <button id="theme-toggle" title="Ganti tema"
                     class="p-2 rounded-xl transition hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-slate-400">
-                    {{-- Sun icon (shown in dark mode) --}}
                     <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
-                    {{-- Moon icon (shown in light mode) --}}
                     <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                     </svg>
@@ -544,13 +391,16 @@
                         ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)->whereNull('read_at')->count()
                         : ($authUser?->isSuperAdmin() ? \App\Models\ErpNotification::where('user_id', $authUser->id)->whereNull('read_at')->count() : 0);
                 @endphp
-                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-                    <button @click="open = !open" class="relative p-2 rounded-xl hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        @if($unreadCount > 0)<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>@endif
+                <div class="relative" id="notif-wrapper">
+                    <button onclick="toggleNotif()" class="relative p-2 rounded-xl hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        @if($unreadCount > 0)
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#0f172a]"></span>
+                        @endif
                     </button>
-                    <div x-show="open" x-transition
-                        class="absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50
                                bg-white dark:bg-[#1e293b] border-gray-200 dark:border-white/10">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10">
                             <span class="font-semibold text-sm text-gray-900 dark:text-white">Notifikasi</span>
@@ -563,7 +413,7 @@
                                     : ($authUser?->isSuperAdmin() ? \App\Models\ErpNotification::where('user_id', $authUser->id)->latest()->take(5)->get() : collect());
                             @endphp
                             @forelse($topbarNotifs as $notif)
-                            <div class="px-4 py-3 hover:bg-[#f0f0f0] dark:hover:bg-white/5 {{ $notif->isRead() ? 'opacity-50' : '' }}">
+                            <div class="px-4 py-3 hover:bg-[#f0f0f0] dark:hover:bg-white/5 {{ $notif->isRead() ? 'opacity-60' : '' }}">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $notif->title }}</p>
                                 <p class="text-xs text-slate-400 mt-0.5">{{ Str::limit($notif->body, 80) }}</p>
                                 <p class="text-xs text-slate-500 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
@@ -599,28 +449,409 @@
     </div>
 </div>
 
+
+{{-- ── NAV DATA (PHP → JS) ── --}}
 <script>
-function toggleSidebar() {
-    const s = document.getElementById('sidebar');
-    const o = document.getElementById('sidebar-overlay');
-    s.classList.toggle('-translate-x-full');
-    o.classList.toggle('hidden');
+const NAV_GROUPS = {
+@if($user?->isSuperAdmin())
+  home: {
+    title: 'Dashboard',
+    items: [
+      { label: 'Dashboard', href: '{{ route("dashboard") }}', active: {{ request()->routeIs('dashboard') ? 'true' : 'false' }} },
+    ]
+  },
+  superadmin: {
+    title: 'Super Admin',
+    items: [
+      { label: 'Semua Tenant',  href: '{{ route("super-admin.tenants.index") }}', active: {{ request()->routeIs('super-admin.tenants*') ? 'true' : 'false' }} },
+      { label: 'Kelola Paket',  href: '{{ route("super-admin.plans.index") }}',   active: {{ request()->routeIs('super-admin.plans*') ? 'true' : 'false' }} },
+      { section: 'Monitoring' },
+      { label: 'Monitoring',    href: '{{ route("super-admin.monitoring.index") }}', active: {{ request()->routeIs('super-admin.monitoring*') ? 'true' : 'false' }}, badge: {{ \App\Models\ErrorLog::where('is_resolved',false)->count() ?: 'null' }}, badgeClass: 'badge-red' },
+    ]
+  },
+@else
+  home: {
+    title: 'Dashboard',
+    items: [
+      { label: 'Dashboard', href: '{{ route("dashboard") }}', active: {{ request()->routeIs('dashboard') ? 'true' : 'false' }} },
+    ]
+  },
+  ai: {
+    title: 'AI Chat',
+    items: [
+      { label: 'AI Chat', href: '{{ route("chat.index") }}', active: {{ request()->routeIs('chat*') ? 'true' : 'false' }} },
+    ]
+  },
+@if(!$user?->isGudang())
+  sales: {
+    title: 'Penjualan',
+    items: [
+@if($navTenant?->isModuleEnabled('invoicing') ?? true)
+      { label: 'Sales Order',           href: '{{ route("sales.index") }}',            active: {{ request()->routeIs('sales.index','sales.create','sales.show','sales.store') ? 'true' : 'false' }} },
+      { label: 'Penawaran (Quotation)', href: '{{ route("quotations.index") }}',       active: {{ request()->routeIs('quotations*') ? 'true' : 'false' }} },
+      { label: 'Invoice',               href: '{{ route("invoices.index") }}',         active: {{ request()->routeIs('invoices*') ? 'true' : 'false' }} },
+      { label: 'Surat Jalan',           href: '{{ route("delivery-orders.index") }}',  active: {{ request()->routeIs('delivery-orders*') ? 'true' : 'false' }} },
+      { label: 'Uang Muka (DP)',        href: '{{ route("down-payments.index") }}',    active: {{ request()->routeIs('down-payments*') ? 'true' : 'false' }} },
+      { label: 'Retur Penjualan',       href: '{{ route("sales-returns.index") }}',    active: {{ request()->routeIs('sales-returns*') ? 'true' : 'false' }} },
+      { label: 'Daftar Harga',          href: '{{ route("price-lists.index") }}',      active: {{ request()->routeIs('price-lists*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('crm') ?? true)
+      { label: 'CRM & Pipeline',        href: '{{ route("crm.index") }}',              active: {{ request()->routeIs('crm*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('loyalty') ?? true)
+      { label: 'Program Loyalitas',     href: '{{ route("loyalty.index") }}',          active: {{ request()->routeIs('loyalty*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('pos') ?? true)
+      { label: 'Kasir (POS)',           href: '{{ route("pos.index") }}',              active: {{ request()->routeIs('pos*') ? 'true' : 'false' }} },
+@endif
+    ]
+  },
+@endif
+  inventory: {
+    title: 'Inventori',
+    items: [
+@if($navTenant?->isModuleEnabled('inventory') ?? true)
+      { label: 'Inventori',             href: '{{ route("inventory.index") }}',        active: {{ request()->routeIs('inventory*') ? 'true' : 'false' }} },
+@endif
+@if(($user?->isAdmin() || $user?->isManager()) && ($navTenant?->isModuleEnabled('purchasing') ?? true))
+      { section: 'Pembelian' },
+      { label: 'Pembelian',             href: '{{ route("purchasing.suppliers") }}',   active: {{ request()->routeIs('purchasing.suppliers*','purchasing.orders*') ? 'true' : 'false' }} },
+      { label: 'Purchase Requisition',  href: '{{ route("purchasing.requisitions") }}',active: {{ request()->routeIs('purchasing.requisitions*') ? 'true' : 'false' }} },
+      { label: 'RFQ',                   href: '{{ route("purchasing.rfq") }}',         active: {{ request()->routeIs('purchasing.rfq*') ? 'true' : 'false' }} },
+      { label: 'Goods Receipt',         href: '{{ route("purchasing.goods-receipts") }}', active: {{ request()->routeIs('purchasing.goods-receipts*') ? 'true' : 'false' }} },
+      { label: '3-Way Matching',        href: '{{ route("purchasing.matching") }}',    active: {{ request()->routeIs('purchasing.matching*') ? 'true' : 'false' }} },
+      { label: 'Retur Pembelian',       href: '{{ route("purchase-returns.index") }}', active: {{ request()->routeIs('purchase-returns*') ? 'true' : 'false' }} },
+@endif
+    ]
+  },
+@if(!$user?->isKasir() && !$user?->isGudang())
+  ops: {
+    title: 'Operasional',
+    items: [
+@if($navTenant?->isModuleEnabled('pos') ?? true)
+      { label: 'Kasir (POS)',           href: '{{ route("pos.index") }}',              active: {{ request()->routeIs('pos*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('production') ?? true)
+      { label: 'Produksi / WO',         href: '{{ route("production.index") }}',       active: {{ request()->routeIs('production*') ? 'true' : 'false' }} },
+@endif
+      { label: 'Pengiriman',            href: '{{ route("shipping.index") }}',         active: {{ request()->routeIs('shipping*') ? 'true' : 'false' }} },
+      { label: 'Persetujuan',           href: '{{ route("approvals.index") }}',        active: {{ request()->routeIs('approvals*') ? 'true' : 'false' }}, badge: {{ \App\Models\ApprovalRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status','pending')->count() ?: 'null' }} },
+@if($navTenant?->isModuleEnabled('ecommerce') ?? true)
+      { label: 'E-Commerce',            href: '{{ route("ecommerce.index") }}',        active: {{ request()->routeIs('ecommerce*') ? 'true' : 'false' }} },
+@endif
+      { label: 'Dokumen',               href: '{{ route("documents.index") }}',        active: {{ request()->routeIs('documents*') ? 'true' : 'false' }} },
+@if($navTenant?->isModuleEnabled('projects') ?? true)
+      { label: 'Manajemen Proyek',      href: '{{ route("projects.index") }}',         active: {{ request()->routeIs('projects*') ? 'true' : 'false' }} },
+      { label: 'Timesheet',             href: '{{ route("timesheets.index") }}',       active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }} },
+@endif
+    ]
+  },
+@endif
+  hrm: {
+    title: 'SDM & Karyawan',
+    items: [
+@if($user?->isAdmin() || $user?->isManager())
+@if($navTenant?->isModuleEnabled('hrm') ?? true)
+      { section: 'Manajemen SDM' },
+      { label: 'Rekrutmen',             href: '{{ route("hrm.recruitment.index") }}',  active: {{ request()->routeIs('hrm.recruitment*','hrm.onboarding*') ? 'true' : 'false' }} },
+      { label: 'SDM & Karyawan',        href: '{{ route("hrm.index") }}',              active: {{ request()->routeIs('hrm.index','hrm.store','hrm.update','hrm.destroy','hrm.attendance*') ? 'true' : 'false' }} },
+      { label: 'Manajemen Cuti',        href: '{{ route("hrm.leave") }}',              active: {{ request()->routeIs('hrm.leave*') ? 'true' : 'false' }} },
+      { label: 'Penilaian Kinerja',     href: '{{ route("hrm.performance") }}',        active: {{ request()->routeIs('hrm.performance*') ? 'true' : 'false' }} },
+      { label: 'Struktur Organisasi',   href: '{{ route("hrm.orgchart") }}',           active: {{ request()->routeIs('hrm.orgchart') ? 'true' : 'false' }} },
+      { label: 'Jadwal Shift',          href: '{{ route("hrm.shifts.index") }}',       active: {{ request()->routeIs('hrm.shifts*') ? 'true' : 'false' }} },
+      { label: 'Lembur',                href: '{{ route("hrm.overtime.index") }}',     active: {{ request()->routeIs('hrm.overtime*') ? 'true' : 'false' }}, badge: {{ \App\Models\OvertimeRequest::where('tenant_id',$user?->tenant_id??0)->where('status','pending')->count() ?: 'null' }} },
+      { label: 'Pelatihan & Sertifikasi', href: '{{ route("hrm.training.index") }}',  active: {{ request()->routeIs('hrm.training*') ? 'true' : 'false' }}, badge: {{ \App\Models\EmployeeCertification::where('tenant_id',$user?->tenant_id??0)->where('status','active')->whereNotNull('expiry_date')->where('expiry_date','<=',now()->addDays(90))->count() ?: 'null' }}, badgeClass: 'badge-red' },
+      { label: 'Surat Peringatan',      href: '{{ route("hrm.disciplinary.index") }}', active: {{ request()->routeIs('hrm.disciplinary*') ? 'true' : 'false' }}, badge: {{ \App\Models\DisciplinaryLetter::where('tenant_id',$user?->tenant_id??0)->whereIn('status',['issued','acknowledged'])->count() ?: 'null' }} },
+@endif
+@if($navTenant?->isModuleEnabled('payroll') ?? true)
+      { section: 'Penggajian' },
+      { label: 'Penggajian',            href: '{{ route("payroll.index") }}',          active: {{ request()->routeIs('payroll.index','payroll.process','payroll.run*') ? 'true' : 'false' }} },
+      { label: 'Komponen Gaji',         href: '{{ route("payroll.components.index") }}', active: {{ request()->routeIs('payroll.components*') ? 'true' : 'false' }} },
+@endif
+@endif
+      { section: 'Self-Service' },
+      { label: 'Portal Karyawan',       href: '{{ route("self-service.dashboard") }}', active: {{ request()->routeIs('self-service.dashboard','self-service.profile*') ? 'true' : 'false' }} },
+      { label: 'Slip Gaji',             href: '{{ route("payroll.slip.index") }}',     active: {{ request()->routeIs('payroll.slip*') ? 'true' : 'false' }} },
+      { label: 'Cuti Saya',             href: '{{ route("self-service.leave.index") }}', active: {{ request()->routeIs('self-service.leave*') ? 'true' : 'false' }} },
+      { label: 'Absensi Saya',          href: '{{ route("self-service.attendance.index") }}', active: {{ request()->routeIs('self-service.attendance*') ? 'true' : 'false' }} },
+    ]
+  },
+@if(!$user?->isKasir() && !$user?->isGudang())
+  finance: {
+    title: 'Keuangan',
+    items: [
+      { label: 'Pengeluaran',           href: '{{ route("expenses.index") }}',         active: {{ request()->routeIs('expenses*') ? 'true' : 'false' }} },
+@if($navTenant?->isModuleEnabled('invoicing') ?? true)
+      { label: 'Piutang (AR)',          href: '{{ route("receivables.index") }}',      active: {{ request()->routeIs('receivables*') ? 'true' : 'false' }} },
+      { label: 'Hutang (AP)',           href: '{{ route("payables.index") }}',         active: {{ request()->routeIs('payables*') ? 'true' : 'false' }} },
+      { label: 'Bulk Payment',          href: '{{ route("bulk-payments.index") }}',    active: {{ request()->routeIs('bulk-payments*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('bank_reconciliation') ?? true)
+      { label: 'Rekonsiliasi Bank',     href: '{{ route("bank.reconciliation") }}', active: {{ request()->routeIs('bank.reconciliation*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('budget') ?? true)
+      { label: 'Anggaran',              href: '{{ route("budget.index") }}',           active: {{ request()->routeIs('budget*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('assets') ?? true)
+      { label: 'Aset',                  href: '{{ route("assets.index") }}',           active: {{ request()->routeIs('assets*') ? 'true' : 'false' }} },
+@endif
+@if($navTenant?->isModuleEnabled('accounting') ?? true)
+      { section: 'Akuntansi' },
+      { label: 'Jurnal',                href: '{{ route("journals.index") }}',         active: {{ request()->routeIs('journals*') ? 'true' : 'false' }} },
+      { label: 'Bagan Akun (COA)',      href: '{{ route("accounting.coa") }}',         active: {{ request()->routeIs('accounting.coa*') ? 'true' : 'false' }} },
+      { label: 'Neraca Saldo',          href: '{{ route("accounting.trial-balance") }}', active: {{ request()->routeIs('accounting.trial-balance*') ? 'true' : 'false' }} },
+      { label: 'Neraca (Balance Sheet)',href: '{{ route("accounting.balance-sheet") }}', active: {{ request()->routeIs('accounting.balance-sheet*') ? 'true' : 'false' }} },
+      { label: 'Laba Rugi (P&L)',       href: '{{ route("accounting.income-statement") }}', active: {{ request()->routeIs('accounting.income-statement*') ? 'true' : 'false' }} },
+      { label: 'Arus Kas',              href: '{{ route("accounting.cash-flow") }}',   active: {{ request()->routeIs('accounting.cash-flow*') ? 'true' : 'false' }} },
+      { label: 'Amortisasi / Deferral', href: '{{ route("deferred.index") }}',         active: {{ request()->routeIs('deferred*') ? 'true' : 'false' }} },
+      { label: 'Penghapusan Piutang',   href: '{{ route("writeoffs.index") }}',        active: {{ request()->routeIs('writeoffs*') ? 'true' : 'false' }} },
+      { label: 'Periode Akuntansi',     href: '{{ route("accounting.periods") }}',     active: {{ request()->routeIs('accounting.periods*') ? 'true' : 'false' }} },
+@if($user?->isAdmin())
+      { label: 'Kunci Periode & Backup',href: '{{ route("accounting.period-lock.index") }}', active: {{ request()->routeIs('accounting.period-lock*') ? 'true' : 'false' }} },
+@endif
+@endif
+    ]
+  },
+  analytics: {
+    title: 'Analitik',
+    items: [
+@if($navTenant?->isModuleEnabled('reports') ?? true)
+      { label: 'Laporan',               href: '{{ route("reports.index") }}',          active: {{ request()->routeIs('reports.index') ? 'true' : 'false' }} },
+      { label: 'KPI Dashboard',         href: '{{ route("kpi.index") }}',              active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }} },
+      { label: 'Proyeksi Arus Kas',     href: '{{ route("reports.cash-flow-projection") }}', active: {{ request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false' }} },
+@endif
+      { section: 'AI & Deteksi' },
+      { label: 'Deteksi Anomali',       href: '{{ route("anomalies.index") }}',        active: {{ request()->routeIs('anomalies*') ? 'true' : 'false' }} },
+      { label: 'Input Cerdas (AI)',      href: '{{ route("zero-input.index") }}',       active: {{ request()->routeIs('zero-input*') ? 'true' : 'false' }} },
+      { label: 'Simulasi Keuangan',     href: '{{ route("simulations.index") }}',      active: {{ request()->routeIs('simulations*') ? 'true' : 'false' }} },
+    ]
+  },
+  settings: {
+    title: 'Pengaturan',
+    items: [
+@if($user?->isAdmin())
+      { label: 'Profil Perusahaan',     href: '{{ route("company-profile.index") }}',  active: {{ request()->routeIs('company-profile*') ? 'true' : 'false' }} },
+      { label: 'Pengaturan Modul',      href: '{{ route("settings.modules.index") }}', active: {{ request()->routeIs('settings.modules*') ? 'true' : 'false' }} },
+      { label: 'Kelola Pengguna',       href: '{{ route("tenant.users.index") }}',     active: {{ request()->routeIs('tenant.users*') ? 'true' : 'false' }} },
+      { label: 'Pengingat',             href: '{{ route("reminders.index") }}',        active: {{ request()->routeIs('reminders*') ? 'true' : 'false' }} },
+      { label: 'Import CSV',            href: '{{ route("import.index") }}',           active: {{ request()->routeIs('import*') ? 'true' : 'false' }} },
+      { label: 'Audit Trail',           href: '{{ route("audit.index") }}',            active: {{ request()->routeIs('audit*') ? 'true' : 'false' }} },
+      { label: 'Notifikasi',            href: '{{ route("notifications.index") }}',    active: {{ request()->routeIs('notifications*') ? 'true' : 'false' }} },
+      { label: 'Bot WA/Telegram',       href: '{{ route("bot.settings") }}',           active: {{ request()->routeIs('bot*') ? 'true' : 'false' }} },
+      { label: 'API & Webhook',         href: '{{ route("api-settings.index") }}',     active: {{ request()->routeIs('api-settings*') ? 'true' : 'false' }} },
+      { label: 'Pusat Biaya',           href: '{{ route("cost-centers.index") }}',     active: {{ request()->routeIs('cost-centers*') ? 'true' : 'false' }} },
+      { label: 'Memori AI',             href: '{{ route("ai-memory.index") }}',        active: {{ request()->routeIs('ai-memory*') ? 'true' : 'false' }} },
+      { section: 'Konfigurasi' },
+      { label: 'Pajak',                 href: '{{ route("taxes.index") }}',            active: {{ request()->routeIs('taxes*') ? 'true' : 'false' }} },
+      { label: 'Custom Fields',         href: '{{ route("custom-fields.index") }}',    active: {{ request()->routeIs('custom-fields*') ? 'true' : 'false' }} },
+      { label: 'Batasan Bisnis',        href: '{{ route("constraints.index") }}',      active: {{ request()->routeIs('constraints*') ? 'true' : 'false' }} },
+      { label: 'Grup Perusahaan',       href: '{{ route("company-groups.index") }}',   active: {{ request()->routeIs('company-groups*') ? 'true' : 'false' }} },
+@endif
+      { label: 'Langganan',             href: '{{ route("subscription.index") }}',     active: {{ request()->routeIs('subscription.index') ? 'true' : 'false' }} },
+    ]
+  },
+@endif
+@endif
+  profile: {
+    title: 'Akun Saya',
+    items: [
+      { label: '{{ addslashes($user?->name) }}', href: '{{ route("profile.edit") }}', active: {{ request()->routeIs('profile*') ? 'true' : 'false' }}, meta: '{{ $user?->roleLabel() }}' },
+      { label: 'Portal Karyawan',       href: '{{ route("self-service.dashboard") }}', active: false },
+      { label: 'Keluar', href: '#logout', active: false, danger: true },
+    ]
+  },
+};
+
+const ACTIVE_GROUP = '{{ $activeGroup }}';
+</script>
+
+
+<script>
+// ── Sidebar Panel Engine — Orbital Design ────────────────────────
+let currentGroup = null;
+let allPanelItems = [];
+
+function buildPanel(groupKey) {
+    const group = NAV_GROUPS[groupKey];
+    if (!group) return;
+
+    // Apply per-group color
+    const btn   = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
+    const color = btn?.dataset.color || '#60a5fa';
+    const rgb   = btn?.dataset.rgb   || '96,165,250';
+    const panel = document.getElementById('sidebar-panel');
+    panel.style.setProperty('--group-color', color);
+    panel.style.setProperty('--group-rgb', rgb);
+    const accent = document.getElementById('panel-accent');
+    if (accent) { accent.style.background = color; accent.style.boxShadow = `0 0 12px ${color}`; }
+
+    document.getElementById('panel-title').textContent = group.title;
+    const search = document.getElementById('panel-search');
+    if (search) search.value = '';
+    allPanelItems = group.items;
+    renderPanelItems(group.items);
+}
+
+function renderPanelItems(items) {
+    const nav = document.getElementById('panel-nav');
+    nav.innerHTML = '';
+    items.forEach(item => {
+        if (item.section) {
+            const s = document.createElement('div');
+            s.className = 'panel-section';
+            s.textContent = item.section;
+            nav.appendChild(s);
+            return;
+        }
+        const a = document.createElement('a');
+        a.href = item.href === '#logout' ? '#' : item.href;
+        a.className = 'panel-link' + (item.active ? ' active' : '');
+        if (item.danger) a.style.color = '#f87171';
+        let inner = '';
+        if (item.meta) inner += `<span style="display:block;font-size:10px;color:#64748b;margin-bottom:1px">${item.meta}</span>`;
+        inner += `<span>${item.label}</span>`;
+        if (item.badge && item.badge !== 'null') {
+            inner += `<span class="badge ${item.badgeClass || ''}">${item.badge}</span>`;
+        }
+        a.innerHTML = inner;
+        if (item.href === '#logout') {
+            a.addEventListener('click', e => { e.preventDefault(); document.getElementById('logout-form').submit(); });
+        }
+        // Auto-close sidebar on mobile after clicking a link
+        if (window.innerWidth < 1024) {
+            a.addEventListener('click', () => closeMobileSidebar());
+        }
+        nav.appendChild(a);
+    });
+}
+
+function filterPanel(q) {
+    if (!q.trim()) { renderPanelItems(allPanelItems); return; }
+    const filtered = allPanelItems.filter(item =>
+        !item.section && item.label.toLowerCase().includes(q.toLowerCase())
+    );
+    renderPanelItems(filtered);
+}
+
+function openGroup(groupKey) {
+    currentGroup = groupKey;
+    buildPanel(groupKey);
+    document.getElementById('sidebar-panel').classList.add('panel-open');
+    document.getElementById('panel-backdrop').classList.remove('hidden');
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('rail-active'));
+    const btn = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
+    if (btn) btn.classList.add('rail-active');
+    // Clear closed flag when user explicitly opens a group
+    sessionStorage.removeItem('sidebar_panel_closed');
+}
+
+function closePanel() {
+    currentGroup = null;
+    document.getElementById('sidebar-panel').classList.remove('panel-open');
+    document.getElementById('panel-backdrop').classList.add('hidden');
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('rail-active'));
+    // Remember that user manually closed the panel
+    sessionStorage.setItem('sidebar_panel_closed', '1');
+    // On mobile, also close the whole sidebar
+    if (window.innerWidth < 1024) {
+        document.getElementById('sidebar-rail').classList.remove('mobile-open');
+        document.getElementById('sidebar-overlay')?.classList.add('hidden');
+    }
+}
+
+function toggleGroup(groupKey) {
+    if (window.innerWidth < 1024) {
+        // Mobile: open panel full screen, rail stays as bottom bar
+        openGroup(groupKey);
+    } else {
+        if (currentGroup === groupKey) { closePanel(); }
+        else { openGroup(groupKey); }
+    }
+}
+
+// Auto-open active group on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const isMobile = () => window.innerWidth < 1024;
+    const panel = document.getElementById('sidebar-panel');
+    const main  = document.getElementById('main-wrap');
+
+    function updateMainPadding() {
+        if (isMobile()) {
+            main.style.paddingLeft = '0px';
+            return;
+        }
+        const open = panel.classList.contains('panel-open');
+        main.style.paddingLeft = open ? '296px' : '56px';
+    }
+
+    // Observe panel open/close → shift main content (desktop only)
+    const obs = new MutationObserver(() => {
+        main.style.transition = 'padding-left 0.26s cubic-bezier(.16,1,.3,1)';
+        updateMainPadding();
+    });
+    obs.observe(panel, { attributes: true, attributeFilter: ['class'] });
+
+    // Handle window resize (orientation change, desktop↔mobile)
+    window.addEventListener('resize', () => {
+        updateMainPadding();
+        if (!isMobile()) {
+            // Reset mobile state when going back to desktop
+            document.getElementById('sidebar-rail').classList.remove('mobile-open');
+            document.getElementById('sidebar-overlay')?.classList.add('hidden');
+        }
+    });
+
+    // Auto-open active group on desktop only IF user hasn't manually closed it
+    const panelClosedKey = 'sidebar_panel_closed';
+    const userClosed = sessionStorage.getItem(panelClosedKey) === '1';
+    if (!isMobile() && ACTIVE_GROUP && NAV_GROUPS[ACTIVE_GROUP] && !userClosed) {
+        openGroup(ACTIVE_GROUP);
+    }
+    updateMainPadding();
+});
+
+// Notification dropdown
+function toggleNotif() {
+    document.getElementById('notif-dropdown')?.classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+    const w = document.getElementById('notif-wrapper');
+    if (w && !w.contains(e.target)) {
+        document.getElementById('notif-dropdown')?.classList.add('hidden');
+    }
+});
+
+function toggleMobileSidebar() {
+    const rail = document.getElementById('sidebar-rail');
+    const isOpen = rail.classList.contains('mobile-open');
+    if (isOpen) {
+        closeMobileSidebar();
+    } else {
+        rail.classList.add('mobile-open');
+        document.getElementById('sidebar-overlay').classList.remove('hidden');
+    }
+}
+function closeMobileSidebar() {
+    document.getElementById('sidebar-rail').classList.remove('mobile-open');
+    document.getElementById('sidebar-overlay').classList.add('hidden');
+    closePanel();
 }
 
 // Theme toggle
 document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const html = document.getElementById('html-root');
-    const isDark = html.classList.toggle('dark');
+    const isDark = document.getElementById('html-root').classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 });
 
-// Register Service Worker (PWA)
+// PWA
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }
 </script>
+
+{{-- Hidden logout form --}}
+<form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">@csrf</form>
+
 @stack('scripts')
 </body>
 </html>

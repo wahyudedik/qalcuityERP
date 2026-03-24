@@ -255,7 +255,7 @@ class AiInsightService
             ->whereNotIn('sales_orders.status', ['cancelled'])
             ->whereMonth('sales_orders.date', $thisMonth->month)
             ->whereYear('sales_orders.date', $thisMonth->year)
-            ->selectRaw('products.name, SUM(sales_order_items.subtotal) as total')
+            ->selectRaw('products.name, SUM(sales_order_items.total) as total')
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total')
             ->first();
@@ -267,7 +267,7 @@ class AiInsightService
             ->whereNotIn('sales_orders.status', ['cancelled'])
             ->whereMonth('sales_orders.date', $lastMonth->month)
             ->whereYear('sales_orders.date', $lastMonth->year)
-            ->selectRaw('products.name, SUM(sales_order_items.subtotal) as total')
+            ->selectRaw('products.name, SUM(sales_order_items.total) as total')
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total')
             ->first();

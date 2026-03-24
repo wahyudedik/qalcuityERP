@@ -1,16 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Deteksi Anomali</h2>
-            <form method="POST" action="{{ route('anomalies.detect') }}">
-                @csrf
-                <button type="submit"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
-                    🔍 Jalankan Deteksi
-                </button>
-            </form>
-        </div>
-    </x-slot>
+    <x-slot name="header">Deteksi Anomali</x-slot>
 
     <div class="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         @if(session('success'))
@@ -19,24 +8,34 @@
             </div>
         @endif
 
-        <!-- Status Tabs -->
-        <div class="flex gap-3 mb-6">
-            @foreach(['open' => '🔴 Open', 'acknowledged' => '🟡 Ditinjau', 'resolved' => '🟢 Selesai'] as $s => $label)
-                <a href="{{ request()->fullUrlWithQuery(['status' => $s]) }}"
-                   class="px-3 py-1.5 rounded-full text-sm font-medium transition
-                       {{ request('status') === $s
-                           ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800'
-                           : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    {{ $label }}
-                    @if(isset($counts[$s]))
-                        <span class="ml-1 text-xs opacity-70">({{ $counts[$s] }})</span>
-                    @endif
+        <!-- Header row: tabs + action -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div class="flex flex-wrap gap-2">
+                @foreach(['open' => '🔴 Open', 'acknowledged' => '🟡 Ditinjau', 'resolved' => '🟢 Selesai'] as $s => $label)
+                    <a href="{{ request()->fullUrlWithQuery(['status' => $s]) }}"
+                       class="px-3 py-1.5 rounded-full text-sm font-medium transition
+                           {{ request('status') === $s
+                               ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-800'
+                               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        {{ $label }}
+                        @if(isset($counts[$s]))
+                            <span class="ml-1 text-xs opacity-70">({{ $counts[$s] }})</span>
+                        @endif
+                    </a>
+                @endforeach
+                <a href="{{ route('anomalies.index') }}"
+                   class="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
+                    Semua
                 </a>
-            @endforeach
-            <a href="{{ route('anomalies.index') }}"
-               class="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
-                Semua
-            </a>
+            </div>
+
+            <form method="POST" action="{{ route('anomalies.detect') }}">
+                @csrf
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 text-sm font-medium flex items-center gap-1.5">
+                    🔍 Jalankan Deteksi
+                </button>
+            </form>
         </div>
 
         @if($anomalies->isEmpty())

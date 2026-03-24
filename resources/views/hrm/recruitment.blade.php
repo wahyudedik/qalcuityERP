@@ -26,7 +26,7 @@
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-6 p-4">
         <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-semibold text-gray-900 dark:text-white">Onboarding Berjalan</p>
-            <a href="{{ route('hrm.onboarding') }}" class="text-xs text-blue-500 hover:underline">Lihat semua</a>
+            <a href="{{ route('hrm.onboarding.index') }}" class="text-xs text-blue-500 hover:underline">Lihat semua</a>
         </div>
         <div class="flex flex-wrap gap-3">
             @foreach($onboardings as $ob)
@@ -61,7 +61,7 @@
             </select>
         </form>
         <div class="flex gap-2">
-            <a href="{{ route('hrm.onboarding') }}"
+            <a href="{{ route('hrm.onboarding.index') }}"
                class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
                 Onboarding
             </a>

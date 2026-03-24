@@ -23,7 +23,7 @@ class ConsolidationService
         $year  = $parts[0];
         $month = (int) ($parts[1] ?? 0);
 
-        $tenantIds = $group->members()->pluck('id');
+        $tenantIds = $group->members()->pluck('tenants.id');
         if ($tenantIds->isEmpty()) return [];
 
         $fmt = fn($n) => 'Rp ' . number_format(abs($n ?? 0), 0, ',', '.');

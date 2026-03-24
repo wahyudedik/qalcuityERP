@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <a href="{{ route('hrm.onboarding') }}" class="text-sm text-blue-500 hover:underline mb-4 inline-block">← Kembali</a>
+    <a href="{{ route('hrm.onboarding.index') }}" class="text-sm text-blue-500 hover:underline mb-4 inline-block">← Kembali</a>
 
     {{-- Tasks by category --}}
     <div class="space-y-4 mt-4">

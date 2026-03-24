@@ -361,3 +361,137 @@ function onPaletteDragStart(e) {
 // ── Cell drag start (move existing shift) ─────────────────────
 function onCellDragStart(e, empId, date, shiftId) {
     if (!shiftId
+) return;
+    dragShiftId    = shiftId;
+    dragFromEmp    = empId;
+    dragFromDate   = date;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', shiftId);
+}
+
+// ── Drag over / leave ──────────────────────────────────────────
+function onDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('ring-2', 'ring-blue-400', 'ring-inset');
+    e.dataTransfer.dropEffect = dragFromEmp ? 'move' : 'copy';
+}
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('ring-2', 'ring-blue-400', 'ring-inset');
+}
+
+// ── Drop ───────────────────────────────────────────────────────
+function onDrop(e) {
+    e.preventDefault();
+    const td   = e.currentTarget;
+    td.classList.remove('ring-2', 'ring-blue-400', 'ring-inset');
+    const empId = parseInt(td.dataset.emp);
+    const date  = td.dataset.date;
+    if (!dragShiftId) return;
+    // If moving from another cell, clear source first
+    if (dragFromEmp && (dragFromEmp !== empId || dragFromDate !== date)) {
+        doAssign(dragFromEmp, dragFromDate, null);
+    }
+    doAssign(empId, date, dragShiftId);
+}
+
+// ── Shift picker ───────────────────────────────────────────────
+function openShiftPicker(empId, date, currentShiftId) {
+    pickerEmpId = empId;
+    pickerDate  = date;
+    document.getElementById('picker-label').textContent = date;
+    // Highlight current
+    document.querySelectorAll('.picker-btn').forEach(btn => {
+        btn.classList.toggle('ring-2', parseInt(btn.dataset.shiftId) === currentShiftId);
+        btn.classList.toggle('ring-blue-500', parseInt(btn.dataset.shiftId) === currentShiftId);
+    });
+    document.getElementById('modal-shift-picker').classList.remove('hidden');
+}
+
+function assignShift(empId, date, shiftId) {
+    document.getElementById('modal-shift-picker').classList.add('hidden');
+    doAssign(empId, date, shiftId);
+}
+
+// ── Core assign (AJAX) ─────────────────────────────────────────
+function doAssign(empId, date, shiftId) {
+    fetch(ASSIGN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        body: JSON.stringify({ employee_id: empId, date, shift_id: shiftId }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) location.reload();
+    })
+    .catch(() => alert('Gagal menyimpan jadwal.'));
+}
+
+// ── Edit shift modal ───────────────────────────────────────────
+function openEditShift(id, data) {
+    const form = document.getElementById('form-edit-shift');
+    form.action = `/hrm/shifts/shift/${id}`;
+    document.getElementById('edit-name').value        = data.name;
+    document.getElementById('edit-start').value       = data.start_time;
+    document.getElementById('edit-end').value         = data.end_time;
+    document.getElementById('edit-break').value       = data.break_minutes;
+    document.getElementById('edit-color').value       = data.color;
+    document.getElementById('edit-description').value = data.description ?? '';
+    document.getElementById('edit-crosses-midnight').checked = !!data.crosses_midnight;
+    document.getElementById('btn-delete-shift').onclick = () => {
+        if (confirm('Nonaktifkan shift ini?')) {
+            fetch(`/hrm/shifts/shift/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            }).then(() => location.reload());
+        }
+    };
+    document.getElementById('modal-add-shift').classList.add('hidden');
+    document.getElementById('modal-edit-shift').classList.remove('hidden');
+}
+
+// ── AI Conflict Detection ──────────────────────────────────────
+function runConflictDetection() {
+    const panel = document.getElementById('conflict-panel');
+    const loading = document.getElementById('conflict-loading');
+    const content = document.getElementById('conflict-content');
+    const btn = document.getElementById('conflict-btn');
+
+    panel.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    content.innerHTML = '';
+    btn.disabled = true;
+
+    fetch(CONFLICT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        body: JSON.stringify({ week_start: WEEK_START }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        loading.classList.add('hidden');
+        btn.disabled = false;
+        if (data.conflicts && data.conflicts.length > 0) {
+            content.innerHTML = data.conflicts.map(c => `
+                <div class="flex items-start gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20">
+                    <span class="text-orange-500 mt-0.5">⚠</span>
+                    <p class="text-xs text-orange-700 dark:text-orange-300">${c}</p>
+                </div>`).join('');
+        } else {
+            content.innerHTML = '<p class="text-xs text-green-600 dark:text-green-400 text-center py-2">✓ Tidak ada konflik jadwal ditemukan.</p>';
+        }
+        if (data.summary) {
+            document.getElementById('conflict-summary').innerHTML =
+                `<p class="text-xs text-gray-500 dark:text-slate-400">${data.summary}</p>`;
+            document.getElementById('conflict-summary').classList.remove('hidden');
+        }
+    })
+    .catch(() => {
+        loading.classList.add('hidden');
+        btn.disabled = false;
+        content.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Gagal menganalisis konflik.</p>';
+    });
+}
+</script>
+@endpush
+
+</x-app-layout>

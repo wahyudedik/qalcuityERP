@@ -1,10 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('simulations.index') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">←</a>
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ $simulation->name }}</h2>
-        </div>
-    </x-slot>
+    <x-slot name="header">{{ $simulation->name }}</x-slot>
 
     <div class="py-6 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         @php

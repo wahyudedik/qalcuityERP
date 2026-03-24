@@ -26,7 +26,7 @@
         {{-- Logo --}}
         <div class="relative z-10">
             <div class="flex items-center gap-3">
-                <img src="/logo.png" alt="Qalcuity ERP" class="h-9 w-auto object-contain">
+                <img src="/logo.png" alt="Qalcuity ERP" class="h-9 w-auto object-contain" style="filter: brightness(0) invert(1);">
             </div>
         </div>
 
@@ -66,7 +66,7 @@
         <div class="mx-auto w-full max-w-sm">
             {{-- Mobile logo --}}
             <div class="lg:hidden flex items-center gap-2 mb-8">
-                <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain">
+                <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0">
             </div>
 
             {{ $slot }}

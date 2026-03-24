@@ -59,6 +59,43 @@
     /* Error/warning blocks */
     .dark .chat-error-block { background: rgba(239,68,68,0.1) !important; border-color: rgba(239,68,68,0.2) !important; color: #fca5a5 !important; }
     .dark .chat-warn-block { background: rgba(245,158,11,0.1) !important; border-color: rgba(245,158,11,0.2) !important; color: #fcd34d !important; }
+
+    /* ── AI-generated HTML inside prose-chat: force dark mode colors ── */
+    /* Override bg-white / bg-gray-* cards */
+    .dark .prose-chat [class*="bg-white"],
+    .dark .prose-chat [class*="bg-gray-50"],
+    .dark .prose-chat [class*="bg-gray-100"] {
+        background-color: rgba(255,255,255,0.06) !important;
+        border-color: rgba(255,255,255,0.08) !important;
+    }
+    /* Override dark text colors */
+    .dark .prose-chat [class*="text-gray-900"],
+    .dark .prose-chat [class*="text-gray-800"],
+    .dark .prose-chat [class*="text-gray-700"] {
+        color: #f1f5f9 !important;
+    }
+    .dark .prose-chat [class*="text-gray-600"],
+    .dark .prose-chat [class*="text-gray-500"] {
+        color: #94a3b8 !important;
+    }
+    .dark .prose-chat [class*="text-gray-400"] {
+        color: #64748b !important;
+    }
+    /* Override border colors */
+    .dark .prose-chat [class*="border-gray-200"],
+    .dark .prose-chat [class*="border-gray-100"] {
+        border-color: rgba(255,255,255,0.08) !important;
+    }
+    /* Override divide colors */
+    .dark .prose-chat [class*="divide-gray-"] > * {
+        border-color: rgba(255,255,255,0.06) !important;
+    }
+    /* Ensure all plain text inside AI cards is visible */
+    .dark .prose-chat div,
+    .dark .prose-chat span,
+    .dark .prose-chat p {
+        color: inherit;
+    }
 </style>
 @endpush
 

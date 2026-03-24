@@ -1,7 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Zero Input ERP</h2>
-    </x-slot>
+    <x-slot name="header">Zero Input ERP</x-slot>
 
     <div class="py-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         @if(session('success'))
