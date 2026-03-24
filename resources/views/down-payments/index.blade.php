@@ -7,11 +7,13 @@
             <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Uang Muka (Down Payment)</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola uang muka customer dan supplier</p>
         </div>
+        @canmodule('down_payments', 'create')
         <button onclick="document.getElementById('modalDP').classList.remove('hidden')"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Catat Uang Muka
         </button>
+        @endcanmodule
     </div>
 
     {{-- Stats --}}
@@ -214,7 +216,7 @@ function toggleParty() {
 }
 
 function openApplyModal(dpId, dpNumber, remaining) {
-    document.getElementById('applyForm').action = `/down-payments/${dpId}/apply`;
+    document.getElementById('applyForm').action = '{{ url("down-payments") }}/' + dpId + '/apply';
     document.getElementById('applyDpNumber').textContent = dpNumber;
     document.getElementById('applyDpRemaining').textContent = 'Rp ' + remaining.toLocaleString('id-ID');
     document.getElementById('applyAmount').max = remaining;

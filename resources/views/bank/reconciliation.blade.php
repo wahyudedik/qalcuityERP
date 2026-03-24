@@ -240,7 +240,7 @@
     // ── Apply match ───────────────────────────────────────────────────
     async function applyMatch(stmtId, txId, silent = false) {
         try {
-            await fetch(`/bank/ai/apply-match/${stmtId}`, {
+            await fetch('{{ url("bank/ai/apply-match") }}/' + stmtId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                 body: JSON.stringify({ transaction_id: txId }),
@@ -272,7 +272,7 @@
             </div>`;
 
         try {
-            const res = await fetch(`/bank/ai/match/${id}`);
+            const res = await fetch('{{ url("bank/ai/match") }}/' + id);
             const data = await res.json();
             aiResults[id] = data;
             renderCell(id, data);

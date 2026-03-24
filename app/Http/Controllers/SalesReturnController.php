@@ -179,7 +179,7 @@ class SalesReturnController extends Controller
             }
 
             // GL Posting
-            app(GlPostingService::class)->postSalesReturn(
+            $glResult = app(GlPostingService::class)->postSalesReturn(
                 tenantId:     $tid,
                 userId:       auth()->id(),
                 returnNumber: $salesReturn->number,
@@ -189,6 +189,9 @@ class SalesReturnController extends Controller
                 total:        (float) $salesReturn->total,
                 date:         $salesReturn->return_date->toDateString(),
             );
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
+            }
 
             // Jika refund ke customer balance
             if ($salesReturn->refund_method === 'customer_balance') {

@@ -604,7 +604,7 @@ async function flushQueue() {
     let synced = 0;
     for (const item of items) {
         try {
-            const res = await fetch('/pos/checkout', {
+            const res = await fetch('{{ route("pos.checkout") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': item.csrf },
                 body: JSON.stringify(item.payload),

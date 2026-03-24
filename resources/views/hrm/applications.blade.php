@@ -183,7 +183,7 @@
     <script>
     function openUpdateStage(id, name, stage, interviewDate, interviewLoc, salary, joinDate, notes) {
         document.getElementById('stage-modal-title').textContent = 'Update Status — ' + name;
-        document.getElementById('form-update-stage').action = '/hrm/recruitment/applications/' + id + '/stage';
+        document.getElementById('form-update-stage').action = '{{ url("hrm/recruitment/applications") }}/' + id + '/stage';
         document.getElementById('us-stage').value          = stage;
         document.getElementById('us-interview-date').value = interviewDate;
         document.getElementById('us-interview-loc').value  = interviewLoc;

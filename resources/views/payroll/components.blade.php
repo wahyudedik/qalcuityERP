@@ -205,7 +205,7 @@
         document.getElementById('form-title').textContent = 'Edit Komponen';
         document.getElementById('form-method').value = 'PUT';
         document.getElementById('form-comp-id').value = id;
-        document.getElementById('comp-form').action = `/payroll/components/${id}`;
+        document.getElementById('comp-form').action = '{{ url("payroll/components") }}/' + id;
         document.getElementById('f-name').value = name;
         document.getElementById('f-code').value = code;
         document.getElementById('f-type').value = type;
@@ -232,7 +232,7 @@
         document.getElementById('emp-modal').classList.remove('hidden');
         document.getElementById('modal-body').innerHTML = '<div class="text-center py-8 text-gray-400 dark:text-slate-500 text-sm">Memuat...</div>';
 
-        const res = await fetch(`/payroll/components/employee/${empId}/json`);
+        const res = await fetch('{{ url("payroll/components/employee") }}/' + empId + '/json');
         const data = await res.json();
         allComponents = data.all;
         empRows = data.assigned.map(a => ({ comp_id: a.comp_id, name: a.name, type: a.type, calc_type: a.calc_type, amount: a.amount }));
@@ -318,7 +318,7 @@
 
     async function saveEmpComponents() {
         const payload = { components: empRows.map(r => ({ component_id: r.comp_id, amount: r.amount })) };
-        const res = await fetch(`/payroll/components/employee/${currentEmpId}/save`, {
+        const res = await fetch('{{ url("payroll/components/employee") }}/' + currentEmpId + '/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
             body: JSON.stringify(payload),

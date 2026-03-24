@@ -48,8 +48,10 @@
             </form>
             <div class="flex gap-2">
                 <a href="{{ route('hrm.attendance') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Absensi</a>
+                @canmodule('hrm', 'create')
                 <button onclick="document.getElementById('modal-add-emp').classList.remove('hidden')"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Karyawan</button>
+                @endcanmodule
             </div>
         </div>
     </div>
@@ -118,20 +120,24 @@
                         <td class="px-4 py-3 hidden lg:table-cell text-xs text-gray-500 dark:text-slate-400">{{ $emp->join_date?->format('d M Y') ?? '-' }}</td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
+                                @canmodule('hrm', 'edit')
                                 <button onclick="openEditEmp({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ addslashes($emp->position ?? '') }}', '{{ addslashes($emp->department ?? '') }}', {{ $emp->salary ?? 0 }}, '{{ $emp->phone ?? '' }}', '{{ $emp->email ?? '' }}', '{{ $emp->join_date?->format('Y-m-d') ?? '' }}', '{{ $emp->status }}')"
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
+                                @endcanmodule
                                 <button onclick="openSalarySuggest({{ $emp->id }}, '{{ addslashes($emp->name) }}')"
                                     class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="Saran Gaji AI">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                                 </button>
+                                @canmodule('hrm', 'delete')
                                 <form method="POST" action="{{ route('hrm.destroy', $emp) }}" onsubmit="return confirm('Tandai karyawan ini sebagai resign?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Resign">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                     </button>
                                 </form>
+                                @endcanmodule
                             </div>
                         </td>
                     </tr>
@@ -263,7 +269,7 @@
     @push('scripts')
     <script>
     function openEditEmp(id, name, position, department, salary, phone, email, joinDate, status) {
-        document.getElementById('form-edit-emp').action = '/hrm/' + id;
+        document.getElementById('form-edit-emp').action = '{{ url("hrm") }}/' + id;
         document.getElementById('ee-name').value = name;
         document.getElementById('ee-position').value = position;
         document.getElementById('ee-department').value = department;
@@ -352,7 +358,7 @@
     function applySalary(empId, salary) {
         document.getElementById('modal-salary-suggest').classList.add('hidden');
         // Pre-fill edit modal with suggested salary
-        document.getElementById('form-edit-emp').action = '/hrm/' + empId;
+        document.getElementById('form-edit-emp').action = '{{ url("hrm") }}/' + empId;
         document.getElementById('ee-salary').value = salary;
         document.getElementById('modal-edit-emp').classList.remove('hidden');
     }
@@ -370,7 +376,7 @@
         document.getElementById('turnover-content').innerHTML = '';
 
         try {
-            const res  = await fetch('/hrm/ai/turnover-risk');
+            const res  = await fetch('{{ route("hrm.ai.turnover-risk") }}');
             const data = await res.json();
             document.getElementById('turnover-loading').classList.add('hidden');
             document.getElementById('turnover-content').innerHTML = renderTurnoverRisk(data);

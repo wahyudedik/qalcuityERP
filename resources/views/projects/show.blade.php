@@ -240,8 +240,9 @@
 
     @push('scripts')
     <script>
+    const TASK_STATUS_BASE = '{{ url("projects/tasks") }}/';
     async function updateTaskStatus(taskId, status) {
-        const res = await fetch(`/projects/tasks/${taskId}/status`, {
+        const res = await fetch(TASK_STATUS_BASE + taskId + '/status', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({ status }),

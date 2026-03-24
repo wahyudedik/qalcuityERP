@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\ActivityLog;
 use App\Models\AssetDepreciation;
 use App\Models\AssetMaintenance;
 use Illuminate\Http\Request;
@@ -77,6 +78,53 @@ class AssetController extends Controller
         $asset->update($data);
 
         return back()->with('success', "Aset {$asset->name} berhasil diperbarui.");
+    }
+
+    public function destroy(Asset $asset)
+    {
+        abort_unless($asset->tenant_id === $this->tenantId(), 403);
+
+        $name = $asset->name;
+
+        // Jika ada catatan depresiasi, hanya ubah status ke disposed
+        if ($asset->depreciations()->exists()) {
+            $asset->update(['status' => 'disposed']);
+            return back()->with('success', "Aset {$name} ditandai sebagai disposed (memiliki riwayat depresiasi).");
+        }
+
+        $asset->maintenances()->delete();
+        $asset->delete();
+
+        ActivityLog::record('asset_deleted', "Aset dihapus: {$name}", null, ['name' => $name], []);
+
+        return back()->with('success', "Aset {$name} berhasil dihapus.");
+    }
+
+    public function schedule(Asset $asset)
+    {
+        abort_unless($asset->tenant_id === $this->tenantId(), 403);
+
+        $depreciations = $asset->depreciations()->orderBy('period')->get();
+
+        // Generate full projected schedule (remaining periods)
+        $projected = [];
+        if ($asset->status === 'active' && $asset->current_value > $asset->salvage_value) {
+            $monthlyDep  = $asset->monthlyDepreciation();
+            $bookValue   = (float) $asset->current_value;
+            $salvage     = (float) $asset->salvage_value;
+            $lastPeriod  = $depreciations->last()?->period ?? now()->subMonth()->format('Y-m');
+            $maxMonths   = ($asset->useful_life_years * 12) - $depreciations->count();
+
+            for ($i = 1; $i <= min($maxMonths, 60); $i++) {
+                $period    = \Carbon\Carbon::parse($lastPeriod . '-01')->addMonths($i)->format('Y-m');
+                $dep       = min($monthlyDep, max(0, $bookValue - $salvage));
+                $bookValue = max($salvage, $bookValue - $dep);
+                $projected[] = ['period' => $period, 'amount' => $dep, 'book_value' => $bookValue];
+                if ($bookValue <= $salvage) break;
+            }
+        }
+
+        return view('assets.schedule', compact('asset', 'depreciations', 'projected'));
     }
 
     public function depreciate(Request $request)

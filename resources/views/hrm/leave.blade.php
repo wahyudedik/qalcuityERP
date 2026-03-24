@@ -206,7 +206,7 @@
     @push('scripts')
     <script>
     function openApprove(id, name) {
-        document.getElementById('form-approve-leave').action = '/hrm/leave/' + id + '/approve';
+        document.getElementById('form-approve-leave').action = '{{ url("hrm/leave") }}/' + id + '/approve';
         document.getElementById('approve-emp-name').textContent = 'Karyawan: ' + name;
         document.getElementById('modal-approve-leave').classList.remove('hidden');
     }

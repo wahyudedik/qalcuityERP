@@ -1,95 +1,133 @@
-@extends('layouts.app')
-
-@section('title', 'Izin Akses — ' . $user->name)
-
-@section('content')
-<div class="max-w-5xl mx-auto px-4 py-6">
-
-    {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Izin Akses: {{ $user->name }}</h1>
-            <p class="text-sm text-gray-500 mt-1">
-                Role: <span class="font-medium text-blue-600">{{ $user->roleLabel() }}</span>
-                &mdash; Centang untuk mengizinkan, kosongkan untuk menolak.
-                Override ini menggantikan default role.
-            </p>
-        </div>
+<x-app-layout>
+    <x-slot name="title">Izin Akses — {{ $user->name }}</x-slot>
+    <x-slot name="header">Izin Akses: {{ $user->name }}</x-slot>
+    <x-slot name="topbarActions">
         <a href="{{ route('tenant.users.index') }}"
-           class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-            &larr; Kembali
+           class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Kembali
         </a>
+    </x-slot>
+
+    @php
+        $categories   = \App\Services\PermissionService::moduleCategories();
+        $actionLabels = ['view' => 'Lihat', 'create' => 'Tambah', 'edit' => 'Edit', 'delete' => 'Hapus'];
+    @endphp
+
+    {{-- User info --}}
+    <div class="mb-5 flex items-center gap-4 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4">
+        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+            {{ strtoupper(substr($user->name, 0, 1)) }}
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-900 dark:text-white">{{ $user->name }}</p>
+            <p class="text-xs text-slate-400">{{ $user->email }} &middot; Role: <span class="text-blue-400 font-medium">{{ $user->roleLabel() }}</span></p>
+        </div>
+        <div class="text-xs text-slate-500 text-right hidden sm:block">
+            <p>Centang = izinkan &nbsp;|&nbsp; Kosong = tolak</p>
+            <p class="text-amber-400 mt-0.5">Override menggantikan default role</p>
+        </div>
     </div>
 
     @if(session('success'))
-        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-            {{ session('success') }}
-        </div>
+    <div class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-400 text-sm px-4 py-3 rounded-xl">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        {{ session('success') }}
+    </div>
     @endif
 
     <form method="POST" action="{{ route('tenant.users.permissions.save', $user) }}">
         @csrf
 
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-700/50">
-                    <tr>
-                        <th class="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300 w-48">Modul</th>
-                        @foreach(['view' => 'Lihat', 'create' => 'Tambah', 'edit' => 'Edit', 'delete' => 'Hapus'] as $act => $label)
-                            <th class="text-center px-3 py-3 font-medium text-gray-600 dark:text-gray-300 w-20">{{ $label }}</th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                    @foreach($modules as $module => $actions)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                            <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">
-                                {{ \App\Services\PermissionService::moduleLabel($module) }}
-                            </td>
-                            @foreach(['view', 'create', 'edit', 'delete'] as $action)
-                                <td class="text-center px-3 py-3">
-                                    @if(in_array($action, $actions))
-                                        @php
-                                            $key     = "{$module}.{$action}";
-                                            $current = $userPerms[$module][$action] ?? false;
-                                        @endphp
-                                        <input type="checkbox"
-                                               name="perms[{{ $key }}]"
-                                               value="1"
-                                               {{ $current ? 'checked' : '' }}
-                                               class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
-                                    @else
-                                        <span class="text-gray-300 dark:text-gray-600">—</span>
-                                    @endif
-                                </td>
-                            @endforeach
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="space-y-4">
+            @foreach($categories as $catLabel => $catModules)
+                @php
+                    // Only show categories that have at least one module in MODULES
+                    $visibleModules = array_filter($catModules, fn($m) => isset($modules[$m]));
+                @endphp
+                @if(count($visibleModules) === 0) @continue @endif
+
+                <div class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+                    {{-- Category header --}}
+                    <div class="px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03]">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">{{ $catLabel }}</h3>
+                    </div>
+
+                    {{-- Table --}}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-100 dark:border-white/5">
+                                    <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 w-52">Modul</th>
+                                    @foreach($actionLabels as $act => $lbl)
+                                        <th class="text-center px-4 py-2.5 text-xs font-semibold text-slate-500 w-20">{{ $lbl }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 dark:divide-white/[0.03]">
+                                @foreach($visibleModules as $module)
+                                    @php $actions = $modules[$module]; @endphp
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition">
+                                        <td class="px-5 py-3 font-medium text-gray-800 dark:text-slate-200 text-sm">
+                                            {{ \App\Services\PermissionService::moduleLabel($module) }}
+                                            @php
+                                                // Show if this row has any override vs role default
+                                                $hasOverride = false;
+                                                foreach ($actions as $act) {
+                                                    $roleVal = is_array($roleDefault) ? in_array($act, $roleDefault[$module] ?? []) : ($roleDefault === '*');
+                                                    $curVal  = $userPerms[$module][$act] ?? false;
+                                                    if ($curVal !== $roleVal) { $hasOverride = true; break; }
+                                                }
+                                            @endphp
+                                            @if($hasOverride)
+                                                <span class="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">override</span>
+                                            @endif
+                                        </td>
+                                        @foreach($actionLabels as $action => $lbl)
+                                            <td class="text-center px-4 py-3">
+                                                @if(in_array($action, $actions))
+                                                    @php
+                                                        $key     = "{$module}.{$action}";
+                                                        $current = $userPerms[$module][$action] ?? false;
+                                                        $isDefault = is_array($roleDefault)
+                                                            ? in_array($action, $roleDefault[$module] ?? [])
+                                                            : ($roleDefault === '*');
+                                                    @endphp
+                                                    <input type="checkbox"
+                                                           name="perms[{{ $key }}]"
+                                                           value="1"
+                                                           {{ $current ? 'checked' : '' }}
+                                                           title="{{ $isDefault ? 'Default role: izin' : 'Default role: tolak' }}"
+                                                           class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-500 bg-white dark:bg-white/10 focus:ring-blue-500 cursor-pointer accent-blue-500">
+                                                @else
+                                                    <span class="text-slate-700 text-xs">—</span>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endforeach
         </div>
 
-        <div class="flex items-center gap-3 mt-4">
+        {{-- Actions --}}
+        <div class="flex items-center gap-3 mt-6 pb-6">
             <button type="submit"
-                    class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
+                    class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
                 Simpan Izin
             </button>
-
             <button type="button"
-                    onclick="document.getElementById('reset-form').submit()"
-                    class="px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition">
+                    onclick="if(confirm('Reset semua izin ke default role {{ $user->roleLabel() }}?')) document.getElementById('reset-form').submit()"
+                    class="px-6 py-2.5 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 text-sm font-semibold rounded-xl transition">
                 Reset ke Default Role
             </button>
         </div>
     </form>
 
-    {{-- Hidden reset form --}}
-    <form id="reset-form" method="POST"
-          action="{{ route('tenant.users.permissions.reset', $user) }}"
-          onsubmit="return confirm('Reset semua izin ke default role {{ $user->roleLabel() }}?')">
-        @csrf
-        @method('DELETE')
+    <form id="reset-form" method="POST" action="{{ route('tenant.users.permissions.reset', $user) }}" class="hidden">
+        @csrf @method('DELETE')
     </form>
-
-</div>
-@endsection
+</x-app-layout>

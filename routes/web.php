@@ -85,8 +85,8 @@ Route::middleware('auth')->group(function () {
     // Chat / AI ERP
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
-        Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware('throttle:ai-chat');
-        Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media')->middleware('throttle:ai-media');
+        Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware(['throttle:ai-chat', 'ai.quota']);
+        Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media')->middleware(['throttle:ai-media', 'ai.quota']);
         Route::get('/{session}/messages', [ChatController::class, 'messages'])->name('messages')->middleware('tenant.isolation');
         Route::patch('/{session}/rename', [ChatController::class, 'rename'])->name('rename')->middleware('tenant.isolation');
         Route::delete('/{session}', [ChatController::class, 'destroy'])->name('destroy')->middleware('tenant.isolation');
@@ -247,9 +247,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/import', [BankReconciliationController::class, 'import'])->name('import');
         Route::post('/statements/{statement}/match', [BankReconciliationController::class, 'match'])->name('match');
         // AI
-        Route::get('/ai/match-all', [BankReconciliationController::class, 'aiMatchAll'])->name('ai.match-all');
-        Route::get('/ai/match/{statement}', [BankReconciliationController::class, 'aiMatchOne'])->name('ai.match-one');
-        Route::post('/ai/apply-match/{statement}', [BankReconciliationController::class, 'aiApplyMatch'])->name('ai.apply-match');
+        Route::get('/ai/match-all', [BankReconciliationController::class, 'aiMatchAll'])->name('ai.match-all')->middleware('ai.quota');
+        Route::get('/ai/match/{statement}', [BankReconciliationController::class, 'aiMatchOne'])->name('ai.match-one')->middleware('ai.quota');
+        Route::post('/ai/apply-match/{statement}', [BankReconciliationController::class, 'aiApplyMatch'])->name('ai.apply-match')->middleware('ai.quota');
+    });
+
+    // Bank Accounts (master data)
+    Route::prefix('bank-accounts')->name('bank-accounts.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/',                  [\App\Http\Controllers\BankAccountController::class, 'index'])->name('index');
+        Route::post('/',                 [\App\Http\Controllers\BankAccountController::class, 'store'])->name('store');
+        Route::put('/{bankAccount}',     [\App\Http\Controllers\BankAccountController::class, 'update'])->name('update');
+        Route::patch('/{bankAccount}/toggle', [\App\Http\Controllers\BankAccountController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{bankAccount}',  [\App\Http\Controllers\BankAccountController::class, 'destroy'])->name('destroy');
     });
 
     // Digital Signature
@@ -281,6 +290,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/efaktur', [TaxController::class, 'exportEfaktur'])->name('efaktur');
     });
 
+    // Accounting Settings (COA + Bank + Tax + Currency in one page)
+    Route::prefix('settings/accounting')->name('settings.accounting')->middleware('role:admin')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AccountingSettingsController::class, 'index'])->name('');
+        Route::post('/currencies', [\App\Http\Controllers\AccountingSettingsController::class, 'storeCurrency'])->name('.currencies.store');
+        Route::put('/currencies/{currency}', [\App\Http\Controllers\AccountingSettingsController::class, 'updateCurrency'])->name('.currencies.update');
+        Route::delete('/currencies/{currency}', [\App\Http\Controllers\AccountingSettingsController::class, 'destroyCurrency'])->name('.currencies.destroy');
+    });
+
     // E-commerce (admin + manager only)
     Route::prefix('ecommerce')->name('ecommerce.')->middleware('role:admin,manager')->group(function () {
         Route::get('/', [EcommerceController::class, 'index'])->name('index');
@@ -289,14 +306,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Sales AI — contextual suggestions (AJAX)
-    Route::prefix('sales/ai')->name('sales.ai.')->middleware(['role:admin,manager'])->group(function () {
+    Route::prefix('sales/ai')->name('sales.ai.')->middleware(['role:admin,manager', 'ai.quota'])->group(function () {
         Route::get('/price-suggest',     [\App\Http\Controllers\SalesAiController::class, 'priceSuggest'])->name('price-suggest');
         Route::get('/late-payment-risk', [\App\Http\Controllers\SalesAiController::class, 'latePaymentRisk'])->name('late-payment-risk');
         Route::get('/item-description',  [\App\Http\Controllers\SalesAiController::class, 'itemDescription'])->name('item-description');
     });
 
     // Accounting AI — contextual suggestions (AJAX)
-    Route::prefix('accounting/ai')->name('accounting.ai.')->middleware(['role:admin,manager'])->group(function () {
+    Route::prefix('accounting/ai')->name('accounting.ai.')->middleware(['role:admin,manager', 'ai.quota'])->group(function () {
         Route::get('/suggest-accounts',    [\App\Http\Controllers\AccountingAiController::class, 'suggestAccounts'])->name('suggest-accounts');
         Route::post('/check-journal',      [\App\Http\Controllers\AccountingAiController::class, 'checkJournal'])->name('check-journal');
         Route::get('/categorize-statement',[\App\Http\Controllers\AccountingAiController::class, 'categorizeStatement'])->name('categorize-statement');
@@ -330,7 +347,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('inventory')->name('inventory.')->middleware('tenant.isolation')->group(function () {
         Route::get('/', [InventoryController::class, 'index'])->name('index');
-        Route::get('/warehouses', [InventoryController::class, 'warehouses'])->name('warehouses');
+        Route::get('/warehouses', fn() => redirect()->route('warehouses.index'))->name('warehouses');
         Route::get('/movements', [InventoryController::class, 'movements'])->name('movements');
 
         // Write operations: admin + manager only
@@ -343,9 +360,9 @@ Route::middleware('auth')->group(function () {
             Route::patch('/batches/{batch}/status', [InventoryController::class, 'updateBatchStatus'])->name('batches.status');
             Route::post('/warehouses', [InventoryController::class, 'storeWarehouse'])->name('warehouses.store');
             // Inventory AI — contextual (AJAX)
-            Route::get('/ai/analyze-all',          [\App\Http\Controllers\InventoryAiController::class, 'analyzeAll'])->name('ai.analyze-all');
-            Route::get('/ai/stockout/{product}',   [\App\Http\Controllers\InventoryAiController::class, 'stockoutPrediction'])->name('ai.stockout');
-            Route::get('/ai/reorder/{product}',    [\App\Http\Controllers\InventoryAiController::class, 'reorderSuggest'])->name('ai.reorder');
+            Route::get('/ai/analyze-all',          [\App\Http\Controllers\InventoryAiController::class, 'analyzeAll'])->name('ai.analyze-all')->middleware('ai.quota');
+            Route::get('/ai/stockout/{product}',   [\App\Http\Controllers\InventoryAiController::class, 'stockoutPrediction'])->name('ai.stockout')->middleware('ai.quota');
+            Route::get('/ai/reorder/{product}',    [\App\Http\Controllers\InventoryAiController::class, 'reorderSuggest'])->name('ai.reorder')->middleware('ai.quota');
             // Inventory Costing
             Route::get('/costing/valuation',       [\App\Http\Controllers\InventoryCostingController::class, 'valuation'])->name('costing.valuation');
             Route::get('/costing/cogs',            [\App\Http\Controllers\InventoryCostingController::class, 'cogs'])->name('costing.cogs');
@@ -376,10 +393,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/orgchart', [HrmController::class, 'orgChart'])->name('orgchart');
         Route::patch('/{employee}/manager', [HrmController::class, 'updateManager'])->name('manager.update');
         // HRM AI — contextual (AJAX)
-        Route::get('/ai/attendance-anomalies', [\App\Http\Controllers\HrmAiController::class, 'attendanceAnomalies'])->name('ai.attendance-anomalies');
-        Route::get('/ai/salary-suggest/{employee}', [\App\Http\Controllers\HrmAiController::class, 'salarySuggest'])->name('ai.salary-suggest');
-        Route::get('/ai/career-path/{employee}', [\App\Http\Controllers\HrmAiController::class, 'careerPath'])->name('ai.career-path');
-        Route::get('/ai/turnover-risk', [\App\Http\Controllers\HrmAiController::class, 'turnoverRisk'])->name('ai.turnover-risk');
+        Route::get('/ai/attendance-anomalies', [\App\Http\Controllers\HrmAiController::class, 'attendanceAnomalies'])->name('ai.attendance-anomalies')->middleware('ai.quota');
+        Route::get('/ai/salary-suggest/{employee}', [\App\Http\Controllers\HrmAiController::class, 'salarySuggest'])->name('ai.salary-suggest')->middleware('ai.quota');
+        Route::get('/ai/career-path/{employee}', [\App\Http\Controllers\HrmAiController::class, 'careerPath'])->name('ai.career-path')->middleware('ai.quota');
+        Route::get('/ai/turnover-risk', [\App\Http\Controllers\HrmAiController::class, 'turnoverRisk'])->name('ai.turnover-risk')->middleware('ai.quota');
         // Rekrutmen & Onboarding
         Route::prefix('recruitment')->name('recruitment.')->group(function () {
             Route::get('/', [\App\Http\Controllers\RecruitmentController::class, 'index'])->name('index');
@@ -444,18 +461,20 @@ Route::middleware('auth')->group(function () {
             Route::patch('/{letter}/acknowledge', [\App\Http\Controllers\DisciplinaryController::class, 'acknowledge'])->name('acknowledge');
             Route::patch('/{letter}/expire', [\App\Http\Controllers\DisciplinaryController::class, 'expire'])->name('expire');
             Route::delete('/{letter}', [\App\Http\Controllers\DisciplinaryController::class, 'destroy'])->name('destroy');
-            Route::post('/ai-draft', [\App\Http\Controllers\DisciplinaryController::class, 'aiDraft'])->name('ai-draft');
+            Route::post('/ai-draft', [\App\Http\Controllers\DisciplinaryController::class, 'aiDraft'])->name('ai-draft')->middleware('ai.quota');
         });
     });
 
     // Purchasing (admin + manager only)
     Route::prefix('purchasing')->name('purchasing.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/suppliers', [PurchasingController::class, 'suppliers'])->name('suppliers');
-        Route::post('/suppliers', [PurchasingController::class, 'storeSupplier'])->name('suppliers.store');
-        Route::put('/suppliers/{supplier}', [PurchasingController::class, 'updateSupplier'])->name('suppliers.update');
+        // Redirect lama ke /suppliers baru
+        Route::get('/suppliers', fn() => redirect()->route('suppliers.index'))->name('suppliers');
+        Route::post('/suppliers', fn() => redirect()->route('suppliers.index'))->name('suppliers.store');
+        Route::put('/suppliers/{supplier}', fn() => redirect()->route('suppliers.index'))->name('suppliers.update');
         Route::get('/orders', [PurchasingController::class, 'orders'])->name('orders');
         Route::post('/orders', [PurchasingController::class, 'storeOrder'])->name('orders.store');
         Route::patch('/orders/{order}/status', [PurchasingController::class, 'updateOrderStatus'])->name('orders.status');
+        Route::delete('/orders/{order}', [PurchasingController::class, 'destroyOrder'])->name('orders.destroy');
         // Task 35: State machine actions
         Route::post('/orders/{order}/post', [PurchasingController::class, 'postOrder'])->name('orders.post');
         Route::post('/orders/{order}/cancel', [PurchasingController::class, 'cancelOrder'])->name('orders.cancel');
@@ -477,6 +496,42 @@ Route::middleware('auth')->group(function () {
         Route::get('/matching', [PurchasingController::class, 'matching'])->name('matching');
     });
 
+    // Suppliers (master data)
+    Route::prefix('suppliers')->name('suppliers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/',              [\App\Http\Controllers\SupplierController::class, 'index'])->name('index');
+        Route::post('/',             [\App\Http\Controllers\SupplierController::class, 'store'])->name('store');
+        Route::put('/{supplier}',    [\App\Http\Controllers\SupplierController::class, 'update'])->name('update');
+        Route::patch('/{supplier}/toggle', [\App\Http\Controllers\SupplierController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{supplier}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('destroy');
+    });
+
+    // Customers (master data)
+    Route::prefix('customers')->name('customers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/',           [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
+        Route::post('/',          [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
+        Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
+        Route::patch('/{customer}/toggle', [\App\Http\Controllers\CustomerController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
+    });
+
+    // Products (master data)
+    Route::prefix('products')->name('products.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/',            [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
+        Route::post('/',           [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
+        Route::put('/{product}',   [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
+        Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{product}',[\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Warehouses (master data)
+    Route::prefix('warehouses')->name('warehouses.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/',               [\App\Http\Controllers\WarehouseController::class, 'index'])->name('index');
+        Route::post('/',              [\App\Http\Controllers\WarehouseController::class, 'store'])->name('store');
+        Route::put('/{warehouse}',    [\App\Http\Controllers\WarehouseController::class, 'update'])->name('update');
+        Route::patch('/{warehouse}/toggle', [\App\Http\Controllers\WarehouseController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('destroy');
+    });
+
     // CRM (admin + manager only)
     Route::prefix('crm')->name('crm.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [CrmController::class, 'index'])->name('index');
@@ -485,11 +540,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{lead}/stage', [CrmController::class, 'updateStage'])->name('stage');
         Route::patch('/{lead}/stage-drag', [CrmController::class, 'updateStageDrag'])->name('stage-drag');
         Route::post('/{lead}/activity', [CrmController::class, 'logActivity'])->name('activity');
+        Route::post('/{lead}/convert-customer', [CrmController::class, 'convertToCustomer'])->name('convert-customer');
         Route::delete('/{lead}', [CrmController::class, 'destroy'])->name('destroy');
         // AI
-        Route::get('/ai/score-all', [CrmAiController::class, 'scoreAll'])->name('ai.score-all');
-        Route::get('/ai/score/{lead}', [CrmAiController::class, 'scoreLead'])->name('ai.score');
-        Route::get('/ai/follow-up/{lead}', [CrmAiController::class, 'followUp'])->name('ai.follow-up');
+        Route::get('/ai/score-all', [CrmAiController::class, 'scoreAll'])->name('ai.score-all')->middleware('ai.quota');
+        Route::get('/ai/score/{lead}', [CrmAiController::class, 'scoreLead'])->name('ai.score')->middleware('ai.quota');
+        Route::get('/ai/follow-up/{lead}', [CrmAiController::class, 'followUp'])->name('ai.follow-up')->middleware('ai.quota');
     });
 
     // Project Management (admin + manager only)
@@ -512,8 +568,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
         Route::delete('/{budget}', [BudgetController::class, 'destroy'])->name('destroy');
         // Budget AI — contextual (AJAX)
-        Route::get('/ai/overrun-prediction',  [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun');
-        Route::get('/ai/suggest-allocation',  [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest');
+        Route::get('/ai/overrun-prediction',  [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun')->middleware('ai.quota');
+        Route::get('/ai/suggest-allocation',  [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest')->middleware('ai.quota');
     });
 
     // Loyalty Program (admin + manager only)
@@ -568,6 +624,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AssetController::class, 'index'])->name('index');
         Route::post('/', [AssetController::class, 'store'])->name('store');
         Route::put('/{asset}', [AssetController::class, 'update'])->name('update');
+        Route::delete('/{asset}', [AssetController::class, 'destroy'])->name('destroy');
+        Route::get('/{asset}/schedule', [AssetController::class, 'schedule'])->name('schedule');
         Route::post('/depreciate', [AssetController::class, 'depreciate'])->name('depreciate');
         Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('maintenance');
         Route::post('/maintenance', [AssetController::class, 'storeMaintenance'])->name('maintenance.store');
@@ -638,6 +696,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [QuotationController::class, 'index'])->name('index');
         Route::post('/', [QuotationController::class, 'store'])->name('store');
         Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
+        Route::put('/{quotation}', [QuotationController::class, 'update'])->name('update');
         Route::patch('/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('status');
         Route::post('/{quotation}/convert', [QuotationController::class, 'convertToOrder'])->name('convert');
         Route::delete('/{quotation}', [QuotationController::class, 'destroy'])->name('destroy');

@@ -402,7 +402,7 @@ $jsPresets = json_encode([
 
 <script>
 const presets = {!! $jsPresets !!};
-const aiChatEndpoint = '{{ route('onboarding.ai-chat') }}';
+const aiChatEndpoint = "{{ route('onboarding.ai-chat') }}";
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 // ── Mode selection ──────────────────────────────────────────────
@@ -566,8 +566,8 @@ async function callAiChat(message) {
 }
 
 // ── Module Selection (Step 3) ────────────────────────────────────
-const moduleRecommendEndpoint = '{{ route('settings.modules.recommend') }}';
-const moduleSaveEndpoint = '{{ route('settings.modules.update') }}';
+const moduleRecommendEndpoint = "{{ route('settings.modules.recommend') }}";
+const moduleSaveEndpoint = "{{ route('settings.modules.update') }}";
 const allModuleMeta = @json(\App\Services\ModuleRecommendationService::MODULE_META);
 let selectedModules = [];
 

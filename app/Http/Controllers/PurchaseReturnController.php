@@ -167,7 +167,7 @@ class PurchaseReturnController extends Controller
 
         DB::transaction(function () use ($purchaseReturn) {
             // GL Posting
-            app(GlPostingService::class)->postPurchaseReturn(
+            $glResult = app(GlPostingService::class)->postPurchaseReturn(
                 tenantId:     $this->tid(),
                 userId:       auth()->id(),
                 returnNumber: $purchaseReturn->number,
@@ -177,6 +177,9 @@ class PurchaseReturnController extends Controller
                 total:        (float) $purchaseReturn->total,
                 date:         $purchaseReturn->return_date->toDateString(),
             );
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
+            }
 
             $purchaseReturn->update(['status' => 'completed']);
             ActivityLog::record('purchase_return_completed', "Retur {$purchaseReturn->number} selesai", $purchaseReturn);

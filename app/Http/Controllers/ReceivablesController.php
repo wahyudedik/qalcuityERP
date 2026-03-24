@@ -75,7 +75,7 @@ class ReceivablesController extends Controller
         $invoice->updatePaymentStatus();
 
         // GL Auto-Posting: Dr Kas/Bank / Cr Piutang Usaha
-        app(GlPostingService::class)->postInvoicePayment(
+        $glResult = app(GlPostingService::class)->postInvoicePayment(
             tenantId:      $this->tid(),
             userId:        auth()->id(),
             invoiceNumber: $invoice->number . '-PAY-' . now()->format('His'),
@@ -84,6 +84,10 @@ class ReceivablesController extends Controller
             method:        $data['method'],
             date:          today()->toDateString(),
         );
+        if ($glResult->isFailed()) {
+            return back()->with('success', 'Pembayaran piutang berhasil dicatat.')
+                ->with('warning', $glResult->warningMessage());
+        }
 
         return back()->with('success', 'Pembayaran piutang berhasil dicatat.');
     }
@@ -270,7 +274,7 @@ class ReceivablesController extends Controller
         $payable->updatePaymentStatus();
 
         // GL Auto-Posting: Dr Hutang Usaha / Cr Kas/Bank
-        app(GlPostingService::class)->postPurchasePayment(
+        $glResult = app(GlPostingService::class)->postPurchasePayment(
             tenantId: $this->tid(),
             userId:   auth()->id(),
             poNumber: ($payable->reference ?? 'PAY') . '-' . now()->format('His'),
@@ -279,6 +283,10 @@ class ReceivablesController extends Controller
             method:   $data['method'],
             date:     today()->toDateString(),
         );
+        if ($glResult->isFailed()) {
+            return back()->with('success', 'Pembayaran hutang berhasil dicatat.')
+                ->with('warning', $glResult->warningMessage());
+        }
 
         return back()->with('success', 'Pembayaran hutang berhasil dicatat.');
     }

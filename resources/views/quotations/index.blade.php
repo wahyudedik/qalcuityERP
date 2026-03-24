@@ -83,6 +83,10 @@
                                     Detail
                                 </a>
                                 @if(in_array($qt->status, ['draft','sent']) && !$expired)
+                                <button onclick="openEditQt({{ $qt->id }}, {{ $qt->customer_id }}, {{ $qt->valid_until ? $qt->date->diffInDays($qt->valid_until) : 7 }}, {{ $qt->discount }}, '{{ addslashes($qt->notes ?? '') }}', @json($qt->items))"
+                                    class="text-xs px-2 py-1 border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                                    Edit
+                                </button>
                                 <form method="POST" action="{{ route('quotations.convert', $qt) }}" class="inline">
                                     @csrf
                                     <button type="submit" class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -186,10 +190,60 @@
         </div>
     </div>
 
+    {{-- Modal Edit Penawaran --}}
+    <div id="modal-edit-qt" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Edit Penawaran</h3>
+                <button onclick="document.getElementById('modal-edit-qt').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <form id="form-edit-qt" method="POST" class="p-6 space-y-4">
+                @csrf @method('PUT')
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Customer *</label>
+                        <select id="eq-customer" name="customer_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Pilih Customer --</option>
+                            @foreach($customers as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Berlaku (hari) *</label>
+                        <input type="number" id="eq-valid-days" name="valid_days" value="7" required min="1" max="365"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-medium text-gray-600 dark:text-slate-400">Item Penawaran *</label>
+                        <button type="button" onclick="addEqItem()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">+ Tambah Item</button>
+                    </div>
+                    <div id="eq-items" class="space-y-2"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Diskon (Rp)</label>
+                        <input type="number" id="eq-discount" name="discount" min="0" step="1000" value="0"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                        <input type="text" id="eq-notes" name="notes" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('modal-edit-qt').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
     let qtItemCount = 1;
-    const productOpts = @json($products->map(fn($p) => ['id'=>$p->id,'name'=>$p->name,'price'=>$p->price_sell]));
+    let eqItemCount = 0;
+    const productOpts = @json($products->map(function($p) { return ['id'=>$p->id,'name'=>$p->name,'price'=>$p->price_sell]; }));
 
     function fillDesc(sel, idx) {
         const opt = sel.options[sel.selectedIndex];
@@ -201,30 +255,60 @@
         }
     }
 
-    function addQtItem() {
-        const i = qtItemCount++;
+    function buildItemRow(prefix, i, item = null) {
+        const opts = productOpts.map(p =>
+            `<option value="${p.id}" data-name="${p.name}" data-price="${p.price}" ${item && item.product_id == p.id ? 'selected' : ''}>${p.name}</option>`
+        ).join('');
         const div = document.createElement('div');
-        div.className = 'qt-item grid grid-cols-12 gap-2 items-center';
-        const opts = productOpts.map(p => `<option value="${p.id}" data-name="${p.name}" data-price="${p.price}">${p.name}</option>`).join('');
+        div.className = `${prefix}-item grid grid-cols-12 gap-2 items-center`;
         div.innerHTML = `
             <div class="col-span-4">
-                <select name="items[${i}][product_id]" onchange="fillDesc(this,${i})" class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="items[${i}][product_id]" onchange="fillDesc(this,'${prefix}-${i}')" class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Produk (opsional) --</option>${opts}
                 </select>
             </div>
             <div class="col-span-3">
-                <input type="text" name="items[${i}][description]" id="desc-${i}" placeholder="Deskripsi *" required class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" name="items[${i}][description]" id="desc-${prefix}-${i}" placeholder="Deskripsi *" required value="${item ? item.description : ''}"
+                    class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="col-span-2">
-                <input type="number" name="items[${i}][quantity]" placeholder="Qty" min="0.001" step="0.001" required class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="number" name="items[${i}][quantity]" placeholder="Qty" min="0.001" step="0.001" required value="${item ? item.quantity : ''}"
+                    class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="col-span-2">
-                <input type="number" name="items[${i}][price]" id="price-${i}" placeholder="Harga" min="0" required class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="number" name="items[${i}][price]" id="price-${prefix}-${i}" placeholder="Harga" min="0" required value="${item ? item.price : ''}"
+                    class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="col-span-1 text-center">
-                <button type="button" onclick="this.closest('.qt-item').remove()" class="text-red-500 hover:text-red-700 text-lg leading-none">×</button>
+                <button type="button" onclick="this.closest('.${prefix}-item').remove()" class="text-red-500 hover:text-red-700 text-lg leading-none">×</button>
             </div>`;
-        document.getElementById('qt-items').appendChild(div);
+        return div;
+    }
+
+    function addQtItem() {
+        const i = qtItemCount++;
+        document.getElementById('qt-items').appendChild(buildItemRow('qt', i));
+    }
+
+    function addEqItem(item = null) {
+        const i = eqItemCount++;
+        document.getElementById('eq-items').appendChild(buildItemRow('eq', i, item));
+    }
+
+    function openEditQt(id, customerId, validDays, discount, notes, items) {
+        const form = document.getElementById('form-edit-qt');
+        form.action = '{{ route("quotations.index") }}/' + id;
+        document.getElementById('eq-customer').value = customerId;
+        document.getElementById('eq-valid-days').value = validDays;
+        document.getElementById('eq-discount').value = discount;
+        document.getElementById('eq-notes').value = notes;
+
+        // Reset items
+        eqItemCount = 0;
+        document.getElementById('eq-items').innerHTML = '';
+        items.forEach(item => addEqItem(item));
+
+        document.getElementById('modal-edit-qt').classList.remove('hidden');
     }
     </script>
     @endpush

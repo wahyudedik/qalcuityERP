@@ -7,11 +7,13 @@
             <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Retur Pembelian</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pengembalian barang ke supplier</p>
         </div>
+        @canmodule('purchasing', 'create')
         <a href="{{ route('purchase-returns.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Retur
         </a>
+        @endcanmodule
     </div>
 
     <div class="grid grid-cols-3 gap-4">
@@ -69,6 +71,7 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-center">
+                        @canmodule('purchasing', 'edit')
                         <div class="flex items-center justify-center gap-2">
                             @if($return->status === 'draft')
                             <form method="POST" action="{{ route('purchase-returns.send', $return) }}" class="inline">
@@ -90,6 +93,7 @@
                             </form>
                             @endif
                         </div>
+                        @endcanmodule
                     </td>
                 </tr>
                 @empty

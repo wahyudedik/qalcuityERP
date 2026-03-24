@@ -134,7 +134,7 @@
     <script>
     (function() {
         let idx = 1;
-        const products = @json($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
+        const products = @json($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name]; }));
 
         function buildSelect(i) {
             return `<option value="">Produk...</option>` +

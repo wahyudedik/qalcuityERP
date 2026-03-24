@@ -252,19 +252,20 @@
             request()->routeIs('chat*')                                                        => 'ai',
             request()->routeIs('quotations*','invoices*','delivery-orders*','down-payments*',
                                'sales-returns*','crm*','loyalty*','pos*','sales.*',
-                               'sales.index','price-lists*')                           => 'sales',
-            request()->routeIs('inventory*','purchasing*','purchase-returns*')                 => 'inventory',
+                               'sales.index','price-lists*')                                  => 'sales',
+            request()->routeIs('inventory*','purchasing*','purchase-returns*') => 'inventory',
+            request()->routeIs('customers*','suppliers*','products*','warehouses*') => 'masterdata',
             request()->routeIs('production*','shipping*','approvals*','ecommerce*','documents*',
                                'projects*','timesheets*') => 'ops',
             request()->routeIs('hrm*','payroll*','self-service*')                              => 'hrm',
-            request()->routeIs('accounting*','expenses*','bank.*',
+            request()->routeIs('accounting*','expenses*','bank.*','bank-accounts*',
                                'receivables*','payables*','bulk-payments*','assets*','budget*',
                                'cost-centers*','deferred*','writeoffs*')               => 'finance',
             request()->routeIs('reports*','kpi*','anomalies*','zero-input*','simulations*') => 'analytics',
             request()->routeIs('company-profile*','settings*','tenant.users*','reminders*',
                                'import*','audit*','notifications*','bot*','api-settings*',
                                'subscription*','cost-centers*','ai-memory*','taxes*',
-                               'custom-fields*','constraints*','company-groups*')      => 'settings',
+                               'custom-fields*','constraints*','company-groups*','bank-accounts*')      => 'settings',
             request()->routeIs('super-admin*')                                                 => 'superadmin',
             default                                                                            => '',
         };
@@ -276,6 +277,7 @@
         @else
             @include('layouts._rail_btn', ['group'=>'home',      'icon'=>'home',      'label'=>'Dashboard'])
             @include('layouts._rail_btn', ['group'=>'ai',        'icon'=>'sparkle',   'label'=>'AI Chat'])
+            @include('layouts._rail_btn', ['group'=>'masterdata','icon'=>'database',  'label'=>'Master Data'])
             @if(!$user?->isGudang())
             @include('layouts._rail_btn', ['group'=>'sales',     'icon'=>'tag',       'label'=>'Penjualan'])
             @endif
@@ -435,6 +437,12 @@
                 {{ session('success') }}
             </div>
             @endif
+            @if(session('warning'))
+            <div class="mb-4 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-xl">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>{{ session('warning') }}</span>
+            </div>
+            @endif
             @if(session('error'))
             <div class="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -451,6 +459,14 @@
 
 
 {{-- ── NAV DATA (PHP → JS) ── --}}
+@php
+    // Permission helper for sidebar — only for non-admin/non-superadmin
+    $ps = app(\App\Services\PermissionService::class);
+    $canView = function(string $module) use ($user, $ps): bool {
+        if (!$user || $user->isAdmin() || $user->isSuperAdmin()) return true;
+        return $ps->check($user, $module, 'view');
+    };
+@endphp
 <script>
 const NAV_GROUPS = {
 @if($user?->isSuperAdmin())
@@ -482,26 +498,38 @@ const NAV_GROUPS = {
       { label: 'AI Chat', href: '{{ route("chat.index") }}', active: {{ request()->routeIs('chat*') ? 'true' : 'false' }} },
     ]
   },
+  masterdata: {
+    title: 'Master Data',
+    items: [
+      { section: 'Kontak' },
+      @if($canView('customers')) { label: 'Data Customer',  href: '{{ route("customers.index") }}',  active: {{ request()->routeIs('customers*') ? 'true' : 'false' }} }, @endif
+      @if($canView('suppliers')) { label: 'Data Supplier',  href: '{{ route("suppliers.index") }}',  active: {{ request()->routeIs('suppliers*') ? 'true' : 'false' }} }, @endif
+      { section: 'Produk & Gudang' },
+      @if($canView('products'))  { label: 'Data Produk',    href: '{{ route("products.index") }}',   active: {{ request()->routeIs('products*') ? 'true' : 'false' }} }, @endif
+      @if($canView('warehouses')){ label: 'Data Gudang',    href: '{{ route("warehouses.index") }}', active: {{ request()->routeIs('warehouses*') ? 'true' : 'false' }} }, @endif
+    ]
+  },
 @if(!$user?->isGudang())
   sales: {
     title: 'Penjualan',
     items: [
+      { section: 'Transaksi' },
 @if($navTenant?->isModuleEnabled('invoicing') ?? true)
-      { label: 'Sales Order',           href: '{{ route("sales.index") }}',            active: {{ request()->routeIs('sales.index','sales.create','sales.show','sales.store') ? 'true' : 'false' }} },
-      { label: 'Penawaran (Quotation)', href: '{{ route("quotations.index") }}',       active: {{ request()->routeIs('quotations*') ? 'true' : 'false' }} },
-      { label: 'Invoice',               href: '{{ route("invoices.index") }}',         active: {{ request()->routeIs('invoices*') ? 'true' : 'false' }} },
-      { label: 'Surat Jalan',           href: '{{ route("delivery-orders.index") }}',  active: {{ request()->routeIs('delivery-orders*') ? 'true' : 'false' }} },
-      { label: 'Uang Muka (DP)',        href: '{{ route("down-payments.index") }}',    active: {{ request()->routeIs('down-payments*') ? 'true' : 'false' }} },
-      { label: 'Retur Penjualan',       href: '{{ route("sales-returns.index") }}',    active: {{ request()->routeIs('sales-returns*') ? 'true' : 'false' }} },
-      { label: 'Daftar Harga',          href: '{{ route("price-lists.index") }}',      active: {{ request()->routeIs('price-lists*') ? 'true' : 'false' }} },
+      @if($canView('sales'))      { label: 'Sales Order',           href: '{{ route("sales.index") }}',            active: {{ request()->routeIs('sales.index','sales.create','sales.show','sales.store') ? 'true' : 'false' }} }, @endif
+      @if($canView('invoices'))   { label: 'Penawaran (Quotation)', href: '{{ route("quotations.index") }}',       active: {{ request()->routeIs('quotations*') ? 'true' : 'false' }} }, @endif
+      @if($canView('invoices'))   { label: 'Invoice',               href: '{{ route("invoices.index") }}',         active: {{ request()->routeIs('invoices*') ? 'true' : 'false' }} }, @endif
+      @if($canView('delivery'))   { label: 'Surat Jalan',           href: '{{ route("delivery-orders.index") }}',  active: {{ request()->routeIs('delivery-orders*') ? 'true' : 'false' }} }, @endif
+      @if($canView('down_payments')) { label: 'Uang Muka (DP)',     href: '{{ route("down-payments.index") }}',    active: {{ request()->routeIs('down-payments*') ? 'true' : 'false' }} }, @endif
+      @if($canView('sales_returns')) { label: 'Retur Penjualan',    href: '{{ route("sales-returns.index") }}',    active: {{ request()->routeIs('sales-returns*') ? 'true' : 'false' }} }, @endif
+      @if($canView('price_lists')) { label: 'Daftar Harga',         href: '{{ route("price-lists.index") }}',      active: {{ request()->routeIs('price-lists*') ? 'true' : 'false' }} }, @endif
 @endif
-@if($navTenant?->isModuleEnabled('crm') ?? true)
+@if(($navTenant?->isModuleEnabled('crm') ?? true) && $canView('crm'))
       { label: 'CRM & Pipeline',        href: '{{ route("crm.index") }}',              active: {{ request()->routeIs('crm*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('loyalty') ?? true)
+@if(($navTenant?->isModuleEnabled('loyalty') ?? true) && $canView('loyalty'))
       { label: 'Program Loyalitas',     href: '{{ route("loyalty.index") }}',          active: {{ request()->routeIs('loyalty*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('pos') ?? true)
+@if(($navTenant?->isModuleEnabled('pos') ?? true) && $canView('pos'))
       { label: 'Kasir (POS)',           href: '{{ route("pos.index") }}',              active: {{ request()->routeIs('pos*') ? 'true' : 'false' }} },
 @endif
     ]
@@ -510,12 +538,13 @@ const NAV_GROUPS = {
   inventory: {
     title: 'Inventori',
     items: [
-@if($navTenant?->isModuleEnabled('inventory') ?? true)
-      { label: 'Inventori',             href: '{{ route("inventory.index") }}',        active: {{ request()->routeIs('inventory*') ? 'true' : 'false' }} },
+@if(($navTenant?->isModuleEnabled('inventory') ?? true) && $canView('inventory'))
+      { label: 'Inventori',             href: '{{ route("inventory.index") }}',        active: {{ request()->routeIs('inventory.index') ? 'true' : 'false' }} },
+      { label: 'Transfer Stok',         href: '{{ route("inventory.transfers.index") }}', active: {{ request()->routeIs('inventory.transfers*') ? 'true' : 'false' }} },
 @endif
-@if(($user?->isAdmin() || $user?->isManager()) && ($navTenant?->isModuleEnabled('purchasing') ?? true))
+@if(($user?->isAdmin() || $user?->isManager()) && ($navTenant?->isModuleEnabled('purchasing') ?? true) && $canView('purchasing'))
       { section: 'Pembelian' },
-      { label: 'Pembelian',             href: '{{ route("purchasing.suppliers") }}',   active: {{ request()->routeIs('purchasing.suppliers*','purchasing.orders*') ? 'true' : 'false' }} },
+      { label: 'Pembelian',             href: '{{ route("purchasing.orders") }}',       active: {{ request()->routeIs('purchasing.orders*') ? 'true' : 'false' }} },
       { label: 'Purchase Requisition',  href: '{{ route("purchasing.requisitions") }}',active: {{ request()->routeIs('purchasing.requisitions*') ? 'true' : 'false' }} },
       { label: 'RFQ',                   href: '{{ route("purchasing.rfq") }}',         active: {{ request()->routeIs('purchasing.rfq*') ? 'true' : 'false' }} },
       { label: 'Goods Receipt',         href: '{{ route("purchasing.goods-receipts") }}', active: {{ request()->routeIs('purchasing.goods-receipts*') ? 'true' : 'false' }} },
@@ -528,22 +557,22 @@ const NAV_GROUPS = {
   ops: {
     title: 'Operasional',
     items: [
-@if($navTenant?->isModuleEnabled('pos') ?? true)
+@if(($navTenant?->isModuleEnabled('pos') ?? true) && $canView('pos'))
       { label: 'Kasir (POS)',           href: '{{ route("pos.index") }}',              active: {{ request()->routeIs('pos*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('production') ?? true)
+@if(($navTenant?->isModuleEnabled('production') ?? true) && $canView('production'))
       { label: 'Produksi / WO',         href: '{{ route("production.index") }}',       active: {{ request()->routeIs('production*') ? 'true' : 'false' }} },
 @endif
-      { label: 'Pengiriman',            href: '{{ route("shipping.index") }}',         active: {{ request()->routeIs('shipping*') ? 'true' : 'false' }} },
-      { label: 'Persetujuan',           href: '{{ route("approvals.index") }}',        active: {{ request()->routeIs('approvals*') ? 'true' : 'false' }}, badge: {{ \App\Models\ApprovalRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status','pending')->count() ?: 'null' }} },
-@if($navTenant?->isModuleEnabled('ecommerce') ?? true)
+      @if($canView('shipping'))      { label: 'Pengiriman',            href: '{{ route("shipping.index") }}',         active: {{ request()->routeIs('shipping*') ? 'true' : 'false' }} }, @endif
+      @if($canView('approvals'))     { label: 'Persetujuan',           href: '{{ route("approvals.index") }}',        active: {{ request()->routeIs('approvals*') ? 'true' : 'false' }}, badge: {{ \App\Models\ApprovalRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status','pending')->count() ?: 'null' }} }, @endif
+@if(($navTenant?->isModuleEnabled('ecommerce') ?? true) && $canView('ecommerce'))
       { label: 'E-Commerce',            href: '{{ route("ecommerce.index") }}',        active: {{ request()->routeIs('ecommerce*') ? 'true' : 'false' }} },
 @endif
-      { label: 'Dokumen',               href: '{{ route("documents.index") }}',        active: {{ request()->routeIs('documents*') ? 'true' : 'false' }} },
-@if($navTenant?->isModuleEnabled('projects') ?? true)
+      @if($canView('documents'))     { label: 'Dokumen',               href: '{{ route("documents.index") }}',        active: {{ request()->routeIs('documents*') ? 'true' : 'false' }} }, @endif
+@if(($navTenant?->isModuleEnabled('projects') ?? true) && $canView('projects'))
       { label: 'Manajemen Proyek',      href: '{{ route("projects.index") }}',         active: {{ request()->routeIs('projects*') ? 'true' : 'false' }} },
-      { label: 'Timesheet',             href: '{{ route("timesheets.index") }}',       active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }} },
 @endif
+      @if($canView('timesheets'))    { label: 'Timesheet',             href: '{{ route("timesheets.index") }}',       active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }} }, @endif
     ]
   },
 @endif
@@ -551,7 +580,7 @@ const NAV_GROUPS = {
     title: 'SDM & Karyawan',
     items: [
 @if($user?->isAdmin() || $user?->isManager())
-@if($navTenant?->isModuleEnabled('hrm') ?? true)
+@if(($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm'))
       { section: 'Manajemen SDM' },
       { label: 'Rekrutmen',             href: '{{ route("hrm.recruitment.index") }}',  active: {{ request()->routeIs('hrm.recruitment*','hrm.onboarding*') ? 'true' : 'false' }} },
       { label: 'SDM & Karyawan',        href: '{{ route("hrm.index") }}',              active: {{ request()->routeIs('hrm.index','hrm.store','hrm.update','hrm.destroy','hrm.attendance*') ? 'true' : 'false' }} },
@@ -563,7 +592,7 @@ const NAV_GROUPS = {
       { label: 'Pelatihan & Sertifikasi', href: '{{ route("hrm.training.index") }}',  active: {{ request()->routeIs('hrm.training*') ? 'true' : 'false' }}, badge: {{ \App\Models\EmployeeCertification::where('tenant_id',$user?->tenant_id??0)->where('status','active')->whereNotNull('expiry_date')->where('expiry_date','<=',now()->addDays(90))->count() ?: 'null' }}, badgeClass: 'badge-red' },
       { label: 'Surat Peringatan',      href: '{{ route("hrm.disciplinary.index") }}', active: {{ request()->routeIs('hrm.disciplinary*') ? 'true' : 'false' }}, badge: {{ \App\Models\DisciplinaryLetter::where('tenant_id',$user?->tenant_id??0)->whereIn('status',['issued','acknowledged'])->count() ?: 'null' }} },
 @endif
-@if($navTenant?->isModuleEnabled('payroll') ?? true)
+@if(($navTenant?->isModuleEnabled('payroll') ?? true) && $canView('payroll'))
       { section: 'Penggajian' },
       { label: 'Penggajian',            href: '{{ route("payroll.index") }}',          active: {{ request()->routeIs('payroll.index','payroll.process','payroll.run*') ? 'true' : 'false' }} },
       { label: 'Komponen Gaji',         href: '{{ route("payroll.components.index") }}', active: {{ request()->routeIs('payroll.components*') ? 'true' : 'false' }} },
@@ -580,31 +609,32 @@ const NAV_GROUPS = {
   finance: {
     title: 'Keuangan',
     items: [
-      { label: 'Pengeluaran',           href: '{{ route("expenses.index") }}',         active: {{ request()->routeIs('expenses*') ? 'true' : 'false' }} },
+      @if($canView('expenses'))      { label: 'Pengeluaran',           href: '{{ route("expenses.index") }}',         active: {{ request()->routeIs('expenses*') ? 'true' : 'false' }} }, @endif
 @if($navTenant?->isModuleEnabled('invoicing') ?? true)
-      { label: 'Piutang (AR)',          href: '{{ route("receivables.index") }}',      active: {{ request()->routeIs('receivables*') ? 'true' : 'false' }} },
-      { label: 'Hutang (AP)',           href: '{{ route("payables.index") }}',         active: {{ request()->routeIs('payables*') ? 'true' : 'false' }} },
-      { label: 'Bulk Payment',          href: '{{ route("bulk-payments.index") }}',    active: {{ request()->routeIs('bulk-payments*') ? 'true' : 'false' }} },
+      @if($canView('receivables'))   { label: 'Piutang (AR)',          href: '{{ route("receivables.index") }}',      active: {{ request()->routeIs('receivables*') ? 'true' : 'false' }} }, @endif
+      @if($canView('receivables'))   { label: 'Hutang (AP)',           href: '{{ route("payables.index") }}',         active: {{ request()->routeIs('payables*') ? 'true' : 'false' }} }, @endif
+      @if($canView('bulk_payments')) { label: 'Bulk Payment',          href: '{{ route("bulk-payments.index") }}',    active: {{ request()->routeIs('bulk-payments*') ? 'true' : 'false' }} }, @endif
 @endif
-@if($navTenant?->isModuleEnabled('bank_reconciliation') ?? true)
-      { label: 'Rekonsiliasi Bank',     href: '{{ route("bank.reconciliation") }}', active: {{ request()->routeIs('bank.reconciliation*') ? 'true' : 'false' }} },
+@if(($navTenant?->isModuleEnabled('bank_reconciliation') ?? true) && $canView('bank'))
+      { label: 'Rekening Bank',         href: '{{ route("bank-accounts.index") }}',    active: {{ request()->routeIs('bank-accounts*') ? 'true' : 'false' }} },
+      { label: 'Rekonsiliasi Bank',     href: '{{ route("bank.reconciliation") }}',    active: {{ request()->routeIs('bank.reconciliation*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('budget') ?? true)
+@if(($navTenant?->isModuleEnabled('budget') ?? true) && $canView('budget'))
       { label: 'Anggaran',              href: '{{ route("budget.index") }}',           active: {{ request()->routeIs('budget*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('assets') ?? true)
+@if(($navTenant?->isModuleEnabled('assets') ?? true) && $canView('assets'))
       { label: 'Aset',                  href: '{{ route("assets.index") }}',           active: {{ request()->routeIs('assets*') ? 'true' : 'false' }} },
 @endif
-@if($navTenant?->isModuleEnabled('accounting') ?? true)
+@if(($navTenant?->isModuleEnabled('accounting') ?? true) && $canView('accounting'))
       { section: 'Akuntansi' },
-      { label: 'Jurnal',                href: '{{ route("journals.index") }}',         active: {{ request()->routeIs('journals*') ? 'true' : 'false' }} },
+      @if($canView('journals'))      { label: 'Jurnal',                href: '{{ route("journals.index") }}',         active: {{ request()->routeIs('journals*') ? 'true' : 'false' }} }, @endif
       { label: 'Bagan Akun (COA)',      href: '{{ route("accounting.coa") }}',         active: {{ request()->routeIs('accounting.coa*') ? 'true' : 'false' }} },
       { label: 'Neraca Saldo',          href: '{{ route("accounting.trial-balance") }}', active: {{ request()->routeIs('accounting.trial-balance*') ? 'true' : 'false' }} },
       { label: 'Neraca (Balance Sheet)',href: '{{ route("accounting.balance-sheet") }}', active: {{ request()->routeIs('accounting.balance-sheet*') ? 'true' : 'false' }} },
       { label: 'Laba Rugi (P&L)',       href: '{{ route("accounting.income-statement") }}', active: {{ request()->routeIs('accounting.income-statement*') ? 'true' : 'false' }} },
       { label: 'Arus Kas',              href: '{{ route("accounting.cash-flow") }}',   active: {{ request()->routeIs('accounting.cash-flow*') ? 'true' : 'false' }} },
-      { label: 'Amortisasi / Deferral', href: '{{ route("deferred.index") }}',         active: {{ request()->routeIs('deferred*') ? 'true' : 'false' }} },
-      { label: 'Penghapusan Piutang',   href: '{{ route("writeoffs.index") }}',        active: {{ request()->routeIs('writeoffs*') ? 'true' : 'false' }} },
+      @if($canView('deferred'))      { label: 'Amortisasi / Deferral', href: '{{ route("deferred.index") }}',         active: {{ request()->routeIs('deferred*') ? 'true' : 'false' }} }, @endif
+      @if($canView('writeoffs'))     { label: 'Penghapusan Piutang',   href: '{{ route("writeoffs.index") }}',        active: {{ request()->routeIs('writeoffs*') ? 'true' : 'false' }} }, @endif
       { label: 'Periode Akuntansi',     href: '{{ route("accounting.periods") }}',     active: {{ request()->routeIs('accounting.periods*') ? 'true' : 'false' }} },
 @if($user?->isAdmin())
       { label: 'Kunci Periode & Backup',href: '{{ route("accounting.period-lock.index") }}', active: {{ request()->routeIs('accounting.period-lock*') ? 'true' : 'false' }} },
@@ -615,15 +645,15 @@ const NAV_GROUPS = {
   analytics: {
     title: 'Analitik',
     items: [
-@if($navTenant?->isModuleEnabled('reports') ?? true)
+@if(($navTenant?->isModuleEnabled('reports') ?? true) && $canView('reports'))
       { label: 'Laporan',               href: '{{ route("reports.index") }}',          active: {{ request()->routeIs('reports.index') ? 'true' : 'false' }} },
-      { label: 'KPI Dashboard',         href: '{{ route("kpi.index") }}',              active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }} },
-      { label: 'Proyeksi Arus Kas',     href: '{{ route("reports.cash-flow-projection") }}', active: {{ request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false' }} },
 @endif
+      @if($canView('kpi'))           { label: 'KPI Dashboard',         href: '{{ route("kpi.index") }}',              active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }} }, @endif
+      @if($canView('reports'))       { label: 'Proyeksi Arus Kas',     href: '{{ route("reports.cash-flow-projection") }}', active: {{ request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false' }} }, @endif
       { section: 'AI & Deteksi' },
-      { label: 'Deteksi Anomali',       href: '{{ route("anomalies.index") }}',        active: {{ request()->routeIs('anomalies*') ? 'true' : 'false' }} },
-      { label: 'Input Cerdas (AI)',      href: '{{ route("zero-input.index") }}',       active: {{ request()->routeIs('zero-input*') ? 'true' : 'false' }} },
-      { label: 'Simulasi Keuangan',     href: '{{ route("simulations.index") }}',      active: {{ request()->routeIs('simulations*') ? 'true' : 'false' }} },
+      @if($canView('anomalies'))     { label: 'Deteksi Anomali',       href: '{{ route("anomalies.index") }}',        active: {{ request()->routeIs('anomalies*') ? 'true' : 'false' }} }, @endif
+      @if($canView('zero_input'))    { label: 'Input Cerdas (AI)',      href: '{{ route("zero-input.index") }}',       active: {{ request()->routeIs('zero-input*') ? 'true' : 'false' }} }, @endif
+      @if($canView('simulations'))   { label: 'Simulasi Keuangan',     href: '{{ route("simulations.index") }}',      active: {{ request()->routeIs('simulations*') ? 'true' : 'false' }} }, @endif
     ]
   },
   settings: {
@@ -642,6 +672,7 @@ const NAV_GROUPS = {
       { label: 'Pusat Biaya',           href: '{{ route("cost-centers.index") }}',     active: {{ request()->routeIs('cost-centers*') ? 'true' : 'false' }} },
       { label: 'Memori AI',             href: '{{ route("ai-memory.index") }}',        active: {{ request()->routeIs('ai-memory*') ? 'true' : 'false' }} },
       { section: 'Konfigurasi' },
+      { label: 'Pengaturan Akuntansi',  href: '{{ route("settings.accounting") }}',   active: {{ request()->routeIs('settings.accounting*') ? 'true' : 'false' }} },
       { label: 'Pajak',                 href: '{{ route("taxes.index") }}',            active: {{ request()->routeIs('taxes*') ? 'true' : 'false' }} },
       { label: 'Custom Fields',         href: '{{ route("custom-fields.index") }}',    active: {{ request()->routeIs('custom-fields*') ? 'true' : 'false' }} },
       { label: 'Batasan Bisnis',        href: '{{ route("constraints.index") }}',      active: {{ request()->routeIs('constraints*') ? 'true' : 'false' }} },

@@ -263,12 +263,12 @@
         if (items.length > 1) btn.closest('.pr-item').remove();
     }
     function openApprove(id, num) {
-        document.getElementById('form-approve-pr').action = '/purchasing/requisitions/' + id + '/approve';
+        document.getElementById('form-approve-pr').action = '{{ url("purchasing/requisitions") }}/' + id + '/approve';
         document.getElementById('approve-pr-num').textContent = 'PR: ' + num;
         document.getElementById('modal-approve-pr').classList.remove('hidden');
     }
     function openConvert(id, num) {
-        document.getElementById('form-convert-pr').action = '/purchasing/requisitions/' + id + '/convert';
+        document.getElementById('form-convert-pr').action = '{{ url("purchasing/requisitions") }}/' + id + '/convert';
         document.getElementById('convert-pr-num').textContent = 'PR: ' + num;
         document.getElementById('modal-convert-pr').classList.remove('hidden');
     }

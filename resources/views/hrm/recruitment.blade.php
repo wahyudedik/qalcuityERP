@@ -294,7 +294,7 @@
     @push('scripts')
     <script>
     function openEditPosting(id, data) {
-        document.getElementById('form-edit-posting').action = '/hrm/recruitment/postings/' + id;
+        document.getElementById('form-edit-posting').action = '{{ url("hrm/recruitment/postings") }}/' + id;
         document.getElementById('ep-title').value       = data.title ?? '';
         document.getElementById('ep-department').value  = data.department ?? '';
         document.getElementById('ep-location').value    = data.location ?? '';

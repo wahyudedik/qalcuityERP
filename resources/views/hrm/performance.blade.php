@@ -277,7 +277,7 @@
         document.getElementById('career-content').innerHTML = '';
 
         try {
-            const res  = await fetch(`/hrm/ai/career-path/${empId}`);
+            const res  = await fetch('{{ url("hrm/ai/career-path") }}/' + empId);
             const data = await res.json();
             document.getElementById('career-loading').classList.add('hidden');
             document.getElementById('career-content').innerHTML = renderCareerPath(data);

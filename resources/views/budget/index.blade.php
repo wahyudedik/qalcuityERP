@@ -29,8 +29,10 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                 Saran Alokasi AI
             </button>
+            @canmodule('budget', 'create')
             <button onclick="document.getElementById('modal-add-budget').classList.remove('hidden')"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Anggaran Baru</button>
+            @endcanmodule
         </div>
     </div>
 
@@ -112,16 +114,20 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
+                                @canmodule('budget', 'edit')
                                 <button onclick="openEdit({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ $budget->amount }}, {{ $budget->realized }}, '{{ $budget->department }}', '{{ $budget->category }}')"
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
+                                @endcanmodule
+                                @canmodule('budget', 'delete')
                                 <form method="POST" action="{{ route('budget.destroy', $budget) }}" onsubmit="return confirm('Nonaktifkan anggaran ini?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
+                                @endcanmodule
                             </div>
                         </td>
                     </tr>
@@ -239,7 +245,7 @@
     @push('scripts')
     <script>
     function openEdit(id, name, amount, realized, dept, cat) {
-        document.getElementById('form-edit-budget').action = '/budget/' + id;
+        document.getElementById('form-edit-budget').action = '{{ route("budget.update", "") }}' + id;
         document.getElementById('edit-name').value = name;
         document.getElementById('edit-amount').value = amount;
         document.getElementById('edit-realized').value = realized;

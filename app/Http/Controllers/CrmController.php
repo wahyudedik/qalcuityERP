@@ -125,6 +125,54 @@ class CrmController extends Controller
         return back()->with('success', 'Aktivitas berhasil dicatat.');
     }
 
+    public function convertToCustomer(CrmLead $lead)
+    {
+        abort_unless($lead->tenant_id === $this->tenantId(), 403);
+
+        if ($lead->stage !== 'won') {
+            return back()->with('error', 'Hanya lead dengan stage "Won" yang bisa dikonversi menjadi customer.');
+        }
+
+        $tid = $this->tenantId();
+
+        // Cek apakah sudah pernah dikonversi (email atau nama+company sama)
+        $existing = \App\Models\Customer::where('tenant_id', $tid)
+            ->where(function ($q) use ($lead) {
+                if ($lead->email) {
+                    $q->where('email', $lead->email);
+                } else {
+                    $q->where('name', $lead->name)
+                      ->when($lead->company, fn($q2) => $q2->where('company', $lead->company));
+                }
+            })->first();
+
+        if ($existing) {
+            return back()->with('error', "Customer \"{$existing->name}\" sudah ada. Lead ini mungkin sudah pernah dikonversi.");
+        }
+
+        $customer = \App\Models\Customer::create([
+            'tenant_id' => $tid,
+            'name'      => $lead->name,
+            'company'   => $lead->company,
+            'phone'     => $lead->phone,
+            'email'     => $lead->email,
+            'is_active' => true,
+        ]);
+
+        // Tandai lead sudah dikonversi
+        $lead->update(['converted_to_customer_id' => $customer->id]);
+
+        ActivityLog::record(
+            'lead_converted',
+            "Lead \"{$lead->name}\" dikonversi menjadi Customer #{$customer->id}",
+            $customer,
+            [],
+            $customer->toArray()
+        );
+
+        return back()->with('success', "Lead \"{$lead->name}\" berhasil dikonversi menjadi customer.");
+    }
+
     public function destroy(CrmLead $lead)
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);

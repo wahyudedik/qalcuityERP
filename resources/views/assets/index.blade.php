@@ -49,8 +49,10 @@
             <a href="{{ route('assets.maintenance') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Maintenance</a>
             <button onclick="document.getElementById('modal-depreciate').classList.remove('hidden')"
                 class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Depresiasi</button>
+            @canmodule('assets', 'create')
             <button onclick="document.getElementById('modal-add-asset').classList.remove('hidden')"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Aset</button>
+            @endcanmodule
         </div>
     </div>
 
@@ -89,10 +91,25 @@
                             </span>
                         </td>
                         <td class="px-4 py-3 text-center">
+                            @canmodule('assets', 'edit')
                             <button onclick="openEditAsset({{ $asset->id }}, '{{ addslashes($asset->name) }}', '{{ addslashes($asset->location ?? '') }}', '{{ $asset->status }}')"
-                                class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10">
+                                class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
+                            @endcanmodule
+                            <a href="{{ route('assets.schedule', $asset) }}"
+                                class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10 inline-flex" title="Jadwal Depresiasi">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            </a>
+                            @canmodule('assets', 'delete')
+                            <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline"
+                                onsubmit="return confirm('Hapus aset {{ addslashes($asset->name) }}? Jika ada riwayat depresiasi, aset akan ditandai disposed.')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Hapus Aset">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
+                            @endcanmodule
                         </td>
                     </tr>
                     @empty
@@ -238,7 +255,7 @@
     @push('scripts')
     <script>
     function openEditAsset(id, name, location, status) {
-        document.getElementById('form-edit-asset').action = '/assets/' + id;
+        document.getElementById('form-edit-asset').action = '{{ route("assets.update", "") }}' + id;
         document.getElementById('ea-name').value = name;
         document.getElementById('ea-location').value = location;
         document.getElementById('ea-status').value = status;

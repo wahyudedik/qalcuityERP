@@ -123,7 +123,7 @@ class InvoiceController extends Controller
 
         // GL Auto-Posting — hanya untuk invoice standalone (bukan dari SO, SO sudah di-post saat dibuat)
         if (empty($data['sales_order_id'])) {
-            app(GlPostingService::class)->postInvoiceCreated(
+            $glResult = app(GlPostingService::class)->postInvoiceCreated(
                 tenantId:      $tid,
                 userId:        auth()->id(),
                 invoiceNumber: $number,
@@ -133,6 +133,9 @@ class InvoiceController extends Controller
                 total:         $total,
                 date:          today()->toDateString(),
             );
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
+            }
         }
 
         // In-app notification
@@ -179,7 +182,7 @@ class InvoiceController extends Controller
         ActivityLog::record('payment_recorded', "Pembayaran dicatat: Invoice {$invoice->number} Rp " . number_format($data['amount'], 0, ',', '.') . " via {$data['method']}", $invoice);
 
         // GL Auto-Posting: Dr Kas/Bank / Cr Piutang Usaha
-        app(GlPostingService::class)->postInvoicePayment(
+        $glResult = app(GlPostingService::class)->postInvoicePayment(
             tenantId:      $this->tenantId(),
             userId:        auth()->id(),
             invoiceNumber: $invoice->number . '-PAY-' . now()->format('His'),
@@ -188,6 +191,10 @@ class InvoiceController extends Controller
             method:        $data['method'],
             date:          today()->toDateString(),
         );
+        if ($glResult->isFailed()) {
+            return back()->with('success', 'Pembayaran berhasil dicatat.')
+                ->with('warning', $glResult->warningMessage());
+        }
 
         // In-app notification jika lunas
         if ($invoice->fresh()->status === 'paid') {
@@ -215,7 +222,7 @@ class InvoiceController extends Controller
 
             // GL Auto-Posting saat invoice diposting (jika belum ada dari store)
             if (empty($invoice->sales_order_id)) {
-                app(GlPostingService::class)->postInvoiceCreated(
+                $glResult = app(GlPostingService::class)->postInvoiceCreated(
                     tenantId:      $this->tenantId(),
                     userId:        auth()->id(),
                     invoiceNumber: $invoice->number,
@@ -225,6 +232,10 @@ class InvoiceController extends Controller
                     total:         (float) $invoice->total_amount,
                     date:          today()->toDateString(),
                 );
+                if ($glResult->isFailed()) {
+                    return back()->with('success', "Invoice {$invoice->number} berhasil diposting.")
+                        ->with('warning', $glResult->warningMessage());
+                }
             }
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());

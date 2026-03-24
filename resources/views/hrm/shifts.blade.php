@@ -429,7 +429,7 @@ function doAssign(empId, date, shiftId) {
 // ── Edit shift modal ───────────────────────────────────────────
 function openEditShift(id, data) {
     const form = document.getElementById('form-edit-shift');
-    form.action = `/hrm/shifts/shift/${id}`;
+    form.action = '{{ url("hrm/shifts/shifts") }}/' + id;
     document.getElementById('edit-name').value        = data.name;
     document.getElementById('edit-start').value       = data.start_time;
     document.getElementById('edit-end').value         = data.end_time;
@@ -439,7 +439,7 @@ function openEditShift(id, data) {
     document.getElementById('edit-crosses-midnight').checked = !!data.crosses_midnight;
     document.getElementById('btn-delete-shift').onclick = () => {
         if (confirm('Nonaktifkan shift ini?')) {
-            fetch(`/hrm/shifts/shift/${id}`, {
+            fetch('{{ url("hrm/shifts/shifts") }}/' + id, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             }).then(() => location.reload());

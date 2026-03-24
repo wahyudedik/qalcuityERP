@@ -7,11 +7,13 @@
             <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Bulk Payment</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">1 pembayaran untuk banyak invoice sekaligus</p>
         </div>
+        @canmodule('bulk_payments', 'create')
         <a href="{{ route('bulk-payments.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Bulk Payment
         </a>
+        @endcanmodule
     </div>
 
     <form method="GET" class="flex gap-3">

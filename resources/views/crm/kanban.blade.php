@@ -266,7 +266,7 @@
         event.preventDefault();
         if (!draggedId) return;
 
-        const res = await fetch(`/crm/${draggedId}/stage-drag`, {
+        const res = await fetch('{{ url("crm") }}/' + draggedId + '/stage-drag', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({ stage }),
@@ -286,7 +286,7 @@
     }
 
     function openActivity(id, name) {
-        document.getElementById('form-activity').action = '/crm/' + id + '/activity';
+        document.getElementById('form-activity').action = '{{ url("crm") }}/' + id + '/activity';
         document.getElementById('activity-lead-name').textContent = name;
         document.getElementById('modal-activity').classList.remove('hidden');
     }

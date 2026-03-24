@@ -14,10 +14,10 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        // Super admin tidak punya tenant_id, tampilkan notifikasi global
         if ($user->isSuperAdmin()) {
-            $notifications = ErpNotification::whereNull('tenant_id')
-                ->orWhere('user_id', $user->id)
+            // Super admin hanya lihat notifikasi yang ditujukan ke user ini
+            // Tidak pakai OR whereNull(tenant_id) karena bisa bocor ke semua tenant
+            $notifications = ErpNotification::where('user_id', $user->id)
                 ->latest()
                 ->paginate(30);
         } else {

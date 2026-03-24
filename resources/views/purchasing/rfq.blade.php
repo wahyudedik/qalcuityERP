@@ -289,11 +289,11 @@
         if (items.length > 1) btn.closest('.rfq-item').remove();
     }
     function openAddResponse(rfqId) {
-        document.getElementById('form-add-response').action = '/purchasing/rfq/' + rfqId + '/response';
+        document.getElementById('form-add-response').action = '{{ url("purchasing/rfq") }}/' + rfqId + '/response';
         document.getElementById('modal-add-response').classList.remove('hidden');
     }
     function openConvertRfq(id, num) {
-        document.getElementById('form-convert-rfq').action = '/purchasing/rfq/' + id + '/convert';
+        document.getElementById('form-convert-rfq').action = '{{ url("purchasing/rfq") }}/' + id + '/convert';
         document.getElementById('convert-rfq-num').textContent = 'RFQ: ' + num;
         document.getElementById('modal-convert-rfq').classList.remove('hidden');
     }

@@ -146,13 +146,18 @@
         </form>
     </div>
 
+    @php
+        $productsJs = $products->map(function($p) {
+            return ['id' => $p->id, 'name' => $p->name, 'price' => $p->price_sell, 'unit' => $p->unit];
+        });
+    @endphp
     <script>
     (function() {
         let idx = 1;
-        const products = @json($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'price' => $p->price_sell, 'unit' => $p->unit]));
+        const products = {!! json_encode($productsJs) !!};
 
-        const AI_PRICE_URL = '{{ route('sales.ai.price-suggest') }}';
-        const AI_DESC_URL  = '{{ route('sales.ai.item-description') }}';
+        const AI_PRICE_URL = "{{ route('sales.ai.price-suggest') }}";
+        const AI_DESC_URL  = "{{ route('sales.ai.item-description') }}";
         const CSRF         = '{{ csrf_token() }}';
 
         function formatRp(n) {

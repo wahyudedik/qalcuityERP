@@ -85,7 +85,7 @@
         const btn = row.querySelector('button');
 
         try {
-            const res  = await fetch('/hrm/onboarding/tasks/' + taskId + '/toggle', {
+            const res  = await fetch('{{ url("hrm/onboarding/tasks") }}/' + taskId + '/toggle', {
                 method: 'PATCH',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
             });

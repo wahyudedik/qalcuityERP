@@ -23,11 +23,13 @@ class AccountingController extends Controller
     {
         $accounts = ChartOfAccount::where('tenant_id', $this->tid())
             ->with('parent')
-            ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
+            ->when($request->filled('type'),   fn($q) => $q->where('type', $request->type))
             ->when($request->filled('search'), fn($q) => $q->where(fn($q2) =>
                 $q2->where('code', 'like', '%' . $request->search . '%')
                    ->orWhere('name', 'like', '%' . $request->search . '%')
             ))
+            ->when($request->status === 'active',   fn($q) => $q->where('is_active', true))
+            ->when($request->status === 'inactive', fn($q) => $q->where('is_active', false))
             ->orderBy('code')
             ->get();
 

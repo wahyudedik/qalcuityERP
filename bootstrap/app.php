@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.isolation' => \App\Http\Middleware\EnforceTenantIsolation::class,
             'webhook.verify'   => \App\Http\Middleware\VerifyWebhookSignature::class,
             'api.token'        => \App\Http\Middleware\ApiTokenAuth::class,
+            'ai.quota'         => \App\Http\Middleware\CheckAiQuota::class,
         ]);
 
         // CheckTenantActive di-append ke web group agar berjalan di semua request

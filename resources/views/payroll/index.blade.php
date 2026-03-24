@@ -7,6 +7,7 @@
         <div class="w-full lg:w-72 shrink-0 space-y-4">
 
             {{-- Proses Penggajian --}}
+            @canmodule('payroll', 'create')
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
                 <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Proses Penggajian</h3>
                 <form method="POST" action="{{ route('payroll.process') }}" class="space-y-3">
@@ -30,6 +31,7 @@
                     </button>
                 </form>
             </div>
+            @endcanmodule
 
             {{-- Riwayat --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
@@ -129,6 +131,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 4a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                         Komponen Gaji
                     </a>
+                    @canmodule('payroll', 'edit')
                     @if($run->status === 'processed')
                     <form method="POST" action="{{ route('payroll.paid', $run) }}" onsubmit="return confirm('Tandai semua gaji periode ini sebagai sudah dibayar?')">
                         @csrf @method('PATCH')
@@ -137,6 +140,7 @@
                         </button>
                     </form>
                     @endif
+                    @endcanmodule
                 </div>
             </div>
 

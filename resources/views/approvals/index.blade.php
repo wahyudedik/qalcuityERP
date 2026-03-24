@@ -138,7 +138,7 @@
     @push('scripts')
     <script>
     function showRejectModal(id) {
-        document.getElementById('reject-form').action = `/approvals/${id}/reject`;
+        document.getElementById('reject-form').action = '{{ url("approvals") }}/' + id + '/reject';
         document.getElementById('reject-modal').classList.remove('hidden');
         document.getElementById('reject-modal').classList.add('flex');
     }

@@ -7,11 +7,13 @@
             <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Surat Jalan (Delivery Order)</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pengiriman barang dari Sales Order</p>
         </div>
+        @canmodule('delivery', 'create')
         <a href="{{ route('delivery-orders.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Buat Surat Jalan
         </a>
+        @endcanmodule
     </div>
 
     <div class="grid grid-cols-3 gap-4">
@@ -71,6 +73,7 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-center">
+        @canmodule('delivery', 'edit')
                         <div class="flex items-center justify-center gap-2">
                             @if($do->status === 'draft')
                             <form method="POST" action="{{ route('delivery-orders.ship', $do) }}" class="inline">
@@ -92,6 +95,7 @@
                             </form>
                             @endif
                         </div>
+                        @endcanmodule
                     </td>
                 </tr>
                 @empty

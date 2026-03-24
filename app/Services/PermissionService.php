@@ -12,37 +12,59 @@ class PermissionService
      * All modules and their available actions.
      */
     public const MODULES = [
-        'dashboard'   => ['view'],
-        'sales'       => ['view', 'create', 'edit', 'delete'],
-        'invoices'    => ['view', 'create', 'edit', 'delete'],
-        'quotations'  => ['view', 'create', 'edit', 'delete'],
-        'receivables' => ['view', 'create', 'edit', 'delete'],
-        'purchasing'  => ['view', 'create', 'edit', 'delete'],
-        'inventory'   => ['view', 'create', 'edit', 'delete'],
-        'pos'         => ['view', 'create'],
-        'hrm'         => ['view', 'create', 'edit', 'delete'],
-        'payroll'     => ['view', 'create', 'edit'],
-        'crm'         => ['view', 'create', 'edit', 'delete'],
-        'projects'    => ['view', 'create', 'edit', 'delete'],
-        'production'  => ['view', 'create', 'edit', 'delete'],
-        'assets'      => ['view', 'create', 'edit', 'delete'],
-        'accounting'  => ['view', 'create', 'edit', 'delete'],
-        'journals'    => ['view', 'create', 'edit'],
-        'budget'      => ['view', 'create', 'edit', 'delete'],
-        'reports'     => ['view'],
-        'expenses'    => ['view', 'create', 'edit', 'delete'],
-        'documents'   => ['view', 'create', 'delete'],
-        'timesheets'  => ['view', 'create', 'delete'],
-        'reminders'   => ['view', 'create', 'delete'],
-        'loyalty'     => ['view', 'create', 'edit'],
-        'ecommerce'   => ['view', 'create', 'edit'],
-        'shipping'    => ['view', 'create'],
-        'approvals'   => ['view', 'create', 'edit'],
-        'audit'       => ['view'],
-        'users'       => ['view', 'create', 'edit', 'delete'],
-        'taxes'       => ['view', 'create', 'edit', 'delete'],
-        'bank'        => ['view', 'create', 'edit'],
-        'import'      => ['view', 'create'],
+        'dashboard'      => ['view'],
+        'customers'      => ['view', 'create', 'edit', 'delete'],
+        'suppliers'      => ['view', 'create', 'edit', 'delete'],
+        'products'       => ['view', 'create', 'edit', 'delete'],
+        'warehouses'     => ['view', 'create', 'edit', 'delete'],
+        'sales'          => ['view', 'create', 'edit', 'delete'],
+        'invoices'       => ['view', 'create', 'edit', 'delete'],
+        'quotations'     => ['view', 'create', 'edit', 'delete'],
+        'delivery'       => ['view', 'create', 'edit'],
+        'sales_returns'  => ['view', 'create', 'edit', 'delete'],
+        'down_payments'  => ['view', 'create'],
+        'price_lists'    => ['view', 'create', 'edit', 'delete'],
+        'receivables'    => ['view', 'create', 'edit', 'delete'],
+        'purchasing'     => ['view', 'create', 'edit', 'delete'],
+        'inventory'      => ['view', 'create', 'edit', 'delete'],
+        'pos'            => ['view', 'create'],
+        'production'     => ['view', 'create', 'edit', 'delete'],
+        'hrm'            => ['view', 'create', 'edit', 'delete'],
+        'overtime'       => ['view', 'create', 'edit', 'delete'],
+        'training'       => ['view', 'create', 'edit', 'delete'],
+        'disciplinary'   => ['view', 'create', 'edit', 'delete'],
+        'payroll'        => ['view', 'create', 'edit'],
+        'crm'            => ['view', 'create', 'edit', 'delete'],
+        'projects'       => ['view', 'create', 'edit', 'delete'],
+        'timesheets'     => ['view', 'create', 'delete'],
+        'assets'         => ['view', 'create', 'edit', 'delete'],
+        'accounting'     => ['view', 'create', 'edit', 'delete'],
+        'journals'       => ['view', 'create', 'edit'],
+        'budget'         => ['view', 'create', 'edit', 'delete'],
+        'reports'        => ['view'],
+        'kpi'            => ['view', 'create', 'delete'],
+        'expenses'       => ['view', 'create', 'edit', 'delete'],
+        'documents'      => ['view', 'create', 'delete'],
+        'reminders'      => ['view', 'create', 'delete'],
+        'loyalty'        => ['view', 'create', 'edit'],
+        'ecommerce'      => ['view', 'create', 'edit'],
+        'shipping'       => ['view', 'create'],
+        'approvals'      => ['view', 'create', 'edit'],
+        'audit'          => ['view'],
+        'users'          => ['view', 'create', 'edit', 'delete'],
+        'taxes'          => ['view', 'create', 'edit', 'delete'],
+        'bank'           => ['view', 'create', 'edit', 'delete'],
+        'import'         => ['view', 'create'],
+        'anomalies'      => ['view', 'create'],
+        'simulations'    => ['view', 'create', 'delete'],
+        'writeoffs'      => ['view', 'create', 'edit', 'delete'],
+        'deferred'       => ['view', 'create', 'edit'],
+        'bulk_payments'  => ['view', 'create'],
+        'cost_centers'   => ['view', 'create', 'edit', 'delete'],
+        'constraints'    => ['view', 'edit'],
+        'custom_fields'  => ['view', 'create', 'edit', 'delete'],
+        'company_groups' => ['view', 'create', 'edit', 'delete'],
+        'zero_input'     => ['view', 'create'],
     ];
 
     /**
@@ -55,67 +77,92 @@ class PermissionService
         'admin' => '*', // all modules, all actions
 
         'manager' => [
-            'dashboard'   => ['view'],
-            'sales'       => ['view', 'create', 'edit', 'delete'],
-            'invoices'    => ['view', 'create', 'edit', 'delete'],
-            'quotations'  => ['view', 'create', 'edit', 'delete'],
-            'receivables' => ['view', 'create', 'edit'],
-            'purchasing'  => ['view', 'create', 'edit'],
-            'inventory'   => ['view', 'create', 'edit'],
-            'pos'         => ['view', 'create'],
-            'hrm'         => ['view', 'create', 'edit'],
-            'payroll'     => ['view', 'create', 'edit'],
-            'crm'         => ['view', 'create', 'edit', 'delete'],
-            'projects'    => ['view', 'create', 'edit', 'delete'],
-            'production'  => ['view', 'create', 'edit'],
-            'assets'      => ['view', 'create', 'edit'],
-            'accounting'  => ['view'],
-            'journals'    => ['view', 'create'],
-            'budget'      => ['view', 'create', 'edit'],
-            'reports'     => ['view'],
-            'expenses'    => ['view', 'create', 'edit'],
-            'documents'   => ['view', 'create', 'delete'],
-            'timesheets'  => ['view', 'create', 'delete'],
-            'reminders'   => ['view', 'create', 'delete'],
-            'loyalty'     => ['view', 'create', 'edit'],
-            'ecommerce'   => ['view', 'create', 'edit'],
-            'shipping'    => ['view', 'create'],
-            'approvals'   => ['view', 'create', 'edit'],
-            'import'      => ['view', 'create'],
+            'dashboard'      => ['view'],
+            'customers'      => ['view', 'create', 'edit', 'delete'],
+            'suppliers'      => ['view', 'create', 'edit', 'delete'],
+            'products'       => ['view', 'create', 'edit', 'delete'],
+            'warehouses'     => ['view', 'create', 'edit', 'delete'],
+            'sales'          => ['view', 'create', 'edit', 'delete'],
+            'invoices'       => ['view', 'create', 'edit', 'delete'],
+            'quotations'     => ['view', 'create', 'edit', 'delete'],
+            'delivery'       => ['view', 'create', 'edit'],
+            'sales_returns'  => ['view', 'create', 'edit'],
+            'down_payments'  => ['view', 'create'],
+            'price_lists'    => ['view', 'create', 'edit'],
+            'receivables'    => ['view', 'create', 'edit'],
+            'purchasing'     => ['view', 'create', 'edit'],
+            'inventory'      => ['view', 'create', 'edit'],
+            'pos'            => ['view', 'create'],
+            'production'     => ['view', 'create', 'edit'],
+            'hrm'            => ['view', 'create', 'edit'],
+            'payroll'        => ['view', 'create', 'edit'],
+            'overtime'       => ['view', 'create', 'edit', 'delete'],
+            'training'       => ['view', 'create', 'edit', 'delete'],
+            'disciplinary'   => ['view', 'create', 'edit', 'delete'],
+            'crm'            => ['view', 'create', 'edit', 'delete'],
+            'projects'       => ['view', 'create', 'edit', 'delete'],
+            'timesheets'     => ['view', 'create', 'delete'],
+            'assets'         => ['view', 'create', 'edit'],
+            'accounting'     => ['view'],
+            'journals'       => ['view', 'create'],
+            'budget'         => ['view', 'create', 'edit'],
+            'reports'        => ['view'],
+            'kpi'            => ['view'],
+            'expenses'       => ['view', 'create', 'edit'],
+            'documents'      => ['view', 'create', 'delete'],
+            'reminders'      => ['view', 'create', 'delete'],
+            'loyalty'        => ['view', 'create', 'edit'],
+            'ecommerce'      => ['view', 'create', 'edit'],
+            'shipping'       => ['view', 'create'],
+            'approvals'      => ['view', 'create', 'edit'],
+            'import'         => ['view', 'create'],
+            'anomalies'      => ['view'],
+            'simulations'    => ['view', 'create'],
+            'writeoffs'      => ['view', 'create'],
+            'deferred'       => ['view', 'create'],
+            'bulk_payments'  => ['view', 'create'],
         ],
 
         'staff' => [
-            'dashboard'  => ['view'],
-            'sales'      => ['view'],
-            'invoices'   => ['view'],
-            'quotations' => ['view'],
-            'inventory'  => ['view'],
-            'pos'        => ['view', 'create'],
-            'crm'        => ['view'],
-            'projects'   => ['view'],
-            'documents'  => ['view', 'create'],
-            'timesheets' => ['view', 'create'],
-            'reminders'  => ['view', 'create', 'delete'],
-            'expenses'   => ['view', 'create'],
+            'dashboard'     => ['view'],
+            'customers'     => ['view'],
+            'suppliers'     => ['view'],
+            'products'      => ['view'],
+            'warehouses'    => ['view'],
+            'sales'         => ['view'],
+            'invoices'      => ['view'],
+            'quotations'    => ['view'],
+            'delivery'      => ['view'],
+            'inventory'     => ['view'],
+            'pos'           => ['view', 'create'],
+            'crm'           => ['view'],
+            'projects'      => ['view'],
+            'timesheets'    => ['view', 'create'],
+            'documents'     => ['view', 'create'],
+            'reminders'     => ['view', 'create', 'delete'],
+            'expenses'      => ['view', 'create'],
+            'zero_input'    => ['view', 'create'],
         ],
 
         'kasir' => [
-            'dashboard' => ['view'],
-            'pos'       => ['view', 'create'],
-            'inventory' => ['view'],
-            'sales'     => ['view'],
-            'invoices'  => ['view'],
-            'loyalty'   => ['view', 'create', 'edit'],
-            'reminders' => ['view', 'create', 'delete'],
+            'dashboard'    => ['view'],
+            'pos'          => ['view', 'create'],
+            'inventory'    => ['view'],
+            'sales'        => ['view'],
+            'invoices'     => ['view'],
+            'loyalty'      => ['view', 'create', 'edit'],
+            'reminders'    => ['view', 'create', 'delete'],
         ],
 
         'gudang' => [
-            'dashboard'  => ['view'],
-            'inventory'  => ['view', 'create', 'edit', 'delete'],
-            'purchasing' => ['view'],
-            'production' => ['view', 'create', 'edit'],
-            'documents'  => ['view', 'create'],
-            'reminders'  => ['view', 'create', 'delete'],
+            'dashboard'    => ['view'],
+            'inventory'    => ['view', 'create', 'edit', 'delete'],
+            'products'     => ['view'],
+            'warehouses'   => ['view', 'create', 'edit', 'delete'],
+            'purchasing'   => ['view'],
+            'production'   => ['view', 'create', 'edit'],
+            'documents'    => ['view', 'create'],
+            'reminders'    => ['view', 'create', 'delete'],
         ],
     ];
 
@@ -150,17 +197,23 @@ class PermissionService
      */
     private function getUserOverride(User $user, string $module, string $action): ?bool
     {
+        // Store as plain array to avoid Eloquent Collection serialization issues
         $permissions = Cache::remember(
-            "user_permissions:{$user->id}",
+            "user_perms_v2:{$user->id}",
             now()->addMinutes(10),
-            fn() => UserPermission::where('user_id', $user->id)->get()
+            fn() => UserPermission::where('user_id', $user->id)
+                ->get()
+                ->map(fn($p) => ['module' => $p->module, 'action' => $p->action, 'granted' => (bool) $p->granted])
+                ->toArray()
         );
 
-        $perm = $permissions->first(
-            fn($p) => $p->module === $module && $p->action === $action
-        );
+        foreach ($permissions as $p) {
+            if ($p['module'] === $module && $p['action'] === $action) {
+                return $p['granted'];
+            }
+        }
 
-        return $perm?->granted;
+        return null;
     }
 
     /**
@@ -214,7 +267,7 @@ class PermissionService
         }
 
         // Bust cache
-        Cache::forget("user_permissions:{$user->id}");
+        Cache::forget("user_perms_v2:{$user->id}");
     }
 
     /**
@@ -223,7 +276,7 @@ class PermissionService
     public function resetUserPermissions(User $user): void
     {
         UserPermission::where('user_id', $user->id)->delete();
-        Cache::forget("user_permissions:{$user->id}");
+        Cache::forget("user_perms_v2:{$user->id}");
     }
 
     /**
@@ -232,39 +285,75 @@ class PermissionService
     public static function moduleLabel(string $module): string
     {
         return match($module) {
-            'dashboard'   => 'Dashboard',
-            'sales'       => 'Sales Order',
-            'invoices'    => 'Invoice',
-            'quotations'  => 'Penawaran Harga',
-            'receivables' => 'Piutang & Hutang',
-            'purchasing'  => 'Pembelian',
-            'inventory'   => 'Inventori',
-            'pos'         => 'Point of Sale',
-            'hrm'         => 'SDM (HRM)',
-            'payroll'     => 'Penggajian',
-            'crm'         => 'CRM',
-            'projects'    => 'Proyek',
-            'production'  => 'Produksi',
-            'assets'      => 'Aset',
-            'accounting'  => 'Akuntansi',
-            'journals'    => 'Jurnal GL',
-            'budget'      => 'Anggaran',
-            'reports'     => 'Laporan',
-            'expenses'    => 'Pengeluaran',
-            'documents'   => 'Dokumen',
-            'timesheets'  => 'Timesheet',
-            'reminders'   => 'Pengingat',
-            'loyalty'     => 'Loyalitas',
-            'ecommerce'   => 'E-Commerce',
-            'shipping'    => 'Pengiriman',
-            'approvals'   => 'Persetujuan',
-            'audit'       => 'Audit Trail',
-            'users'       => 'Manajemen User',
-            'taxes'       => 'Pajak',
-            'bank'        => 'Rekonsiliasi Bank',
-            'import'      => 'Import Data',
-            default       => ucfirst($module),
+            'dashboard'      => 'Dashboard',
+            'sales'          => 'Sales Order',
+            'invoices'       => 'Invoice',
+            'quotations'     => 'Penawaran Harga',
+            'delivery'       => 'Surat Jalan',
+            'sales_returns'  => 'Retur Penjualan',
+            'down_payments'  => 'Uang Muka (DP)',
+            'price_lists'    => 'Daftar Harga',
+            'receivables'    => 'Piutang & Hutang',
+            'purchasing'     => 'Pembelian',
+            'inventory'      => 'Inventori',
+            'products'       => 'Data Produk',
+            'warehouses'     => 'Data Gudang',
+            'customers'      => 'Data Customer',
+            'suppliers'      => 'Data Supplier',
+            'pos'            => 'Point of Sale',
+            'hrm'            => 'SDM (HRM)',
+            'payroll'        => 'Penggajian',
+            'crm'            => 'CRM',
+            'projects'       => 'Proyek',
+            'production'     => 'Produksi',
+            'timesheets'     => 'Timesheet',
+            'assets'         => 'Aset',
+            'accounting'     => 'Akuntansi',
+            'journals'       => 'Jurnal GL',
+            'budget'         => 'Anggaran',
+            'reports'        => 'Laporan',
+            'kpi'            => 'KPI Dashboard',
+            'expenses'       => 'Pengeluaran',
+            'documents'      => 'Dokumen',
+            'reminders'      => 'Pengingat',
+            'loyalty'        => 'Loyalitas',
+            'ecommerce'      => 'E-Commerce',
+            'shipping'       => 'Pengiriman',
+            'approvals'      => 'Persetujuan',
+            'audit'          => 'Audit Trail',
+            'users'          => 'Manajemen User',
+            'taxes'          => 'Pajak',
+            'bank'           => 'Rekening & Rekonsiliasi Bank',
+            'import'         => 'Import Data',
+            'anomalies'      => 'Deteksi Anomali',
+            'simulations'    => 'Simulasi Keuangan',
+            'writeoffs'      => 'Penghapusan Piutang',
+            'deferred'       => 'Amortisasi / Deferral',
+            'bulk_payments'  => 'Bulk Payment',
+            'cost_centers'   => 'Pusat Biaya',
+            'constraints'    => 'Batasan Bisnis',
+            'custom_fields'  => 'Custom Fields',
+            'company_groups' => 'Grup Perusahaan',
+            'zero_input'     => 'Input Cerdas (AI)',
+            default          => ucfirst(str_replace('_', ' ', $module)),
         };
+    }
+
+    /**
+     * Module category groupings for UI display.
+     */
+    public static function moduleCategories(): array
+    {
+        return [
+            'Penjualan' => ['sales', 'invoices', 'quotations', 'delivery', 'sales_returns', 'down_payments', 'price_lists', 'crm', 'loyalty', 'pos'],
+            'Inventori & Pembelian' => ['inventory', 'products', 'warehouses', 'purchasing'],
+            'Operasional' => ['production', 'shipping', 'approvals', 'ecommerce', 'documents', 'projects', 'timesheets'],
+            'SDM & Penggajian' => ['hrm', 'payroll'],
+            'Keuangan' => ['expenses', 'receivables', 'bank', 'budget', 'assets', 'accounting', 'journals', 'deferred', 'writeoffs', 'bulk_payments', 'cost_centers'],
+            'Analitik & AI' => ['reports', 'kpi', 'anomalies', 'simulations', 'zero_input'],
+            'Pengaturan' => ['users', 'taxes', 'import', 'audit', 'reminders', 'custom_fields', 'constraints', 'company_groups'],
+            'Lainnya' => ['dashboard'],
+        ];
     }
 
     /**

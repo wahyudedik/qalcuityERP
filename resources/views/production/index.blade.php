@@ -205,7 +205,7 @@
     <script>
     function openOutputModal(id, number) {
         document.getElementById('output-wo').textContent = number;
-        document.getElementById('form-output').action = '/production/' + id + '/output';
+        document.getElementById('form-output').action = '{{ url("production") }}/' + id + '/output';
         document.getElementById('modal-output').classList.remove('hidden');
     }
     </script>

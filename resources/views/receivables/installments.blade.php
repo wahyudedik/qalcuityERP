@@ -225,7 +225,7 @@
     function openPayModal(id, remaining) {
         document.getElementById('inst-amount').value = remaining;
         document.getElementById('inst-amount').max = remaining;
-        document.getElementById('form-pay-inst').action = '/receivables/installment/' + id + '/pay';
+        document.getElementById('form-pay-inst').action = '{{ url("receivables/installment") }}/' + id + '/pay';
         document.getElementById('modal-pay-inst').classList.remove('hidden');
     }
 

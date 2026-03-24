@@ -1,0 +1,148 @@
+<x-app-layout>
+    <x-slot name="header">Jadwal Depresiasi — {{ $asset->name }}</x-slot>
+
+    {{-- Asset Info Card --}}
+    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Kode Aset</p>
+                <p class="font-mono text-sm font-medium text-gray-900 dark:text-white mt-0.5">{{ $asset->asset_code }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Harga Perolehan</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">Rp {{ number_format($asset->purchase_price, 0, ',', '.') }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Nilai Buku Saat Ini</p>
+                <p class="text-sm font-medium text-blue-600 dark:text-blue-400 mt-0.5">Rp {{ number_format($asset->current_value, 0, ',', '.') }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Nilai Sisa / Metode</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                    Rp {{ number_format($asset->salvage_value, 0, ',', '.') }} /
+                    {{ $asset->depreciation_method === 'straight_line' ? 'Garis Lurus' : 'Saldo Menurun' }}
+                </p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal Beli</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{{ $asset->purchase_date->format('d M Y') }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Umur Ekonomis</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">{{ $asset->useful_life_years }} tahun</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Depresiasi/Bulan</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">Rp {{ number_format($asset->monthlyDepreciation(), 0, ',', '.') }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Status</p>
+                @php $sc = ['active'=>'green','maintenance'=>'yellow','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
+                <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 dark:bg-{{ $sc }}-500/20 dark:text-{{ $sc }}-400">
+                    {{ ucfirst($asset->status) }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {{-- Riwayat Depresiasi --}}
+        <div>
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Riwayat Depresiasi ({{ $depreciations->count() }} periode)</h2>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                @if($depreciations->isEmpty())
+                <div class="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">
+                    Belum ada depresiasi yang dicatat.
+                </div>
+                @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Periode</th>
+                                <th class="px-4 py-3 text-right">Depresiasi</th>
+                                <th class="px-4 py-3 text-right">Nilai Buku</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            @foreach($depreciations as $dep)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <td class="px-4 py-2.5 font-mono text-xs text-gray-700 dark:text-slate-300">{{ $dep->period }}</td>
+                                <td class="px-4 py-2.5 text-right text-red-600 dark:text-red-400">
+                                    (Rp {{ number_format($dep->depreciation_amount, 0, ',', '.') }})
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-medium text-gray-900 dark:text-white">
+                                    Rp {{ number_format($dep->book_value_after, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="bg-gray-50 dark:bg-white/5 text-xs font-medium">
+                            <tr>
+                                <td class="px-4 py-2.5 text-gray-600 dark:text-slate-400">Total</td>
+                                <td class="px-4 py-2.5 text-right text-red-600 dark:text-red-400">
+                                    (Rp {{ number_format($depreciations->sum('depreciation_amount'), 0, ',', '.') }})
+                                </td>
+                                <td class="px-4 py-2.5 text-right text-gray-900 dark:text-white">—</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Proyeksi Depresiasi --}}
+        <div>
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                Proyeksi Sisa
+                @if(count($projected) >= 60)
+                <span class="text-xs font-normal text-gray-400 dark:text-slate-500">(ditampilkan 60 periode)</span>
+                @endif
+            </h2>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                @if(empty($projected))
+                <div class="px-4 py-10 text-center text-sm text-gray-400 dark:text-slate-500">
+                    @if($asset->status !== 'active')
+                    Aset tidak aktif — tidak ada proyeksi.
+                    @else
+                    Aset sudah mencapai nilai sisa.
+                    @endif
+                </div>
+                @else
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Periode</th>
+                                <th class="px-4 py-3 text-right">Depresiasi</th>
+                                <th class="px-4 py-3 text-right">Proyeksi Nilai Buku</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            @foreach($projected as $proj)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <td class="px-4 py-2.5 font-mono text-xs text-gray-500 dark:text-slate-400">{{ $proj['period'] }}</td>
+                                <td class="px-4 py-2.5 text-right text-orange-600 dark:text-orange-400">
+                                    (Rp {{ number_format($proj['amount'], 0, ',', '.') }})
+                                </td>
+                                <td class="px-4 py-2.5 text-right text-gray-700 dark:text-slate-300">
+                                    Rp {{ number_format($proj['book_value'], 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ route('assets.index') }}" class="text-sm text-gray-500 dark:text-slate-400 hover:text-blue-500">← Kembali ke Daftar Aset</a>
+    </div>
+
+</x-app-layout>

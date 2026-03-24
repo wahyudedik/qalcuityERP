@@ -40,12 +40,14 @@ class TransactionChainController extends Controller
     public function show(Request $request, string $type, int $id): JsonResponse
     {
         $modelClass = $this->typeMap[$type] ?? null;
-
         abort_if($modelClass === null, 404);
 
-        $model = $modelClass::findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
 
-        abort_if($model->tenant_id !== auth()->user()->tenant_id, 403);
+        // Filter by tenant_id BEFORE loading the record — prevents data exposure
+        $model = $modelClass::where('id', $id)
+            ->where('tenant_id', $tenantId)
+            ->firstOrFail();
 
         $chain = app(TransactionChainService::class)->buildChain($modelClass, $id);
 
@@ -58,12 +60,14 @@ class TransactionChainController extends Controller
     public function timeline(string $type, int $id): JsonResponse
     {
         $modelClass = $this->typeMap[$type] ?? null;
-
         abort_if($modelClass === null, 404);
 
-        $model = $modelClass::findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
 
-        abort_if($model->tenant_id !== auth()->user()->tenant_id, 403);
+        // Filter by tenant_id BEFORE loading the record — prevents data exposure
+        $model = $modelClass::where('id', $id)
+            ->where('tenant_id', $tenantId)
+            ->firstOrFail();
 
         $chain = app(TransactionChainService::class)->buildChain($modelClass, $id);
 

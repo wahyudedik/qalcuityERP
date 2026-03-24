@@ -116,6 +116,60 @@ class QuotationController extends Controller
         return view('quotations.show', compact('quotation'));
     }
 
+    public function update(Request $request, Quotation $quotation)
+    {
+        abort_if($quotation->tenant_id !== $this->tid(), 403);
+        abort_if($quotation->status === 'accepted', 403, 'Penawaran yang sudah diterima tidak bisa diedit.');
+
+        $data = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'valid_days'  => 'required|integer|min:1|max:365',
+            'notes'       => 'nullable|string|max:1000',
+            'discount'    => 'nullable|numeric|min:0',
+            'items'       => 'required|array|min:1',
+            'items.*.product_id'  => 'nullable|exists:products,id',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity'    => 'required|numeric|min:0.001',
+            'items.*.price'       => 'required|numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($data, $quotation) {
+            $subtotal  = 0;
+            $itemsData = [];
+
+            foreach ($data['items'] as $item) {
+                $total     = $item['quantity'] * $item['price'];
+                $subtotal += $total;
+                $itemsData[] = [
+                    'quotation_id' => $quotation->id,
+                    'product_id'   => $item['product_id'] ?? null,
+                    'description'  => $item['description'],
+                    'quantity'     => $item['quantity'],
+                    'price'        => $item['price'],
+                    'discount'     => 0,
+                    'total'        => $total,
+                ];
+            }
+
+            $discount   = $data['discount'] ?? 0;
+            $grandTotal = $subtotal - $discount;
+
+            $quotation->update([
+                'customer_id' => $data['customer_id'],
+                'valid_until' => $quotation->date->addDays($data['valid_days']),
+                'subtotal'    => $subtotal,
+                'discount'    => $discount,
+                'total'       => $grandTotal,
+                'notes'       => $data['notes'] ?? null,
+            ]);
+
+            $quotation->items()->delete();
+            QuotationItem::insert($itemsData);
+        });
+
+        return back()->with('success', 'Penawaran berhasil diperbarui.');
+    }
+
     public function updateStatus(Request $request, Quotation $quotation)
     {
         abort_if($quotation->tenant_id !== $this->tid(), 403);

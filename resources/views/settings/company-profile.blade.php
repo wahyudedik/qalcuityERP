@@ -307,7 +307,7 @@ function editTemplate(id, name, html, isDefault) {
     document.getElementById('edit_name').value = name;
     document.getElementById('edit_html').value = html;
     document.getElementById('edit_is_default').checked = isDefault;
-    document.getElementById('form-edit-template').action = `/settings/company-profile/templates/${id}`;
+    document.getElementById('form-edit-template').action = '{{ url("settings/company-profile/templates") }}/' + id;
     document.getElementById('modal-edit-template').classList.remove('hidden');
 }
 </script>

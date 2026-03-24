@@ -89,6 +89,9 @@ class TenantController extends Controller
 
         $tenant->update($data);
 
+        // Bust AI quota limit cache so new plan limits take effect immediately
+        app(\App\Services\AiQuotaService::class)->bustLimitCache($tenant->id);
+
         return redirect()->route('super-admin.tenants.show', $tenant)
             ->with('success', "Paket tenant \"{$tenant->name}\" berhasil diperbarui ke " . ucfirst($data['plan']) . '.');
     }

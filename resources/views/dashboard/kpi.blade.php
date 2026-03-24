@@ -228,7 +228,7 @@
         panel.classList.remove('hidden');
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-        fetch(`/kpi/drilldown/${metric}?period=${period}`, {
+        fetch('{{ url("kpi/drilldown") }}/' + metric + `?period=${period}`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
         })
         .then(r => r.json())

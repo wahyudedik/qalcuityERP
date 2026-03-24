@@ -59,8 +59,10 @@
             </select>
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
+        @canmodule('crm', 'create')
         <button onclick="document.getElementById('modal-add-lead').classList.remove('hidden')"
             class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Tambah Lead</button>
+        @endcanmodule
     </div>
 
     {{-- Table --}}
@@ -122,12 +124,27 @@
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Update Stage">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
+                                @if($lead->stage === 'won' && !$lead->converted_to_customer_id)
+                                <form method="POST" action="{{ route('crm.convert-customer', $lead) }}" class="inline"
+                                    onsubmit="return confirm('Konversi lead \"{{ addslashes($lead->name) }}\" menjadi Customer?')">
+                                    @csrf
+                                    <button type="submit" class="p-1.5 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10" title="Konversi ke Customer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    </button>
+                                </form>
+                                @elseif($lead->converted_to_customer_id)
+                                <span class="p-1.5 text-green-500 dark:text-green-400" title="Sudah dikonversi ke Customer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </span>
+                                @endif
+                                @canmodule('crm', 'delete')
                                 <form method="POST" action="{{ route('crm.destroy', $lead) }}" onsubmit="return confirm('Hapus lead ini?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
+                                @endcanmodule
                             </div>
                         </td>
                     </tr>
@@ -331,8 +348,8 @@
             </div>`;
 
         const [scoreRes, followRes] = await Promise.all([
-            fetch(`/crm/ai/score/${id}`),
-            fetch(`/crm/ai/follow-up/${id}`),
+            fetch('{{ url("crm/ai/score") }}/' + id),
+            fetch('{{ url("crm/ai/follow-up") }}/' + id),
         ]);
         const score = await scoreRes.json();
         const follow = await followRes.json();
@@ -391,14 +408,14 @@
     }
 
     function openStage(id, name, stage, prob) {
-        document.getElementById('form-stage').action = '/crm/' + id + '/stage';
+        document.getElementById('form-stage').action = '{{ url("crm") }}/' + id + '/stage';
         document.getElementById('stage-lead-name').textContent = name;
         document.getElementById('stage-select').value = stage;
         document.getElementById('stage-prob').value = prob;
         document.getElementById('modal-stage').classList.remove('hidden');
     }
     function openActivity(id, name) {
-        document.getElementById('form-activity').action = '/crm/' + id + '/activity';
+        document.getElementById('form-activity').action = '{{ url("crm") }}/' + id + '/activity';
         document.getElementById('activity-lead-name').textContent = name;
         document.getElementById('modal-activity').classList.remove('hidden');
     }

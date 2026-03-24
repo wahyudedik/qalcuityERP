@@ -143,7 +143,7 @@ class BulkPaymentController extends Controller
             }
 
             // GL Posting
-            app(GlPostingService::class)->postBulkPayment(
+            $glResult = app(GlPostingService::class)->postBulkPayment(
                 tenantId:     $tid,
                 userId:       auth()->id(),
                 bpNumber:     $number,
@@ -154,6 +154,9 @@ class BulkPaymentController extends Controller
                 method:       $data['payment_method'],
                 date:         $data['payment_date'],
             );
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
+            }
 
             ActivityLog::record('bulk_payment_created', "Bulk payment {$number} diterapkan ke " . count($invoiceLines) . " invoice", $bp);
         });

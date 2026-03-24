@@ -312,7 +312,7 @@
     @push('scripts')
     <script>
     (function() {
-        const RISK_URL   = '{{ route('sales.ai.late-payment-risk') }}?customer_id={{ $invoice->customer_id }}';
+        const RISK_URL   = "{{ route('sales.ai.late-payment-risk') }}?customer_id={{ $invoice->customer_id }}";
         const container  = document.getElementById('ai-risk-content');
         if (!container) return;
 

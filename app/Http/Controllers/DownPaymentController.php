@@ -85,9 +85,12 @@ class DownPaymentController extends Controller
             // GL Posting
             $gl = app(GlPostingService::class);
             if ($data['type'] === 'customer') {
-                $gl->postDownPaymentReceived($tid, auth()->id(), $number, $dp->id, (float) $data['amount'], $data['payment_method'], $data['payment_date']);
+                $glResult = $gl->postDownPaymentReceived($tid, auth()->id(), $number, $dp->id, (float) $data['amount'], $data['payment_method'], $data['payment_date']);
             } else {
-                $gl->postDownPaymentPaid($tid, auth()->id(), $number, $dp->id, (float) $data['amount'], $data['payment_method'], $data['payment_date']);
+                $glResult = $gl->postDownPaymentPaid($tid, auth()->id(), $number, $dp->id, (float) $data['amount'], $data['payment_method'], $data['payment_date']);
+            }
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
             }
 
             ActivityLog::record('down_payment_created', "Uang muka {$number} dibuat (Rp " . number_format($data['amount'], 0, ',', '.') . ")", $dp);
@@ -136,13 +139,16 @@ class DownPaymentController extends Controller
             $invoice->updatePaymentStatus();
 
             // GL Posting
-            app(GlPostingService::class)->postDownPaymentApplied(
+            $glResult = app(GlPostingService::class)->postDownPaymentApplied(
                 $tid, auth()->id(),
                 $downPayment->number,
                 $downPayment->id,
                 (float) $data['amount'],
                 today()->toDateString()
             );
+            if ($glResult->isFailed()) {
+                session()->flash('warning', $glResult->warningMessage());
+            }
 
             ActivityLog::record('down_payment_applied', "DP {$downPayment->number} diaplikasikan ke invoice {$invoice->number} (Rp " . number_format($data['amount'], 0, ',', '.') . ")", $downPayment);
         });

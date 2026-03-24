@@ -54,8 +54,23 @@ class BotController extends Controller
 
         if (!$chatId) return response()->json(['ok' => true]);
 
-        // Find tenant by matching bot token (simplified: use first active telegram config)
-        $config = BotConfig::where('platform', 'telegram')->where('is_active', true)->first();
+        // Match config by bot token from request header or find by chat_id mapping
+        // Use the token from the URL path segment (Telegram sends to /webhook/{token})
+        $token  = $request->route('token') ?? $request->header('X-Bot-Token');
+        if ($token) {
+            $config = BotConfig::where('platform', 'telegram')
+                ->where('token', $token)
+                ->where('is_active', true)
+                ->first();
+        } else {
+            // Fallback: match by chat_id stored in config metadata
+            $config = BotConfig::where('platform', 'telegram')
+                ->where('is_active', true)
+                ->whereJsonContains('notification_events', 'new_order') // at least configured
+                ->whereRaw("JSON_SEARCH(payload, 'one', ?) IS NOT NULL", [(string) $chatId])
+                ->first();
+        }
+
         if (!$config) return response()->json(['ok' => true]);
 
         BotMessage::create([
@@ -82,25 +97,39 @@ class BotController extends Controller
             return response($request->hub_challenge, 200);
         }
 
-        $data = $request->all();
-        $config = BotConfig::where('platform', 'whatsapp')->where('is_active', true)->first();
-        if (!$config) return response()->json(['ok' => true]);
-
+        $data    = $request->all();
         $entry   = $data['entry'][0]['changes'][0]['value'] ?? null;
         $message = $entry['messages'][0] ?? null;
 
-        if ($message) {
-            BotMessage::create([
-                'tenant_id'  => $config->tenant_id,
-                'platform'   => 'whatsapp',
-                'direction'  => 'inbound',
-                'recipient'  => $message['from'],
-                'message'    => $message['text']['body'] ?? '',
-                'status'     => 'sent',
-                'sent_at'    => now(),
-                'payload'    => ['from' => $message['from'], 'sender' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown'],
-            ]);
+        if (!$message) return response()->json(['ok' => true]);
+
+        // Match config by phone number ID from the webhook payload
+        $phoneNumberId = $entry['metadata']['phone_number_id'] ?? null;
+        if ($phoneNumberId) {
+            $config = BotConfig::where('platform', 'whatsapp')
+                ->where('is_active', true)
+                ->whereJsonContains('payload->phone_number_id', $phoneNumberId)
+                ->first();
+        } else {
+            // Fallback: match by token in request header set by WhatsApp
+            $token  = $request->header('X-Hub-Signature-256') ?? $request->header('X-Bot-Token');
+            $config = $token
+                ? BotConfig::where('platform', 'whatsapp')->where('token', $token)->where('is_active', true)->first()
+                : null;
         }
+
+        if (!$config) return response()->json(['ok' => true]);
+
+        BotMessage::create([
+            'tenant_id'  => $config->tenant_id,
+            'platform'   => 'whatsapp',
+            'direction'  => 'inbound',
+            'recipient'  => $message['from'],
+            'message'    => $message['text']['body'] ?? '',
+            'status'     => 'sent',
+            'sent_at'    => now(),
+            'payload'    => ['from' => $message['from'], 'sender' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown'],
+        ]);
 
         return response()->json(['ok' => true]);
     }

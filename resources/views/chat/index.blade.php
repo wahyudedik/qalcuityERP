@@ -184,9 +184,9 @@
                 @endphp
                 @if($tenant && $maxAi !== -1)
                 <div class="hidden sm:flex items-center gap-2">
-                    <span class="text-xs text-gray-400 tabular-nums whitespace-nowrap">{{ $usedAi }}/{{ $maxAi }} pesan</span>
+                    <span class="text-xs text-gray-400 tabular-nums whitespace-nowrap" id="quota-text">{{ $usedAi }}/{{ $maxAi }} pesan</span>
                     <div class="w-14 h-1.5 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all {{ $quotaPercent >= 90 ? 'bg-red-400' : ($quotaPercent >= 70 ? 'bg-amber-400' : 'bg-blue-400') }}" style="width:{{ $quotaPercent }}%"></div>
+                        <div id="quota-bar" class="h-full rounded-full transition-all {{ $quotaPercent >= 90 ? 'bg-red-400' : ($quotaPercent >= 70 ? 'bg-amber-400' : 'bg-blue-400') }}" style="width:{{ $quotaPercent }}%"></div>
                     </div>
                 </div>
                 @endif

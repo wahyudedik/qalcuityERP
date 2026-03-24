@@ -194,7 +194,7 @@ class PurchasingController extends Controller
 
         // GL Auto-Posting saat PO diterima
         if ($data['status'] === 'received' && $oldStatus !== 'received') {
-            app(GlPostingService::class)->postPurchaseReceived(
+            $glResult = app(GlPostingService::class)->postPurchaseReceived(
                 tenantId:    $order->tenant_id,
                 userId:      auth()->id(),
                 poNumber:    $order->number,
@@ -204,6 +204,10 @@ class PurchasingController extends Controller
                 paymentType: $order->payment_type ?? 'credit',
                 date:        today()->toDateString(),
             );
+            if ($glResult->isFailed()) {
+                return back()->with('success', "Status PO {$order->number} diperbarui.")
+                    ->with('warning', $glResult->warningMessage());
+            }
         }
 
         return back()->with('success', "Status PO {$order->number} diperbarui.");
@@ -221,6 +225,23 @@ class PurchasingController extends Controller
         }
 
         return back()->with('success', "PO {$order->number} berhasil diposting.");
+    }
+
+    public function destroyOrder(PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        if (!in_array($order->status, ['draft', 'cancelled'])) {
+            return back()->with('error', 'Hanya PO berstatus Draft atau Dibatalkan yang bisa dihapus.');
+        }
+
+        $number = $order->number;
+        $order->items()->delete();
+        $order->delete();
+
+        ActivityLog::record('purchase_order_deleted', "PO dihapus: {$number}", null, ['number' => $number], []);
+
+        return back()->with('success', "PO {$number} berhasil dihapus.");
     }
 
     // Task 35: Cancel PO
@@ -615,7 +636,7 @@ class PurchasingController extends Controller
 
         // GL posting if fully received
         if ($allReceived) {
-            app(GlPostingService::class)->postPurchaseReceived(
+            $glResult = app(GlPostingService::class)->postPurchaseReceived(
                 tenantId:    $tid,
                 userId:      auth()->id(),
                 poNumber:    $po->number,
@@ -625,6 +646,10 @@ class PurchasingController extends Controller
                 paymentType: $po->payment_type ?? 'credit',
                 date:        $data['receipt_date'],
             );
+            if ($glResult->isFailed()) {
+                return back()->with('success', "Goods Receipt {$gr->number} berhasil dicatat.")
+                    ->with('warning', $glResult->warningMessage());
+            }
         }
 
         ActivityLog::record('goods_receipt_created', "GR dibuat: {$gr->number} untuk PO {$po->number}", $gr);

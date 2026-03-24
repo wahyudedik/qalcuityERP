@@ -150,7 +150,7 @@
         const empId = sel.value;
 
         // Update form action
-        document.getElementById('form-manager').action = '/hrm/' + empId + '/manager';
+        document.getElementById('form-manager').action = '{{ url("hrm") }}/' + empId + '/manager';
 
         // Set current manager
         const mgrSel = document.getElementById('sel-manager');

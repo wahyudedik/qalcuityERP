@@ -10,12 +10,14 @@ $icons = [
     'chart'    => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>',
     'gear'     => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>',
     'building' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>',
+    'database' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7c0-1.657 3.582-3 8-3s8 1.343 8 3M4 7v5c0 1.657 3.582 3 8 3s8-1.343 8-3V7M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3M4 17v-5m16 0v5c0 1.657-3.582 3-8 3s-8-1.343-8-3"/>',
 ];
 
 // Per-group color palette
 $groupColors = [
     'home'       => ['color' => '#60a5fa', 'rgb' => '96,165,250'],
     'ai'         => ['color' => '#a78bfa', 'rgb' => '167,139,250'],
+    'masterdata' => ['color' => '#e879f9', 'rgb' => '232,121,249'],
     'sales'      => ['color' => '#34d399', 'rgb' => '52,211,153'],
     'inventory'  => ['color' => '#fb923c', 'rgb' => '251,146,60'],
     'ops'        => ['color' => '#f59e0b', 'rgb' => '245,158,11'],

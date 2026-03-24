@@ -42,7 +42,9 @@
                 <input type="date" name="date_to" value="{{ request('date_to') }}"
                     class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
                 <button type="submit" class="px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">Filter</button>
+                @canmodule('sales', 'create')
                 <a href="{{ route('sales.create') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">+ Buat SO</a>
+                @endcanmodule
             </form>
         </div>
 
@@ -104,6 +106,7 @@
                                                 class="text-xs px-2 py-1 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20 transition">
                                                 Detail
                                             </a>
+                                            @canmodule('sales', 'edit')
                                             @if(!in_array($order->status, ['completed', 'cancelled']))
                                                 <form method="POST" action="{{ route('sales.status', $order) }}">
                                                     @csrf @method('PATCH')
@@ -118,6 +121,7 @@
                                                     </select>
                                                 </form>
                                             @endif
+                                            @endcanmodule
                                         </div>
                                     </td>
                                 </tr>

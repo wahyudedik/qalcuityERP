@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AiUsageLog;
 use App\Models\ChatSession;
 use App\Services\AiMemoryService;
+use App\Services\AiQuotaService;
 use App\Services\ChatSessionManager;
 use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
@@ -17,10 +18,11 @@ use Illuminate\Support\Facades\Log;
 class ChatController extends Controller
 {
     public function __construct(
-        protected GeminiService      $gemini,
-        protected ChatSessionManager $sessionManager,
+        protected GeminiService        $gemini,
+        protected ChatSessionManager   $sessionManager,
         protected GeminiWriteValidator $validator,
-        protected AiMemoryService    $memoryService,
+        protected AiMemoryService      $memoryService,
+        protected AiQuotaService       $quota,
     ) {}
 
     /**
@@ -78,26 +80,10 @@ class ChatController extends Controller
         $allowedTools = $user->allowedAiTools();
         $toolDeclarations = $registry->getDeclarations($allowedTools);
 
-        // Cek limit AI messages per bulan berdasarkan plan tenant
-        $tenant = $user->tenant;
-        $maxAi  = $tenant?->maxAiMessages() ?? 20;
-
         // Inject konteks bisnis tenant ke Gemini
+        $tenant = $user->tenant;
         if ($tenant && $tenant->business_type) {
             $this->gemini->withTenantContext($tenant->aiBusinessContext());
-        }
-        if ($maxAi !== -1) {
-            // Cache quota count 60 detik untuk kurangi DB query
-            $cacheKey = "ai_quota_{$tenantId}_" . now()->format('Y-m');
-            $usedThisMonth = Cache::remember($cacheKey, 60, fn() => AiUsageLog::tenantMonthlyCount($tenantId));
-            if ($usedThisMonth >= $maxAi) {
-                return response()->json([
-                    'session_id' => $session->id,
-                    'message'    => "Kuota pesan AI bulan ini sudah habis ({$usedThisMonth}/{$maxAi}). "
-                        . "Upgrade paket untuk mendapatkan lebih banyak pesan AI.",
-                    'quota_exceeded' => true,
-                ], 429);
-            }
         }
 
         try {
@@ -136,9 +122,7 @@ class ChatController extends Controller
 
                 $text = $text ?: 'Maaf, saya tidak dapat memproses permintaan tersebut. Coba ulangi dengan kalimat yang lebih spesifik.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
-                AiUsageLog::track($tenantId, $user->id, strlen($text));
-                // Invalidate quota cache setelah track
-                Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
+                if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($text));
 
                 return response()->json([
                     'session_id'    => $session->id,
@@ -146,6 +130,7 @@ class ChatController extends Controller
                     'message'       => $text,
                     'model'         => $response['model'],
                     'actions'       => [],
+                    'quota'         => $tenantId ? $this->quota->status($tenantId) : null,
                 ]);
             }
 
@@ -192,8 +177,7 @@ class ChatController extends Controller
             if (!empty($validationErrors)) {
                 $errorMsg = $this->buildValidationErrorMessage($validationErrors);
                 $this->sessionManager->saveModelMessage($session, $errorMsg, $response['model']);
-                AiUsageLog::track($tenantId, $user->id, strlen($errorMsg));
-                Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
+                if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($errorMsg));
 
                 return response()->json([
                     'session_id'        => $session->id,
@@ -220,8 +204,7 @@ class ChatController extends Controller
                 $finalResponse['model'],
                 $executedActions
             );
-            AiUsageLog::track($tenantId, $user->id, strlen($finalText));
-            Cache::forget("ai_quota_{$tenantId}_" . now()->format('Y-m'));
+            if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($finalText));
 
             return response()->json([
                 'session_id'    => $session->id,
@@ -229,6 +212,7 @@ class ChatController extends Controller
                 'message'       => $finalText,
                 'model'         => $finalResponse['model'],
                 'actions'       => $executedActions,
+                'quota'         => $tenantId ? $this->quota->status($tenantId) : null,
             ]);
 
         } catch (\Throwable $e) {
@@ -301,20 +285,8 @@ class ChatController extends Controller
         // Detect language from user message
         $this->gemini->withLanguage($this->detectLanguage($message));
 
-        // Check AI quota
-        if ($tenantId) {
-            $maxAi = $tenant?->maxAiMessages() ?? 20;
-            if ($maxAi !== -1) {
-                $usedThisMonth = AiUsageLog::tenantMonthlyCount($tenantId);
-                if ($usedThisMonth >= $maxAi) {
-                    return response()->json([
-                        'session_id'     => $session->id,
-                        'message'        => "Kuota pesan AI bulan ini sudah habis ({$usedThisMonth}/{$maxAi}).",
-                        'quota_exceeded' => true,
-                    ], 429);
-                }
-            }
-        }
+        // Check AI quota handled by middleware (ai.quota)
+        // Inject tenant context
 
         try {
             $registry = $tenantId ? new ToolRegistry($tenantId, $user->id) : null;
@@ -355,7 +327,7 @@ class ChatController extends Controller
             $this->sessionManager->saveModelMessage($session, $text, $response['model']);
 
             if ($tenantId) {
-                AiUsageLog::track($tenantId, $user->id, strlen($text));
+                $this->quota->track($tenantId, $user->id, strlen($text));
             }
 
             return response()->json([

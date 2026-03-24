@@ -51,8 +51,10 @@
             <div class="flex gap-2">
                 <a href="{{ route('inventory.movements') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Riwayat Stok</a>
                 <a href="{{ route('inventory.warehouses') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Gudang</a>
+                @canmodule('inventory', 'create')
                 <button onclick="document.getElementById('modal-add-product').classList.remove('hidden')"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Produk</button>
+                @endcanmodule
             </div>
         </div>
     </div>
@@ -99,24 +101,30 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
+                                @canmodule('inventory', 'create')
                                 <button onclick="openAddStock({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->unit }}')"
                                     class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Tambah Stok">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 </button>
+                                @endcanmodule
                                 <button onclick="openAiDetail({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->unit }}')"
                                     class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="Analisis AI">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                                 </button>
+                                @canmodule('inventory', 'edit')
                                 <button onclick="openEditProduct({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->sku }}', '{{ addslashes($product->category ?? '') }}', '{{ $product->unit }}', {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }}, '{{ $product->image }}')"
                                     class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
+                                @endcanmodule
+                                @canmodule('inventory', 'delete')
                                 <form method="POST" action="{{ route('inventory.destroy', $product) }}" onsubmit="return confirm('Hapus produk ini?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Hapus">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
+                                @endcanmodule
                             </div>
                         </td>
                     </tr>
@@ -362,12 +370,12 @@
 
     function openAddStock(id, name, unit) {
         document.getElementById('stock-product-name').textContent = name + ' (' + unit + ')';
-        document.getElementById('form-add-stock').action = '/inventory/' + id + '/stock';
+        document.getElementById('form-add-stock').action = '{{ url("inventory") }}/' + id + '/stock';
         document.getElementById('modal-add-stock').classList.remove('hidden');
     }
 
     function openEditProduct(id, name, sku, category, unit, priceSell, priceBuy, stockMin, isActive, image) {
-        document.getElementById('form-edit-product').action = '/inventory/' + id;
+        document.getElementById('form-edit-product').action = '{{ url("inventory") }}/' + id;
         document.getElementById('edit-name').value = name;
         document.getElementById('edit-category').value = category;
         document.getElementById('edit-unit').value = unit;
@@ -502,7 +510,7 @@
     function prefillAddStock(productId, qty, name, unit) {
         document.getElementById('modal-ai-inventory').classList.add('hidden');
         document.getElementById('stock-product-name').textContent = name + ' (' + unit + ')';
-        document.getElementById('form-add-stock').action = '/inventory/' + productId + '/stock';
+        document.getElementById('form-add-stock').action = '{{ url("inventory") }}/' + productId + '/stock';
         document.querySelector('#modal-add-stock input[name="quantity"]').value = qty;
         document.getElementById('modal-add-stock').classList.remove('hidden');
     }

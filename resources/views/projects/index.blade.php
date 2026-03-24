@@ -29,8 +29,10 @@
             </select>
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
+        @canmodule('projects', 'create')
         <button onclick="document.getElementById('modal-add-project').classList.remove('hidden')"
             class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 shrink-0">+ Proyek Baru</button>
+        @endcanmodule
     </div>
 
     @if(session('success'))

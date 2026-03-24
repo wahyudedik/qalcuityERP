@@ -710,6 +710,9 @@ function handleChatResponse(data, originalText) {
     }
     if (data.model) modelLabel.textContent = 'Qalcuity AI';
 
+    // Update quota bar if server returned quota info
+    if (data.quota) updateQuotaBar(data.quota);
+
     // Handle quota exceeded
     if (data.quota_exceeded) {
         appendMessage('model', data.message ?? 'Kuota habis.', null, new Date().toISOString());
@@ -725,6 +728,35 @@ function handleChatResponse(data, originalText) {
     appendMessage('model', data.message ?? 'Terjadi kesalahan.', data.model, new Date().toISOString());
     appendActionBadges(data.actions);
     appendSuggestedFollowUps();
+}
+
+function updateQuotaBar(quota) {
+    const textEl = document.getElementById('quota-text');
+    const barEl = document.getElementById('quota-bar');
+    if (!textEl || !barEl) return;
+
+    if (quota.unlimited) {
+        textEl.textContent = '∞ pesan';
+        barEl.style.width = '10%';
+        barEl.className = 'h-full rounded-full transition-all bg-blue-400';
+        return;
+    }
+
+    const pct = quota.limit > 0 ? Math.min(100, Math.round((quota.used / quota.limit) * 100)) : 0;
+    textEl.textContent = `${quota.used}/${quota.limit} pesan`;
+    barEl.style.width = pct + '%';
+    barEl.className = 'h-full rounded-full transition-all ' +
+        (pct >= 90 ? 'bg-red-400' : pct >= 70 ? 'bg-amber-400' : 'bg-blue-400');
+
+    // Show warning toast at 80%
+    if (pct >= 80 && pct < 100 && !window._quotaWarnShown) {
+        window._quotaWarnShown = true;
+        const remaining = quota.remaining ?? 0;
+        appendMessage('model',
+            `⚠️ Kuota AI hampir habis. Sisa ${remaining} pesan bulan ini. Upgrade paket untuk akses lebih banyak.`,
+            null, new Date().toISOString()
+        );
+    }
 }
 
 // ── File handling ─────────────────────────────────────────────

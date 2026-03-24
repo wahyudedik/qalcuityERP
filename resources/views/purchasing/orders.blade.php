@@ -15,7 +15,7 @@
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
         <div class="flex gap-2">
-            <a href="{{ route('purchasing.suppliers') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Supplier</a>
+            <a href="{{ route('suppliers.index') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Supplier</a>
             <button onclick="document.getElementById('modal-create-po').classList.remove('hidden')"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Buat PO</button>
         </div>
@@ -62,6 +62,15 @@
                             </form>
                             @else
                             <span class="text-xs text-gray-400 dark:text-slate-500">—</span>
+                            @endif
+                            @if(in_array($po->status, ['draft','cancelled']))
+                            <form method="POST" action="{{ route('purchasing.orders.destroy', $po) }}" class="inline ml-1"
+                                onsubmit="return confirm('Hapus PO {{ $po->number }}? Tindakan ini tidak bisa dibatalkan.')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Hapus PO">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
                             @endif
                         </td>
                     </tr>

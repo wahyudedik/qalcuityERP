@@ -155,7 +155,7 @@
         document.getElementById('pay-remaining').textContent = 'Rp ' + parseInt(remaining).toLocaleString('id-ID');
         document.getElementById('pay-amount').max = remaining;
         document.getElementById('pay-amount').value = remaining;
-        document.getElementById('form-pay').action = '/receivables/' + id + '/payment';
+        document.getElementById('form-pay').action = '{{ url("receivables") }}/' + id + '/payment';
         document.getElementById('modal-pay').classList.remove('hidden');
     }
     </script>

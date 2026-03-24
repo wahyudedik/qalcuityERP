@@ -197,7 +197,7 @@ class SalesOrderController extends Controller
             ActivityLog::record('sales_order_created', "SO dibuat: {$so->number} (Rp " . number_format($total, 0, ',', '.') . ")", $so);
 
             // GL Auto-Posting
-            app(GlPostingService::class)->postSalesOrder(
+            $glResult = app(GlPostingService::class)->postSalesOrder(
                 tenantId:    $tid,
                 userId:      auth()->id(),
                 soNumber:    $so->number,
@@ -208,9 +208,22 @@ class SalesOrderController extends Controller
                 paymentType: $data['payment_type'],
                 date:        $data['date'],
             );
+
+            // Store GL result for flash message after transaction commits
+            $GLOBALS['_gl_result'] = $glResult;
         });
 
-        return redirect()->route('sales.index')->with('success', 'Sales Order berhasil dibuat.');
+        $successMsg = 'Sales Order berhasil dibuat.';
+        if (isset($GLOBALS['_gl_result']) && $GLOBALS['_gl_result']->isFailed()) {
+            $warning = $GLOBALS['_gl_result']->warningMessage();
+            unset($GLOBALS['_gl_result']);
+            return redirect()->route('sales.index')
+                ->with('success', $successMsg)
+                ->with('warning', $warning);
+        }
+        unset($GLOBALS['_gl_result']);
+
+        return redirect()->route('sales.index')->with('success', $successMsg);
     }
 
     public function show(SalesOrder $salesOrder)

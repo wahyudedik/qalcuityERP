@@ -35,6 +35,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
             {{-- Form Tambah --}}
+            @canmodule('expenses', 'create')
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
                 <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Catat Pengeluaran</h2>
                 <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data" class="space-y-3">
@@ -91,6 +92,7 @@
                     </button>
                 </form>
             </div>
+            @endcanmodule
 
             {{-- Tabel --}}
             <div class="lg:col-span-2 space-y-4">
@@ -163,11 +165,13 @@
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3">
+                                                @canmodule('expenses', 'delete')
                                                 <form method="POST" action="{{ route('expenses.destroy', $exp) }}"
                                                     onsubmit="return confirm('Hapus pengeluaran ini?')">
                                                     @csrf @method('DELETE')
                                                     <button type="submit" class="text-xs text-red-400 hover:text-red-300 transition">Hapus</button>
                                                 </form>
+                                                @endcanmodule
                                             </td>
                                         </tr>
                                     @endforeach

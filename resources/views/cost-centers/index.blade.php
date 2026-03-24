@@ -13,11 +13,13 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Laporan Segment
             </a>
+            @canmodule('cost_centers', 'create')
             <button onclick="document.getElementById('modal-add').classList.remove('hidden')"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Tambah Cost Center
             </button>
+            @endcanmodule
         </div>
     </div>
 
@@ -76,13 +78,17 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-right">
+                        @canmodule('cost_centers', 'edit')
                         <button onclick='openEdit({{ json_encode(["id"=>$cc->id,"name"=>$cc->name,"type"=>$cc->type,"parent_id"=>$cc->parent_id,"is_active"=>$cc->is_active,"description"=>$cc->description]) }})'
                             class="text-xs text-blue-600 dark:text-blue-400 hover:underline mr-3">Edit</button>
+                        @endcanmodule
+                        @canmodule('cost_centers', 'delete')
                         <form method="POST" action="{{ route('cost-centers.destroy', $cc) }}" class="inline"
                             onsubmit="return confirm('Hapus cost center {{ $cc->name }}?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-xs text-red-500 hover:underline">Hapus</button>
                         </form>
+                        @endcanmodule
                     </td>
                 </tr>
                 @empty
@@ -209,7 +215,7 @@
 
 <script>
 function openEdit(data) {
-    document.getElementById('form-edit').action = '/settings/cost-centers/' + data.id;
+    document.getElementById('form-edit').action = '{{ route("cost-centers.index") }}/' + data.id;
     document.getElementById('edit-name').value = data.name;
     document.getElementById('edit-type').value = data.type;
     document.getElementById('edit-parent').value = data.parent_id || '';

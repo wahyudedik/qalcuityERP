@@ -161,7 +161,7 @@
     (async function loadShifts() {
         try {
             const date = '{{ $date->format("Y-m-d") }}';
-            const res  = await fetch(`/hrm/shifts/today?date=${date}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const res  = await fetch('{{ route("hrm.shifts.today") }}' + `?date=${date}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await res.json();
             for (const [empId, shift] of Object.entries(data.schedules ?? {})) {
                 const badge = document.querySelector(`.shift-badge-${empId}`);

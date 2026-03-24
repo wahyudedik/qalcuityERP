@@ -120,7 +120,7 @@ class ExpenseController extends Controller
             $expense);
 
         // ── GL Auto-Posting ───────────────────────────────────────
-        app(GlPostingService::class)->postExpense(
+        $glResult = app(GlPostingService::class)->postExpense(
             tenantId:       $tid,
             userId:         auth()->id(),
             expenseNumber:  $number,
@@ -132,6 +132,10 @@ class ExpenseController extends Controller
             date:           $data['date'],
             coaAccountCode: $category->coa_account_code ?: null,
         );
+        if ($glResult->isFailed()) {
+            return back()->with('success', "Pengeluaran {$number} berhasil dicatat.")
+                ->with('warning', $glResult->warningMessage());
+        }
 
         return back()->with('success', "Pengeluaran {$number} berhasil dicatat.");
     }

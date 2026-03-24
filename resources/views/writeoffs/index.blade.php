@@ -114,7 +114,7 @@
     @push('scripts')
     <script>
     function openReject(id) {
-        document.getElementById('form-reject').action = '/writeoffs/' + id + '/reject';
+        document.getElementById('form-reject').action = '{{ url("writeoffs") }}/' + id + '/reject';
         document.getElementById('modal-reject').classList.remove('hidden');
     }
     </script>

@@ -241,8 +241,8 @@
     @push('scripts')
     <script>
     // ── Dashboard AI Refresh ──────────────────────────────────────
-    const REFRESH_URL     = '{{ route('dashboard.refresh-insights') }}';
-    const ACK_URL_BASE    = '{{ url('/dashboard/anomalies') }}';
+    const REFRESH_URL     = "{{ route('dashboard.refresh-insights') }}";
+    const ACK_URL_BASE    = "{{ url('/dashboard/anomalies') }}";
     const CSRF            = '{{ csrf_token() }}';
 
     async function refreshDashboardInsights() {
