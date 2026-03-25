@@ -63,6 +63,7 @@
                                 <th class="px-4 py-3 text-left">Periode</th>
                                 <th class="px-4 py-3 text-right">Depresiasi</th>
                                 <th class="px-4 py-3 text-right">Nilai Buku</th>
+                                <th class="px-4 py-3 text-center">Jurnal GL</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-white/5">
@@ -75,6 +76,16 @@
                                 <td class="px-4 py-2.5 text-right font-medium text-gray-900 dark:text-white">
                                     Rp {{ number_format($dep->book_value_after, 0, ',', '.') }}
                                 </td>
+                                <td class="px-4 py-2.5 text-center">
+                                    @if($dep->journal_entry_id)
+                                        <a href="{{ route('journals.show', $dep->journalEntry) }}"
+                                            class="text-xs text-green-600 dark:text-green-400 hover:underline font-mono">
+                                            {{ $dep->journalEntry->number }}
+                                        </a>
+                                    @else
+                                        <span class="text-xs text-amber-500 dark:text-amber-400" title="Jurnal GL belum dibuat untuk periode ini">⚠ Belum</span>
+                                    @endif
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -85,6 +96,9 @@
                                     (Rp {{ number_format($depreciations->sum('depreciation_amount'), 0, ',', '.') }})
                                 </td>
                                 <td class="px-4 py-2.5 text-right text-gray-900 dark:text-white">—</td>
+                                <td class="px-4 py-2.5 text-center text-xs text-gray-400 dark:text-slate-500">
+                                    {{ $depreciations->whereNotNull('journal_entry_id')->count() }}/{{ $depreciations->count() }} diposting
+                                </td>
                             </tr>
                         </tfoot>
                     </table>

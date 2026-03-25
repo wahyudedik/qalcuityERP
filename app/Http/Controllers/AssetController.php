@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\ActivityLog;
 use App\Models\AssetDepreciation;
 use App\Models\AssetMaintenance;
+use App\Services\GlPostingService;
 use Illuminate\Http\Request;
 
 class AssetController extends Controller
@@ -104,7 +105,7 @@ class AssetController extends Controller
     {
         abort_unless($asset->tenant_id === $this->tenantId(), 403);
 
-        $depreciations = $asset->depreciations()->orderBy('period')->get();
+        $depreciations = $asset->depreciations()->with('journalEntry')->orderBy('period')->get();
 
         // Generate full projected schedule (remaining periods)
         $projected = [];
@@ -136,27 +137,62 @@ class AssetController extends Controller
         $assets = Asset::where('tenant_id', $tid)->where('status', 'active')->get();
         $total  = 0;
         $count  = 0;
+        $assetLines = [];
+        $depIds     = [];
 
         foreach ($assets as $asset) {
             if (AssetDepreciation::where('asset_id', $asset->id)->where('period', $period)->exists()) continue;
 
             $dep      = $asset->monthlyDepreciation();
-            $newValue = max($asset->salvage_value, $asset->current_value - $dep);
+            if ($dep <= 0) continue;
 
-            AssetDepreciation::create([
+            $newValue = max($asset->salvage_value, $asset->current_value - $dep);
+            $actualDep = $asset->current_value - $newValue;
+            if ($actualDep <= 0) continue;
+
+            $depRecord = AssetDepreciation::create([
                 'tenant_id'           => $tid,
                 'asset_id'            => $asset->id,
                 'period'              => $period,
-                'depreciation_amount' => $dep,
+                'depreciation_amount' => $actualDep,
                 'book_value_after'    => $newValue,
             ]);
 
             $asset->update(['current_value' => $newValue]);
-            $total += $dep;
+            $total      += $actualDep;
+            $assetLines[] = ['asset_name' => $asset->name, 'amount' => $actualDep];
+            $depIds[]   = $depRecord->id;
             $count++;
         }
 
-        return back()->with('success', "Depresiasi {$period} berhasil dihitung untuk {$count} aset. Total: Rp " . number_format($total, 0, ',', '.'));
+        if ($count === 0) {
+            return back()->with('info', "Tidak ada aset yang perlu didepresiasi untuk periode {$period}.");
+        }
+
+        // GL Auto-Posting: Dr Beban Penyusutan / Cr Akumulasi Penyusutan
+        $glResult = app(GlPostingService::class)->postDepreciation(
+            tenantId:    $tid,
+            userId:      auth()->id(),
+            period:      $period,
+            totalAmount: $total,
+            assetLines:  $assetLines,
+        );
+
+        // Link journal ke semua AssetDepreciation records
+        if ($glResult->isSuccess() && $glResult->journal) {
+            AssetDepreciation::whereIn('id', $depIds)
+                ->update(['journal_entry_id' => $glResult->journal->id]);
+        }
+
+        $successMsg = "Depresiasi {$period} berhasil dihitung untuk {$count} aset. Total: Rp " . number_format($total, 0, ',', '.');
+
+        if ($glResult->isFailed()) {
+            return back()
+                ->with('success', $successMsg)
+                ->with('warning', $glResult->warningMessage());
+        }
+
+        return back()->with('success', $successMsg . " Jurnal GL: {$glResult->journal->number}.");
     }
 
     public function maintenance(Request $request)

@@ -20,9 +20,64 @@ use Illuminate\Support\Facades\Log;
  *  - Invoice dibayar                → Dr Kas/Bank / Cr Piutang Usaha
  *  - PO diterima (received)         → Dr Persediaan / Cr Hutang Usaha
  *  - PO dibayar (cash)              → Dr Hutang Usaha / Cr Kas/Bank
+ *  - Depresiasi aset                → Dr Beban Penyusutan / Cr Akumulasi Penyusutan
  */
 class GlPostingService
 {
+    // ─── Asset Depreciation ───────────────────────────────────────
+
+    /**
+     * Depresiasi aset (per periode, bisa batch banyak aset sekaligus).
+     *
+     *   Dr  5204  Beban Penyusutan        (total depresiasi periode ini)
+     *   ──────────────────────────────────────────────────────────────
+     *   Cr  1202  Akumulasi Penyusutan    (total depresiasi periode ini)
+     *
+     * @param  int    $tenantId
+     * @param  int    $userId
+     * @param  string $period     Format Y-m, e.g. "2026-03"
+     * @param  float  $totalAmount Total depresiasi semua aset periode ini
+     * @param  array  $assetLines  [['asset_name' => ..., 'amount' => ...], ...]
+     */
+    public function postDepreciation(
+        int    $tenantId,
+        int    $userId,
+        string $period,
+        float  $totalAmount,
+        array  $assetLines = []
+    ): GlPostingResult {
+        if ($totalAmount <= 0) {
+            return GlPostingResult::skipped('Total depresiasi 0, tidak perlu jurnal.');
+        }
+
+        // Build description lines
+        $desc = count($assetLines) > 0
+            ? implode('; ', array_map(fn($l) => "{$l['asset_name']} Rp " . number_format($l['amount'], 0, ',', '.'), array_slice($assetLines, 0, 5)))
+            : "Depresiasi {$period}";
+
+        if (count($assetLines) > 5) {
+            $desc .= ' ... (+' . (count($assetLines) - 5) . ' aset lainnya)';
+        }
+
+        // Use last day of the period as journal date
+        [$year, $month] = explode('-', $period);
+        $date = \Carbon\Carbon::create((int)$year, (int)$month)->endOfMonth()->toDateString();
+
+        return $this->createAndPost(
+            refType:     'asset_depreciation',
+            reference:   "DEP-{$period}",
+            refId:       0, // batch — no single ref ID
+            tenantId:    $tenantId,
+            userId:      $userId,
+            date:        $date,
+            description: "Auto: Beban Penyusutan Aset {$period}",
+            lines: [
+                ['code' => '5204', 'debit' => $totalAmount, 'credit' => 0,           'desc' => "Beban penyusutan {$period}: {$desc}"],
+                ['code' => '1202', 'debit' => 0,            'credit' => $totalAmount, 'desc' => "Akumulasi penyusutan {$period}"],
+            ]
+        );
+    }
+
     // ─── Sales Order ──────────────────────────────────────────────
 
     public function postSalesOrder(

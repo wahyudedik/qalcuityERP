@@ -7,6 +7,7 @@ use App\Models\AssetDepreciation;
 use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\GlPostingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,19 +24,22 @@ class RunAssetDepreciation implements ShouldQueue
 
     public function __construct(public readonly int $tenantId) {}
 
-    public function handle(): void
+    public function handle(GlPostingService $gl): void
     {
-        $period = now()->format('Y-m'); // e.g. "2026-03"
+        $period = now()->format('Y-m');
 
         $assets = Asset::where('tenant_id', $this->tenantId)
             ->where('status', 'active')
             ->where('current_value', '>', 0)
             ->get();
 
-        $processed = 0;
+        $processed  = 0;
+        $totalDep   = 0;
+        $assetLines = [];
+        $depIds     = [];
 
         foreach ($assets as $asset) {
-            // Cegah duplikasi — skip jika periode ini sudah ada
+            // Cegah duplikasi
             $alreadyRun = AssetDepreciation::where('asset_id', $asset->id)
                 ->where('period', $period)
                 ->exists();
@@ -45,42 +49,66 @@ class RunAssetDepreciation implements ShouldQueue
             $depreciation = $asset->monthlyDepreciation();
             if ($depreciation <= 0) continue;
 
-            // Nilai buku tidak boleh di bawah salvage value
-            $newValue = max($asset->salvage_value, $asset->current_value - $depreciation);
+            $newValue  = max($asset->salvage_value, $asset->current_value - $depreciation);
             $actualDep = $asset->current_value - $newValue;
 
             if ($actualDep <= 0) continue;
 
-            AssetDepreciation::create([
-                'tenant_id'          => $this->tenantId,
-                'asset_id'           => $asset->id,
-                'period'             => $period,
-                'depreciation_amount'=> $actualDep,
-                'book_value_after'   => $newValue,
+            $dep = AssetDepreciation::create([
+                'tenant_id'           => $this->tenantId,
+                'asset_id'            => $asset->id,
+                'period'              => $period,
+                'depreciation_amount' => $actualDep,
+                'book_value_after'    => $newValue,
             ]);
 
             $asset->update(['current_value' => $newValue]);
+
+            $totalDep  += $actualDep;
+            $assetLines[] = ['asset_name' => $asset->name, 'amount' => $actualDep];
+            $depIds[]  = $dep->id;
             $processed++;
         }
 
         if ($processed > 0) {
-            // Notifikasi admin
-            $admin = User::where('tenant_id', $this->tenantId)
-                ->where('role', 'admin')
-                ->first();
+            // GL Auto-Posting: Dr Beban Penyusutan / Cr Akumulasi Penyusutan
+            // System user ID = 0 (job context, no authenticated user)
+            $admin = User::where('tenant_id', $this->tenantId)->where('role', 'admin')->first();
+            $userId = $admin?->id ?? 0;
 
+            $glResult = $gl->postDepreciation(
+                tenantId:    $this->tenantId,
+                userId:      $userId,
+                period:      $period,
+                totalAmount: $totalDep,
+                assetLines:  $assetLines,
+            );
+
+            // Link journal entry ID ke semua AssetDepreciation records
+            if ($glResult->isSuccess() && $glResult->journal) {
+                AssetDepreciation::whereIn('id', $depIds)
+                    ->update(['journal_entry_id' => $glResult->journal->id]);
+            } elseif ($glResult->isFailed()) {
+                Log::warning("RunAssetDepreciation GL failed for tenant {$this->tenantId}: " . $glResult->reason);
+            }
+
+            // Notifikasi admin
             if ($admin) {
+                $glStatus = $glResult->isSuccess()
+                    ? " Jurnal GL: {$glResult->journal->number}."
+                    : ($glResult->isFailed() ? " ⚠️ Jurnal GL gagal: {$glResult->reason}" : '');
+
                 ErpNotification::create([
                     'tenant_id' => $this->tenantId,
                     'user_id'   => $admin->id,
                     'type'      => 'asset_depreciation',
                     'title'     => '🏭 Depresiasi Aset Bulanan',
-                    'body'      => "Depresiasi otomatis periode {$period} telah dijalankan untuk {$processed} aset.",
-                    'data'      => ['period' => $period, 'count' => $processed],
+                    'body'      => "Depresiasi periode {$period} untuk {$processed} aset. Total: Rp " . number_format($totalDep, 0, ',', '.') . ".{$glStatus}",
+                    'data'      => ['period' => $period, 'count' => $processed, 'total' => $totalDep],
                 ]);
             }
         }
 
-        Log::info("RunAssetDepreciation: tenant={$this->tenantId} period={$period} processed={$processed}");
+        Log::info("RunAssetDepreciation: tenant={$this->tenantId} period={$period} processed={$processed} total_dep={$totalDep}");
     }
 }
