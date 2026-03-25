@@ -185,11 +185,13 @@ class PayrollController extends Controller
         ]);
 
         // ── GL Reconciliation — buat jurnal akuntansi otomatis ────
+        $glWarning = null;
         try {
             $this->glService->createJournal($run->fresh(), auth()->id());
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('PayrollGL failed: ' . $e->getMessage());
-            // Tidak gagalkan proses payroll, tapi catat warning
+            $glWarning = "⚠️ Jurnal GL tidak terbuat otomatis: {$e->getMessage()}. "
+                . "Gunakan tombol \"Buat Jurnal GL\" di halaman detail payroll.";
         }
 
         // Notifikasi email + in-app ke semua admin & manager
@@ -207,31 +209,71 @@ class PayrollController extends Controller
             ]);
         }
 
-        return back()->with('success', "Penggajian periode {$period} berhasil diproses untuk {$employees->count()} karyawan.");
+        return back()->with('success', "Penggajian periode {$period} berhasil diproses untuk {$employees->count()} karyawan.")
+            ->with('warning', $glWarning);
     }
 
     public function markPaid(PayrollRun $run)
     {
         abort_unless($run->tenant_id === $this->tenantId(), 403);
-        $run->update(['status' => 'paid']);
+        abort_unless($run->status === 'processed', 403, 'Hanya payroll berstatus processed yang bisa ditandai dibayar.');
+
+        $run->update(['status' => 'paid', 'paid_at' => now(), 'paid_by' => auth()->id()]);
         PayrollItem::where('payroll_run_id', $run->id)->update(['status' => 'paid']);
-        return back()->with('success', "Penggajian periode {$run->period} ditandai sebagai dibayar.");
+
+        // GL: Dr Hutang Gaji / Cr Kas/Bank (pembayaran aktual ke karyawan)
+        $glWarning = null;
+        try {
+            $this->glService->createPaymentJournal($run->fresh(), auth()->id());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('PayrollGL payment failed: ' . $e->getMessage());
+            $glWarning = "⚠️ Jurnal pembayaran gaji tidak terbuat: {$e->getMessage()}. Buat jurnal manual di menu Jurnal.";
+        }
+
+        return back()
+            ->with('success', "Penggajian periode {$run->period} ditandai sebagai dibayar.")
+            ->with('warning', $glWarning);
     }
 
     /**
-     * Buat jurnal GL manual jika otomatis gagal, atau buat ulang.
+     * Buat jurnal pembayaran GL manual (Dr Hutang Gaji / Cr Bank).
      */
+    public function createPaymentGlJournal(PayrollRun $run)
+    {
+        abort_unless($run->tenant_id === $this->tenantId(), 403);
+        abort_unless($run->status === 'paid', 403, 'Payroll belum ditandai dibayar.');
+
+        try {
+            if ($run->payment_journal_entry_id) {
+                $je = $run->paymentJournalEntry;
+                if ($je && $je->status !== 'reversed') {
+                    return back()->with('info', "Jurnal pembayaran sudah ada: {$je->number}.");
+                }
+                $run->update(['payment_journal_entry_id' => null]);
+            }
+
+            $journal = $this->glService->createPaymentJournal($run->fresh(), auth()->id());
+            return back()->with('success', "Jurnal pembayaran {$journal->number} berhasil dibuat.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membuat jurnal pembayaran: ' . $e->getMessage());
+        }
+    }
     public function createGlJournal(PayrollRun $run)
     {
         abort_unless($run->tenant_id === $this->tenantId(), 403);
         abort_unless(in_array($run->status, ['processed', 'paid']), 403, 'Payroll belum diproses.');
 
         try {
-            // Reset existing journal link so service creates fresh
             if ($run->journal_entry_id) {
-                return back()->with('info', "Jurnal GL sudah ada: {$run->journalEntry->number}");
+                $je = $run->journalEntry;
+                if ($je && $je->status !== 'reversed') {
+                    return back()->with('info', "Jurnal GL sudah ada: {$je->number}. Reverse jurnal terlebih dahulu untuk membuat ulang.");
+                }
+                // Journal was reversed — allow re-creation
+                $run->update(['journal_entry_id' => null]);
             }
-            $journal = $this->glService->createJournal($run, auth()->id());
+
+            $journal = $this->glService->createJournal($run->fresh(), auth()->id());
             return back()->with('success', "Jurnal GL {$journal->number} berhasil dibuat dan diposting.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal membuat jurnal GL: ' . $e->getMessage());

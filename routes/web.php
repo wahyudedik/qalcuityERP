@@ -587,6 +587,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/process', [PayrollController::class, 'process'])->name('process');
         Route::patch('/{run}/paid', [PayrollController::class, 'markPaid'])->name('paid');
         Route::post('/{run}/gl-journal', [PayrollController::class, 'createGlJournal'])->name('gl-journal');
+        Route::post('/{run}/gl-payment-journal', [PayrollController::class, 'createPaymentGlJournal'])->name('gl-payment-journal');
 
         // Komponen Gaji
         Route::prefix('components')->name('components.')->group(function () {

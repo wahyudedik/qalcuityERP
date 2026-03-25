@@ -83,44 +83,68 @@
             </div>
 
             {{-- GL Journal Status --}}
-            <div class="mb-4 px-4 py-3 rounded-xl border flex items-center justify-between gap-3
-                {{ $run->journal_entry_id
-                    ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30'
-                    : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' }}">
-                <div class="flex items-center gap-2.5">
-                    @if($run->journal_entry_id)
-                        <svg class="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div>
-                            <p class="text-sm font-medium text-green-800 dark:text-green-300">Jurnal GL Diposting</p>
-                            <p class="text-xs text-green-600 dark:text-green-400">
-                                {{ $run->journalEntry->number }} ·
-                                Dr Beban Gaji Rp {{ number_format($run->total_gross, 0, ',', '.') }} ·
-                                Cr Hutang Gaji + PPh 21 + BPJS
-                            </p>
-                        </div>
-                    @else
-                        <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                        <div>
-                            <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Jurnal GL Belum Dibuat</p>
-                            <p class="text-xs text-amber-600 dark:text-amber-400">Rekonsiliasi ke General Ledger belum dilakukan untuk periode ini.</p>
-                        </div>
-                    @endif
+            <div class="mb-4 space-y-2">
+                {{-- Jurnal 1: Beban Gaji --}}
+                <div class="px-4 py-3 rounded-xl border flex items-center justify-between gap-3
+                    {{ $run->journal_entry_id ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' }}">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        @if($run->journal_entry_id)
+                            <svg class="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-300">Jurnal Beban Gaji ✓</p>
+                                <p class="text-xs text-green-600 dark:text-green-400 truncate">{{ $run->journalEntry->number }} · Dr Beban Gaji Rp {{ number_format($run->total_gross,0,',','.') }} · Cr Hutang Gaji + PPh21 + BPJS</p>
+                            </div>
+                        @else
+                            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                            <div>
+                                <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Jurnal Beban Gaji Belum Ada</p>
+                                <p class="text-xs text-amber-600 dark:text-amber-400">Dr Beban Gaji / Cr Hutang Gaji + PPh21 + BPJS belum diposting ke GL.</p>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="shrink-0">
+                        @if($run->journal_entry_id)
+                            <a href="{{ route('journals.show', $run->journalEntry) }}" class="px-3 py-1.5 text-xs border border-green-300 dark:border-green-500/40 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-100 dark:hover:bg-green-500/20">Lihat</a>
+                        @else
+                            <form method="POST" action="{{ route('payroll.gl-journal', $run) }}">
+                                @csrf
+                                <button type="submit" class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-xl hover:bg-amber-700">Buat Jurnal</button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    @if($run->journal_entry_id)
-                        <a href="{{ route('journals.show', $run->journalEntry) }}"
-                            class="px-3 py-1.5 text-xs border border-green-300 dark:border-green-500/40 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-100 dark:hover:bg-green-500/20">
-                            Lihat Jurnal
-                        </a>
-                    @else
-                        <form method="POST" action="{{ route('payroll.gl-journal', $run) }}">
-                            @csrf
-                            <button type="submit" class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-xl hover:bg-amber-700">
-                                Buat Jurnal GL
-                            </button>
-                        </form>
-                    @endif
+
+                {{-- Jurnal 2: Pembayaran Gaji (hanya tampil jika status paid) --}}
+                @if($run->status === 'paid')
+                <div class="px-4 py-3 rounded-xl border flex items-center justify-between gap-3
+                    {{ $run->payment_journal_entry_id ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30' : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30' }}">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        @if($run->payment_journal_entry_id)
+                            <svg class="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-300">Jurnal Pembayaran Gaji ✓</p>
+                                <p class="text-xs text-green-600 dark:text-green-400 truncate">{{ $run->paymentJournalEntry->number }} · Dr Hutang Gaji Rp {{ number_format($run->total_net,0,',','.') }} · Cr Bank</p>
+                            </div>
+                        @else
+                            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                            <div>
+                                <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Jurnal Pembayaran Belum Ada</p>
+                                <p class="text-xs text-amber-600 dark:text-amber-400">Dr Hutang Gaji / Cr Bank belum diposting.</p>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="shrink-0">
+                        @if($run->payment_journal_entry_id)
+                            <a href="{{ route('journals.show', $run->paymentJournalEntry) }}" class="px-3 py-1.5 text-xs border border-green-300 dark:border-green-500/40 text-green-700 dark:text-green-400 rounded-xl hover:bg-green-100 dark:hover:bg-green-500/20">Lihat</a>
+                        @else
+                            <form method="POST" action="{{ route('payroll.gl-payment-journal', $run) }}">
+                                @csrf
+                                <button type="submit" class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-xl hover:bg-amber-700">Buat Jurnal</button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
+                @endif
             </div>
 
             {{-- Actions --}}
