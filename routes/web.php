@@ -99,6 +99,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
     });
 
+    // Push Subscription (browser push notifications)
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+
     // Tenant User Management (admin only)
     Route::prefix('users')->name('tenant.users.')->middleware('role:admin')->group(function () {
         Route::get('/', [TenantUserController::class, 'index'])->name('index');
@@ -162,6 +166,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/receivables/excel',[ReportController::class, 'exportReceivablesExcel'])->name('receivables.excel');
         Route::get('/receivables/pdf', [ReportController::class, 'exportReceivablesPdf'])->name('receivables.pdf');
         Route::get('/profit-loss/pdf', [ReportController::class, 'exportProfitLossPdf'])->name('profit-loss.pdf');
+        Route::get('/income-statement/excel', [ReportController::class, 'exportIncomeStatementExcel'])->name('income-statement.excel');
+        Route::get('/payroll/excel', [ReportController::class, 'exportPayrollExcel'])->name('payroll.excel');
+        Route::get('/aging/excel', [ReportController::class, 'exportAgingExcel'])->name('aging.excel');
 
         // Balance Sheet (Neraca)
         Route::get('/balance-sheet/excel', [ReportController::class, 'exportBalanceSheetExcel'])->name('balance-sheet.excel');
@@ -941,6 +948,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{companyGroup}/members/{tenant}', [\App\Http\Controllers\CompanyGroupController::class, 'removeMember'])->name('members.remove');
         Route::post('/{companyGroup}/transactions', [\App\Http\Controllers\CompanyGroupController::class, 'storeTransaction'])->name('transactions.store');
         Route::post('/transactions/{transaction}/post', [\App\Http\Controllers\CompanyGroupController::class, 'postTransaction'])->name('transactions.post');
+        Route::post('/transactions/{transaction}/void', [\App\Http\Controllers\CompanyGroupController::class, 'voidTransaction'])->name('transactions.void');
     });
 
     // Zero Input ERP — Task 56
@@ -950,6 +958,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/text', [\App\Http\Controllers\ZeroInputController::class, 'processText'])->name('text');
         Route::get('/{zeroInputLog}', [\App\Http\Controllers\ZeroInputController::class, 'show'])->name('show');
         Route::post('/{zeroInputLog}/confirm', [\App\Http\Controllers\ZeroInputController::class, 'confirm'])->name('confirm');
+        Route::post('/{zeroInputLog}/reject', [\App\Http\Controllers\ZeroInputController::class, 'reject'])->name('reject');
     });
 });
 

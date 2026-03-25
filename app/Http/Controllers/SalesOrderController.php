@@ -69,8 +69,9 @@ class SalesOrderController extends Controller
         $products   = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
         $taxRates   = TaxRate::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $currencies = (new \App\Services\CurrencyService())->activeCurrencies($tid);
 
-        return view('sales.create', compact('customers', 'products', 'warehouses', 'taxRates'));
+        return view('sales.create', compact('customers', 'products', 'warehouses', 'taxRates', 'currencies'));
     }
 
     public function store(Request $request)
@@ -86,6 +87,7 @@ class SalesOrderController extends Controller
             'discount'       => 'nullable|numeric|min:0',
             'shipping_address' => 'nullable|string|max:500',
             'notes'          => 'nullable|string|max:1000',
+            'currency_code'  => 'nullable|string|max:10',
             'items'          => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity'   => 'required|numeric|min:0.001',
@@ -148,6 +150,10 @@ class SalesOrderController extends Controller
             }
             $total = $subtotal - $discount + $taxAmount;
 
+            // Multi-currency: resolve rate to IDR
+            $currCode = $data['currency_code'] ?? 'IDR';
+            $currRate = (new \App\Services\CurrencyService())->getRate($currCode);
+
             $so = SalesOrder::create([
                 'tenant_id'       => $tid,
                 'customer_id'     => $data['customer_id'],
@@ -166,7 +172,9 @@ class SalesOrderController extends Controller
                 'due_date'        => $data['due_date'] ?? null,
                 'shipping_address'=> $data['shipping_address'] ?? null,
                 'notes'           => $data['notes'] ?? null,
-                'source'          => 'manual',
+                'currency_code'   => $currCode,
+                'currency_rate'   => $currRate,
+                'source'          => 'order',
             ]);
 
             $so->items()->createMany($itemsData);
@@ -194,17 +202,21 @@ class SalesOrderController extends Controller
                 ]);
             }
 
-            ActivityLog::record('sales_order_created', "SO dibuat: {$so->number} (Rp " . number_format($total, 0, ',', '.') . ")", $so);
+            ActivityLog::record('sales_order_created', "SO dibuat: {$so->number} ({$currCode} " . number_format($total, 0, ',', '.') . ")", $so);
 
-            // GL Auto-Posting
+            // GL Auto-Posting — always in IDR (convert if foreign currency)
+            $glSubtotal  = ($subtotal - $discount) * $currRate;
+            $glTaxAmount = $taxAmount * $currRate;
+            $glTotal     = $total * $currRate;
+
             $glResult = app(GlPostingService::class)->postSalesOrder(
                 tenantId:    $tid,
                 userId:      auth()->id(),
                 soNumber:    $so->number,
                 soId:        $so->id,
-                subtotal:    $subtotal - $discount,
-                taxAmount:   $taxAmount,
-                total:       $total,
+                subtotal:    $glSubtotal,
+                taxAmount:   $glTaxAmount,
+                total:       $glTotal,
                 paymentType: $data['payment_type'],
                 date:        $data['date'],
             );

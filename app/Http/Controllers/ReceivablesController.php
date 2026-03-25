@@ -221,7 +221,7 @@ class ReceivablesController extends Controller
 
     public function payables(Request $request)
     {
-        $query = Payable::with('supplier')
+        $query = Payable::with(['supplier', 'purchaseOrder'])
             ->where('tenant_id', $this->tid());
 
         if ($request->filled('status')) {
@@ -277,7 +277,7 @@ class ReceivablesController extends Controller
         $glResult = app(GlPostingService::class)->postPurchasePayment(
             tenantId: $this->tid(),
             userId:   auth()->id(),
-            poNumber: ($payable->reference ?? 'PAY') . '-' . now()->format('His'),
+            poNumber: $payable->number . '-PAY-' . now()->format('His'),
             poId:     $payable->id,
             amount:   (float) $data['amount'],
             method:   $data['method'],

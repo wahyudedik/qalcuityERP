@@ -281,6 +281,47 @@ class ReportController extends Controller
         return $pdf->download('laporan-piutang-' . $request->start_date . '.pdf');
     }
 
+    // ─── Income Statement Excel ───────────────────────────────────
+
+    public function exportIncomeStatementExcel(Request $request)
+    {
+        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $tenantId   = $this->requireTenantId($request);
+        $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
+
+        return Excel::download(
+            new \App\Exports\IncomeStatementExport($tenantId, $request->start_date, $request->end_date, $tenantName),
+            'laba-rugi-' . $request->start_date . '-' . $request->end_date . '.xlsx'
+        );
+    }
+
+    // ─── Payroll Excel ────────────────────────────────────────────
+
+    public function exportPayrollExcel(Request $request)
+    {
+        $request->validate(['period' => 'required|date_format:Y-m']);
+        $tenantId   = $this->requireTenantId($request);
+        $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
+
+        return Excel::download(
+            new \App\Exports\PayrollExport($tenantId, $request->period, $tenantName),
+            'payroll-' . $request->period . '.xlsx'
+        );
+    }
+
+    // ─── AR Aging Excel ───────────────────────────────────────────
+
+    public function exportAgingExcel(Request $request)
+    {
+        $tenantId   = $this->requireTenantId($request);
+        $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
+
+        return Excel::download(
+            new \App\Exports\AgingReportExport($tenantId, $tenantName),
+            'aging-piutang-' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
     // ─── Profit & Loss PDF ────────────────────────────────────────
 
     public function exportProfitLossPdf(Request $request)

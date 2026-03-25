@@ -59,9 +59,8 @@ class CompanyGroupController extends Controller
 
         $transactions = IntercompanyTransaction::where('company_group_id', $companyGroup->id)
             ->with(['fromTenant', 'toTenant'])
-            ->latest()
-            ->limit(20)
-            ->get();
+            ->latest('date')
+            ->paginate(30);
 
         return view('company-groups.show', compact('companyGroup', 'report', 'transactions', 'period'));
     }
@@ -120,5 +119,14 @@ class CompanyGroupController extends Controller
         abort_if(!$group || $group->owner_user_id !== auth()->id(), 403);
         $transaction->update(['status' => 'posted']);
         return back()->with('success', 'Transaksi diposting.');
+    }
+
+    public function voidTransaction(IntercompanyTransaction $transaction)
+    {
+        $group = CompanyGroup::find($transaction->company_group_id);
+        abort_if(!$group || $group->owner_user_id !== auth()->id(), 403);
+        abort_if($transaction->status !== 'pending', 422, 'Hanya transaksi pending yang bisa di-void.');
+        $transaction->update(['status' => 'voided']);
+        return back()->with('success', 'Transaksi di-void.');
     }
 }

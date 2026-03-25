@@ -18,17 +18,32 @@ class AuditController extends Controller
             ->when($request->filled('is_ai'), fn($q) => $q->where('is_ai_action', (bool) $request->is_ai))
             ->when($request->date_from, fn($q) => $q->whereDate('created_at', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->when($request->module, fn($q) => $q->where('model_type', 'like', '%' . $request->module))
+            ->when($request->search, fn($q) => $q->where('description', 'like', '%' . $request->search . '%'))
             ->latest()
-            ->paginate(50);
+            ->paginate(50)
+            ->withQueryString();
 
         $actions = ActivityLog::where('tenant_id', $tenantId)
-            ->distinct()->pluck('action');
+            ->distinct()->pluck('action')->sort()->values();
+
+        $users = \App\Models\User::where('tenant_id', $tenantId)
+            ->orderBy('name')->get(['id', 'name', 'role']);
+
+        $modules = ActivityLog::where('tenant_id', $tenantId)
+            ->whereNotNull('model_type')
+            ->distinct()
+            ->pluck('model_type')
+            ->map(fn($m) => class_basename($m))
+            ->unique()
+            ->sort()
+            ->values();
 
         $aiCount = ActivityLog::where('tenant_id', $tenantId)
             ->where('is_ai_action', true)
             ->whereDate('created_at', today())
             ->count();
 
-        return view('audit.index', compact('logs', 'actions', 'aiCount'));
+        return view('audit.index', compact('logs', 'actions', 'users', 'modules', 'aiCount'));
     }
 }

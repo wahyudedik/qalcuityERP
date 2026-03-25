@@ -47,11 +47,14 @@ class ZeroInputService
 
             $extracted = $this->parseAiResponse($response['text'] ?? '');
             $module    = $this->detectModule($extracted);
+            $confidence = (float) ($extracted['confidence'] ?? 0);
+            unset($extracted['confidence']); // don't store in extracted_data
 
             $log->update([
-                'status'         => 'mapped',
-                'mapped_module'  => $module,
-                'extracted_data' => $extracted,
+                'status'           => 'mapped',
+                'mapped_module'    => $module,
+                'extracted_data'   => $extracted,
+                'confidence_score' => $confidence,
             ]);
         } catch (\Throwable $e) {
             Log::error("ZeroInput photo error: " . $e->getMessage());
@@ -79,11 +82,14 @@ class ZeroInputService
             $response = $this->gemini->chat($prompt, []);
             $extracted = $this->parseAiResponse($response['text'] ?? '');
             $module    = $this->detectModule($extracted);
+            $confidence = (float) ($extracted['confidence'] ?? 0);
+            unset($extracted['confidence']);
 
             $log->update([
-                'status'         => 'mapped',
-                'mapped_module'  => $module,
-                'extracted_data' => $extracted,
+                'status'           => 'mapped',
+                'mapped_module'    => $module,
+                'extracted_data'   => $extracted,
+                'confidence_score' => $confidence,
             ]);
         } catch (\Throwable $e) {
             Log::error("ZeroInput text error: " . $e->getMessage());
@@ -189,6 +195,7 @@ Kamu adalah sistem OCR ERP. Ekstrak semua informasi dari gambar nota/struk/dokum
 Kembalikan HANYA JSON valid dengan format berikut (tanpa markdown, tanpa penjelasan):
 {
   "module": "expense|product|customer|invoice|purchase",
+  "confidence": 85,
   "merchant": "nama toko/vendor",
   "date": "YYYY-MM-DD",
   "items": [{"name": "...", "qty": 1, "price": 0, "total": 0}],
@@ -198,6 +205,7 @@ Kembalikan HANYA JSON valid dengan format berikut (tanpa markdown, tanpa penjela
   "payment_method": "cash|transfer|qris",
   "notes": "..."
 }
+Field "confidence" adalah persentase keyakinanmu (0-100) terhadap akurasi ekstraksi.
 Jika field tidak ada, isi null. Untuk tanggal, gunakan format YYYY-MM-DD.
 PROMPT;
     }
@@ -211,6 +219,7 @@ Teks: "{$text}"
 Kembalikan HANYA JSON valid (tanpa markdown):
 {
   "module": "expense|product|customer|sales_order|purchase",
+  "confidence": 85,
   "description": "...",
   "amount": 0,
   "date": "YYYY-MM-DD",
@@ -220,6 +229,7 @@ Kembalikan HANYA JSON valid (tanpa markdown):
   "payment_method": null,
   "notes": "..."
 }
+Field "confidence" adalah persentase keyakinanmu (0-100) terhadap akurasi ekstraksi.
 PROMPT;
     }
 

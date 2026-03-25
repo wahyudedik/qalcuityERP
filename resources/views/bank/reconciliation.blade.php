@@ -3,6 +3,65 @@
 
     <div class="space-y-6">
 
+        {{-- Summary Stats --}}
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+                <p class="text-xs text-gray-500 dark:text-slate-400">Total Mutasi</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $summary['total'] }}</p>
+            </div>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+                <p class="text-xs text-gray-500 dark:text-slate-400">Matched</p>
+                <p class="text-2xl font-bold text-green-500 mt-1">{{ $summary['matched'] }}</p>
+            </div>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+                <p class="text-xs text-gray-500 dark:text-slate-400">Unmatched</p>
+                <p class="text-2xl font-bold text-amber-500 mt-1">{{ $summary['unmatched'] }}</p>
+            </div>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+                <p class="text-xs text-gray-500 dark:text-slate-400">Total Kredit</p>
+                <p class="text-lg font-bold text-green-500 mt-1">Rp {{ number_format($summary['credit'], 0, ',', '.') }}</p>
+            </div>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+                <p class="text-xs text-gray-500 dark:text-slate-400">Total Debit</p>
+                <p class="text-lg font-bold text-red-500 mt-1">Rp {{ number_format($summary['debit'], 0, ',', '.') }}</p>
+            </div>
+        </div>
+
+        {{-- Filter Bar --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+            <form method="GET" class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Rekening</label>
+                    <select name="account_id" class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua Rekening</option>
+                        @foreach($accounts as $acc)
+                        <option value="{{ $acc->id }}" @selected(request('account_id') == $acc->id)>{{ $acc->bank_name }} — {{ $acc->account_number }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Status</label>
+                    <select name="status" class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua</option>
+                        <option value="unmatched" @selected(request('status')==='unmatched')>Unmatched</option>
+                        <option value="matched" @selected(request('status')==='matched')>Matched</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Dari</label>
+                    <input type="date" name="from" value="{{ request('from') }}" class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Sampai</label>
+                    <input type="date" name="to" value="{{ request('to') }}" class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm hover:bg-blue-700">Filter</button>
+                @if(request()->hasAny(['account_id','status','from','to']))
+                <a href="{{ route('bank.reconciliation') }}" class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Reset</a>
+                @endif
+            </form>
+        </div>
+
         {{-- Import CSV --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Import Mutasi Rekening</h2>
@@ -118,10 +177,8 @@
                                         class="text-xs text-purple-400 hover:text-purple-300 hover:underline hidden">
                                         Detail AI
                                     </button>
-                                    <form method="POST" action="{{ route('bank.match', $stmt) }}">
-                                        @csrf
-                                        <button type="submit" class="text-xs text-blue-400 hover:underline">Manual</button>
-                                    </form>
+                                    <button onclick="openManualMatch({{ $stmt->id }}, '{{ addslashes($stmt->description) }}', {{ $stmt->amount }})"
+                                        class="text-xs text-blue-400 hover:underline">Manual</button>
                                 </div>
                                 @else
                                 <span class="text-xs text-slate-600">—</span>
@@ -168,10 +225,63 @@
         </div>
     </div>
 
+    {{-- Manual Match Modal --}}
+    <div id="modal-manual-match" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Manual Match</h3>
+                <button onclick="document.getElementById('modal-manual-match').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4 bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Mutasi Bank</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white" id="manual-stmt-desc"></p>
+                    <p class="text-sm font-bold text-blue-500 mt-1" id="manual-stmt-amount"></p>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-slate-400 mb-2 uppercase font-semibold">Pilih Transaksi ERP</p>
+                <div class="space-y-2 max-h-60 overflow-y-auto" id="manual-erp-list">
+                    @forelse($unmatchedErp ?? collect() as $erp)
+                    <button onclick="applyManualMatch({{ $erp['id'] }})"
+                        class="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/40 transition text-left">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $erp['number'] }}</p>
+                            <p class="text-xs text-gray-400 truncate">{{ $erp['date'] }} · {{ Str::limit($erp['description'], 50) }}</p>
+                        </div>
+                        <span class="text-sm font-medium shrink-0 ml-3 {{ $erp['type'] === 'debit' ? 'text-green-500' : 'text-red-500' }}">
+                            Rp {{ number_format($erp['amount'], 0, ',', '.') }}
+                        </span>
+                    </button>
+                    @empty
+                    <p class="text-sm text-gray-400 dark:text-slate-500 text-center py-4">Tidak ada transaksi ERP yang tersedia. Pastikan sudah ada jurnal yang diposting.</p>
+                    @endforelse
+                </div>
+                <form id="form-manual-match" method="POST" class="mt-4 hidden">
+                    @csrf
+                    <input type="hidden" name="transaction_id" id="manual-tx-id">
+                </form>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let aiResults = {};
+    let currentManualStmtId = null;
+
+    function openManualMatch(stmtId, desc, amount) {
+        currentManualStmtId = stmtId;
+        document.getElementById('manual-stmt-desc').textContent = desc;
+        document.getElementById('manual-stmt-amount').textContent = 'Rp ' + parseInt(amount).toLocaleString('id-ID');
+        document.getElementById('form-manual-match').action = '{{ url("bank/statements") }}/' + stmtId + '/match';
+        document.getElementById('modal-manual-match').classList.remove('hidden');
+    }
+
+    function applyManualMatch(txId) {
+        if (!currentManualStmtId) return;
+        document.getElementById('manual-tx-id').value = txId;
+        document.getElementById('form-manual-match').submit();
+    }
 
     // ── Auto-match all unmatched ──────────────────────────────────────
     async function runAutoMatch() {

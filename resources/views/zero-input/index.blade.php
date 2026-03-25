@@ -83,7 +83,13 @@
                                     <p class="text-xs text-gray-400">{{ $log->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2">
+                                @if($log->confidence_score)
+                                <span class="text-xs text-gray-400 tabular-nums">{{ $log->confidence_score }}%</span>
+                                @endif
+                                @if($log->was_corrected)
+                                <span class="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">✏️</span>
+                                @endif
                                 <span class="text-xs px-2 py-0.5 rounded-full {{ $statusClass }}">{{ $log->status }}</span>
                                 <a href="{{ route('zero-input.show', $log) }}"
                                    class="text-xs text-blue-500 hover:text-blue-700">Detail</a>

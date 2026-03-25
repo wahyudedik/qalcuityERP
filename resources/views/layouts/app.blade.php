@@ -424,6 +424,13 @@
                             <div class="px-4 py-6 text-center text-sm text-slate-400">Tidak ada notifikasi</div>
                             @endforelse
                         </div>
+                        {{-- Push notification opt-in --}}
+                        <div class="px-4 py-2.5 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+                            <button id="btn-enable-push" onclick="enablePushNotifications()"
+                                class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition">
+                                🔔 Aktifkan Notifikasi Push
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -874,10 +881,65 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 });
 
-// PWA
+// PWA + Push Notifications
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    window.addEventListener('load', async () => {
+        try {
+            const reg = await navigator.serviceWorker.register('/sw.js');
+
+            // Auto-subscribe to push if permission already granted
+            if (Notification.permission === 'granted') {
+                subscribePush(reg);
+            }
+        } catch(e) {}
+    });
 }
+
+// Push notification subscribe/unsubscribe
+async function subscribePush(reg) {
+    if (!reg) reg = await navigator.serviceWorker.ready;
+
+    const vapidKey = '{{ \App\Services\WebPushService::vapidPublicKey() }}';
+    if (!vapidKey) return;
+
+    try {
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidKey),
+            });
+        }
+
+        // Send subscription to server
+        await fetch('{{ route("push.subscribe") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify(sub.toJSON()),
+        });
+    } catch(e) {}
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+}
+
+// Enable push button handler (called from notification bell area)
+window.enablePushNotifications = async function() {
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+        const reg = await navigator.serviceWorker.ready;
+        await subscribePush(reg);
+        // Update UI
+        const btn = document.getElementById('btn-enable-push');
+        if (btn) { btn.textContent = '✓ Push aktif'; btn.disabled = true; btn.classList.add('opacity-50'); }
+    }
+};
 </script>
 
 {{-- Hidden logout form --}}

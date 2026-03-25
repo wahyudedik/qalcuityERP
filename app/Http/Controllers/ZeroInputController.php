@@ -89,15 +89,24 @@ class ZeroInputController extends Controller
 
     /**
      * Konfirmasi dan buat record ERP dari data yang diekstrak.
+     * Tracks user corrections for feedback loop.
      */
     public function confirm(Request $request, ZeroInputLog $zeroInputLog)
     {
         abort_if($zeroInputLog->tenant_id !== $this->tid(), 403);
 
-        // Merge data yang diedit user
-        if ($request->has('extracted_data')) {
-            $zeroInputLog->update(['extracted_data' => $request->extracted_data]);
-        }
+        // Compare original extracted_data with user-submitted data to detect corrections
+        $originalData = $zeroInputLog->extracted_data ?? [];
+        $userData     = $request->input('extracted_data', $originalData);
+        $wasCorrected = $this->detectCorrections($originalData, $userData);
+
+        // Save user corrections separately (preserve original AI output for training)
+        $zeroInputLog->update([
+            'user_corrected_data' => $wasCorrected ? $userData : null,
+            'was_corrected'       => $wasCorrected,
+            'feedback'            => $wasCorrected ? 'corrected' : 'accurate',
+            'extracted_data'      => $userData, // use corrected data for record creation
+        ]);
 
         $result = $this->service->createRecord($zeroInputLog);
 
@@ -109,5 +118,47 @@ class ZeroInputController extends Controller
             $result['success'] ? 'success' : 'error',
             $result['message'] ?? ($result['success'] ? 'Record berhasil dibuat.' : 'Gagal membuat record.')
         );
+    }
+
+    /**
+     * Reject OCR result — mark as inaccurate without creating record.
+     */
+    public function reject(Request $request, ZeroInputLog $zeroInputLog)
+    {
+        abort_if($zeroInputLog->tenant_id !== $this->tid(), 403);
+
+        $zeroInputLog->update([
+            'feedback'      => 'rejected',
+            'was_corrected' => true,
+            'status'        => 'rejected',
+            'error_message' => $request->input('reason', 'Ditolak oleh user'),
+        ]);
+
+        return back()->with('info', 'Hasil OCR ditolak. Feedback disimpan untuk meningkatkan akurasi.');
+    }
+
+    /**
+     * Compare original AI data with user-submitted data to detect corrections.
+     */
+    private function detectCorrections(array $original, array $corrected): bool
+    {
+        // Remove non-comparable keys
+        $skip = ['module', 'confidence', 'raw'];
+
+        foreach ($corrected as $key => $value) {
+            if (in_array($key, $skip)) continue;
+            $origVal = $original[$key] ?? null;
+
+            // Normalize for comparison
+            if (is_numeric($value) && is_numeric($origVal)) {
+                if (abs((float)$value - (float)$origVal) > 0.01) return true;
+            } elseif (is_array($value) || is_array($origVal)) {
+                if (json_encode($value) !== json_encode($origVal)) return true;
+            } elseif ((string)$value !== (string)$origVal) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -51,6 +51,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left">No. Hutang</th>
                         <th class="px-4 py-3 text-left">Supplier</th>
+                        <th class="px-4 py-3 text-left hidden md:table-cell">Ref. PO</th>
                         <th class="px-4 py-3 text-right">Total</th>
                         <th class="px-4 py-3 text-right">Sisa</th>
                         <th class="px-4 py-3 text-center">Status</th>
@@ -64,6 +65,13 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5 {{ $overdue ? 'bg-red-50/50 dark:bg-red-900/10' : '' }}">
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900 dark:text-white">{{ $pay->number }}</td>
                         <td class="px-4 py-3 text-gray-700 dark:text-slate-300">{{ $pay->supplier->name ?? '-' }}</td>
+                        <td class="px-4 py-3 hidden md:table-cell">
+                            @if($pay->purchaseOrder)
+                            <span class="font-mono text-xs text-blue-600 dark:text-blue-400">{{ $pay->purchaseOrder->number }}</span>
+                            @else
+                            <span class="text-xs text-gray-400">-</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-right text-gray-900 dark:text-white">Rp {{ number_format($pay->total_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right font-semibold {{ $pay->remaining_amount > 0 ? 'text-red-500' : 'text-green-500' }}">
                             Rp {{ number_format($pay->remaining_amount, 0, ',', '.') }}
@@ -90,7 +98,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Tidak ada hutang.</td></tr>
+                    <tr><td colspan="8" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Tidak ada hutang.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -212,6 +212,51 @@
             </div>
         </div>
 
+        {{-- Payroll Export --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-11 h-11 rounded-2xl bg-cyan-50 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900 dark:text-white">Laporan Penggajian</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Detail gaji per karyawan: pokok, tunjangan, potongan, dan gaji bersih</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-end gap-3" id="form-payroll">
+                <div class="w-full sm:w-auto">
+                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Periode</label>
+                    <input type="month" name="period" value="{{ now()->format('Y-m') }}"
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button onclick="exportPayroll()"
+                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm ml-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Excel
+                </button>
+            </div>
+        </div>
+
+        {{-- AR Aging Export --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white">Aging Piutang (AR Aging)</p>
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Analisis umur piutang per customer: current, 1-30, 31-60, 61-90, >90 hari</p>
+                    </div>
+                </div>
+                <a href="{{ route('reports.aging.excel') }}"
+                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Excel
+                </a>
+            </div>
+        </div>
+
         {{-- AI Analysis Tip --}}
         <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-5 text-gray-900 dark:text-white">
             <div class="flex items-start gap-3">
@@ -233,7 +278,7 @@
     const reportRoutes = {
         sales:        { excel: '{{ route("reports.sales.excel") }}',        pdf: '{{ route("reports.sales.pdf") }}' },
         finance:      { excel: '{{ route("reports.finance.excel") }}',      pdf: '{{ route("reports.finance.pdf") }}' },
-        'profit-loss':{ excel: null,                                         pdf: '{{ route("reports.profit-loss.pdf") }}' },
+        'profit-loss':{ excel: '{{ route("reports.income-statement.excel") }}', pdf: '{{ route("reports.profit-loss.pdf") }}' },
         inventory:    { excel: '{{ route("reports.inventory.excel") }}',    pdf: '{{ route("reports.inventory.pdf") }}' },
         receivables:  { excel: '{{ route("reports.receivables.excel") }}',  pdf: '{{ route("reports.receivables.pdf") }}' },
         hrm:          { excel: '{{ route("reports.hrm.excel") }}',          pdf: '{{ route("reports.hrm.pdf") }}' },
@@ -271,6 +316,12 @@
         const period = form.querySelector('[name="period"]')?.value ?? '';
         const urls   = { excel: '{{ route("reports.budget.excel") }}', pdf: '{{ route("reports.budget.pdf") }}' };
         window.location.href = urls[format] + '?period=' + period;
+    }
+
+    function exportPayroll() {
+        const form   = document.getElementById('form-payroll');
+        const period = form.querySelector('[name="period"]')?.value ?? '';
+        window.location.href = '{{ route("reports.payroll.excel") }}?period=' + period;
     }
     </script>
     @endpush

@@ -258,6 +258,26 @@
     </div>
     @endif
     <div class="footer-right">
+        @php
+            $dirSigUrl = $tenant->director_signature ? Storage::disk('public')->url($tenant->director_signature) : null;
+            $digitalSigs = \App\Models\DigitalSignature::where('model_type', 'App\\Models\\Invoice')
+                ->where('model_id', $invoice->id)
+                ->with('user')
+                ->latest('signed_at')
+                ->limit(2)
+                ->get();
+        @endphp
+        @if($dirSigUrl)
+        <div style="margin-bottom:8px;">
+            <img src="{{ $dirSigUrl }}" alt="TTD" style="max-height:50px;max-width:120px;opacity:0.9;">
+        </div>
+        @endif
+        @foreach($digitalSigs as $sig)
+        <div style="margin-bottom:4px;">
+            <img src="{{ $sig->signature_data }}" alt="TTD Digital" style="max-height:40px;max-width:100px;border:1px solid #e5e7eb;border-radius:4px;">
+            <div style="font-size:8px;color:#9ca3af;">{{ $sig->user?->name }} · {{ $sig->signed_at?->format('d/m/Y H:i') }}</div>
+        </div>
+        @endforeach
         <div class="footer-brand">{{ $tenant->name }}</div>
         @if($tenant->npwp)<div>NPWP: {{ $tenant->npwp }}</div>@endif
     </div>

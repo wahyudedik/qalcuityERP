@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
+use App\Models\Payable;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -27,6 +28,46 @@ class PurchasingController extends Controller
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
+    }
+
+    /**
+     * Create a Payable (AP) record when PO is received (credit payment only).
+     * Idempotent — won't create duplicate if payable already exists for this PO.
+     */
+    private function createPayableForPo(PurchaseOrder $po): ?Payable
+    {
+        // Cash PO — no payable needed (already paid)
+        if (($po->payment_type ?? 'credit') === 'cash') {
+            return null;
+        }
+
+        // Already has payable — skip
+        if (Payable::where('purchase_order_id', $po->id)->exists()) {
+            return null;
+        }
+
+        $number = app(DocumentNumberService::class)->generate($po->tenant_id, 'ap', 'AP');
+
+        $payable = Payable::create([
+            'tenant_id'         => $po->tenant_id,
+            'purchase_order_id' => $po->id,
+            'supplier_id'       => $po->supplier_id,
+            'number'            => $number,
+            'total_amount'      => (float) $po->total,
+            'paid_amount'       => 0,
+            'remaining_amount'  => (float) $po->total,
+            'status'            => 'unpaid',
+            'due_date'          => $po->due_date ?? $po->date?->addDays(30) ?? today()->addDays(30),
+            'notes'             => "Hutang dari PO {$po->number}",
+        ]);
+
+        ActivityLog::record(
+            'payable_created',
+            "Hutang usaha {$number} dibuat dari PO {$po->number} (Rp " . number_format($po->total, 0, ',', '.') . ")",
+            $payable
+        );
+
+        return $payable;
     }
 
     // ── Suppliers ──────────────────────────────────────────────────
@@ -194,6 +235,9 @@ class PurchasingController extends Controller
 
         // GL Auto-Posting saat PO diterima
         if ($data['status'] === 'received' && $oldStatus !== 'received') {
+            // Create Payable (AP) record for credit PO
+            $this->createPayableForPo($order->fresh());
+
             $glResult = app(GlPostingService::class)->postPurchaseReceived(
                 tenantId:    $order->tenant_id,
                 userId:      auth()->id(),
@@ -636,6 +680,9 @@ class PurchasingController extends Controller
 
         // GL posting if fully received
         if ($allReceived) {
+            // Create Payable (AP) record for credit PO
+            $this->createPayableForPo($po->fresh());
+
             $glResult = app(GlPostingService::class)->postPurchaseReceived(
                 tenantId:    $tid,
                 userId:      auth()->id(),

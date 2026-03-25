@@ -22,13 +22,20 @@ class BotController extends Controller
 
     public function saveSettings(Request $request)
     {
-        $request->validate(['platform' => 'required|in:telegram,whatsapp', 'token' => 'required|string']);
+        $request->validate([
+            'platform'     => 'required|in:telegram,whatsapp',
+            'token'        => 'required|string',
+            'phone_number' => 'nullable|string|max:30',
+            'chat_id'      => 'nullable|string|max:50',
+        ]);
         $tenantId = auth()->user()->tenant_id;
 
         BotConfig::updateOrCreate(
             ['tenant_id' => $tenantId, 'platform' => $request->platform],
             [
                 'token'               => $request->token,
+                'phone_number'        => $request->phone_number,
+                'chat_id'             => $request->chat_id,
                 'is_active'           => $request->boolean('is_active'),
                 'notification_events' => array_keys(array_filter([
                     'new_order'  => $request->boolean('notify_new_order'),
@@ -120,16 +127,23 @@ class BotController extends Controller
 
         if (!$config) return response()->json(['ok' => true]);
 
+        $from       = $message['from'];
+        $text       = $message['text']['body'] ?? '';
+        $senderName = $entry['contacts'][0]['profile']['name'] ?? 'Unknown';
+
         BotMessage::create([
             'tenant_id'  => $config->tenant_id,
             'platform'   => 'whatsapp',
             'direction'  => 'inbound',
-            'recipient'  => $message['from'],
-            'message'    => $message['text']['body'] ?? '',
+            'recipient'  => $from,
+            'message'    => $text,
             'status'     => 'sent',
             'sent_at'    => now(),
-            'payload'    => ['from' => $message['from'], 'sender' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown'],
+            'payload'    => ['from' => $from, 'sender' => $senderName],
         ]);
+
+        // Process and reply
+        $this->bot->handleWhatsApp($config, $from, $text, $senderName);
 
         return response()->json(['ok' => true]);
     }

@@ -29,6 +29,11 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Download PDF
             </a>
+            <a href="{{ route('sign.pad', ['Invoice', $invoice->id]) }}"
+               class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-sm text-indigo-700 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-500/30 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                Tanda Tangani
+            </a>
             @if($invoice->customer?->email)
             <form method="POST" action="{{ route('invoices.send-email', $invoice) }}">
                 @csrf
@@ -98,6 +103,20 @@
                         <p class="text-xs text-gray-400 mb-0.5">Sales Order</p>
                         <p class="font-medium text-gray-900 dark:text-white">{{ $invoice->salesOrder->number }}</p>
                     </div>
+                    @endif
+                    @if($invoice->currency_code && $invoice->currency_code !== 'IDR')
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Mata Uang</p>
+                        <p class="font-medium text-gray-900 dark:text-white">
+                            {{ $invoice->currency_code }}
+                            <span class="text-xs text-gray-400">(Kurs: Rp {{ number_format($invoice->currency_rate, 0, ',', '.') }})</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-0.5">Ekuivalen IDR</p>
+                        <p class="font-medium text-green-600 dark:text-green-400">Rp {{ number_format($invoice->total_amount * $invoice->currency_rate, 0, ',', '.') }}</p>
+                    </div>
+                    @endif
                     @endif
                 </div>
             </div>
@@ -192,6 +211,32 @@
             </div>
 
             {{-- Record payment --}}
+
+            {{-- Digital Signatures --}}
+            @php
+                $invoiceSigs = \App\Models\DigitalSignature::where('model_type', 'App\\Models\\Invoice')
+                    ->where('model_id', $invoice->id)
+                    ->with('user')
+                    ->latest('signed_at')
+                    ->get();
+            @endphp
+            @if($invoiceSigs->isNotEmpty())
+            <div class="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-4">
+                <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-3">Tanda Tangan Digital</p>
+                <div class="space-y-3">
+                    @foreach($invoiceSigs as $sig)
+                    <div class="flex items-center gap-3">
+                        <img src="{{ $sig->signature_data }}" alt="TTD" class="h-10 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $sig->user?->name }}</p>
+                            <p class="text-xs text-gray-400 dark:text-slate-500">{{ $sig->signed_at?->format('d M Y H:i') }} · {{ $sig->ip_address }}</p>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             @if($invoice->status !== 'paid')
             {{-- AI: Late Payment Risk Widget --}}
             @if($invoice->customer_id)

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation — Qalcuity ERP</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        body {
+            margin: 0;
+            background: #0f172a;
+        }
+
+        .swagger-ui .topbar {
+            display: none;
+        }
+
+        .swagger-ui {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Dark mode overrides */
+        .swagger-ui .info .title {
+            color: #f1f5f9;
+        }
+
+        .swagger-ui .info p,
+        .swagger-ui .info li {
+            color: #94a3b8;
+        }
+
+        .swagger-ui .opblock-tag {
+            color: #e2e8f0;
+            border-color: #1e293b;
+        }
+
+        .swagger-ui .opblock {
+            border-color: #1e293b;
+            background: #1e293b;
+        }
+
+        .swagger-ui .opblock .opblock-summary {
+            border-color: #334155;
+        }
+
+        .swagger-ui .opblock .opblock-summary-description {
+            color: #94a3b8;
+        }
+
+        .swagger-ui .opblock-description-wrapper p {
+            color: #cbd5e1;
+        }
+
+        .swagger-ui .btn {
+            border-radius: 8px;
+        }
+
+        .swagger-ui section.models {
+            border-color: #1e293b;
+        }
+
+        .swagger-ui .model-title {
+            color: #e2e8f0;
+        }
+
+        .swagger-ui table thead tr th {
+            color: #94a3b8;
+            border-color: #334155;
+        }
+
+        .swagger-ui table tbody tr td {
+            color: #cbd5e1;
+            border-color: #1e293b;
+        }
+
+        .swagger-ui .parameter__name {
+            color: #e2e8f0;
+        }
+
+        .swagger-ui .parameter__type {
+            color: #60a5fa;
+        }
+
+        .swagger-ui input[type=text],
+        .swagger-ui textarea,
+        .swagger-ui select {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-color: #334155;
+            border-radius: 8px;
+        }
+
+        .swagger-ui .scheme-container {
+            background: #1e293b;
+            box-shadow: none;
+        }
+
+        .swagger-ui .scheme-container .schemes>label {
+            color: #94a3b8;
+        }
+
+        /* Header bar */
+        .custom-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .custom-header img {
+            height: 28px;
+            filter: brightness(0) invert(1);
+        }
+
+        .custom-header h1 {
+            color: #f1f5f9;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: Inter, sans-serif;
+        }
+
+        .custom-header a {
+            color: #60a5fa;
+            font-size: 13px;
+            text-decoration: none;
+            margin-left: auto;
+            font-family: Inter, sans-serif;
+        }
+
+        .custom-header a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="custom-header">
+        <img src="/logo.png" alt="Qalcuity">
+        <h1>API Documentation</h1>
+        <a href="/dashboard">← Kembali ke ERP</a>
+    </div>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        SwaggerUIBundle({
+            url: '/api-docs/openapi.json',
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+            layout: 'BaseLayout',
+            defaultModelsExpandDepth: 1,
+            docExpansion: 'list',
+            tryItOutEnabled: true,
+        });
+    </script>
+</body>
+
+</html>

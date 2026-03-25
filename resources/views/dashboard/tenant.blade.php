@@ -12,6 +12,57 @@
         <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{{ now()->translatedFormat('l, d F Y') }}</p>
     </div>
 
+    {{-- Setup Checklist — tampil jika ada step yang belum selesai --}}
+    @php
+        $tenant = auth()->user()->tenant;
+        $checkSteps = [
+            'profile'   => ['label' => 'Lengkapi profil perusahaan',   'done' => !empty($tenant?->phone) && !empty($tenant?->address), 'url' => route('company-profile.index'), 'icon' => '🏢'],
+            'coa'       => ['label' => 'Load Chart of Accounts',       'done' => \App\Models\ChartOfAccount::where('tenant_id', $tenant?->id)->count() >= 10, 'url' => route('settings.accounting') . '?tab=coa', 'icon' => '📊'],
+            'warehouse' => ['label' => 'Tambah gudang pertama',        'done' => \App\Models\Warehouse::where('tenant_id', $tenant?->id)->exists(), 'url' => route('warehouses.index'), 'icon' => '🏭'],
+            'product'   => ['label' => 'Tambah produk pertama',        'done' => \App\Models\Product::where('tenant_id', $tenant?->id)->exists(), 'url' => route('products.index'), 'icon' => '📦'],
+            'customer'  => ['label' => 'Tambah customer pertama',      'done' => \App\Models\Customer::where('tenant_id', $tenant?->id)->exists(), 'url' => route('customers.index'), 'icon' => '👤'],
+            'so'        => ['label' => 'Buat Sales Order pertama',     'done' => \App\Models\SalesOrder::where('tenant_id', $tenant?->id)->exists(), 'url' => route('sales.create'), 'icon' => '🧾'],
+        ];
+        $doneCount = collect($checkSteps)->where('done', true)->count();
+        $totalSteps = count($checkSteps);
+        $allDone = $doneCount === $totalSteps;
+        $pct = $totalSteps > 0 ? round(($doneCount / $totalSteps) * 100) : 0;
+    @endphp
+    @if(!$allDone && $tenant)
+    <div class="mb-6 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5" id="setup-checklist">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-lg">🚀</div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-900 dark:text-white">Setup Bisnis Anda</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ $doneCount }}/{{ $totalSteps }} langkah selesai</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('setup-checklist').remove()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white" title="Sembunyikan">✕</button>
+        </div>
+        <div class="w-full h-2 bg-gray-100 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 {{ $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-blue-500' : 'bg-amber-500') }}" style="width:{{ $pct }}%"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            @foreach($checkSteps as $step)
+            <a href="{{ $step['done'] ? '#' : $step['url'] }}"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
+                    {{ $step['done']
+                        ? 'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20'
+                        : 'bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10' }}">
+                <span class="text-lg shrink-0">{{ $step['done'] ? '✅' : $step['icon'] }}</span>
+                <span class="text-sm {{ $step['done'] ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-700 dark:text-slate-300 font-medium' }}">
+                    {{ $step['label'] }}
+                </span>
+                @if(!$step['done'])
+                <svg class="w-4 h-4 ml-auto text-gray-400 dark:text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                @endif
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- AI Insights Widget --}}
     @if(!empty($insights))
     <div class="mb-6" id="ai-insights-section">

@@ -72,6 +72,20 @@
                                 @endforeach
                             </select>
                         </div>
+                        @if(isset($currencies) && $currencies->count() > 1)
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Mata Uang</label>
+                            <select name="currency_code" id="currency_code"
+                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @foreach($currencies as $cur)
+                                    <option value="{{ $cur->code }}" data-rate="{{ $cur->rate_to_idr }}" data-symbol="{{ $cur->symbol }}"
+                                        {{ old('currency_code', 'IDR') === $cur->code ? 'selected' : '' }}>
+                                        {{ $cur->code }} — {{ $cur->name }} {{ $cur->is_base ? '(Base)' : '(Kurs: '.number_format($cur->rate_to_idr,0,',','.').')' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div>
                             <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Diskon Global (Rp)</label>
                             <input type="number" name="discount" value="{{ old('discount', 0) }}" min="0" step="1000"
@@ -99,33 +113,37 @@
                     </div>
 
                     <div id="items-container" class="space-y-3">
-                        <div class="item-row grid grid-cols-12 gap-2 items-end">
-                            <div class="col-span-5">
+                        <div class="item-row bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:dark:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
+                            <div class="sm:col-span-5">
                                 <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Produk</label>
                                 <select name="items[0][product_id]" required
-                                    class="product-select w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    class="product-select w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Pilih produk...</option>
                                     @foreach($products as $p)
                                         <option value="{{ $p->id }}" data-price="{{ $p->price_sell }}">{{ $p->name }} ({{ $p->unit }})</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Qty</label>
-                                <input type="number" name="items[0][quantity]" min="0.001" step="0.001" value="1" required
-                                    class="qty-input w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="grid grid-cols-3 gap-2 sm:contents">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Qty</label>
+                                    <input type="number" name="items[0][quantity]" min="0.001" step="0.001" value="1" required
+                                        class="qty-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Harga</label>
+                                    <input type="number" name="items[0][price]" min="0" step="100" value="0" required
+                                        class="price-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="sm:col-span-2 flex items-end justify-between sm:block">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:mb-1">Subtotal</label>
+                                        <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Harga</label>
-                                <input type="number" name="items[0][price]" min="0" step="100" value="0" required
-                                    class="price-input w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Subtotal</label>
-                                <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
-                            </div>
-                            <div class="col-span-1 flex justify-end">
-                                <button type="button" class="remove-item text-red-400 hover:text-red-300 transition mt-5">✕</button>
+                            <div class="sm:col-span-1 flex justify-end -mt-1 sm:mt-0">
+                                <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs sm:mt-5 px-2 py-1 rounded-lg bg-red-50 dark:bg-red-500/10 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
                             </div>
                         </div>
                     </div>
@@ -137,9 +155,9 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3">
-                    <a href="{{ route('sales.index') }}" class="px-5 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">Batal</a>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Buat Sales Order</button>
+                <div class="flex justify-end gap-3 sticky bottom-0 bg-[#f8f8f8] dark:bg-[#0f172a] py-3 -mx-4 px-4 sm:static sm:bg-transparent sm:dark:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-t border-gray-200 dark:border-white/10 sm:border-0">
+                    <a href="{{ route('sales.index') }}" class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">Batal</a>
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition flex-1 sm:flex-none">Buat Sales Order</button>
                 </div>
 
             </div>
@@ -260,26 +278,30 @@
 
         function addRow() {
             const tpl = `
-            <div class="item-row grid grid-cols-12 gap-2 items-end">
-                <div class="col-span-5">
+            <div class="item-row bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:dark:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
+                <div class="sm:col-span-5">
                     <select name="items[${idx}][product_id]" required
-                        class="product-select w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="product-select w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         ${buildOptions()}
                     </select>
                 </div>
-                <div class="col-span-2">
-                    <input type="number" name="items[${idx}][quantity]" min="0.001" step="0.001" value="1" required
-                        class="qty-input w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="grid grid-cols-3 gap-2 sm:contents">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:hidden">Qty</label>
+                        <input type="number" name="items[${idx}][quantity]" min="0.001" step="0.001" value="1" required placeholder="Qty"
+                            class="qty-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:hidden">Harga</label>
+                        <input type="number" name="items[${idx}][price]" min="0" step="100" value="0" required placeholder="Harga"
+                            class="price-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="sm:col-span-2 flex items-end justify-between sm:block">
+                        <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
+                    </div>
                 </div>
-                <div class="col-span-2">
-                    <input type="number" name="items[${idx}][price]" min="0" step="100" value="0" required
-                        class="price-input w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="col-span-2">
-                    <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
-                </div>
-                <div class="col-span-1 flex justify-end">
-                    <button type="button" class="remove-item text-red-400 hover:text-red-300 transition">✕</button>
+                <div class="sm:col-span-1 flex justify-end -mt-1 sm:mt-0">
+                    <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs px-2 py-1 rounded-lg bg-red-50 dark:bg-red-500/10 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
                 </div>
             </div>`;
             const container = document.getElementById('items-container');

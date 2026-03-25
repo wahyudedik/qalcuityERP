@@ -65,6 +65,11 @@
                         class="px-3 py-2 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">
                         ← Kembali
                     </a>
+                    <a href="{{ route('sign.pad', ['SalesOrder', $salesOrder->id]) }}"
+                        class="px-3 py-2 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-sm hover:bg-indigo-200 dark:hover:bg-indigo-500/30 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        TTD
+                    </a>
                 </div>
             </div>
 
@@ -92,6 +97,19 @@
                     <div>
                         <p class="text-xs text-gray-500 dark:text-slate-400">Dari Quotation</p>
                         <p class="text-sm font-medium text-blue-400 mt-0.5">{{ $salesOrder->quotation->number }}</p>
+                    </div>
+                @endif
+                @if($salesOrder->currency_code && $salesOrder->currency_code !== 'IDR')
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-slate-400">Mata Uang</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                            {{ $salesOrder->currency_code }}
+                            <span class="text-xs text-gray-400 dark:text-slate-500">(Kurs: Rp {{ number_format($salesOrder->currency_rate, 0, ',', '.') }})</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-slate-400">Ekuivalen IDR</p>
+                        <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-0.5">Rp {{ number_format($salesOrder->total * $salesOrder->currency_rate, 0, ',', '.') }}</p>
                     </div>
                 @endif
                 @if($salesOrder->shipping_address)
@@ -159,6 +177,31 @@
                 <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Catatan</p>
                 <p class="text-sm text-gray-700 dark:text-slate-300">{{ $salesOrder->notes }}</p>
             </div>
+        @endif
+
+        {{-- Digital Signatures --}}
+        @php
+            $signatures = \App\Models\DigitalSignature::where('model_type', 'App\\Models\\SalesOrder')
+                ->where('model_id', $salesOrder->id)
+                ->with('user')
+                ->latest('signed_at')
+                ->get();
+        @endphp
+        @if($signatures->isNotEmpty())
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+            <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-3">Tanda Tangan Digital</p>
+            <div class="flex flex-wrap gap-4">
+                @foreach($signatures as $sig)
+                <div class="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+                    <img src="{{ $sig->signature_data }}" alt="TTD" class="h-10 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $sig->user?->name }}</p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500">{{ $sig->signed_at?->format('d M Y H:i') }}</p>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
         @endif
 
     </div>

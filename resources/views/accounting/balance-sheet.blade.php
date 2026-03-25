@@ -23,7 +23,7 @@
         @endphp
 
         {{-- Balance indicator --}}
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             @if($data['is_balanced'])
                 <span class="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 text-xs px-3 py-1.5 rounded-full border border-green-500/20">
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -33,6 +33,17 @@
                 <span class="inline-flex items-center gap-1.5 bg-red-500/10 text-red-400 text-xs px-3 py-1.5 rounded-full border border-red-500/20">
                     ⚠ Neraca Tidak Balance — selisih Rp {{ $fmt($data['total_assets'] - $data['total_l_e']) }}
                 </span>
+            @endif
+            @if(isset($data['gl_integrity']))
+                @if($data['gl_integrity']['is_balanced'])
+                <span class="inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-400 text-xs px-3 py-1.5 rounded-full border border-blue-500/20">
+                    ✓ GL Integrity OK ({{ $data['gl_integrity']['journal_count'] }} jurnal)
+                </span>
+                @else
+                <span class="inline-flex items-center gap-1.5 bg-red-500/10 text-red-400 text-xs px-3 py-1.5 rounded-full border border-red-500/20">
+                    ⚠ {{ $data['gl_integrity']['unbalanced_count'] }} jurnal tidak balance — selisih Rp {{ number_format($data['gl_integrity']['difference'], 0, ',', '.') }}
+                </span>
+                @endif
             @endif
             <span class="text-xs text-gray-500">Per {{ \Carbon\Carbon::parse($asOf)->translatedFormat('d F Y') }}</span>
         </div>

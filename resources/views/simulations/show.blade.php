@@ -1,40 +1,86 @@
 <x-app-layout>
     <x-slot name="header">{{ $simulation->name }}</x-slot>
 
+    @push('head')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    @endpush
+
     <div class="py-6 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         @php
             $results = $simulation->results ?? [];
             $fmt = fn($n) => 'Rp ' . number_format(abs($n ?? 0), 0, ',', '.');
+            $labels = [
+                'price_increase' => '📈 Kenaikan Harga',
+                'new_branch'     => '🏪 Cabang Baru',
+                'stock_out'      => '📦 Stok Habis',
+                'cost_reduction' => '✂️ Efisiensi Biaya',
+                'demand_change'  => '📊 Perubahan Demand',
+            ];
         @endphp
+
+        {{-- Scenario badge --}}
+        <div class="flex items-center gap-3 flex-wrap">
+            <span class="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 text-sm rounded-full border border-indigo-500/20 font-medium">
+                {{ $labels[$simulation->scenario_type] ?? $simulation->scenario_type }}
+            </span>
+            <span class="text-xs text-gray-400 dark:text-slate-500">{{ $simulation->created_at->translatedFormat('d M Y H:i') }}</span>
+        </div>
 
         <!-- AI Narrative -->
         @if($simulation->ai_narrative)
-            <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-xl p-5">
+            <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-2xl p-5">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">🤖</span>
+                    <div class="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center text-lg shrink-0">🤖</div>
                     <div>
-                        <p class="font-medium text-indigo-800 dark:text-indigo-200 text-sm mb-1">Analisis AI</p>
-                        <p class="text-sm text-indigo-700 dark:text-indigo-300">{{ $simulation->ai_narrative }}</p>
+                        <p class="font-semibold text-indigo-800 dark:text-indigo-300 text-sm mb-1">Analisis AI</p>
+                        <p class="text-sm text-indigo-700 dark:text-indigo-300/80 leading-relaxed whitespace-pre-line">{{ $simulation->ai_narrative }}</p>
                     </div>
                 </div>
             </div>
         @endif
 
-        <!-- KPI Cards -->
-        @if(!empty($results['formatted']))
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @foreach($results['formatted'] as $label => $value)
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 text-center">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ str_replace('_', ' ', $label) }}</p>
-                        <p class="text-lg font-bold text-gray-800 dark:text-gray-100 mt-1">{{ $value }}</p>
-                    </div>
-                @endforeach
+        {{-- ══ BEFORE / AFTER COMPARISON CHART ══════════════════════ --}}
+        @php
+            $chartBefore = [];
+            $chartAfter  = [];
+            $chartLabels = [];
+
+            if ($simulation->scenario_type === 'price_increase') {
+                $chartLabels = ['Pendapatan', 'Demand (unit)'];
+                $chartBefore = [$results['current_revenue'] ?? 0, $results['current_orders'] ?? 0];
+                $chartAfter  = [$results['projected_revenue_with_elasticity'] ?? 0, round(($results['current_orders'] ?? 0) * (1 + ($results['demand_change_pct'] ?? 0) / 100))];
+            } elseif ($simulation->scenario_type === 'cost_reduction') {
+                $chartLabels = ['Pengeluaran', 'Laba Bersih'];
+                $chartBefore = [$results['total_expense'] ?? 0, $results['current_profit'] ?? 0];
+                $chartAfter  = [($results['total_expense'] ?? 0) - ($results['saved_cost'] ?? 0), $results['new_profit'] ?? 0];
+            } elseif ($simulation->scenario_type === 'demand_change') {
+                $chartLabels = ['Pendapatan', 'Jumlah Order'];
+                $chartBefore = [$results['current_revenue'] ?? 0, $results['current_orders'] ?? 0];
+                $chartAfter  = [$results['projected_revenue'] ?? 0, $results['projected_orders'] ?? 0];
+            } elseif ($simulation->scenario_type === 'new_branch') {
+                $months = $results['months'] ?? 12;
+                $chartLabels = ['Biaya Total', 'Omzet Total', 'Laba Bersih'];
+                $chartBefore = [0, 0, 0];
+                $chartAfter  = [($results['fixed_cost_monthly'] ?? 0) * $months, ($results['revenue_projection'] ?? 0) * $months, $results['net_profit'] ?? 0];
+            } elseif ($simulation->scenario_type === 'stock_out') {
+                $chartLabels = ['Omzet Normal', 'Kehilangan Omzet'];
+                $chartBefore = [($results['total_lost_revenue'] ?? 0) + ($results['daily_lost'] ?? 0) * ($simulation->parameters['days'] ?? 30), 0];
+                $chartAfter  = [($results['daily_lost'] ?? 0) * ($simulation->parameters['days'] ?? 30), $results['total_lost_revenue'] ?? 0];
+            }
+        @endphp
+
+        @if(!empty($chartLabels))
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+            <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-4">Perbandingan Sebelum vs Sesudah</h3>
+            <div class="h-64">
+                <canvas id="comparison-chart"></canvas>
             </div>
+        </div>
         @endif
 
         <!-- Detail Results -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-4">Detail Hasil Simulasi</h3>
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Detail Hasil Simulasi</h3>
 
             @if($simulation->scenario_type === 'price_increase')
                 <div class="space-y-3 text-sm">
@@ -167,16 +213,102 @@
         </div>
 
         <!-- Parameters -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-            <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-3 text-sm">Parameter Input</h3>
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Parameter Input</h3>
             <div class="grid grid-cols-2 gap-2 text-sm">
                 @foreach($simulation->parameters as $key => $val)
-                    <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-500 dark:text-gray-400 capitalize">{{ str_replace('_', ' ', $key) }}</span>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ is_array($val) ? implode(', ', $val) : $val }}</span>
+                    <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-white/5">
+                        <span class="text-gray-500 dark:text-slate-400 capitalize">{{ str_replace('_', ' ', $key) }}</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ is_array($val) ? implode(', ', $val) : $val }}</span>
                     </div>
                 @endforeach
             </div>
         </div>
+
+        <div class="flex justify-between">
+            <a href="{{ route('simulations.index') }}" class="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-white">← Kembali ke daftar</a>
+            <form method="POST" action="{{ route('simulations.destroy', $simulation) }}" onsubmit="return confirm('Hapus simulasi ini?')">
+                @csrf @method('DELETE')
+                <button class="text-sm text-red-400 hover:text-red-600">Hapus simulasi</button>
+            </form>
+        </div>
     </div>
+
+    @if(!empty($chartLabels))
+    @push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('comparison-chart');
+        if (!ctx) return;
+
+        const isDark = document.documentElement.classList.contains('dark');
+        const labels = @json($chartLabels);
+        const before = @json($chartBefore);
+        const after  = @json($chartAfter);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Sebelum',
+                        data: before,
+                        backgroundColor: isDark ? 'rgba(148,163,184,0.4)' : 'rgba(148,163,184,0.6)',
+                        borderColor: 'rgba(148,163,184,0.8)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Sesudah (Proyeksi)',
+                        data: after,
+                        backgroundColor: isDark ? 'rgba(99,102,241,0.5)' : 'rgba(99,102,241,0.7)',
+                        borderColor: 'rgba(99,102,241,0.9)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: isDark ? '#94a3b8' : '#64748b', font: { size: 11 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const v = ctx.raw;
+                                if (Math.abs(v) >= 1000) return ctx.dataset.label + ': Rp ' + Math.round(v).toLocaleString('id-ID');
+                                return ctx.dataset.label + ': ' + v;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: isDark ? '#475569' : '#94a3b8',
+                            callback: function(v) {
+                                if (Math.abs(v) >= 1000000) return 'Rp ' + (v/1000000).toFixed(1) + 'jt';
+                                if (Math.abs(v) >= 1000) return 'Rp ' + (v/1000).toFixed(0) + 'rb';
+                                return v;
+                            }
+                        },
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        ticks: { color: isDark ? '#94a3b8' : '#64748b', font: { size: 11 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+    @endpush
+    @endif
 </x-app-layout>

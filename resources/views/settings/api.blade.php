@@ -31,6 +31,9 @@
         <p class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">Base URL REST API</p>
         <code class="text-xs text-blue-700 dark:text-blue-400 font-mono">{{ url('/api/v1') }}</code>
         <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">Autentikasi: <code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">Authorization: Bearer &lt;token&gt;</code> atau header <code class="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">X-API-Token</code></p>
+        <a href="/api-docs/" target="_blank" class="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
+            📖 Lihat Dokumentasi API Lengkap (Swagger) →
+        </a>
         <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-blue-700 dark:text-blue-400">
             @foreach(['GET /stats','GET /products','GET /orders','POST /orders','GET /invoices','GET /customers','POST /customers'] as $ep)
             <code class="bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded">{{ $ep }}</code>

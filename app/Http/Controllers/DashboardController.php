@@ -147,13 +147,19 @@ class DashboardController extends Controller
             ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(30)]))
         )->with('admins')->orderByRaw("COALESCE(trial_ends_at, plan_expires_at) ASC")->get();
 
-        // Tenant growth chart — last 6 months
+        // Tenant growth chart — last 6 months — 1 aggregate query (was 6 separate queries)
+        $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
+        $monthlyGrowth = Tenant::where('created_at', '>=', $sixMonthsAgo)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt")
+            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->pluck('cnt', 'ym');
+
         $growthChart = [];
         for ($i = 5; $i >= 0; $i--) {
             $d = now()->subMonths($i);
             $growthChart[] = [
                 'month' => $d->format('M Y'),
-                'count' => Tenant::whereMonth('created_at', $d->month)->whereYear('created_at', $d->year)->count(),
+                'count' => (int) ($monthlyGrowth[$d->format('Y-m')] ?? 0),
             ];
         }
 
@@ -200,16 +206,22 @@ class DashboardController extends Controller
         $lastRevenue = $lastMonth->sum('total');
         $growth = $lastRevenue > 0 ? (($thisRevenue - $lastRevenue) / $lastRevenue) * 100 : 0;
 
-        // Chart data: 7 hari terakhir
+        // Chart data: 7 hari terakhir — SINGLE aggregate query instead of 7 separate queries
+        $sevenDaysAgo = now()->subDays(6)->startOfDay();
+        $dailySales = SalesOrder::where('tenant_id', $tenantId)
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('date', '>=', $sevenDaysAgo)
+            ->selectRaw('DATE(date) as sale_date, SUM(total) as day_total')
+            ->groupByRaw('DATE(date)')
+            ->pluck('day_total', 'sale_date');
+
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
+            $d = now()->subDays($i);
+            $key = $d->format('Y-m-d');
             $chartData[] = [
-                'date'  => $date->format('d M'),
-                'total' => SalesOrder::where('tenant_id', $tenantId)
-                    ->whereDate('date', $date)
-                    ->whereNotIn('status', ['cancelled'])
-                    ->sum('total'),
+                'date'  => $d->format('d M'),
+                'total' => (float) ($dailySales[$key] ?? 0),
             ];
         }
 
@@ -221,6 +233,7 @@ class DashboardController extends Controller
             'chart'              => $chartData,
         ];
     }
+
 
     private function inventoryStats(int $tenantId): array
     {
@@ -257,16 +270,24 @@ class DashboardController extends Controller
         $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
             ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
 
-        // Chart 6 bulan terakhir
+        // Chart 6 bulan terakhir — 1 aggregate query (was 12 separate queries)
+        $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
+        $monthlyTx = Transaction::where('tenant_id', $tenantId)
+            ->whereDate('date', '>=', $sixMonthsAgo)
+            ->selectRaw("DATE_FORMAT(date, '%Y-%m') as ym, type, SUM(amount) as total")
+            ->groupByRaw("DATE_FORMAT(date, '%Y-%m'), type")
+            ->get()
+            ->groupBy('ym');
+
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
-            $d = now()->subMonths($i);
+            $d  = now()->subMonths($i);
+            $ym = $d->format('Y-m');
+            $group = $monthlyTx[$ym] ?? collect();
             $chartData[] = [
                 'month'   => $d->format('M Y'),
-                'income'  => Transaction::where('tenant_id', $tenantId)->where('type', 'income')
-                    ->whereMonth('date', $d->month)->whereYear('date', $d->year)->sum('amount'),
-                'expense' => Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
-                    ->whereMonth('date', $d->month)->whereYear('date', $d->year)->sum('amount'),
+                'income'  => (float) $group->where('type', 'income')->sum('total'),
+                'expense' => (float) $group->where('type', 'expense')->sum('total'),
             ];
         }
 
