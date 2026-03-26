@@ -36,7 +36,8 @@ return [
     ],
 
     'rajaongkir' => [
-        'key' => env('RAJAONGKIR_API_KEY', ''),
+        'key'  => env('RAJAONGKIR_API_KEY', ''),
+        'tier' => env('RAJAONGKIR_TIER', 'starter'), // starter, basic, pro
     ],
 
     'midtrans' => [
