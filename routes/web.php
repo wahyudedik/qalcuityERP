@@ -33,6 +33,16 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\LoyaltyController;
 use App\Http\Controllers\ReceivablesController;
 use App\Http\Controllers\ProductionController;
+use App\Http\Controllers\ManufacturingController;
+use App\Http\Controllers\FleetController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\LandedCostController;
+use App\Http\Controllers\ConsignmentController;
+use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\HelpdeskController;
+use App\Http\Controllers\ProjectBillingController;
+use App\Http\Controllers\SubscriptionBillingController;
+use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TaxController;
@@ -142,12 +152,31 @@ Route::middleware('auth')->group(function () {
         Route::delete('/monitoring/errors/{error}', [SuperAdminMonitoringController::class, 'deleteError'])->name('monitoring.delete-error');
         Route::post('/monitoring/errors/clear', [SuperAdminMonitoringController::class, 'clearErrors'])->name('monitoring.clear-errors');
         Route::get('/monitoring/health.json', [SuperAdminMonitoringController::class, 'healthJson'])->name('monitoring.health-json');
+
+        // Affiliate Management
+        Route::get('/affiliates', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'index'])->name('affiliates.index');
+        Route::post('/affiliates', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'store'])->name('affiliates.store');
+        Route::patch('/affiliates/{affiliate}/toggle', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'toggleActive'])->name('affiliates.toggle');
+        Route::get('/affiliates/commissions', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'commissions'])->name('affiliates.commissions');
+        Route::patch('/affiliates/commissions/{affiliateCommission}/approve', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'approveCommission'])->name('affiliates.commissions.approve');
+        Route::patch('/affiliates/commissions/{affiliateCommission}/reject', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'rejectCommission'])->name('affiliates.commissions.reject');
+        Route::get('/affiliates/payouts', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'payouts'])->name('affiliates.payouts');
+        Route::patch('/affiliates/payouts/{affiliatePayout}/approve', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'approvePayout'])->name('affiliates.payouts.approve');
+        Route::patch('/affiliates/payouts/{affiliatePayout}/reject', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'rejectPayout'])->name('affiliates.payouts.reject');
+        Route::get('/affiliates/audit-logs', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'auditLogs'])->name('affiliates.audit-logs');
     });
 
     // Subscription info (tenant only)
     Route::get('/subscription', [SubscriptionController::class, 'index'])
         ->name('subscription.index')
         ->withoutMiddleware(\App\Http\Middleware\CheckTenantActive::class);
+
+    // Affiliate Dashboard (for affiliate role users)
+    Route::prefix('affiliate')->name('affiliate.')->middleware('role:affiliate')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\AffiliateDashboardController::class, 'index'])->name('dashboard');
+        Route::put('/profile', [\App\Http\Controllers\AffiliateDashboardController::class, 'updateProfile'])->name('profile');
+        Route::post('/withdraw', [\App\Http\Controllers\AffiliateDashboardController::class, 'requestWithdraw'])->name('withdraw');
+    });
 
     // Subscription expired page (tidak perlu auth, tapi perlu session)
     Route::get('/subscription/expired', fn() => view('subscription.expired'))->name('subscription.expired')->withoutMiddleware(\App\Http\Middleware\CheckTenantActive::class);
@@ -225,10 +254,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/webhooks/{webhookSubscription}/deliveries', [\App\Http\Controllers\ApiSettingsController::class, 'webhookDeliveries'])->name('webhooks.deliveries');
     });
 
-    // POS Kasir (semua role tenant bisa akses)
-    Route::prefix('pos')->name('pos.')->group(function () {
+    // POS Kasir
+    Route::prefix('pos')->name('pos.')->middleware('permission:pos,view')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
-        Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
+        Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout')->middleware('permission:pos,create');
         Route::get('/barcode', [PosController::class, 'findByBarcode'])->name('barcode');
     });
 
@@ -698,6 +727,135 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{workOrder}/status', [ProductionController::class, 'updateStatus'])->name('status');
         Route::post('/{workOrder}/output', [ProductionController::class, 'recordOutput'])->name('output');
     });
+
+    // Manufacturing (BOM, Work Centers, MRP)
+    Route::prefix('manufacturing')->name('manufacturing.')->middleware('role:admin,manager,gudang')->group(function () {
+        Route::get('/bom', [ManufacturingController::class, 'bom'])->name('bom')->middleware('permission:manufacturing,view');
+        Route::post('/bom', [ManufacturingController::class, 'storeBom'])->name('bom.store')->middleware('permission:manufacturing,create');
+        Route::put('/bom/{bom}', [ManufacturingController::class, 'updateBom'])->name('bom.update')->middleware('permission:manufacturing,edit');
+        Route::delete('/bom/{bom}', [ManufacturingController::class, 'destroyBom'])->name('bom.destroy')->middleware('permission:manufacturing,delete');
+        Route::get('/work-centers', [ManufacturingController::class, 'workCenters'])->name('work-centers')->middleware('permission:manufacturing,view');
+        Route::post('/work-centers', [ManufacturingController::class, 'storeWorkCenter'])->name('work-centers.store')->middleware('permission:manufacturing,create');
+        Route::put('/work-centers/{workCenter}', [ManufacturingController::class, 'updateWorkCenter'])->name('work-centers.update')->middleware('permission:manufacturing,edit');
+        Route::delete('/work-centers/{workCenter}', [ManufacturingController::class, 'destroyWorkCenter'])->name('work-centers.destroy')->middleware('permission:manufacturing,delete');
+        Route::get('/mrp', [ManufacturingController::class, 'mrp'])->name('mrp')->middleware('permission:manufacturing,view');
+        Route::post('/{workOrder}/consume', [ManufacturingController::class, 'consumeMaterials'])->name('consume')->middleware('permission:manufacturing,create');
+    });
+
+    // Fleet Management
+    Route::prefix('fleet')->name('fleet.')->middleware('role:admin,manager,gudang')->group(function () {
+        Route::get('/', [FleetController::class, 'index'])->name('index')->middleware('permission:fleet,view');
+        Route::post('/vehicles', [FleetController::class, 'storeVehicle'])->name('vehicles.store')->middleware('permission:fleet,create');
+        Route::put('/vehicles/{fleetVehicle}', [FleetController::class, 'updateVehicle'])->name('vehicles.update')->middleware('permission:fleet,edit');
+        Route::delete('/vehicles/{fleetVehicle}', [FleetController::class, 'destroyVehicle'])->name('vehicles.destroy')->middleware('permission:fleet,delete');
+        Route::get('/drivers', [FleetController::class, 'drivers'])->name('drivers')->middleware('permission:fleet,view');
+        Route::post('/drivers', [FleetController::class, 'storeDriver'])->name('drivers.store')->middleware('permission:fleet,create');
+        Route::put('/drivers/{fleetDriver}', [FleetController::class, 'updateDriver'])->name('drivers.update')->middleware('permission:fleet,edit');
+        Route::delete('/drivers/{fleetDriver}', [FleetController::class, 'destroyDriver'])->name('drivers.destroy')->middleware('permission:fleet,delete');
+        Route::get('/trips', [FleetController::class, 'trips'])->name('trips')->middleware('permission:fleet,view');
+        Route::post('/trips', [FleetController::class, 'storeTrip'])->name('trips.store')->middleware('permission:fleet,create');
+        Route::patch('/trips/{fleetTrip}/complete', [FleetController::class, 'completeTrip'])->name('trips.complete')->middleware('permission:fleet,edit');
+        Route::get('/fuel-logs', [FleetController::class, 'fuelLogs'])->name('fuel-logs')->middleware('permission:fleet,view');
+        Route::post('/fuel-logs', [FleetController::class, 'storeFuelLog'])->name('fuel-logs.store')->middleware('permission:fleet,create');
+        Route::get('/maintenance', [FleetController::class, 'maintenance'])->name('maintenance')->middleware('permission:fleet,view');
+        Route::post('/maintenance', [FleetController::class, 'storeMaintenance'])->name('maintenance.store')->middleware('permission:fleet,create');
+        Route::patch('/maintenance/{fleetMaintenance}/complete', [FleetController::class, 'completeMaintenance'])->name('maintenance.complete')->middleware('permission:fleet,edit');
+        Route::delete('/maintenance/{fleetMaintenance}', [FleetController::class, 'destroyMaintenance'])->name('maintenance.destroy')->middleware('permission:fleet,delete');
+    });
+
+    // Contract Management
+    Route::prefix('contracts')->name('contracts.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [ContractController::class, 'index'])->name('index')->middleware('permission:contracts,view');
+        Route::post('/', [ContractController::class, 'store'])->name('store')->middleware('permission:contracts,create');
+        Route::get('/templates', [ContractController::class, 'templates'])->name('templates')->middleware('permission:contracts,view');
+        Route::post('/templates', [ContractController::class, 'storeTemplate'])->name('templates.store')->middleware('permission:contracts,create');
+        Route::delete('/templates/{contractTemplate}', [ContractController::class, 'destroyTemplate'])->name('templates.destroy')->middleware('permission:contracts,delete');
+        Route::get('/{contract}', [ContractController::class, 'show'])->name('show')->middleware('permission:contracts,view');
+        Route::patch('/{contract}/activate', [ContractController::class, 'activate'])->name('activate')->middleware('permission:contracts,edit');
+        Route::patch('/{contract}/terminate', [ContractController::class, 'terminate'])->name('terminate')->middleware('permission:contracts,edit');
+        Route::post('/{contract}/renew', [ContractController::class, 'renew'])->name('renew')->middleware('permission:contracts,create');
+        Route::post('/{contract}/billing', [ContractController::class, 'generateBilling'])->name('billing')->middleware('permission:contracts,create');
+        Route::post('/{contract}/sla', [ContractController::class, 'storeSlaLog'])->name('sla.store')->middleware('permission:contracts,create');
+        Route::patch('/sla/{contractSlaLog}/resolve', [ContractController::class, 'resolveSlaLog'])->name('sla.resolve')->middleware('permission:contracts,edit');
+        Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy')->middleware('permission:contracts,delete');
+    });
+
+    // Landed Cost
+    Route::prefix('landed-cost')->name('landed-cost.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [LandedCostController::class, 'index'])->name('index')->middleware('permission:landed_cost,view');
+        Route::post('/', [LandedCostController::class, 'store'])->name('store')->middleware('permission:landed_cost,create');
+        Route::get('/{landedCost}', [LandedCostController::class, 'show'])->name('show')->middleware('permission:landed_cost,view');
+        Route::post('/{landedCost}/allocate', [LandedCostController::class, 'allocate'])->name('allocate')->middleware('permission:landed_cost,edit');
+        Route::post('/{landedCost}/post', [LandedCostController::class, 'post'])->name('post')->middleware('permission:landed_cost,edit');
+        Route::patch('/allocation/{allocation}/weight', [LandedCostController::class, 'updateWeight'])->name('weight')->middleware('permission:landed_cost,edit');
+        Route::delete('/{landedCost}', [LandedCostController::class, 'destroy'])->name('destroy')->middleware('permission:landed_cost,delete');
+    });
+
+    // Consignment
+    Route::prefix('consignment')->name('consignment.')->middleware('role:admin,manager,gudang')->group(function () {
+        Route::get('/', [ConsignmentController::class, 'index'])->name('index')->middleware('permission:consignment,view');
+        Route::post('/shipments', [ConsignmentController::class, 'storeShipment'])->name('shipments.store')->middleware('permission:consignment,create');
+        Route::get('/shipments/{consignmentShipment}', [ConsignmentController::class, 'show'])->name('shipments.show')->middleware('permission:consignment,view');
+        Route::post('/shipments/{consignmentShipment}/sales-report', [ConsignmentController::class, 'storeSalesReport'])->name('sales-report.store')->middleware('permission:consignment,create');
+        Route::post('/shipments/{consignmentShipment}/return', [ConsignmentController::class, 'returnItems'])->name('return')->middleware('permission:consignment,edit');
+        Route::get('/partners', [ConsignmentController::class, 'partners'])->name('partners')->middleware('permission:consignment,view');
+        Route::post('/partners', [ConsignmentController::class, 'storePartner'])->name('partners.store')->middleware('permission:consignment,create');
+        Route::delete('/partners/{consignmentPartner}', [ConsignmentController::class, 'destroyPartner'])->name('partners.destroy')->middleware('permission:consignment,delete');
+        Route::post('/settlement/{consignmentSalesReport}', [ConsignmentController::class, 'storeSettlement'])->name('settlement.store')->middleware('permission:consignment,create');
+    });
+
+    // Commission Management
+    Route::prefix('commission')->name('commission.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [CommissionController::class, 'index'])->name('index')->middleware('permission:commission,view');
+        Route::post('/calculate', [CommissionController::class, 'calculate'])->name('calculate')->middleware('permission:commission,create');
+        Route::post('/targets', [CommissionController::class, 'storeTarget'])->name('targets.store')->middleware('permission:commission,create');
+        Route::get('/rules', [CommissionController::class, 'rules'])->name('rules')->middleware('permission:commission,view');
+        Route::post('/rules', [CommissionController::class, 'storeRule'])->name('rules.store')->middleware('permission:commission,create');
+        Route::delete('/rules/{commissionRule}', [CommissionController::class, 'destroyRule'])->name('rules.destroy')->middleware('permission:commission,delete');
+        Route::patch('/{commissionCalculation}/approve', [CommissionController::class, 'approve'])->name('approve')->middleware('permission:commission,edit');
+        Route::post('/{commissionCalculation}/pay', [CommissionController::class, 'pay'])->name('pay')->middleware('permission:commission,edit');
+    });
+
+    // Helpdesk / Ticketing
+    Route::prefix('helpdesk')->name('helpdesk.')->middleware('role:admin,manager,staff')->group(function () {
+        Route::get('/', [HelpdeskController::class, 'index'])->name('index')->middleware('permission:helpdesk,view');
+        Route::post('/', [HelpdeskController::class, 'store'])->name('store')->middleware('permission:helpdesk,create');
+        Route::get('/knowledge-base', [HelpdeskController::class, 'knowledgeBase'])->name('kb')->middleware('permission:helpdesk,view');
+        Route::post('/knowledge-base', [HelpdeskController::class, 'storeArticle'])->name('kb.store')->middleware('permission:helpdesk,create');
+        Route::delete('/knowledge-base/{kbArticle}', [HelpdeskController::class, 'destroyArticle'])->name('kb.destroy')->middleware('permission:helpdesk,delete');
+        Route::get('/{helpdeskTicket}', [HelpdeskController::class, 'show'])->name('show')->middleware('permission:helpdesk,view');
+        Route::post('/{helpdeskTicket}/reply', [HelpdeskController::class, 'reply'])->name('reply')->middleware('permission:helpdesk,create');
+        Route::patch('/{helpdeskTicket}/status', [HelpdeskController::class, 'updateStatus'])->name('status')->middleware('permission:helpdesk,edit');
+        Route::patch('/{helpdeskTicket}/rate', [HelpdeskController::class, 'rate'])->name('rate')->middleware('permission:helpdesk,edit');
+    });
+
+    // Project Billing
+    Route::prefix('project-billing')->name('project-billing.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/{project}', [ProjectBillingController::class, 'show'])->name('show')->middleware('permission:project_billing,view');
+        Route::post('/{project}/config', [ProjectBillingController::class, 'saveConfig'])->name('config')->middleware('permission:project_billing,edit');
+        Route::post('/{project}/milestones', [ProjectBillingController::class, 'storeMilestone'])->name('milestones.store')->middleware('permission:project_billing,create');
+        Route::patch('/milestones/{projectMilestone}/complete', [ProjectBillingController::class, 'completeMilestone'])->name('milestones.complete')->middleware('permission:project_billing,edit');
+        Route::post('/milestones/{projectMilestone}/invoice', [ProjectBillingController::class, 'generateMilestone'])->name('milestones.invoice')->middleware('permission:project_billing,create');
+        Route::post('/{project}/time-material', [ProjectBillingController::class, 'generateTimeMaterial'])->name('time-material')->middleware('permission:project_billing,create');
+        Route::post('/{project}/retainer', [ProjectBillingController::class, 'generateRetainer'])->name('retainer')->middleware('permission:project_billing,create');
+    });
+
+    // Subscription Billing
+    Route::prefix('subscription-billing')->name('subscription-billing.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [SubscriptionBillingController::class, 'index'])->name('index')->middleware('permission:subscription_billing,view');
+        Route::post('/', [SubscriptionBillingController::class, 'store'])->name('store')->middleware('permission:subscription_billing,create');
+        Route::get('/plans', [SubscriptionBillingController::class, 'plans'])->name('plans')->middleware('permission:subscription_billing,view');
+        Route::post('/plans', [SubscriptionBillingController::class, 'storePlan'])->name('plans.store')->middleware('permission:subscription_billing,create');
+        Route::delete('/plans/{customerSubscriptionPlan}', [SubscriptionBillingController::class, 'destroyPlan'])->name('plans.destroy')->middleware('permission:subscription_billing,delete');
+        Route::post('/bulk-generate', [SubscriptionBillingController::class, 'bulkGenerate'])->name('bulk-generate')->middleware('permission:subscription_billing,create');
+        Route::get('/{customerSubscription}', [SubscriptionBillingController::class, 'show'])->name('show')->middleware('permission:subscription_billing,view');
+        Route::post('/{customerSubscription}/generate', [SubscriptionBillingController::class, 'generateBilling'])->name('generate')->middleware('permission:subscription_billing,create');
+        Route::patch('/{customerSubscription}/cancel', [SubscriptionBillingController::class, 'cancel'])->name('cancel')->middleware('permission:subscription_billing,edit');
+    });
+
+    // AI Forecasting
+    Route::get('/forecast', [ForecastController::class, 'index'])->name('forecast.index')
+        ->middleware(['role:admin,manager', 'permission:reports,view']);
 
     // Quotations (Penawaran Harga)
     Route::prefix('quotations')->name('quotations.')->middleware('role:admin,manager')->group(function () {

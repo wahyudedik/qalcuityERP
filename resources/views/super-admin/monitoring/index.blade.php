@@ -137,6 +137,7 @@
         ['tab'=>'activity', 'label'=>'Activity Log',  'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
         ['tab'=>'anomaly',  'label'=>'Anomali',       'icon'=>'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'],
         ['tab'=>'health',   'label'=>'System Health', 'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+        ['tab'=>'modules',  'label'=>'Module Health', 'icon'=>'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
     ] as $t)
     <a href="?tab={{ $t['tab'] }}"
        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition
@@ -643,6 +644,68 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Refresh
     </a>
+</div>
+@endif
+
+{{-- ═══ TAB: MODULE HEALTH ═══ --}}
+@if($tab === 'modules')
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+    <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-4">
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Total Modul</p>
+        <p class="text-2xl font-black text-white">{{ count($moduleHealth['modules']) }}</p>
+    </div>
+    <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-4">
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Total Alert</p>
+        <p class="text-2xl font-black {{ $moduleHealth['total_alerts'] > 0 ? 'text-amber-400' : 'text-green-400' }}">{{ $moduleHealth['total_alerts'] }}</p>
+    </div>
+    <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-4">
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Critical</p>
+        <p class="text-2xl font-black {{ $moduleHealth['critical_alerts'] > 0 ? 'text-red-400' : 'text-green-400' }}">{{ $moduleHealth['critical_alerts'] }}</p>
+    </div>
+    <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-4">
+        <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Status</p>
+        <p class="text-2xl font-black {{ $moduleHealth['critical_alerts'] > 0 ? 'text-red-400' : ($moduleHealth['total_alerts'] > 0 ? 'text-amber-400' : 'text-green-400') }}">
+            {{ $moduleHealth['critical_alerts'] > 0 ? '⚠ ALERT' : ($moduleHealth['total_alerts'] > 0 ? '⚡ WARNING' : '✅ OK') }}
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    @foreach($moduleHealth['modules'] as $key => $mod)
+    @php
+        $hasAlerts = count($mod['alerts']) > 0;
+        $hasCritical = collect($mod['alerts'])->where('type', 'critical')->isNotEmpty();
+        $borderColor = $hasCritical ? 'border-red-500/40' : ($hasAlerts ? 'border-amber-500/30' : 'border-white/10');
+        $bgColor = $hasCritical ? 'bg-red-500/5' : ($hasAlerts ? 'bg-amber-500/5' : 'bg-[#1e293b]');
+    @endphp
+    <div class="{{ $bgColor }} border {{ $borderColor }} rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-semibold text-white">{{ $mod['label'] }}</h4>
+            @if($hasCritical)
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">CRITICAL</span>
+            @elseif($hasAlerts)
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">WARNING</span>
+            @else
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">OK</span>
+            @endif
+        </div>
+        <p class="text-xs text-slate-500 mb-2">Total records: <span class="text-slate-300 font-medium">{{ number_format($mod['total']) }}</span></p>
+        @if($hasAlerts)
+        <div class="space-y-1">
+            @foreach($mod['alerts'] as $alert)
+            @php
+                $ac = match($alert['type']) {
+                    'critical' => 'text-red-400 bg-red-500/10',
+                    'warning'  => 'text-amber-400 bg-amber-500/10',
+                    default    => 'text-blue-400 bg-blue-500/10',
+                };
+            @endphp
+            <p class="text-[11px] {{ $ac }} px-2 py-1 rounded-lg">{{ $alert['msg'] }}</p>
+            @endforeach
+        </div>
+        @endif
+    </div>
+    @endforeach
 </div>
 @endif
 

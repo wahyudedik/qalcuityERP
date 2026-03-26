@@ -29,6 +29,8 @@
             <a href="#fitur" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Fitur</a>
             <a href="#modul" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Modul</a>
             <a href="#harga" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Harga</a>
+            <a href="#open-clow" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Open Clow</a>
+            <a href="#affiliate" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Affiliate</a>
             <a href="#faq"   class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">FAQ</a>
             <a href="#kontak" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Kontak</a>
         </div>
@@ -54,6 +56,8 @@
         <a href="#fitur" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Fitur</a>
         <a href="#modul" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Modul</a>
         <a href="#harga" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Harga</a>
+        <a href="#open-clow" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Open Clow</a>
+        <a href="#affiliate" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Affiliate</a>
         <a href="#faq"   @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">FAQ</a>
         <a href="#kontak" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Kontak</a>
         <div class="pt-3 flex flex-col gap-2 border-t border-gray-100 mt-2">
@@ -85,7 +89,7 @@
         </h1>
 
         <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-            Kelola inventory, penjualan, keuangan, SDM, produksi, CRM, dan 25+ modul bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung bertindak.
+            Kelola inventory, penjualan, keuangan, SDM, produksi, CRM, fleet, kontrak, helpdesk, dan 35+ modul bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung bertindak.
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -163,7 +167,7 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             @foreach([
-                ['value' => '25+',    'label' => 'Modul ERP Terintegrasi'],
+                ['value' => '35+',    'label' => 'Modul ERP Terintegrasi'],
                 ['value' => '99.9%',  'label' => 'Uptime SLA'],
                 ['value' => 'AI',     'label' => 'Powered by Qalcuity AI'],
                 ['value' => '4.9★',   'label' => 'Rating Pengguna'],
@@ -219,21 +223,21 @@
         <div class="text-center mb-16">
             <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Modul Lengkap</span>
             <h2 class="text-4xl font-black text-gray-900 mt-3">Semua yang bisnis Anda butuhkan</h2>
-            <p class="text-gray-400 mt-4 max-w-lg mx-auto">25+ modul terintegrasi, dikelola lewat satu antarmuka AI.</p>
+            <p class="text-gray-400 mt-4 max-w-lg mx-auto">35+ modul terintegrasi, dikelola lewat satu antarmuka AI.</p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
             @php
             $modules = [
-                ['emoji'=>'📦','title'=>'Inventory',    'color'=>'blue',  'items'=>['Multi-gudang','Transfer stok','Stock opname','Valuasi stok']],
-                ['emoji'=>'🛒','title'=>'Penjualan',    'color'=>'green', 'items'=>['Quotation','Sales Order','Piutang','Loyalty poin']],
-                ['emoji'=>'🏭','title'=>'Pembelian',    'color'=>'orange','items'=>['Purchase Order','Supplier','Penerimaan','Hutang']],
-                ['emoji'=>'👥','title'=>'SDM & Payroll','color'=>'purple','items'=>['Karyawan','Absensi','Penggajian','Slip gaji']],
-                ['emoji'=>'💰','title'=>'Keuangan',     'color'=>'indigo','items'=>['Transaksi','Anggaran','Rekonsiliasi','Multi-currency']],
-                ['emoji'=>'🏗️','title'=>'Produksi',     'color'=>'amber', 'items'=>['Work Order','BOM/Resep','Output produksi','Reject tracking']],
-                ['emoji'=>'📋','title'=>'Proyek',       'color'=>'teal',  'items'=>['Manajemen proyek','Timesheet','Anggaran proyek','Progress task']],
-                ['emoji'=>'🤝','title'=>'CRM',          'color'=>'rose',  'items'=>['Pipeline lead','Follow-up','Aktivitas CRM','Konversi deal']],
-                ['emoji'=>'🏢','title'=>'Aset',         'color'=>'slate', 'items'=>['Registrasi aset','Depresiasi','Maintenance','Status aset']],
-                ['emoji'=>'🧾','title'=>'Pajak & Dok',  'color'=>'yellow','items'=>['PPN/PPh','Faktur pajak','Dokumen digital','Tanda tangan']],
+                ['emoji'=>'📦','title'=>'Inventory',    'color'=>'blue',  'items'=>['Multi-gudang','Transfer stok','Stock opname','Konsinyasi']],
+                ['emoji'=>'🛒','title'=>'Penjualan',    'color'=>'green', 'items'=>['Quotation → SO → Invoice','Piutang','Loyalty','Subscription Billing']],
+                ['emoji'=>'🏭','title'=>'Pembelian',    'color'=>'orange','items'=>['Purchase Order','Supplier','Landed Cost','3-Way Matching']],
+                ['emoji'=>'👥','title'=>'SDM & Payroll','color'=>'purple','items'=>['Karyawan & Absensi','Penggajian','Overtime','Komisi Sales']],
+                ['emoji'=>'💰','title'=>'Keuangan',     'color'=>'indigo','items'=>['Jurnal GL','Anggaran','Rekonsiliasi Bank','Multi-currency']],
+                ['emoji'=>'🏗️','title'=>'Manufaktur',   'color'=>'amber', 'items'=>['Work Order','BOM Multi-Level','MRP Planning','Work Center']],
+                ['emoji'=>'📋','title'=>'Proyek',       'color'=>'teal',  'items'=>['Manajemen proyek','Timesheet','Project Billing','Milestone']],
+                ['emoji'=>'🤝','title'=>'CRM & Sales',  'color'=>'rose',  'items'=>['Pipeline lead','Helpdesk & Tiket','Knowledge Base','SLA Tracking']],
+                ['emoji'=>'🚛','title'=>'Fleet & Aset', 'color'=>'slate', 'items'=>['Kendaraan & Driver','BBM & Maintenance','Aset & Depresiasi','Trip Tracking']],
+                ['emoji'=>'📝','title'=>'Kontrak & Dok','color'=>'yellow','items'=>['Manajemen Kontrak','Recurring Billing','Digital Signature','AI Forecasting']],
             ];
             $mc = ['blue'=>['b'=>'border-blue-200','t'=>'text-blue-700','d'=>'bg-blue-400'],'green'=>['b'=>'border-green-200','t'=>'text-green-700','d'=>'bg-green-400'],'orange'=>['b'=>'border-orange-200','t'=>'text-orange-700','d'=>'bg-orange-400'],'purple'=>['b'=>'border-purple-200','t'=>'text-purple-700','d'=>'bg-purple-400'],'indigo'=>['b'=>'border-indigo-200','t'=>'text-indigo-700','d'=>'bg-indigo-400'],'amber'=>['b'=>'border-amber-200','t'=>'text-amber-700','d'=>'bg-amber-400'],'teal'=>['b'=>'border-teal-200','t'=>'text-teal-700','d'=>'bg-teal-400'],'rose'=>['b'=>'border-rose-200','t'=>'text-rose-700','d'=>'bg-rose-400'],'slate'=>['b'=>'border-slate-200','t'=>'text-slate-700','d'=>'bg-slate-400'],'yellow'=>['b'=>'border-yellow-200','t'=>'text-yellow-700','d'=>'bg-yellow-400']];
             @endphp
@@ -253,7 +257,7 @@
             @endforeach
         </div>
         <div class="mt-5 flex flex-wrap gap-2 justify-center">
-            @foreach(['🚚 Pengiriman','🛍️ E-Commerce','🤖 Bot WA/Telegram','🏦 Rekonsiliasi Bank','⭐ Loyalty Program','✍️ Tanda Tangan Digital','📊 Laporan Kustom','🔔 Notifikasi Otomatis'] as $tag)
+            @foreach(['🚚 Pengiriman','🛍️ E-Commerce','🤖 Bot WA/Telegram','🏦 Rekonsiliasi Bank','⭐ Loyalty Program','✍️ Tanda Tangan Digital','📊 AI Forecasting','🔔 Push Notification','🏪 Konsinyasi','📐 Project Billing','🔄 Subscription Billing','🎫 Helpdesk & Tiket','🚢 Landed Cost','💵 Komisi Sales'] as $tag)
             <span class="text-xs bg-white border border-gray-200 rounded-full px-3 py-1.5 text-gray-500 shadow-sm">{{ $tag }}</span>
             @endforeach
         </div>
@@ -419,63 +423,78 @@
             <h2 class="text-4xl font-black text-gray-900 mt-3">Transparan, tanpa biaya tersembunyi</h2>
             <p class="text-gray-400 mt-4">Mulai gratis 14 hari, upgrade kapan saja.</p>
         </div>
-        <div class="grid md:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-4 gap-5">
             @php
             $plans = [
                 [
-                    'name'      => 'Basic',
-                    'price'     => 'Rp 299.000',
+                    'name'      => 'Starter',
+                    'price'     => 'Rp 99.000',
                     'period'    => '/bulan',
-                    'yearly'    => 'Rp 2.990.000/tahun',
-                    'desc'      => 'Untuk bisnis kecil yang baru berkembang.',
+                    'yearly'    => 'Rp 999.000/tahun',
+                    'desc'      => 'Untuk UMKM yang baru mulai digitalisasi.',
                     'highlight' => false,
                     'badge'     => null,
                     'features'  => [
-                        ['text' => 'Inventori, Penjualan, Pembelian', 'ok' => true],
+                        ['text' => 'POS, Inventori, Penjualan', 'ok' => true],
                         ['text' => 'Laporan Dasar', 'ok' => true],
-                        ['text' => 'AI Chat (100 pesan/bulan)', 'ok' => true],
-                        ['text' => 'Hingga 5 pengguna', 'ok' => true],
+                        ['text' => 'AI Chat (50 pesan/bulan)', 'ok' => true],
+                        ['text' => 'Hingga 2 pengguna', 'ok' => true],
+                        ['text' => '1 Gudang', 'ok' => true],
                         ['text' => 'Trial 14 hari gratis', 'ok' => true],
-                        ['text' => 'HRM & Payroll', 'ok' => false],
-                        ['text' => 'AI Tak Terbatas', 'ok' => false],
                     ],
                     'cta' => 'Mulai Trial Gratis',
                 ],
                 [
-                    'name'      => 'Pro',
-                    'price'     => 'Rp 599.000',
+                    'name'      => 'Business',
+                    'price'     => 'Rp 249.000',
                     'period'    => '/bulan',
-                    'yearly'    => 'Rp 5.990.000/tahun',
-                    'desc'      => 'Untuk bisnis yang butuh fitur lengkap.',
+                    'yearly'    => 'Rp 2.499.000/tahun',
+                    'desc'      => 'Untuk bisnis yang butuh fitur penjualan lengkap.',
+                    'highlight' => false,
+                    'badge'     => null,
+                    'features'  => [
+                        ['text' => 'Semua fitur Starter', 'ok' => true],
+                        ['text' => 'Pembelian & Supplier', 'ok' => true],
+                        ['text' => 'CRM, Helpdesk, Konsinyasi', 'ok' => true],
+                        ['text' => 'Komisi Sales & Subscription', 'ok' => true],
+                        ['text' => 'AI Chat (300 pesan/bulan)', 'ok' => true],
+                        ['text' => 'Hingga 10 pengguna', 'ok' => true],
+                    ],
+                    'cta' => 'Mulai Trial Gratis',
+                ],
+                [
+                    'name'      => 'Professional',
+                    'price'     => 'Rp 499.000',
+                    'period'    => '/bulan',
+                    'yearly'    => 'Rp 4.999.000/tahun',
+                    'desc'      => 'Untuk bisnis menengah dengan operasi kompleks.',
                     'highlight' => true,
                     'badge'     => 'Paling Populer',
                     'features'  => [
-                        ['text' => 'Inventori, Penjualan, Pembelian', 'ok' => true],
-                        ['text' => 'HRM, Keuangan, Laporan Lengkap', 'ok' => true],
-                        ['text' => 'AI Chat (500 pesan/bulan)', 'ok' => true],
-                        ['text' => 'Hingga 20 pengguna', 'ok' => true],
-                        ['text' => 'Trial 14 hari gratis', 'ok' => true],
-                        ['text' => 'Notifikasi & Bot WA/Telegram', 'ok' => true],
-                        ['text' => 'AI Tak Terbatas', 'ok' => false],
+                        ['text' => 'Semua fitur Business', 'ok' => true],
+                        ['text' => 'HRM, Payroll, Aset', 'ok' => true],
+                        ['text' => 'Manufaktur (BOM & MRP)', 'ok' => true],
+                        ['text' => 'Fleet, Kontrak, Landed Cost', 'ok' => true],
+                        ['text' => 'Project Billing & Forecasting', 'ok' => true],
+                        ['text' => 'AI Chat (1.000 pesan/bulan)', 'ok' => true],
                     ],
                     'cta' => 'Mulai Trial Gratis',
                 ],
                 [
                     'name'      => 'Enterprise',
-                    'price'     => 'Rp 1.499.000',
+                    'price'     => 'Rp 999.000',
                     'period'    => '/bulan',
-                    'yearly'    => 'Rp 14.990.000/tahun',
+                    'yearly'    => 'Rp 9.999.000/tahun',
                     'desc'      => 'Untuk bisnis besar tanpa batas.',
                     'highlight' => false,
                     'badge'     => null,
                     'features'  => [
-                        ['text' => 'Semua Fitur Pro', 'ok' => true],
-                        ['text' => 'AI Chat Tak Terbatas', 'ok' => true],
-                        ['text' => 'Pengguna Tak Terbatas', 'ok' => true],
-                        ['text' => 'Trial 30 hari gratis', 'ok' => true],
-                        ['text' => 'Prioritas Support', 'ok' => true],
-                        ['text' => 'Custom Integrasi', 'ok' => true],
-                        ['text' => 'SLA 99.9%', 'ok' => true],
+                        ['text' => 'Semua fitur Professional', 'ok' => true],
+                        ['text' => 'AI & User Tak Terbatas', 'ok' => true],
+                        ['text' => 'Multi Company & Konsolidasi', 'ok' => true],
+                        ['text' => 'Zero Input OCR & WhatsApp Bot', 'ok' => true],
+                        ['text' => 'Custom API & Digital Signature', 'ok' => true],
+                        ['text' => 'Prioritas Support & SLA 99.9%', 'ok' => true],
                     ],
                     'cta' => 'Hubungi Kami',
                 ],
@@ -535,7 +554,7 @@
             $faqs = [
                 ['q'=>'Apakah data saya aman?','a'=>'Ya. Setiap perusahaan memiliki data yang terisolasi penuh. Tidak ada akses silang antar perusahaan.'],
                 ['q'=>'Apakah AI bisa salah mengeksekusi perintah?','a'=>'Qalcuity AI memiliki lapisan validasi sebelum melakukan operasi write ke database. Untuk aksi kritis, AI akan meminta konfirmasi terlebih dahulu.'],
-                ['q'=>'Berapa banyak pengguna yang bisa ditambahkan?','a'=>'Basic: 5 pengguna, Pro: 20 pengguna, Enterprise: tidak terbatas.'],
+                ['q'=>'Berapa banyak pengguna yang bisa ditambahkan?','a'=>'Starter: 2 pengguna, Business: 10 pengguna, Professional: 25 pengguna, Enterprise: tidak terbatas.'],
                 ['q'=>'Apakah bisa diakses dari mobile?','a'=>'Ya, antarmuka Qalcuity ERP responsif dan dapat diakses dari browser mobile manapun.'],
                 ['q'=>'Bagaimana cara migrasi data dari sistem lama?','a'=>'Kami menyediakan template import Excel untuk produk, pelanggan, dan supplier. Tim support kami siap membantu proses migrasi.'],
                 ['q'=>'Apakah ada kontrak jangka panjang?','a'=>'Tidak. Semua plan berbasis bulanan dan bisa dibatalkan kapan saja tanpa penalti.'],
@@ -575,6 +594,116 @@
             Chat WhatsApp Sekarang
         </a>
         <p class="text-xs text-gray-400 mt-4">+62 816-5493-2383 · Senin–Sabtu, 08.00–17.00 WIB</p>
+    </div>
+</section>
+
+{{-- ══ AFFILIATE PROGRAM ══ --}}
+<section id="affiliate" class="py-20 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="text-xs font-bold text-purple-300 uppercase tracking-widest">Program Afiliasi</span>
+        <h2 class="text-4xl font-black text-white mt-3 mb-4">Dapatkan Komisi 10%</h2>
+        <p class="text-purple-200 max-w-xl mx-auto mb-8">
+            Rekomendasikan Qalcuity ERP ke bisnis lain dan dapatkan komisi 10% dari setiap pembayaran subscription mereka. Komisi berlaku selamanya selama pelanggan aktif.
+        </p>
+        <div class="grid sm:grid-cols-3 gap-5 mb-10 text-left">
+            @foreach([
+                ['icon'=>'🔗','title'=>'Dapatkan Link Referral','desc'=>'Daftar sebagai affiliate dan dapatkan link unik Anda.'],
+                ['icon'=>'📢','title'=>'Bagikan ke Jaringan','desc'=>'Share link ke teman, komunitas, atau media sosial Anda.'],
+                ['icon'=>'💰','title'=>'Terima Komisi','desc'=>'Setiap kali referral Anda berlangganan, Anda dapat 10% komisi.'],
+            ] as $step)
+            <div class="bg-white/10 border border-white/10 rounded-2xl p-5 backdrop-blur">
+                <span class="text-2xl">{{ $step['icon'] }}</span>
+                <h3 class="font-bold text-white mt-3 mb-1 text-sm">{{ $step['title'] }}</h3>
+                <p class="text-xs text-purple-200 leading-relaxed">{{ $step['desc'] }}</p>
+            </div>
+            @endforeach
+        </div>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="https://wa.me/6281654932383?text=Halo%2C%20saya%20tertarik%20menjadi%20affiliate%20Qalcuity%20ERP"
+               target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3.5 rounded-2xl transition shadow-lg text-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Daftar Jadi Affiliate via WhatsApp
+            </a>
+        </div>
+        <p class="text-xs text-purple-300/60 mt-4">Pendaftaran diproses manual oleh tim kami. Anda akan mendapat akun affiliate dalam 1x24 jam.</p>
+    </div>
+</section>
+
+{{-- ══ JASA INSTALASI OPEN CLOW ══ --}}
+<section id="open-clow" class="py-24 bg-[#0f172a]">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Layanan Tambahan</span>
+            <h2 class="text-4xl font-black text-white mt-3">Jasa Instalasi Open Clow Agent</h2>
+            <p class="text-slate-400 mt-4 max-w-xl mx-auto">AI Agent khusus untuk bisnis Anda — custom training, integrasi sistem existing, dan maintenance selamanya.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {{-- Paket Instalasi --}}
+            <div class="relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-5">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Paket Instalasi</h3>
+                <p class="text-3xl font-black text-cyan-400 mb-1">Rp 7.000.000</p>
+                <p class="text-xs text-slate-400 mb-6">Sekali bayar + FREE maintenance selamanya</p>
+                <ul class="space-y-2.5 mb-8">
+                    @foreach(['Custom AI training sesuai bisnis kamu','Integrasi dengan sistem existing','Setup & konfigurasi lengkap','Training team (2 sesi)','Maintenance & update GRATIS','24/7 technical support'] as $f)
+                    <li class="flex items-center gap-2.5 text-sm text-slate-300">
+                        <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        {{ $f }}
+                    </li>
+                    @endforeach
+                </ul>
+                <a href="https://wa.me/6281654932383?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Instalasi%20Open%20Clow%20Agent"
+                   target="_blank" rel="noopener"
+                   class="block text-center py-3 rounded-2xl text-sm font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white transition shadow-lg shadow-cyan-900/30">
+                    Pesan via WhatsApp
+                </a>
+            </div>
+
+            {{-- Biaya Operasional --}}
+            <div class="relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-5">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Biaya Operasional</h3>
+                <p class="text-3xl font-black text-violet-400 mb-1">Rp 1.000.000</p>
+                <p class="text-xs text-slate-400 mb-6">Per bulan untuk 100.000 AI tokens</p>
+                <ul class="space-y-2.5 mb-8">
+                    @foreach(['100.000 AI tokens per bulan','~3.000 interaksi AI per bulan','Unlimited users dalam tim','Real-time analytics & reporting','Auto-scaling sesuai kebutuhan','Priority support'] as $f)
+                    <li class="flex items-center gap-2.5 text-sm text-slate-300">
+                        <svg class="w-4 h-4 text-violet-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        {{ $f }}
+                    </li>
+                    @endforeach
+                </ul>
+                <a href="https://wa.me/6281654932383?text=Halo%2C%20saya%20tertarik%20dengan%20Biaya%20Operasional%20Open%20Clow%20Agent"
+                   target="_blank" rel="noopener"
+                   class="block text-center py-3 rounded-2xl text-sm font-semibold bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white transition shadow-lg shadow-violet-900/30">
+                    Pesan via WhatsApp
+                </a>
+            </div>
+        </div>
+
+        {{-- Fungsi Open Clow --}}
+        <div class="mt-16 text-center">
+            <h3 class="text-2xl font-black text-white mb-8">Fungsi Open Clow Agent untuk Bisnis Kamu</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @foreach([
+                    ['🤖','Customer Service AI','Jawab pertanyaan pelanggan 24/7 otomatis'],
+                    ['📊','Analisis Data','Analisis penjualan, stok, dan keuangan real-time'],
+                    ['📝','Pembuatan Konten','Generate deskripsi produk, email, dan laporan'],
+                    ['🔗','Integrasi Sistem','Hubungkan dengan WhatsApp, Shopee, Tokopedia'],
+                ] as [$emoji, $title, $desc])
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
+                    <span class="text-2xl">{{ $emoji }}</span>
+                    <h4 class="font-bold text-white text-sm mt-3 mb-1">{{ $title }}</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">{{ $desc }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 </section>
 

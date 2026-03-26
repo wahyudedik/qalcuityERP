@@ -72,6 +72,13 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // Track affiliate referral
+        if ($ref = $request->input('ref') ?? $request->cookie('affiliate_ref')) {
+            try {
+                app(\App\Services\AffiliateService::class)->trackReferral($tenant, $ref);
+            } catch (\Throwable) {}
+        }
+
         // Kirim welcome notification (queued)
         try {
             $user->load('tenant');

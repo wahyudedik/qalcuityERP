@@ -39,6 +39,9 @@ class Project extends Model
     public function tasks(): HasMany { return $this->hasMany(ProjectTask::class); }
     public function expenses(): HasMany { return $this->hasMany(ProjectExpense::class); }
     public function timesheets(): HasMany { return $this->hasMany(Timesheet::class); }
+    public function billingConfig() { return $this->hasOne(ProjectBillingConfig::class); }
+    public function milestones(): HasMany { return $this->hasMany(ProjectMilestone::class)->orderBy('sort_order'); }
+    public function projectInvoices(): HasMany { return $this->hasMany(ProjectInvoice::class); }
 
     /** Recalculate progress dari bobot task yang done */
     public function recalculateProgress(): void

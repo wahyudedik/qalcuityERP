@@ -144,7 +144,7 @@
     @push('scripts')
     <script>
     function openEditSupplier(id, name, company, phone, email, address, isActive) {
-        document.getElementById('form-edit-supplier').action = '{{ route("purchasing.suppliers.update", "") }}' + id;
+        document.getElementById('form-edit-supplier').action = '{{ url("purchasing/suppliers") }}/' + id;
         document.getElementById('es-name').value = name;
         document.getElementById('es-company').value = company;
         document.getElementById('es-phone').value = phone;

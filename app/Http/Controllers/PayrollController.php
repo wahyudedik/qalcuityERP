@@ -30,7 +30,9 @@ class PayrollController extends Controller
         $period = $request->period ?? now()->format('Y-m');
 
         $runs = PayrollRun::where('tenant_id', $tid)->orderByDesc('period')->get();
-        $run  = PayrollRun::where('tenant_id', $tid)->where('period', $period)->first();
+        $run  = PayrollRun::where('tenant_id', $tid)->where('period', $period)
+            ->with(['journalEntry', 'paymentJournalEntry'])
+            ->first();
 
         $items = $run
             ? PayrollItem::where('payroll_run_id', $run->id)->with('employee')->get()

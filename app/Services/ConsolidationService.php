@@ -9,117 +9,105 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
 /**
- * ConsolidationService — Task 55
- * Laporan konsolidasi keuangan antar perusahaan dalam satu grup.
+ * ConsolidationService — Multi-company consolidated reporting.
+ *
+ * Generates consolidated P&L with intercompany elimination.
  */
 class ConsolidationService
 {
     /**
-     * Laporan konsolidasi: gabungkan data keuangan semua member grup.
+     * Generate consolidated report for a company group for a given period (Y-m).
      */
     public function consolidatedReport(CompanyGroup $group, string $period): array
     {
-        $parts = explode('-', $period);
-        $year  = $parts[0];
-        $month = (int) ($parts[1] ?? 0);
+        [$year, $month] = explode('-', $period);
+        $memberIds = $group->members->pluck('id')->toArray();
 
-        $tenantIds = $group->members()->pluck('tenants.id');
-        if ($tenantIds->isEmpty()) return [];
+        if (empty($memberIds)) {
+            return [
+                'revenues' => [], 'expenses' => [],
+                'total_revenue' => 0, 'total_expense' => 0,
+                'elimination' => 0, 'consolidated_profit' => 0,
+                'formatted' => [
+                    'total_revenue' => 'Rp 0', 'total_expense' => 'Rp 0',
+                    'elimination' => 'Rp 0', 'cons_profit' => 'Rp 0',
+                ],
+            ];
+        }
 
-        $fmt = fn($n) => 'Rp ' . number_format(abs($n ?? 0), 0, ',', '.');
+        $fmt = fn($n) => 'Rp ' . number_format(abs((float) $n), 0, ',', '.');
 
-        // Revenue per tenant
+        // Revenue per member
         $revenues = [];
         $expenses = [];
         $totalRevenue = 0;
         $totalExpense = 0;
 
-        foreach ($tenantIds as $tid) {
-            $query = SalesOrder::where('tenant_id', $tid)
-                ->whereNotIn('status', ['cancelled']);
+        foreach ($memberIds as $tid) {
+            $tenant = $group->members->firstWhere('id', $tid);
+            $rev = (float) SalesOrder::where('tenant_id', $tid)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereYear('date', $year)->whereMonth('date', $month)
+                ->sum('total');
 
-            if ($month > 0) {
-                $query->whereYear('date', $year)->whereMonth('date', $month);
-            } else {
-                $query->whereYear('date', $year);
-            }
+            $exp = (float) Transaction::where('tenant_id', $tid)
+                ->where('type', 'expense')
+                ->whereYear('date', $year)->whereMonth('date', $month)
+                ->sum('amount');
 
-            $rev = (float) $query->sum('total');
-
-            $expQuery = Transaction::where('tenant_id', $tid)->where('type', 'expense');
-            if ($month > 0) {
-                $expQuery->whereYear('date', $year)->whereMonth('date', $month);
-            } else {
-                $expQuery->whereYear('date', $year);
-            }
-            $exp = (float) $expQuery->sum('amount');
-
-            $tenant = \App\Models\Tenant::find($tid);
-            $revenues[$tid] = ['name' => $tenant?->name, 'amount' => $rev];
-            $expenses[$tid] = ['name' => $tenant?->name, 'amount' => $exp];
+            $revenues[$tid] = ['name' => $tenant?->name ?? "Tenant #{$tid}", 'amount' => $rev];
+            $expenses[$tid] = ['name' => $tenant?->name ?? "Tenant #{$tid}", 'amount' => $exp];
             $totalRevenue += $rev;
             $totalExpense += $exp;
         }
 
-        // Eliminasi transaksi intercompany
-        $intercompanyElimination = (float) IntercompanyTransaction::where('company_group_id', $group->id)
+        // Intercompany elimination — sum of posted IC transactions in this period
+        $elimination = (float) IntercompanyTransaction::where('company_group_id', $group->id)
             ->where('status', 'posted')
-            ->when($month > 0, fn($q) => $q->whereYear('date', $year)->whereMonth('date', $month))
-            ->when($month === 0, fn($q) => $q->whereYear('date', $year))
+            ->whereYear('date', $year)->whereMonth('date', $month)
             ->sum('amount');
 
-        $consolidatedRevenue = $totalRevenue - $intercompanyElimination;
-        $consolidatedProfit  = $consolidatedRevenue - $totalExpense;
+        $consProfit = $totalRevenue - $totalExpense - $elimination;
 
         return [
-            'group_name'              => $group->name,
-            'period'                  => $period,
-            'member_count'            => $tenantIds->count(),
-            'revenues'                => $revenues,
-            'expenses'                => $expenses,
-            'total_revenue'           => $totalRevenue,
-            'total_expense'           => $totalExpense,
-            'intercompany_elimination' => $intercompanyElimination,
-            'consolidated_revenue'    => $consolidatedRevenue,
-            'consolidated_profit'     => $consolidatedProfit,
-            'profit_margin'           => $consolidatedRevenue > 0
-                ? round($consolidatedProfit / $consolidatedRevenue * 100, 1)
-                : 0,
-            'formatted' => [
-                'total_revenue'    => $fmt($totalRevenue),
-                'total_expense'    => $fmt($totalExpense),
-                'elimination'      => $fmt($intercompanyElimination),
-                'cons_revenue'     => $fmt($consolidatedRevenue),
-                'cons_profit'      => ($consolidatedProfit >= 0 ? '' : '-') . $fmt($consolidatedProfit),
+            'revenues'           => $revenues,
+            'expenses'           => $expenses,
+            'total_revenue'      => $totalRevenue,
+            'total_expense'      => $totalExpense,
+            'elimination'        => $elimination,
+            'consolidated_profit'=> $consProfit,
+            'formatted'          => [
+                'total_revenue' => $fmt($totalRevenue),
+                'total_expense' => $fmt($totalExpense),
+                'elimination'   => $fmt($elimination),
+                'cons_profit'   => ($consProfit >= 0 ? '' : '-') . $fmt($consProfit),
             ],
         ];
     }
 
     /**
-     * Buat transaksi intercompany.
+     * Create an intercompany transaction with proper reference.
      */
     public function createIntercompanyTransaction(
         CompanyGroup $group,
-        int $fromTenantId,
-        int $toTenantId,
+        int    $fromTenantId,
+        int    $toTenantId,
         string $type,
-        float $amount,
+        float  $amount,
         string $description,
         string $date
     ): IntercompanyTransaction {
-        $ref = 'IC-' . strtoupper($type) . '-' . now()->format('YmdHis');
-
         return IntercompanyTransaction::create([
             'company_group_id' => $group->id,
             'from_tenant_id'   => $fromTenantId,
             'to_tenant_id'     => $toTenantId,
             'type'             => $type,
-            'reference'        => $ref,
             'amount'           => $amount,
-            'currency_code'    => $group->currency_code,
             'description'      => $description,
-            'status'           => 'pending',
             'date'             => $date,
+            'reference'        => 'IC-' . strtoupper(substr(uniqid(), -6)),
+            'currency_code'    => $group->currency_code ?? 'IDR',
+            'status'           => 'pending',
         ]);
     }
 }

@@ -35,6 +35,12 @@
             <a href="{{ route('production.recipes') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
                 Resep/BOM
             </a>
+            <a href="{{ route('manufacturing.bom') }}" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                BOM Multi-Level
+            </a>
+            <a href="{{ route('manufacturing.mrp') }}" class="px-3 py-2 text-sm border border-purple-200 dark:border-purple-500/30 rounded-xl text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10">
+                MRP
+            </a>
             <button onclick="document.getElementById('modal-create-wo').classList.remove('hidden')"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Buat WO</button>
         </div>
@@ -93,9 +99,15 @@
                                     <input type="hidden" name="status" value="in_progress">
                                     <button type="submit" class="text-xs px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Mulai</button>
                                 </form>
-                                @elseif($wo->status === 'in_progress')
+                                @if($wo->status === 'in_progress')
                                 <button onclick="openOutputModal('{{ $wo->id }}','{{ $wo->number }}')"
                                     class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700">Output</button>
+                                @if($wo->bom_id && !$wo->materials_consumed)
+                                <form method="POST" action="{{ url('manufacturing') }}/{{ $wo->id }}/consume" class="inline" onsubmit="return confirm('Konsumsi material dari stok?')">
+                                    @csrf
+                                    <button type="submit" class="text-xs px-2 py-1 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Konsumsi</button>
+                                </form>
+                                @endif
                                 @endif
                             </div>
                         </td>
@@ -133,6 +145,13 @@
                         <select name="recipe_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Tanpa Resep --</option>
                             @foreach($recipes as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">BOM Multi-Level</label>
+                        <select name="bom_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Tanpa BOM --</option>
+                            @foreach($boms as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>

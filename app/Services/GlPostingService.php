@@ -405,6 +405,214 @@ class GlPostingService
         };
     }
 
+    // ─── Sales Commission ─────────────────────────────────────────
+
+    /**
+     * Pembayaran komisi sales.
+     *   Dr  5205  Beban Komisi Penjualan
+     *   Cr  1101  Kas
+     */
+    public function postSalesCommission(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('sales_commission', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Komisi Sales {$reference}", [
+                ['code' => '5205', 'debit' => $amount, 'credit' => 0,       'desc' => "Beban komisi sales {$reference}"],
+                ['code' => '1101', 'debit' => 0,        'credit' => $amount, 'desc' => "Bayar komisi sales {$reference}"],
+            ]);
+    }
+
+    // ─── Consignment ─────────────────────────────────────────────
+
+    /**
+     * Penjualan konsinyasi dikonfirmasi.
+     *   Dr  1104  Piutang Konsinyasi       (net receivable)
+     *   Dr  5205  Beban Komisi             (commission)
+     *   Cr  4101  Pendapatan Penjualan     (total sales)
+     */
+    public function postConsignmentSales(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $totalSales, float $commission, string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        $net = $totalSales - $commission;
+        $lines = [
+            ['code' => '1104', 'debit' => $net,        'credit' => 0,           'desc' => "Piutang konsinyasi {$reference}"],
+            ['code' => '4101', 'debit' => 0,            'credit' => $totalSales, 'desc' => "Pendapatan konsinyasi {$reference}"],
+        ];
+        if ($commission > 0) {
+            $lines[] = ['code' => '5205', 'debit' => $commission, 'credit' => 0, 'desc' => "Komisi konsinyasi {$reference}"];
+        }
+        return $this->createAndPost('consignment_sales', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Penjualan Konsinyasi {$reference}", $lines);
+    }
+
+    /**
+     * Settlement pembayaran dari partner konsinyasi.
+     *   Dr  Kas/Bank
+     *   Cr  1104  Piutang Konsinyasi
+     */
+    public function postConsignmentSettlement(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $cashCode = '1102', string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('consignment_settlement', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Settlement Konsinyasi {$reference}", [
+                ['code' => $cashCode, 'debit' => $amount, 'credit' => 0,       'desc' => "Terima settlement {$reference}"],
+                ['code' => '1104',    'debit' => 0,        'credit' => $amount, 'desc' => "Lunasi piutang konsinyasi {$reference}"],
+            ]);
+    }
+
+    // ─── Landed Cost ─────────────────────────────────────────────
+
+    /**
+     * Landed cost — biaya tambahan impor dialokasikan ke persediaan.
+     *   Dr  1105  Persediaan Barang (naikkan HPP)
+     *   Cr  2101  Hutang Usaha (ke vendor freight/customs)
+     */
+    public function postLandedCost(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('landed_cost', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Landed Cost {$reference}", [
+                ['code' => '1105', 'debit' => $amount, 'credit' => 0,       'desc' => "Tambah HPP persediaan {$reference}"],
+                ['code' => '2101', 'debit' => 0,        'credit' => $amount, 'desc' => "Hutang biaya impor {$reference}"],
+            ]);
+    }
+
+    // ─── Contract Billing ─────────────────────────────────────────
+
+    /**
+     * Billing kontrak customer (recurring revenue).
+     *   Dr  1103  Piutang Usaha
+     *   Cr  4102  Pendapatan Kontrak/Jasa
+     */
+    public function postContractBillingCustomer(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('contract_billing_customer', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Billing Kontrak {$reference}", [
+                ['code' => '1103', 'debit' => $amount, 'credit' => 0,       'desc' => "Piutang kontrak {$reference}"],
+                ['code' => '4102', 'debit' => 0,        'credit' => $amount, 'desc' => "Pendapatan kontrak {$reference}"],
+            ]);
+    }
+
+    /**
+     * Billing kontrak supplier (recurring expense).
+     *   Dr  5202  Beban Operasional / Kontrak
+     *   Cr  2101  Hutang Usaha
+     */
+    public function postContractBillingSupplier(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('contract_billing_supplier', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Billing Kontrak Supplier {$reference}", [
+                ['code' => '5202', 'debit' => $amount, 'credit' => 0,       'desc' => "Beban kontrak {$reference}"],
+                ['code' => '2101', 'debit' => 0,        'credit' => $amount, 'desc' => "Hutang kontrak {$reference}"],
+            ]);
+    }
+
+    // ─── Fleet Management ─────────────────────────────────────────
+
+    /**
+     * BBM kendaraan.
+     *   Dr  5203  Beban Transportasi / BBM
+     *   Cr  1101  Kas
+     */
+    public function postFleetFuel(
+        int    $tenantId,
+        int    $userId,
+        string $reference,
+        int    $refId,
+        float  $amount,
+        string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+
+        return $this->createAndPost('fleet_fuel', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: BBM Kendaraan {$reference}", [
+                ['code' => '5203', 'debit' => $amount, 'credit' => 0,       'desc' => "Beban BBM {$reference}"],
+                ['code' => '1101', 'debit' => 0,        'credit' => $amount, 'desc' => "Bayar BBM {$reference}"],
+            ]);
+    }
+
+    /**
+     * Maintenance kendaraan.
+     *   Dr  5207  Beban Pemeliharaan
+     *   Cr  1101  Kas
+     */
+    public function postFleetMaintenance(
+        int    $tenantId,
+        int    $userId,
+        string $reference,
+        int    $refId,
+        float  $amount,
+        string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+
+        return $this->createAndPost('fleet_maintenance', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Pemeliharaan Kendaraan {$reference}", [
+                ['code' => '5207', 'debit' => $amount, 'credit' => 0,       'desc' => "Beban maintenance {$reference}"],
+                ['code' => '1101', 'debit' => 0,        'credit' => $amount, 'desc' => "Bayar maintenance {$reference}"],
+            ]);
+    }
+
+    // ─── Production / Manufacturing ──────────────────────────────
+
+    /**
+     * Konsumsi material produksi.
+     *   Dr  1106  Barang Dalam Proses (WIP)
+     *   Cr  1105  Persediaan Barang
+     */
+    public function postProductionConsumption(
+        int    $tenantId,
+        int    $userId,
+        string $woNumber,
+        int    $woId,
+        float  $materialCost,
+        string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+
+        return $this->createAndPost('production_consumption', $woNumber, $woId, $tenantId, $userId, $date,
+            "Auto: Konsumsi Material {$woNumber}", [
+                ['code' => '1106', 'debit' => $materialCost, 'credit' => 0,             'desc' => "WIP material {$woNumber}"],
+                ['code' => '1105', 'debit' => 0,              'credit' => $materialCost, 'desc' => "Keluar persediaan produksi {$woNumber}"],
+            ]);
+    }
+
+    /**
+     * Output produksi selesai — transfer WIP ke Persediaan Barang Jadi.
+     *   Dr  1105  Persediaan Barang Jadi
+     *   Cr  1106  Barang Dalam Proses (WIP)
+     */
+    public function postProductionOutput(
+        int    $tenantId,
+        int    $userId,
+        string $woNumber,
+        int    $woId,
+        float  $totalCost,
+        string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+
+        return $this->createAndPost('production_output', $woNumber . '-OUT', $woId, $tenantId, $userId, $date,
+            "Auto: Output Produksi {$woNumber}", [
+                ['code' => '1105', 'debit' => $totalCost, 'credit' => 0,          'desc' => "Masuk persediaan produksi {$woNumber}"],
+                ['code' => '1106', 'debit' => 0,           'credit' => $totalCost, 'desc' => "Selesai WIP {$woNumber}"],
+            ]);
+    }
+
     // ─── Core Engine ──────────────────────────────────────────────
 
     /**

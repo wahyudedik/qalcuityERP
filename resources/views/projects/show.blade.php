@@ -5,6 +5,15 @@
     <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">{{ session('success') }}</div>
     @endif
 
+    {{-- Billing Link --}}
+    @canmodule('project_billing', 'view')
+    <div class="mb-4">
+        <a href="{{ route('project-billing.show', $project) }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">
+            📐 Project Billing
+        </a>
+    </div>
+    @endcanmodule
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {{-- ── Left: Info + Tasks ──────────────────────────────── --}}

@@ -12,8 +12,8 @@ class CheckTenantActive
     {
         $user = $request->user();
 
-        // Super admin tidak terikat tenant
-        if (! $user || $user->role === 'super_admin') {
+        // Super admin dan affiliate tidak terikat tenant
+        if (! $user || $user->role === 'super_admin' || $user->role === 'affiliate') {
             return $next($request);
         }
 

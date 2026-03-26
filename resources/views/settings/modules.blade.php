@@ -28,10 +28,10 @@
 
         @php
         $groups = [
-            'Penjualan & Operasional' => ['pos', 'sales', 'invoicing', 'crm', 'ecommerce', 'loyalty'],
-            'Inventori & Produksi'    => ['inventory', 'purchasing', 'production'],
-            'SDM & Keuangan'          => ['hrm', 'payroll', 'accounting', 'budget', 'bank_reconciliation', 'assets'],
-            'Manajemen & Analitik'    => ['projects', 'reports'],
+            'Penjualan & Operasional' => ['pos', 'sales', 'invoicing', 'crm', 'contracts', 'ecommerce', 'loyalty', 'commission', 'helpdesk', 'subscription_billing'],
+            'Inventori & Produksi'    => ['inventory', 'purchasing', 'production', 'manufacturing', 'fleet', 'consignment'],
+            'SDM & Keuangan'          => ['hrm', 'payroll', 'accounting', 'budget', 'bank_reconciliation', 'assets', 'landed_cost'],
+            'Manajemen & Analitik'    => ['projects', 'reports', 'project_billing'],
         ];
         @endphp
 

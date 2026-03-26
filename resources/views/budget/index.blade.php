@@ -245,7 +245,7 @@
     @push('scripts')
     <script>
     function openEdit(id, name, amount, realized, dept, cat) {
-        document.getElementById('form-edit-budget').action = '{{ route("budget.update", "") }}' + id;
+        document.getElementById('form-edit-budget').action = '{{ url("budget") }}/' + id;
         document.getElementById('edit-name').value = name;
         document.getElementById('edit-amount').value = amount;
         document.getElementById('edit-realized').value = realized;

@@ -52,8 +52,8 @@
 
         <!-- Extracted Data -->
         @if($log->extracted_data && $log->status !== 'failed')
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-5">
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-4">Data yang Diekstrak</h3>
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Data yang Diekstrak</h3>
 
                 <form method="POST" action="{{ route('zero-input.confirm', $log) }}" class="space-y-3">
                     @csrf
@@ -61,30 +61,30 @@
                     @foreach($log->extracted_data as $key => $value)
                         @if($key === 'module' || $key === 'items') @continue @endif
                         <div class="flex items-center gap-3">
-                            <label class="w-32 text-xs text-gray-500 dark:text-gray-400 capitalize shrink-0">
+                            <label class="w-32 text-xs text-gray-500 dark:text-slate-400 capitalize shrink-0">
                                 {{ str_replace('_', ' ', $key) }}
                             </label>
                             <input type="text" name="extracted_data[{{ $key }}]"
                                    value="{{ is_array($value) ? json_encode($value) : $value }}"
-                                   class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                   class="flex-1 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-sm">
                         </div>
                     @endforeach
 
                     @if(!empty($log->extracted_data['items']))
                         <div class="mt-3">
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Item:</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Item:</p>
                             <div class="space-y-1">
                                 @foreach($log->extracted_data['items'] as $i => $item)
                                     <div class="flex gap-2 text-xs">
                                         <input type="text" name="extracted_data[items][{{ $i }}][name]"
                                                value="{{ $item['name'] ?? '' }}" placeholder="Nama"
-                                               class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-xs">
+                                               class="flex-1 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-xs">
                                         <input type="number" name="extracted_data[items][{{ $i }}][qty]"
                                                value="{{ $item['qty'] ?? 1 }}" placeholder="Qty"
-                                               class="w-16 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-xs">
+                                               class="w-16 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-xs">
                                         <input type="number" name="extracted_data[items][{{ $i }}][price]"
                                                value="{{ $item['price'] ?? 0 }}" placeholder="Harga"
-                                               class="w-28 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-xs">
+                                               class="w-28 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-xs">
                                     </div>
                                 @endforeach
                             </div>

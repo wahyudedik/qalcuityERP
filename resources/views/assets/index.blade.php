@@ -255,7 +255,7 @@
     @push('scripts')
     <script>
     function openEditAsset(id, name, location, status) {
-        document.getElementById('form-edit-asset').action = '{{ route("assets.update", "") }}' + id;
+        document.getElementById('form-edit-asset').action = '{{ url("assets") }}/' + id;
         document.getElementById('ea-name').value = name;
         document.getElementById('ea-location').value = location;
         document.getElementById('ea-status').value = status;

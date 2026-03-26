@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bom;
 use App\Models\Product;
 use App\Models\ProductionOutput;
 use App\Models\ProductStock;
@@ -10,6 +11,7 @@ use App\Models\RecipeIngredient;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WorkOrder;
+use App\Services\GlPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -47,8 +49,9 @@ class ProductionController extends Controller
 
         $products = Product::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
         $recipes  = Recipe::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
+        $boms     = Bom::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
 
-        return view('production.index', compact('workOrders', 'stats', 'products', 'recipes'));
+        return view('production.index', compact('workOrders', 'stats', 'products', 'recipes', 'boms'));
     }
 
     public function store(Request $request)
@@ -56,6 +59,7 @@ class ProductionController extends Controller
         $data = $request->validate([
             'product_id'      => 'required|exists:products,id',
             'recipe_id'       => 'nullable|exists:recipes,id',
+            'bom_id'          => 'nullable|exists:boms,id',
             'target_quantity' => 'required|numeric|min:0.001',
             'labor_cost'      => 'nullable|numeric|min:0',
             'overhead_cost'   => 'nullable|numeric|min:0',
@@ -68,6 +72,7 @@ class ProductionController extends Controller
             'tenant_id'       => $this->tid(),
             'product_id'      => $data['product_id'],
             'recipe_id'       => $data['recipe_id'] ?? null,
+            'bom_id'          => $data['bom_id'] ?? null,
             'user_id'         => auth()->id(),
             'number'          => 'WO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
             'target_quantity' => $data['target_quantity'],
@@ -115,7 +120,7 @@ class ProductionController extends Controller
     public function show(WorkOrder $workOrder)
     {
         abort_if($workOrder->tenant_id !== $this->tid(), 403);
-        $workOrder->load(['product', 'recipe.ingredients.product', 'outputs', 'user']);
+        $workOrder->load(['product', 'recipe.ingredients.product', 'bom.lines.product', 'outputs', 'user', 'operations.workCenter', 'journalEntry']);
         return view('production.show', compact('workOrder'));
     }
 
@@ -147,10 +152,11 @@ class ProductionController extends Controller
             ]);
 
             if (!empty($data['auto_complete'])) {
+                $totalCost = $workOrder->material_cost + $workOrder->labor_cost + $workOrder->overhead_cost;
                 $workOrder->update([
                     'status'       => 'completed',
                     'completed_at' => now(),
-                    'total_cost'   => $workOrder->material_cost + $workOrder->labor_cost + $workOrder->overhead_cost,
+                    'total_cost'   => $totalCost,
                 ]);
 
                 // Tambah stok produk jadi
@@ -175,6 +181,21 @@ class ProductionController extends Controller
                         'reference'       => $workOrder->number,
                         'notes'           => "Output produksi {$workOrder->number}",
                     ]);
+                }
+
+                // GL: Transfer WIP → Persediaan Barang Jadi
+                if ($totalCost > 0) {
+                    $glService = app(GlPostingService::class);
+                    $glResult = $glService->postProductionOutput(
+                        $workOrder->tenant_id,
+                        auth()->id(),
+                        $workOrder->number,
+                        $workOrder->id,
+                        $totalCost
+                    );
+                    if ($glResult->isFailed()) {
+                        session()->flash('gl_warning', $glResult->warningMessage());
+                    }
                 }
             }
         });

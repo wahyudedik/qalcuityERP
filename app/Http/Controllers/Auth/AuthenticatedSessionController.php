@@ -45,6 +45,11 @@ class AuthenticatedSessionController extends Controller
                 ->with('warning', 'Sebagai Admin, Anda wajib mengaktifkan Two-Factor Authentication sebelum melanjutkan.');
         }
 
+        // Affiliate users go to affiliate dashboard
+        if ($user->isAffiliate()) {
+            return redirect()->route('affiliate.dashboard');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

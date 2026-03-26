@@ -6,6 +6,7 @@
 
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
         @csrf
+        @if(request('ref'))<input type="hidden" name="ref" value="{{ request('ref') }}">@endif
 
         <div>
             <label for="company_name" class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Perusahaan</label>

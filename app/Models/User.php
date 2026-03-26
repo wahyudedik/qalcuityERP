@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Tenant::class);
     }
 
+    public function affiliate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Affiliate::class);
+    }
+
     public function userPermissions(): HasMany
     {
         return $this->hasMany(UserPermission::class);
@@ -70,6 +75,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isStaff(): bool      { return $this->role === 'staff'; }
     public function isKasir(): bool      { return $this->role === 'kasir'; }
     public function isGudang(): bool     { return $this->role === 'gudang'; }
+    public function isAffiliate(): bool  { return $this->role === 'affiliate'; }
 
     public function hasRole(string|array $roles): bool
     {
@@ -84,10 +90,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return match($this->role) {
             'super_admin' => 'Super Admin',
             'admin'       => 'Admin',
-            'manager'     => 'Manajer',
+            'manager'     => 'Manager',
             'staff'       => 'Staff',
             'kasir'       => 'Kasir',
             'gudang'      => 'Gudang',
+            'affiliate'   => 'Affiliate',
             default       => ucfirst($this->role),
         };
     }

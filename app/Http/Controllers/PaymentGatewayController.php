@@ -219,6 +219,9 @@ class PaymentGatewayController extends Controller
             'plan_expires_at'      => $expiresAt,
             'is_active'            => true,
         ]);
+
+        // Affiliate commission
+        app(\App\Services\AffiliateService::class)->createCommission($tenant, $payment);
     }
 
     private function notifyPaymentFailed(SubscriptionPayment $payment, string $reason): void

@@ -97,10 +97,13 @@ class Tenant extends Model
             return $this->subscriptionPlan->max_users;
         }
         return match($this->plan) {
-            'basic'      => 5,
-            'pro'        => 20,
-            'enterprise' => -1,
-            default      => 3, // trial
+            'starter'      => 2,
+            'basic'        => 5,   // legacy
+            'business'     => 10,
+            'pro'          => 20,  // legacy
+            'professional' => 25,
+            'enterprise'   => -1,
+            default        => 3,   // trial
         };
     }
 
@@ -111,10 +114,13 @@ class Tenant extends Model
             return $this->subscriptionPlan->max_ai_messages;
         }
         return match($this->plan) {
-            'basic'      => 100,
-            'pro'        => 500,
-            'enterprise' => -1,
-            default      => 20, // trial
+            'starter'      => 50,
+            'basic'        => 100,  // legacy
+            'business'     => 300,
+            'pro'          => 500,  // legacy
+            'professional' => 1000,
+            'enterprise'   => -1,
+            default        => 20,   // trial
         };
     }
 

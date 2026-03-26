@@ -10,6 +10,7 @@ class Timesheet extends Model
     protected $fillable = [
         'project_id', 'tenant_id', 'user_id',
         'date', 'hours', 'description', 'hourly_rate',
+        'billing_status', 'project_invoice_id',
     ];
 
     protected function casts(): array

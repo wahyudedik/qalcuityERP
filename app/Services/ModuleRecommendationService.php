@@ -8,8 +8,8 @@ class ModuleRecommendationService
     const ALL_MODULES = [
         'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
         'hrm', 'payroll', 'crm', 'accounting', 'budget',
-        'production', 'ecommerce', 'projects', 'assets',
-        'loyalty', 'bank_reconciliation', 'reports',
+        'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce', 'projects', 'assets', 'commission', 'helpdesk', 'project_billing',
+        'loyalty', 'bank_reconciliation', 'reports', 'landed_cost', 'consignment', 'subscription_billing',
     ];
 
     /** Module metadata: label, icon, description */
@@ -25,12 +25,21 @@ class ModuleRecommendationService
         'accounting'          => ['label' => 'Akuntansi (GL)',        'icon' => '📊',  'desc' => 'Jurnal, COA & laporan keuangan'],
         'budget'              => ['label' => 'Anggaran',              'icon' => '📋',  'desc' => 'Perencanaan & monitoring anggaran'],
         'production'          => ['label' => 'Produksi / WO',         'icon' => '🏭',  'desc' => 'Work order & bill of materials'],
+        'manufacturing'       => ['label' => 'Manufaktur (BOM/MRP)', 'icon' => '⚙️',  'desc' => 'BOM multi-level, work center & MRP'],
+        'fleet'               => ['label' => 'Fleet Management',    'icon' => '🚛',  'desc' => 'Kendaraan, driver, BBM & maintenance'],
+        'contracts'           => ['label' => 'Manajemen Kontrak',   'icon' => '📝',  'desc' => 'Kontrak, SLA, recurring billing'],
         'ecommerce'           => ['label' => 'E-Commerce',            'icon' => '🛍️',  'desc' => 'Sinkronisasi marketplace'],
         'projects'            => ['label' => 'Manajemen Proyek',      'icon' => '📌',  'desc' => 'Task, milestone & timesheet'],
         'assets'              => ['label' => 'Aset',                  'icon' => '🏢',  'desc' => 'Aset tetap & depresiasi'],
         'loyalty'             => ['label' => 'Program Loyalitas',     'icon' => '⭐',  'desc' => 'Poin & reward pelanggan'],
         'bank_reconciliation' => ['label' => 'Rekonsiliasi Bank',     'icon' => '🏦',  'desc' => 'Cocokkan mutasi bank otomatis'],
         'reports'             => ['label' => 'Laporan & KPI',         'icon' => '📈',  'desc' => 'Laporan bisnis & dashboard KPI'],
+        'landed_cost'         => ['label' => 'Landed Cost',            'icon' => '🚢',  'desc' => 'Alokasi biaya impor ke HPP'],
+        'consignment'         => ['label' => 'Konsinyasi',             'icon' => '🏪',  'desc' => 'Stok titipan, penjualan & settlement'],
+        'commission'          => ['label' => 'Komisi Sales',            'icon' => '💵',  'desc' => 'Target, achievement & komisi salesperson'],
+        'helpdesk'            => ['label' => 'Helpdesk & Tiket',        'icon' => '🎫',  'desc' => 'Support ticket, SLA & knowledge base'],
+        'project_billing'     => ['label' => 'Project Billing',         'icon' => '📐',  'desc' => 'Timesheet→invoice, milestone, retainer'],
+        'subscription_billing'=> ['label' => 'Subscription Billing',    'icon' => '🔄',  'desc' => 'Recurring invoice untuk pelanggan langganan'],
     ];
 
     /**
@@ -45,24 +54,24 @@ class ModuleRecommendationService
                 'reason'  => 'Bisnis F&B butuh kasir cepat, kontrol stok bahan baku, dan pencatatan keuangan harian.',
             ],
             'retail' => [
-                'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'loyalty', 'ecommerce', 'reports'],
-                'reason'  => 'Toko retail perlu manajemen stok, kasir, dan integrasi marketplace.',
+                'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'loyalty', 'consignment', 'ecommerce', 'reports'],
+                'reason'  => 'Toko retail perlu manajemen stok, kasir, konsinyasi, dan integrasi marketplace.',
             ],
             'manufacture' => [
-                'modules' => ['inventory', 'purchasing', 'production', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'budget', 'reports'],
-                'reason'  => 'Manufaktur memerlukan work order, BOM, kontrol bahan baku, dan akuntansi biaya.',
+                'modules' => ['inventory', 'purchasing', 'production', 'manufacturing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'budget', 'reports'],
+                'reason'  => 'Manufaktur memerlukan work order, BOM multi-level, MRP, kontrol bahan baku, dan akuntansi biaya.',
             ],
             'distributor' => [
-                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'bank_reconciliation', 'reports'],
-                'reason'  => 'Distributor fokus pada pembelian massal, distribusi ke pelanggan, dan piutang.',
+                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'fleet', 'landed_cost', 'bank_reconciliation', 'reports'],
+                'reason'  => 'Distributor fokus pada pembelian massal, distribusi, fleet kendaraan, landed cost impor, dan piutang.',
             ],
             'construction' => [
-                'modules' => ['projects', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'budget', 'reports'],
-                'reason'  => 'Konstruksi butuh manajemen proyek, RAB, dan kontrol pengeluaran per proyek.',
+                'modules' => ['projects', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'fleet', 'budget', 'reports'],
+                'reason'  => 'Konstruksi butuh manajemen proyek, RAB, fleet kendaraan, dan kontrol pengeluaran per proyek.',
             ],
             'service' => [
-                'modules' => ['crm', 'projects', 'invoicing', 'accounting', 'hrm', 'payroll', 'budget', 'reports'],
-                'reason'  => 'Bisnis jasa fokus pada pipeline klien, proyek, dan penagihan.',
+                'modules' => ['crm', 'projects', 'project_billing', 'contracts', 'helpdesk', 'invoicing', 'accounting', 'hrm', 'payroll', 'budget', 'reports'],
+                'reason'  => 'Bisnis jasa fokus pada pipeline klien, project billing, kontrak, helpdesk, dan penagihan.',
             ],
             'agriculture' => [
                 'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports'],

@@ -25,34 +25,34 @@
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Identitas Utama</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name', $tenant->name) }}" required
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tagline / Slogan</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tagline / Slogan</label>
                     <input type="text" name="tagline" value="{{ old('tagline', $tenant->tagline) }}" placeholder="Solusi terbaik untuk bisnis Anda"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Email</label>
                     <input type="email" name="email" value="{{ old('email', $tenant->email) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telepon</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Telepon</label>
                     <input type="text" name="phone" value="{{ old('phone', $tenant->phone) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">NPWP</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">NPWP</label>
                     <input type="text" name="npwp" value="{{ old('npwp', $tenant->npwp) }}" placeholder="00.000.000.0-000.000"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Website</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Website</label>
                     <input type="url" name="website" value="{{ old('website', $tenant->website) }}" placeholder="https://perusahaan.com"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
         </div>
@@ -62,24 +62,24 @@
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Alamat</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alamat Lengkap</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Alamat Lengkap</label>
                     <textarea name="address" rows="2"
-                              class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('address', $tenant->address) }}</textarea>
+                              class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('address', $tenant->address) }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kota</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Kota</label>
                     <input type="text" name="city" value="{{ old('city', $tenant->city) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provinsi</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Provinsi</label>
                     <input type="text" name="province" value="{{ old('province', $tenant->province) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kode Pos</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Kode Pos</label>
                     <input type="text" name="postal_code" value="{{ old('postal_code', $tenant->postal_code) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
         </div>
@@ -89,19 +89,19 @@
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Rekening Bank</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Bank</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Bank</label>
                     <input type="text" name="bank_name" value="{{ old('bank_name', $tenant->bank_name) }}" placeholder="BCA, Mandiri, BNI..."
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">No. Rekening</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">No. Rekening</label>
                     <input type="text" name="bank_account" value="{{ old('bank_account', $tenant->bank_account) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Atas Nama</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Atas Nama</label>
                     <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $tenant->bank_account_name) }}"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
         </div>
@@ -111,24 +111,24 @@
             <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Pengaturan Dokumen</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catatan Footer Invoice</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Catatan Footer Invoice</label>
                     <textarea name="invoice_footer_notes" rows="2" placeholder="Terima kasih atas kepercayaan Anda..."
-                              class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('invoice_footer_notes', $tenant->invoice_footer_notes) }}</textarea>
+                              class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('invoice_footer_notes', $tenant->invoice_footer_notes) }}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Syarat Pembayaran Default</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Syarat Pembayaran Default</label>
                     <input type="text" name="invoice_payment_terms" value="{{ old('invoice_payment_terms', $tenant->invoice_payment_terms) }}"
                            placeholder="Pembayaran dalam 14 hari setelah invoice diterima"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prefix Nomor Dokumen</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Prefix Nomor Dokumen</label>
                         <input type="text" name="doc_number_prefix" value="{{ old('doc_number_prefix', $tenant->doc_number_prefix) }}"
                                placeholder="INV, PO, QT..."
-                               class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                               class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Warna Kop Surat</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Warna Kop Surat</label>
                     <div class="flex items-center gap-3">
                         <input type="color" name="letter_head_color" value="{{ old('letter_head_color', $tenant->letter_head_color ?? '#1d4ed8') }}"
                                class="h-10 w-16 rounded-lg border border-gray-300 dark:border-white/10 cursor-pointer">
@@ -149,7 +149,7 @@
                     ['field' => 'director_signature', 'label' => 'TTD Direktur', 'desc' => 'Tanda tangan default untuk surat'],
                 ] as $img)
                 <div class="border border-gray-200 dark:border-white/10 rounded-xl p-4">
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ $img['label'] }}</p>
+                    <p class="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{{ $img['label'] }}</p>
                     <p class="text-xs text-gray-400 mb-3">{{ $img['desc'] }}</p>
 
                     @if($tenant->{$img['field']})
@@ -205,7 +205,7 @@
         @else
         <div class="space-y-3">
             @foreach($templates as $tpl)
-            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#0f172a]/50 rounded-xl">
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $tpl->name }}</span>
@@ -238,13 +238,13 @@
             @csrf
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Template</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Template</label>
                     <input type="text" name="name" required placeholder="Template Invoice Standar"
-                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm">
+                           class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jenis Dokumen</label>
-                    <select name="doc_type" required class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jenis Dokumen</label>
+                    <select name="doc_type" required class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm">
                         <option value="invoice">Invoice</option>
                         <option value="po">Purchase Order</option>
                         <option value="quotation">Penawaran (Quotation)</option>
@@ -254,15 +254,15 @@
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Konten HTML</label>
-                <p class="text-xs text-gray-400 mb-2">Gunakan placeholder: <code class="bg-gray-100 dark:bg-slate-700 px-1 rounded">@{{ company_name }}</code>, <code class="bg-gray-100 dark:bg-slate-700 px-1 rounded">@{{ date }}</code>, <code class="bg-gray-100 dark:bg-slate-700 px-1 rounded">@{{ recipient }}</code>, <code class="bg-gray-100 dark:bg-slate-700 px-1 rounded">@{{ npwp }}</code></p>
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Konten HTML</label>
+                <p class="text-xs text-gray-400 mb-2">Gunakan placeholder: <code class="bg-gray-100 dark:bg-[#0f172a] px-1 rounded">@{{ company_name }}</code>, <code class="bg-gray-100 dark:bg-[#0f172a] px-1 rounded">@{{ date }}</code>, <code class="bg-gray-100 dark:bg-[#0f172a] px-1 rounded">@{{ recipient }}</code>, <code class="bg-gray-100 dark:bg-[#0f172a] px-1 rounded">@{{ npwp }}</code></p>
                 <textarea name="html_content" rows="10" required
-                          class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm font-mono text-xs"
+                          class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm font-mono text-xs"
                           placeholder="<div>@{{ company_name }}</div>..."></textarea>
             </div>
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_default" value="1" id="is_default_new" class="rounded">
-                <label for="is_default_new" class="text-sm text-gray-700 dark:text-gray-300">Jadikan template default untuk jenis ini</label>
+                <label for="is_default_new" class="text-sm text-gray-700 dark:text-slate-300">Jadikan template default untuk jenis ini</label>
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="document.getElementById('modal-add-template').classList.add('hidden')"
@@ -280,18 +280,18 @@
         <form id="form-edit-template" method="POST" class="space-y-4">
             @csrf @method('PUT')
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nama Template</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Template</label>
                 <input type="text" name="name" id="edit_name" required
-                       class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm">
+                       class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Konten HTML</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Konten HTML</label>
                 <textarea name="html_content" id="edit_html" rows="10" required
-                          class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-slate-700 text-gray-900 dark:text-white px-3 py-2 text-sm font-mono text-xs"></textarea>
+                          class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white px-3 py-2 text-sm font-mono text-xs"></textarea>
             </div>
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="is_default" value="1" id="edit_is_default" class="rounded">
-                <label for="edit_is_default" class="text-sm text-gray-700 dark:text-gray-300">Jadikan template default</label>
+                <label for="edit_is_default" class="text-sm text-gray-700 dark:text-slate-300">Jadikan template default</label>
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="document.getElementById('modal-edit-template').classList.add('hidden')"

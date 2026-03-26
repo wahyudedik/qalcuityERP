@@ -32,6 +32,11 @@
             </a>
             <span class="font-semibold text-white shrink-0">Kasir POS</span>
             <span class="text-xs text-gray-500 ml-1 hidden sm:inline shrink-0">{{ now()->format('d M Y, H:i') }}</span>
+            {{-- POS Settings button --}}
+            <button onclick="openPosSettings()" title="Pengaturan POS"
+                class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition rounded-lg hover:bg-gray-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
             {{-- Offline indicator --}}
             <span id="offline-badge" class="hidden items-center gap-1 text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full shrink-0">
                 <span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
@@ -287,6 +292,116 @@
     </div>
 </div>
 
+{{-- POS Settings Modal --}}
+<div id="pos-settings-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-gray-900 rounded-2xl w-full max-w-md shadow-2xl border border-gray-800 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+            <h3 class="font-semibold text-white">⚙ Pengaturan POS</h3>
+            <button onclick="closePosSettings()" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div class="p-5 space-y-5">
+            {{-- Printer Settings --}}
+            <div>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">🖨 Printer Struk</h4>
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Aktifkan cetak struk</span>
+                        <input type="checkbox" id="pos-print-enabled" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Auto-print setelah checkout</span>
+                        <input type="checkbox" id="pos-auto-print" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Metode Cetak</label>
+                        <select id="pos-print-method" onchange="savePosSettings()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                            <option value="browser">Browser Print (semua printer)</option>
+                            <option value="thermal">Thermal Printer (USB/Serial)</option>
+                            <option value="bluetooth">Bluetooth Printer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Lebar Kertas</label>
+                        <select id="pos-paper-width" onchange="savePosSettings()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                            <option value="58">58mm (Thermal kecil)</option>
+                            <option value="80">80mm (Thermal standar)</option>
+                            <option value="a4">A4 (Printer biasa)</option>
+                        </select>
+                    </div>
+                    <div id="thermal-connect-section" class="hidden">
+                        <button onclick="connectThermalPrinter()" id="btn-connect-printer"
+                            class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition">
+                            🔌 Hubungkan Printer Thermal
+                        </button>
+                        <p id="printer-status" class="text-xs text-gray-500 mt-1 text-center"></p>
+                    </div>
+                    <button onclick="testPrint()" class="w-full py-2 border border-gray-700 text-gray-300 text-sm rounded-xl hover:bg-gray-800 transition">
+                        🧪 Test Print
+                    </button>
+                </div>
+            </div>
+
+            {{-- Scanner Settings --}}
+            <div>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">📷 Scanner Barcode</h4>
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Aktifkan scanner kamera</span>
+                        <input type="checkbox" id="pos-camera-enabled" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Aktifkan scanner hardware (USB)</span>
+                        <input type="checkbox" id="pos-hw-scanner-enabled" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Suara saat scan berhasil</span>
+                        <input type="checkbox" id="pos-scan-sound" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                </div>
+            </div>
+
+            {{-- Receipt Settings --}}
+            <div>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">🧾 Struk</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Nama Toko di Struk</label>
+                        <input type="text" id="pos-store-name" onchange="savePosSettings()" placeholder="{{ auth()->user()->tenant?->name ?? 'Nama Toko' }}"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Alamat di Struk</label>
+                        <input type="text" id="pos-store-address" onchange="savePosSettings()" placeholder="Alamat toko"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-1">Footer Struk</label>
+                        <input type="text" id="pos-receipt-footer" onchange="savePosSettings()" placeholder="Terima kasih atas kunjungan Anda!"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm text-gray-300">Tampilkan logo di struk</span>
+                        <input type="checkbox" id="pos-show-logo" onchange="savePosSettings()" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Hidden thermal receipt template --}}
+<div id="thermal-receipt" class="hidden">
+    <div id="thermal-receipt-content" style="font-family:monospace;font-size:12px;width:100%;max-width:300px;padding:8px;color:#000;background:#fff;"></div>
+</div>
+
+<style>
+@media print {
+    body * { visibility: hidden !important; }
+    #print-receipt-frame, #print-receipt-frame * { visibility: visible !important; }
+    #print-receipt-frame { position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; }
+}
+</style>
+
 <script>
 const products = @json($products);
 let cart = [];
@@ -486,6 +601,11 @@ function showReceipt(data) {
 
     document.getElementById('receipt-modal').classList.remove('hidden');
     document.getElementById('receipt-modal').classList.add('flex');
+
+    // Auto-print if enabled
+    if (posSettings.autoPrint && posSettings.printEnabled) {
+        setTimeout(() => printReceiptSmart(data), 500);
+    }
 }
 
 function closeReceipt() {
@@ -498,7 +618,11 @@ function closeReceipt() {
 }
 
 function printReceipt() {
-    window.print();
+    if (lastReceipt) {
+        printReceiptSmart(lastReceipt);
+    } else {
+        printViaBrowser({ order_number: 'N/A', total: getTotal(), items: cart });
+    }
 }
 
 // ── Search & Filter ───────────────────────────────────────────────────────
@@ -810,6 +934,7 @@ function startZxingDetection() {
 async function handleScannedBarcode(code) {
     // Vibrate on success
     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+    playScanSound();
 
     // Try to find product in current DOM first (fast path)
     const card = document.querySelector(`.product-card[data-barcode="${code}"]`)
@@ -888,8 +1013,255 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// ── POS Settings ──────────────────────────────────────────────────────────
+const POS_SETTINGS_KEY = 'qalcuity_pos_settings';
+let posSettings = {
+    printEnabled: false, autoPrint: false, printMethod: 'browser', paperWidth: '58',
+    cameraEnabled: true, hwScannerEnabled: true, scanSound: true,
+    storeName: '{{ addslashes(auth()->user()->tenant?->name ?? "Toko") }}',
+    storeAddress: '{{ addslashes(auth()->user()->tenant?->address ?? "") }}',
+    receiptFooter: 'Terima kasih atas kunjungan Anda!',
+    showLogo: false,
+};
+let thermalPort = null;
+let thermalWriter = null;
+
+function loadPosSettings() {
+    try {
+        const saved = localStorage.getItem(POS_SETTINGS_KEY);
+        if (saved) posSettings = { ...posSettings, ...JSON.parse(saved) };
+    } catch {}
+    // Apply to UI
+    document.getElementById('pos-print-enabled').checked = posSettings.printEnabled;
+    document.getElementById('pos-auto-print').checked = posSettings.autoPrint;
+    document.getElementById('pos-print-method').value = posSettings.printMethod;
+    document.getElementById('pos-paper-width').value = posSettings.paperWidth;
+    document.getElementById('pos-camera-enabled').checked = posSettings.cameraEnabled;
+    document.getElementById('pos-hw-scanner-enabled').checked = posSettings.hwScannerEnabled;
+    document.getElementById('pos-scan-sound').checked = posSettings.scanSound;
+    document.getElementById('pos-store-name').value = posSettings.storeName;
+    document.getElementById('pos-store-address').value = posSettings.storeAddress;
+    document.getElementById('pos-receipt-footer').value = posSettings.receiptFooter;
+    document.getElementById('pos-show-logo').checked = posSettings.showLogo;
+    // Toggle camera button visibility
+    document.getElementById('btn-camera-scan').style.display = posSettings.cameraEnabled ? '' : 'none';
+    // Toggle thermal connect section
+    document.getElementById('thermal-connect-section').classList.toggle('hidden', posSettings.printMethod === 'browser');
+}
+
+function savePosSettings() {
+    posSettings.printEnabled = document.getElementById('pos-print-enabled').checked;
+    posSettings.autoPrint = document.getElementById('pos-auto-print').checked;
+    posSettings.printMethod = document.getElementById('pos-print-method').value;
+    posSettings.paperWidth = document.getElementById('pos-paper-width').value;
+    posSettings.cameraEnabled = document.getElementById('pos-camera-enabled').checked;
+    posSettings.hwScannerEnabled = document.getElementById('pos-hw-scanner-enabled').checked;
+    posSettings.scanSound = document.getElementById('pos-scan-sound').checked;
+    posSettings.storeName = document.getElementById('pos-store-name').value;
+    posSettings.storeAddress = document.getElementById('pos-store-address').value;
+    posSettings.receiptFooter = document.getElementById('pos-receipt-footer').value;
+    posSettings.showLogo = document.getElementById('pos-show-logo').checked;
+    localStorage.setItem(POS_SETTINGS_KEY, JSON.stringify(posSettings));
+    // Toggle UI
+    document.getElementById('btn-camera-scan').style.display = posSettings.cameraEnabled ? '' : 'none';
+    document.getElementById('thermal-connect-section').classList.toggle('hidden', posSettings.printMethod === 'browser');
+}
+
+function openPosSettings() {
+    loadPosSettings();
+    const m = document.getElementById('pos-settings-modal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+}
+function closePosSettings() {
+    const m = document.getElementById('pos-settings-modal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+}
+
+// ── Thermal Printer (Web Serial API) ──────────────────────────────────────
+async function connectThermalPrinter() {
+    if (!('serial' in navigator)) {
+        showToast('Browser tidak mendukung Web Serial API. Gunakan Chrome/Edge.', 'error');
+        return;
+    }
+    try {
+        thermalPort = await navigator.serial.requestPort();
+        await thermalPort.open({ baudRate: 9600 });
+        thermalWriter = thermalPort.writable.getWriter();
+        document.getElementById('printer-status').textContent = '✅ Printer terhubung';
+        document.getElementById('btn-connect-printer').textContent = '✅ Terhubung';
+        document.getElementById('btn-connect-printer').classList.replace('bg-blue-600', 'bg-green-600');
+        showToast('Printer thermal terhubung', 'success');
+    } catch (e) {
+        document.getElementById('printer-status').textContent = '❌ Gagal: ' + e.message;
+        showToast('Gagal menghubungkan printer: ' + e.message, 'error');
+    }
+}
+
+// ESC/POS commands for thermal printer
+function escPos(text) {
+    const encoder = new TextEncoder();
+    return encoder.encode(text);
+}
+
+async function printToThermal(receiptText) {
+    if (!thermalWriter) {
+        showToast('Printer belum terhubung. Buka Settings → Hubungkan Printer.', 'warning');
+        return;
+    }
+    try {
+        const ESC = '\x1B'; const GS = '\x1D';
+        // Init printer
+        await thermalWriter.write(escPos(ESC + '@'));
+        // Center align
+        await thermalWriter.write(escPos(ESC + 'a' + '\x01'));
+        // Bold store name
+        await thermalWriter.write(escPos(ESC + 'E' + '\x01'));
+        await thermalWriter.write(escPos(posSettings.storeName + '\n'));
+        await thermalWriter.write(escPos(ESC + 'E' + '\x00'));
+        if (posSettings.storeAddress) await thermalWriter.write(escPos(posSettings.storeAddress + '\n'));
+        await thermalWriter.write(escPos('================================\n'));
+        // Left align
+        await thermalWriter.write(escPos(ESC + 'a' + '\x00'));
+        await thermalWriter.write(escPos(receiptText));
+        // Footer
+        await thermalWriter.write(escPos(ESC + 'a' + '\x01'));
+        await thermalWriter.write(escPos('\n' + (posSettings.receiptFooter || '') + '\n\n'));
+        // Cut paper
+        await thermalWriter.write(escPos(GS + 'V' + '\x00'));
+        showToast('Struk berhasil dicetak', 'success');
+    } catch (e) {
+        showToast('Gagal cetak: ' + e.message, 'error');
+    }
+}
+
+// ── Receipt Builder ───────────────────────────────────────────────────────
+function buildReceiptText(data) {
+    const now = new Date();
+    const date = now.toLocaleDateString('id-ID', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const time = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    let lines = [];
+    lines.push(`Tanggal : ${date} ${time}`);
+    lines.push(`No      : ${data.order_number || 'N/A'}`);
+    lines.push(`Kasir   : {{ auth()->user()->name }}`);
+    lines.push('--------------------------------');
+    const items = data.items || lastReceipt?.items || cart;
+    items.forEach(i => {
+        const name = (i.name || '').substring(0, 20);
+        const total = formatRpPlain(i.price * i.qty);
+        lines.push(`${name}`);
+        lines.push(`  ${i.qty} x ${formatRpPlain(i.price)}  ${total}`);
+    });
+    lines.push('--------------------------------');
+    lines.push(`Subtotal     ${formatRpPlain(data.total || getTotal())}`);
+    if (data.change !== undefined && paymentMethod === 'cash') {
+        const paid = data.paid || (parseFloat(document.getElementById('paid-input').value.replace(/\./g, '')) || 0);
+        lines.push(`Bayar        ${formatRpPlain(paid)}`);
+        lines.push(`Kembalian    ${formatRpPlain(data.change)}`);
+    }
+    lines.push(`Metode       ${paymentMethod.toUpperCase()}`);
+    return lines.join('\n') + '\n';
+}
+
+function formatRpPlain(n) { return 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
+
+function buildReceiptHtml(data) {
+    const w = posSettings.paperWidth === 'a4' ? '100%' : (posSettings.paperWidth === '80' ? '280px' : '220px');
+    const items = data.items || lastReceipt?.items || cart;
+    let itemsHtml = items.map(i =>
+        `<div style="display:flex;justify-content:space-between;font-size:11px"><span>${(i.name||'').substring(0,22)}</span><span>${formatRpPlain(i.price*i.qty)}</span></div>
+         <div style="font-size:10px;color:#666;margin-bottom:2px">&nbsp;&nbsp;${i.qty} x ${formatRpPlain(i.price)}</div>`
+    ).join('');
+    return `<div style="font-family:monospace;width:${w};padding:10px;color:#000;background:#fff;font-size:12px">
+        <div style="text-align:center;font-weight:bold;font-size:14px">${posSettings.storeName}</div>
+        ${posSettings.storeAddress ? `<div style="text-align:center;font-size:10px;color:#666">${posSettings.storeAddress}</div>` : ''}
+        <hr style="border:none;border-top:1px dashed #999;margin:6px 0">
+        <div style="font-size:10px;color:#666">Tanggal: ${new Date().toLocaleString('id-ID')}</div>
+        <div style="font-size:10px;color:#666">No: ${data.order_number || 'N/A'}</div>
+        <div style="font-size:10px;color:#666">Kasir: {{ auth()->user()->name }}</div>
+        <hr style="border:none;border-top:1px dashed #999;margin:6px 0">
+        ${itemsHtml}
+        <hr style="border:none;border-top:1px dashed #999;margin:6px 0">
+        <div style="display:flex;justify-content:space-between;font-weight:bold"><span>TOTAL</span><span>${formatRpPlain(data.total || getTotal())}</span></div>
+        ${data.change !== undefined && paymentMethod === 'cash' ? `<div style="display:flex;justify-content:space-between;font-size:11px"><span>Bayar</span><span>${formatRpPlain(data.paid || 0)}</span></div><div style="display:flex;justify-content:space-between;font-size:11px"><span>Kembali</span><span>${formatRpPlain(data.change)}</span></div>` : ''}
+        <div style="font-size:10px;color:#666;margin-top:2px">Metode: ${paymentMethod.toUpperCase()}</div>
+        <hr style="border:none;border-top:1px dashed #999;margin:6px 0">
+        <div style="text-align:center;font-size:10px;color:#666">${posSettings.receiptFooter || ''}</div>
+    </div>`;
+}
+
+// ── Print Dispatcher ──────────────────────────────────────────────────────
+async function printReceiptSmart(data) {
+    if (!posSettings.printEnabled) return;
+
+    if (posSettings.printMethod === 'thermal' && thermalWriter) {
+        await printToThermal(buildReceiptText(data));
+    } else if (posSettings.printMethod === 'bluetooth') {
+        // Bluetooth printing via Web Bluetooth API
+        await printViaBluetooth(buildReceiptText(data));
+    } else {
+        // Browser print
+        printViaBrowser(data);
+    }
+}
+
+function printViaBrowser(data) {
+    const html = buildReceiptHtml(data);
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Struk</title></head><body style="margin:0;padding:0">${html}</body></html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
+}
+
+// ── Bluetooth Printer ─────────────────────────────────────────────────────
+async function printViaBluetooth(text) {
+    if (!('bluetooth' in navigator)) {
+        showToast('Browser tidak mendukung Bluetooth. Gunakan Chrome.', 'error');
+        return;
+    }
+    try {
+        const device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+        });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+        const encoder = new TextEncoder();
+        const data = encoder.encode('\x1B@' + posSettings.storeName + '\n' + (posSettings.storeAddress || '') + '\n================================\n' + text + '\n' + (posSettings.receiptFooter || '') + '\n\n\n');
+        // Send in chunks (BLE has 20-byte MTU)
+        for (let i = 0; i < data.length; i += 20) {
+            await char.writeValue(data.slice(i, i + 20));
+        }
+        showToast('Struk dicetak via Bluetooth', 'success');
+    } catch (e) {
+        showToast('Bluetooth print gagal: ' + e.message, 'error');
+    }
+}
+
+function testPrint() {
+    const testData = {
+        order_number: 'TEST-001',
+        total: 50000,
+        change: 0,
+        paid: 50000,
+        items: [{ name: 'Test Produk A', qty: 2, price: 15000 }, { name: 'Test Produk B', qty: 1, price: 20000 }],
+    };
+    printReceiptSmart(testData);
+}
+
+// ── Scanner Sound ─────────────────────────────────────────────────────────
+const scanBeep = new Audio('data:audio/wav;base64,UklGRl9vT19teleVBFTVQAAAAGIAAABkYXRhAAAA');
+function playScanSound() {
+    if (posSettings.scanSound) {
+        try { scanBeep.currentTime = 0; scanBeep.play().catch(()=>{}); } catch {}
+        if ('vibrate' in navigator) navigator.vibrate(100);
+    }
+}
+
 // Init
 setPayment('cash');
+loadPosSettings();
 </script>
 </body>
 </html>

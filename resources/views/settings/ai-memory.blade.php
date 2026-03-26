@@ -24,9 +24,9 @@
         @endif
 
         <!-- Memory List -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow">
-            <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200">Preferensi yang Dipelajari</h3>
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10">
+            <div class="p-5 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Preferensi yang Dipelajari</h3>
                 <form method="POST" action="{{ route('ai-memory.reset') }}"
                       onsubmit="return confirm('Reset semua memori AI? Preferensi yang dipelajari akan dihapus.')">
                     @csrf
@@ -37,7 +37,7 @@
             </div>
 
             @if($memories->isEmpty())
-                <div class="p-8 text-center text-gray-500 dark:text-gray-400">
+                <div class="p-8 text-center text-gray-500 dark:text-slate-400">
                     <div class="text-4xl mb-3">🧠</div>
                     <p class="text-sm">AI belum mempelajari preferensi Anda.</p>
                     <p class="text-xs mt-1">Preferensi akan dipelajari secara otomatis saat Anda menggunakan sistem.</p>
@@ -47,10 +47,10 @@
                     @foreach($memories as $memory)
                         <div class="p-4 flex items-center justify-between">
                             <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                                <p class="text-sm font-medium text-gray-700 dark:text-slate-300 capitalize">
                                     {{ str_replace('_', ' ', $memory->key) }}
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                                     @if(is_array($memory->value))
                                         {{ implode(', ', array_slice($memory->value, 0, 3)) }}
                                     @else
@@ -72,7 +72,7 @@
             @endif
         </div>
 
-        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-xs text-gray-500 dark:text-gray-400">
+        <div class="bg-gray-50 dark:bg-[#1e293b]/50 rounded-xl p-4 text-xs text-gray-500 dark:text-slate-400">
             <p class="font-medium mb-1">Tentang Memori AI</p>
             <p>AI mempelajari kebiasaan Anda secara otomatis: metode pembayaran favorit, gudang default, customer yang sering digunakan, dan langkah yang sering dilewati. Data ini digunakan untuk memberikan saran yang lebih relevan dan mempercepat alur kerja Anda.</p>
         </div>

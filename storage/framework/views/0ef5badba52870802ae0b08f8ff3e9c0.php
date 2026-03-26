@@ -251,12 +251,12 @@
             request()->routeIs('dashboard')                                                    => 'home',
             request()->routeIs('chat*')                                                        => 'ai',
             request()->routeIs('quotations*','invoices*','delivery-orders*','down-payments*',
-                               'sales-returns*','crm*','loyalty*','pos*','sales.*',
+                               'sales-returns*','crm*','loyalty*','pos*','commission*','helpdesk*','subscription-billing*','sales.*',
                                'sales.index','price-lists*')                                  => 'sales',
-            request()->routeIs('inventory*','purchasing*','purchase-returns*') => 'inventory',
+            request()->routeIs('inventory*','purchasing*','purchase-returns*','landed-cost*','consignment*') => 'inventory',
             request()->routeIs('customers*','suppliers*','products*','warehouses*') => 'masterdata',
-            request()->routeIs('production*','shipping*','approvals*','ecommerce*','documents*',
-                               'projects*','timesheets*') => 'ops',
+            request()->routeIs('production*','manufacturing*','fleet*','contracts*','shipping*','approvals*','ecommerce*','documents*',
+                               'projects*','timesheets*','project-billing*') => 'ops',
             request()->routeIs('hrm*','payroll*','self-service*')                              => 'hrm',
             request()->routeIs('accounting*','expenses*','bank.*','bank-accounts*',
                                'receivables*','payables*','bulk-payments*','assets*','budget*',
@@ -274,6 +274,8 @@
         <?php if($user?->isSuperAdmin()): ?>
             <?php echo $__env->make('layouts._rail_btn', ['group'=>'home',       'icon'=>'home',       'label'=>'Dashboard'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php echo $__env->make('layouts._rail_btn', ['group'=>'superadmin', 'icon'=>'building',   'label'=>'Admin'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php elseif($user?->isAffiliate()): ?>
+            <?php echo $__env->make('layouts._rail_btn', ['group'=>'home',      'icon'=>'home',      'label'=>'Dashboard'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <?php else: ?>
             <?php echo $__env->make('layouts._rail_btn', ['group'=>'home',      'icon'=>'home',      'label'=>'Dashboard'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php echo $__env->make('layouts._rail_btn', ['group'=>'ai',        'icon'=>'sparkle',   'label'=>'AI Chat'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -494,6 +496,18 @@ const NAV_GROUPS = {
       { label: 'Kelola Paket',  href: '<?php echo e(route("super-admin.plans.index")); ?>',   active: <?php echo e(request()->routeIs('super-admin.plans*') ? 'true' : 'false'); ?> },
       { section: 'Monitoring' },
       { label: 'Monitoring',    href: '<?php echo e(route("super-admin.monitoring.index")); ?>', active: <?php echo e(request()->routeIs('super-admin.monitoring*') ? 'true' : 'false'); ?>, badge: <?php echo e(\App\Models\ErrorLog::where('is_resolved',false)->count() ?: 'null'); ?>, badgeClass: 'badge-red' },
+      { section: 'Afiliasi' },
+      { label: 'Kelola Affiliate', href: '<?php echo e(route("super-admin.affiliates.index")); ?>', active: <?php echo e(request()->routeIs('super-admin.affiliates.index') ? 'true' : 'false'); ?> },
+      { label: 'Komisi',          href: '<?php echo e(route("super-admin.affiliates.commissions")); ?>', active: <?php echo e(request()->routeIs('super-admin.affiliates.commissions*') ? 'true' : 'false'); ?>, badge: <?php echo e(\App\Models\AffiliateCommission::where('status','pending')->count() ?: 'null'); ?>, badgeClass: 'badge-amber' },
+      { label: 'Payout',          href: '<?php echo e(route("super-admin.affiliates.payouts")); ?>', active: <?php echo e(request()->routeIs('super-admin.affiliates.payouts*') ? 'true' : 'false'); ?> },
+      { label: 'Fraud Monitor',   href: '<?php echo e(route("super-admin.affiliates.audit-logs")); ?>', active: <?php echo e(request()->routeIs('super-admin.affiliates.audit-logs*') ? 'true' : 'false'); ?>, badge: <?php echo e(\App\Models\AffiliateAuditLog::where('severity','fraud')->where('created_at','>=',now()->subDays(7))->count() ?: 'null'); ?>, badgeClass: 'badge-red' },
+    ]
+  },
+<?php elseif($user?->isAffiliate()): ?>
+  home: {
+    title: 'Affiliate',
+    items: [
+      { label: 'Dashboard', href: '<?php echo e(route("affiliate.dashboard")); ?>', active: <?php echo e(request()->routeIs('affiliate.dashboard') ? 'true' : 'false'); ?> },
     ]
   },
 <?php else: ?>
@@ -537,6 +551,18 @@ const NAV_GROUPS = {
 <?php if(($navTenant?->isModuleEnabled('crm') ?? true) && $canView('crm')): ?>
       { label: 'CRM & Pipeline',        href: '<?php echo e(route("crm.index")); ?>',              active: <?php echo e(request()->routeIs('crm*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('commission') ?? true) && $canView('commission')): ?>
+      { label: 'Komisi Sales',          href: '<?php echo e(route("commission.index")); ?>',        active: <?php echo e(request()->routeIs('commission.index') ? 'true' : 'false'); ?> },
+      { label: 'Rule Komisi',           href: '<?php echo e(route("commission.rules")); ?>',        active: <?php echo e(request()->routeIs('commission.rules*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('helpdesk') ?? true) && $canView('helpdesk')): ?>
+      { label: 'Helpdesk',             href: '<?php echo e(route("helpdesk.index")); ?>',           active: <?php echo e(request()->routeIs('helpdesk.index') || request()->routeIs('helpdesk.show') ? 'true' : 'false'); ?> },
+      { label: 'Knowledge Base',       href: '<?php echo e(route("helpdesk.kb")); ?>',              active: <?php echo e(request()->routeIs('helpdesk.kb*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('subscription_billing') ?? true) && $canView('subscription_billing')): ?>
+      { label: 'Subscription Billing', href: '<?php echo e(route("subscription-billing.index")); ?>', active: <?php echo e(request()->routeIs('subscription-billing.index') || request()->routeIs('subscription-billing.show') ? 'true' : 'false'); ?> },
+      { label: 'Plan Langganan',       href: '<?php echo e(route("subscription-billing.plans")); ?>', active: <?php echo e(request()->routeIs('subscription-billing.plans*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
 <?php if(($navTenant?->isModuleEnabled('loyalty') ?? true) && $canView('loyalty')): ?>
       { label: 'Program Loyalitas',     href: '<?php echo e(route("loyalty.index")); ?>',          active: <?php echo e(request()->routeIs('loyalty*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
@@ -561,6 +587,13 @@ const NAV_GROUPS = {
       { label: 'Goods Receipt',         href: '<?php echo e(route("purchasing.goods-receipts")); ?>', active: <?php echo e(request()->routeIs('purchasing.goods-receipts*') ? 'true' : 'false'); ?> },
       { label: '3-Way Matching',        href: '<?php echo e(route("purchasing.matching")); ?>',    active: <?php echo e(request()->routeIs('purchasing.matching*') ? 'true' : 'false'); ?> },
       { label: 'Retur Pembelian',       href: '<?php echo e(route("purchase-returns.index")); ?>', active: <?php echo e(request()->routeIs('purchase-returns*') ? 'true' : 'false'); ?> },
+<?php if(($navTenant?->isModuleEnabled('landed_cost') ?? true) && $canView('landed_cost')): ?>
+      { label: 'Landed Cost',          href: '<?php echo e(route("landed-cost.index")); ?>',       active: <?php echo e(request()->routeIs('landed-cost*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('consignment') ?? true) && $canView('consignment')): ?>
+      { label: 'Konsinyasi',           href: '<?php echo e(route("consignment.index")); ?>',       active: <?php echo e(request()->routeIs('consignment.index') || request()->routeIs('consignment.shipments*') ? 'true' : 'false'); ?> },
+      { label: 'Partner Konsinyasi',   href: '<?php echo e(route("consignment.partners")); ?>',    active: <?php echo e(request()->routeIs('consignment.partners*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
 <?php endif; ?>
     ]
   },
@@ -574,7 +607,23 @@ const NAV_GROUPS = {
 <?php if(($navTenant?->isModuleEnabled('production') ?? true) && $canView('production')): ?>
       { label: 'Produksi / WO',         href: '<?php echo e(route("production.index")); ?>',       active: <?php echo e(request()->routeIs('production*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('manufacturing') ?? true) && $canView('manufacturing')): ?>
+      { label: 'BOM Multi-Level',       href: '<?php echo e(route("manufacturing.bom")); ?>',      active: <?php echo e(request()->routeIs('manufacturing.bom*') ? 'true' : 'false'); ?> },
+      { label: 'Work Center',           href: '<?php echo e(route("manufacturing.work-centers")); ?>', active: <?php echo e(request()->routeIs('manufacturing.work-centers*') ? 'true' : 'false'); ?> },
+      { label: 'MRP Planning',          href: '<?php echo e(route("manufacturing.mrp")); ?>',      active: <?php echo e(request()->routeIs('manufacturing.mrp*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('fleet') ?? true) && $canView('fleet')): ?>
+      { label: 'Fleet Kendaraan',       href: '<?php echo e(route("fleet.index")); ?>',            active: <?php echo e(request()->routeIs('fleet.index') ? 'true' : 'false'); ?> },
+      { label: 'Driver',                href: '<?php echo e(route("fleet.drivers")); ?>',          active: <?php echo e(request()->routeIs('fleet.drivers*') ? 'true' : 'false'); ?> },
+      { label: 'Trip / Penugasan',      href: '<?php echo e(route("fleet.trips")); ?>',            active: <?php echo e(request()->routeIs('fleet.trips*') ? 'true' : 'false'); ?> },
+      { label: 'Log BBM',               href: '<?php echo e(route("fleet.fuel-logs")); ?>',        active: <?php echo e(request()->routeIs('fleet.fuel-logs*') ? 'true' : 'false'); ?> },
+      { label: 'Maintenance',           href: '<?php echo e(route("fleet.maintenance")); ?>',      active: <?php echo e(request()->routeIs('fleet.maintenance*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
       <?php if($canView('shipping')): ?>      { label: 'Pengiriman',            href: '<?php echo e(route("shipping.index")); ?>',         active: <?php echo e(request()->routeIs('shipping*') ? 'true' : 'false'); ?> }, <?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('contracts') ?? true) && $canView('contracts')): ?>
+      { label: 'Kontrak',               href: '<?php echo e(route("contracts.index")); ?>',        active: <?php echo e(request()->routeIs('contracts.index') || request()->routeIs('contracts.show') ? 'true' : 'false'); ?> },
+      { label: 'Template Kontrak',      href: '<?php echo e(route("contracts.templates")); ?>',    active: <?php echo e(request()->routeIs('contracts.templates*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
       <?php if($canView('approvals')): ?>     { label: 'Persetujuan',           href: '<?php echo e(route("approvals.index")); ?>',        active: <?php echo e(request()->routeIs('approvals*') ? 'true' : 'false'); ?>, badge: <?php echo e(\App\Models\ApprovalRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status','pending')->count() ?: 'null'); ?> }, <?php endif; ?>
 <?php if(($navTenant?->isModuleEnabled('ecommerce') ?? true) && $canView('ecommerce')): ?>
       { label: 'E-Commerce',            href: '<?php echo e(route("ecommerce.index")); ?>',        active: <?php echo e(request()->routeIs('ecommerce*') ? 'true' : 'false'); ?> },
@@ -582,6 +631,9 @@ const NAV_GROUPS = {
       <?php if($canView('documents')): ?>     { label: 'Dokumen',               href: '<?php echo e(route("documents.index")); ?>',        active: <?php echo e(request()->routeIs('documents*') ? 'true' : 'false'); ?> }, <?php endif; ?>
 <?php if(($navTenant?->isModuleEnabled('projects') ?? true) && $canView('projects')): ?>
       { label: 'Manajemen Proyek',      href: '<?php echo e(route("projects.index")); ?>',         active: <?php echo e(request()->routeIs('projects*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
+<?php if(($navTenant?->isModuleEnabled('project_billing') ?? true) && $canView('project_billing')): ?>
+      { label: 'Project Billing',        href: '#',                                     active: <?php echo e(request()->routeIs('project-billing*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
       <?php if($canView('timesheets')): ?>    { label: 'Timesheet',             href: '<?php echo e(route("timesheets.index")); ?>',       active: <?php echo e(request()->routeIs('timesheets*') ? 'true' : 'false'); ?> }, <?php endif; ?>
     ]
@@ -609,11 +661,13 @@ const NAV_GROUPS = {
       { label: 'Komponen Gaji',         href: '<?php echo e(route("payroll.components.index")); ?>', active: <?php echo e(request()->routeIs('payroll.components*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
 <?php endif; ?>
+<?php if(!$user?->isSuperAdmin() && !$user?->isAffiliate()): ?>
       { section: 'Self-Service' },
       { label: 'Portal Karyawan',       href: '<?php echo e(route("self-service.dashboard")); ?>', active: <?php echo e(request()->routeIs('self-service.dashboard','self-service.profile*') ? 'true' : 'false'); ?> },
       { label: 'Slip Gaji',             href: '<?php echo e(route("payroll.slip.index")); ?>',     active: <?php echo e(request()->routeIs('payroll.slip*') ? 'true' : 'false'); ?> },
       { label: 'Cuti Saya',             href: '<?php echo e(route("self-service.leave.index")); ?>', active: <?php echo e(request()->routeIs('self-service.leave*') ? 'true' : 'false'); ?> },
       { label: 'Absensi Saya',          href: '<?php echo e(route("self-service.attendance.index")); ?>', active: <?php echo e(request()->routeIs('self-service.attendance*') ? 'true' : 'false'); ?> },
+<?php endif; ?>
     ]
   },
 <?php if(!$user?->isKasir() && !$user?->isGudang()): ?>
@@ -660,6 +714,7 @@ const NAV_GROUPS = {
       { label: 'Laporan',               href: '<?php echo e(route("reports.index")); ?>',          active: <?php echo e(request()->routeIs('reports.index') ? 'true' : 'false'); ?> },
 <?php endif; ?>
       <?php if($canView('kpi')): ?>           { label: 'KPI Dashboard',         href: '<?php echo e(route("kpi.index")); ?>',              active: <?php echo e(request()->routeIs('kpi*') ? 'true' : 'false'); ?> }, <?php endif; ?>
+      <?php if($canView('reports')): ?>       { label: 'AI Forecasting',        href: '<?php echo e(route("forecast.index")); ?>',         active: <?php echo e(request()->routeIs('forecast*') ? 'true' : 'false'); ?> }, <?php endif; ?>
       <?php if($canView('reports')): ?>       { label: 'Proyeksi Arus Kas',     href: '<?php echo e(route("reports.cash-flow-projection")); ?>', active: <?php echo e(request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false'); ?> }, <?php endif; ?>
       { section: 'AI & Deteksi' },
       <?php if($canView('anomalies')): ?>     { label: 'Deteksi Anomali',       href: '<?php echo e(route("anomalies.index")); ?>',        active: <?php echo e(request()->routeIs('anomalies*') ? 'true' : 'false'); ?> }, <?php endif; ?>
@@ -698,7 +753,9 @@ const NAV_GROUPS = {
     title: 'Akun Saya',
     items: [
       { label: '<?php echo e(addslashes($user?->name)); ?>', href: '<?php echo e(route("profile.edit")); ?>', active: <?php echo e(request()->routeIs('profile*') ? 'true' : 'false'); ?>, meta: '<?php echo e($user?->roleLabel()); ?>' },
+<?php if(!$user?->isSuperAdmin() && !$user?->isAffiliate()): ?>
       { label: 'Portal Karyawan',       href: '<?php echo e(route("self-service.dashboard")); ?>', active: false },
+<?php endif; ?>
       { label: 'Keluar', href: '#logout', active: false, danger: true },
     ]
   },

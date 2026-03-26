@@ -9,22 +9,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class WorkOrder extends Model
 {
     protected $fillable = [
-        'tenant_id', 'product_id', 'recipe_id', 'user_id',
+        'tenant_id', 'product_id', 'recipe_id', 'bom_id', 'user_id',
         'number', 'target_quantity', 'unit', 'status',
         'material_cost', 'labor_cost', 'overhead_cost', 'total_cost',
+        'materials_consumed', 'journal_entry_id',
         'started_at', 'completed_at', 'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'target_quantity' => 'decimal:3',
-            'material_cost'   => 'decimal:2',
-            'labor_cost'      => 'decimal:2',
-            'overhead_cost'   => 'decimal:2',
-            'total_cost'      => 'decimal:2',
-            'started_at'      => 'datetime',
-            'completed_at'    => 'datetime',
+            'target_quantity'    => 'decimal:3',
+            'material_cost'      => 'decimal:2',
+            'labor_cost'         => 'decimal:2',
+            'overhead_cost'      => 'decimal:2',
+            'total_cost'         => 'decimal:2',
+            'materials_consumed' => 'boolean',
+            'started_at'         => 'datetime',
+            'completed_at'       => 'datetime',
         ];
     }
 
@@ -44,8 +46,11 @@ class WorkOrder extends Model
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function product(): BelongsTo { return $this->belongsTo(Product::class); }
     public function recipe(): BelongsTo { return $this->belongsTo(Recipe::class); }
+    public function bom(): BelongsTo { return $this->belongsTo(Bom::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function outputs(): HasMany { return $this->hasMany(ProductionOutput::class); }
+    public function operations(): HasMany { return $this->hasMany(WorkOrderOperation::class)->orderBy('sequence'); }
+    public function journalEntry(): BelongsTo { return $this->belongsTo(JournalEntry::class); }
 
     public function canTransitionTo(string $newStatus): bool
     {

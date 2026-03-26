@@ -74,6 +74,15 @@ class TenantDemoSeeder extends Seeder
             $this->seedCustomFields();
             $this->seedCompanyGroup();
             $this->seedDocumentTemplate();
+
+            // New modules (Task 44+)
+            $this->seedManufacturing();
+            $this->seedFleet();
+            $this->seedContracts();
+            $this->seedConsignment();
+            $this->seedCommission();
+            $this->seedHelpdesk();
+            $this->seedSubscriptionBilling();
         });
 
         $this->command->info('TenantDemoSeeder selesai!');
@@ -1303,6 +1312,178 @@ class TenantDemoSeeder extends Seeder
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
+        }
+    }
+
+    // ── New Module Seeds ──────────────────────────────────────────
+
+    private function seedManufacturing(): void
+    {
+        if (DB::table('work_centers')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        // Work Centers
+        foreach ([
+            ['code' => 'WC-01', 'name' => 'Mesin CNC Utama',     'cost_per_hour' => 150000, 'capacity_per_day' => 8],
+            ['code' => 'WC-02', 'name' => 'Stasiun Assembly',     'cost_per_hour' => 75000,  'capacity_per_day' => 8],
+            ['code' => 'WC-03', 'name' => 'Quality Control',      'cost_per_hour' => 50000,  'capacity_per_day' => 8],
+        ] as $wc) {
+            DB::table('work_centers')->insert(array_merge($wc, [
+                'tenant_id' => $this->tenantId, 'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]));
+        }
+
+        // BOM (if products exist)
+        $product = DB::table('products')->where('tenant_id', $this->tenantId)->first();
+        if ($product) {
+            $bomId = DB::table('boms')->insertGetId([
+                'tenant_id' => $this->tenantId, 'product_id' => $product->id,
+                'name' => 'BOM ' . $product->name, 'batch_size' => 10, 'batch_unit' => 'pcs',
+                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $materials = DB::table('products')->where('tenant_id', $this->tenantId)
+                ->where('id', '!=', $product->id)->limit(2)->get();
+            foreach ($materials as $i => $mat) {
+                DB::table('bom_lines')->insert([
+                    'bom_id' => $bomId, 'product_id' => $mat->id,
+                    'quantity_per_batch' => ($i + 1) * 5, 'unit' => 'pcs', 'sort_order' => $i,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    private function seedFleet(): void
+    {
+        if (DB::table('fleet_vehicles')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        $vehicles = [
+            ['plate_number' => 'B 1234 XYZ', 'name' => 'Toyota Avanza 2024', 'type' => 'car',   'brand' => 'Toyota', 'model' => 'Avanza', 'year' => 2024, 'odometer' => 15000],
+            ['plate_number' => 'B 5678 ABC', 'name' => 'Mitsubishi Colt Diesel', 'type' => 'truck', 'brand' => 'Mitsubishi', 'model' => 'Colt Diesel', 'year' => 2023, 'odometer' => 45000],
+            ['plate_number' => 'B 9012 DEF', 'name' => 'Honda Beat 2025',   'type' => 'motorcycle', 'brand' => 'Honda', 'model' => 'Beat', 'year' => 2025, 'odometer' => 3000],
+        ];
+        foreach ($vehicles as $v) {
+            DB::table('fleet_vehicles')->insert(array_merge($v, [
+                'tenant_id' => $this->tenantId, 'status' => 'available', 'is_active' => true,
+                'registration_expiry' => now()->addYear(), 'insurance_expiry' => now()->addMonths(8),
+                'created_at' => now(), 'updated_at' => now(),
+            ]));
+        }
+
+        // Drivers
+        $employees = DB::table('employees')->where('tenant_id', $this->tenantId)->limit(2)->get();
+        foreach ($employees as $i => $emp) {
+            DB::table('fleet_drivers')->insert([
+                'tenant_id' => $this->tenantId, 'employee_id' => $emp->id,
+                'name' => $emp->name, 'license_number' => 'SIM-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
+                'license_type' => $i === 0 ? 'A' : 'C', 'license_expiry' => now()->addYears(2),
+                'phone' => $emp->phone, 'status' => 'active', 'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+    }
+
+    private function seedContracts(): void
+    {
+        if (DB::table('contracts')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        // Template
+        $tplId = DB::table('contract_templates')->insertGetId([
+            'tenant_id' => $this->tenantId, 'name' => 'Kontrak Jasa Standar',
+            'category' => 'service', 'default_terms' => 'Pembayaran 30 hari setelah invoice.',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $customer = DB::table('customers')->where('tenant_id', $this->tenantId)->first();
+        $userId = DB::table('users')->where('tenant_id', $this->tenantId)->where('role', 'admin')->value('id');
+        if (!$customer || !$userId) return;
+
+        DB::table('contracts')->insert([
+            'tenant_id' => $this->tenantId, 'contract_number' => 'CTR-202603-0001',
+            'title' => 'Kontrak Maintenance IT Tahunan', 'template_id' => $tplId,
+            'customer_id' => $customer->id, 'party_type' => 'customer', 'category' => 'maintenance',
+            'start_date' => now()->startOfYear(), 'end_date' => now()->endOfYear(),
+            'value' => 60000000, 'billing_cycle' => 'monthly', 'billing_amount' => 5000000,
+            'next_billing_date' => now()->startOfMonth()->addMonth(), 'auto_renew' => true,
+            'renewal_days_before' => 30, 'status' => 'active',
+            'sla_response_hours' => 4, 'sla_resolution_hours' => 24, 'sla_uptime_pct' => 99.50,
+            'user_id' => $userId, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    private function seedConsignment(): void
+    {
+        if (DB::table('consignment_partners')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        DB::table('consignment_partners')->insert([
+            'tenant_id' => $this->tenantId, 'name' => 'Toko Elektronik Jaya',
+            'contact_person' => 'Pak Budi', 'phone' => '08123456789',
+            'address' => 'Jl. Pasar Baru No. 15, Jakarta', 'commission_pct' => 10,
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('consignment_partners')->insert([
+            'tenant_id' => $this->tenantId, 'name' => 'Outlet Gadget Corner',
+            'contact_person' => 'Ibu Sari', 'phone' => '08198765432',
+            'address' => 'Mall Taman Anggrek Lt. 2, Jakarta', 'commission_pct' => 15,
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    private function seedCommission(): void
+    {
+        if (DB::table('commission_rules')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        DB::table('commission_rules')->insert([
+            'tenant_id' => $this->tenantId, 'name' => 'Komisi Sales Standard',
+            'type' => 'flat_pct', 'rate' => 2.5, 'basis' => 'revenue',
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('commission_rules')->insert([
+            'tenant_id' => $this->tenantId, 'name' => 'Komisi Tiered',
+            'type' => 'tiered', 'rate' => 0, 'basis' => 'revenue',
+            'tiers' => json_encode([
+                ['min' => 0, 'max' => 10000000, 'rate' => 2],
+                ['min' => 10000000, 'max' => 50000000, 'rate' => 3],
+                ['min' => 50000000, 'max' => null, 'rate' => 5],
+            ]),
+            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    private function seedHelpdesk(): void
+    {
+        if (DB::table('kb_articles')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        $userId = DB::table('users')->where('tenant_id', $this->tenantId)->where('role', 'admin')->value('id');
+        if (!$userId) return;
+
+        // Knowledge Base
+        foreach ([
+            ['title' => 'Cara Melakukan Retur Barang', 'category' => 'product', 'body' => 'Untuk melakukan retur barang, silakan hubungi customer service kami dengan menyertakan nomor invoice dan foto barang yang ingin diretur.'],
+            ['title' => 'Metode Pembayaran yang Tersedia', 'category' => 'billing', 'body' => 'Kami menerima pembayaran via transfer bank (BCA, Mandiri, BNI), e-wallet (GoPay, OVO), dan kartu kredit.'],
+            ['title' => 'Estimasi Waktu Pengiriman', 'category' => 'delivery', 'body' => 'Pengiriman dalam kota: 1-2 hari kerja. Luar kota Jawa: 2-4 hari kerja. Luar Jawa: 4-7 hari kerja.'],
+        ] as $kb) {
+            DB::table('kb_articles')->insert(array_merge($kb, [
+                'tenant_id' => $this->tenantId, 'slug' => \Illuminate\Support\Str::slug($kb['title']),
+                'is_published' => true, 'views' => rand(10, 100), 'user_id' => $userId,
+                'created_at' => now(), 'updated_at' => now(),
+            ]));
+        }
+    }
+
+    private function seedSubscriptionBilling(): void
+    {
+        if (DB::table('customer_subscription_plans')->where('tenant_id', $this->tenantId)->exists()) return;
+
+        foreach ([
+            ['name' => 'Basic Support', 'code' => 'BASIC', 'price' => 500000, 'billing_cycle' => 'monthly', 'trial_days' => 14, 'features' => json_encode(['Email support', 'Knowledge base', 'Response 24 jam'])],
+            ['name' => 'Premium Support', 'code' => 'PREM', 'price' => 1500000, 'billing_cycle' => 'monthly', 'trial_days' => 7, 'features' => json_encode(['Priority support', 'Phone & WhatsApp', 'Response 4 jam', 'Dedicated account manager'])],
+            ['name' => 'Enterprise Annual', 'code' => 'ENT', 'price' => 15000000, 'billing_cycle' => 'annual', 'trial_days' => 30, 'features' => json_encode(['24/7 support', 'SLA 99.9%', 'Custom integration', 'On-site visit'])],
+        ] as $plan) {
+            DB::table('customer_subscription_plans')->insert(array_merge($plan, [
+                'tenant_id' => $this->tenantId, 'is_active' => true,
+                'created_at' => now(), 'updated_at' => now(),
+            ]));
         }
     }
 }

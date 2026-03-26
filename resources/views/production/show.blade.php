@@ -81,6 +81,47 @@
                 </div>
             </div>
             @endif
+
+            {{-- BOM Info --}}
+            @if($workOrder->bom)
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-medium text-gray-500 dark:text-slate-400">
+                        BOM: {{ $workOrder->bom->name }} (batch {{ $workOrder->bom->batch_size }} {{ $workOrder->bom->batch_unit }})
+                    </p>
+                    <div class="flex items-center gap-2">
+                        @if($workOrder->materials_consumed)
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Material Dikonsumsi</span>
+                        @elseif($workOrder->status === 'in_progress')
+                            <form method="POST" action="{{ url('manufacturing') }}/{{ $workOrder->id }}/consume" onsubmit="return confirm('Konsumsi material dari stok sesuai BOM?')">
+                                @csrf
+                                <button type="submit" class="px-3 py-1 text-xs bg-amber-600 text-white rounded-xl hover:bg-amber-700">Konsumsi Material</button>
+                            </form>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400">Belum Dikonsumsi</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($workOrder->bom->lines as $line)
+                    <span class="px-2 py-1 text-xs rounded-lg bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-slate-300">
+                        {{ $line->product->name }}: {{ $line->quantity_per_batch }} {{ $line->unit }}
+                        @if($line->childBom) <span class="text-purple-500">(sub-BOM)</span> @endif
+                    </span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Journal Entry --}}
+            @if($workOrder->journalEntry)
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-slate-400">
+                    Jurnal Material: <a href="{{ url('accounting/journals') }}/{{ $workOrder->journalEntry->id }}" class="text-blue-500 hover:underline">{{ $workOrder->journalEntry->number }}</a>
+                    <span class="ml-2 px-1.5 py-0.5 rounded text-xs {{ $workOrder->journalEntry->status === 'posted' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500' }}">{{ $workOrder->journalEntry->status }}</span>
+                </p>
+            </div>
+            @endif
         </div>
 
         {{-- Catat Output (jika in_progress) --}}
@@ -114,6 +155,50 @@
                     <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Simpan Output</button>
                 </div>
             </form>
+        </div>
+        @endif
+
+        {{-- Routing Operations --}}
+        @if($workOrder->operations->isNotEmpty())
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Routing / Operasi</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <tr>
+                            <th class="px-4 py-3 text-center">Seq</th>
+                            <th class="px-4 py-3 text-left">Operasi</th>
+                            <th class="px-4 py-3 text-left">Work Center</th>
+                            <th class="px-4 py-3 text-right">Est. Jam</th>
+                            <th class="px-4 py-3 text-right">Aktual Jam</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        @foreach($workOrder->operations as $op)
+                        @php
+                            $opColors = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green','skipped'=>'gray'];
+                            $opLabels = ['pending'=>'Pending','in_progress'=>'Dikerjakan','completed'=>'Selesai','skipped'=>'Dilewati'];
+                            $oc = $opColors[$op->status] ?? 'gray';
+                        @endphp
+                        <tr>
+                            <td class="px-4 py-3 text-center font-mono text-xs text-gray-900 dark:text-white">{{ $op->sequence }}</td>
+                            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ $op->name }}</td>
+                            <td class="px-4 py-3 text-gray-500 dark:text-slate-400">{{ $op->workCenter->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-right text-gray-900 dark:text-white">{{ $op->estimated_hours }}</td>
+                            <td class="px-4 py-3 text-right text-gray-900 dark:text-white">{{ $op->actual_hours ?? '-' }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $oc }}-100 text-{{ $oc }}-700 dark:bg-{{ $oc }}-500/20 dark:text-{{ $oc }}-400">
+                                    {{ $opLabels[$op->status] ?? $op->status }}
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
         @endif
 
