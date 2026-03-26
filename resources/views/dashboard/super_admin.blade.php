@@ -71,8 +71,8 @@
                 <a href="{{ route('super-admin.plans.index') }}" class="text-xs text-blue-400 hover:underline">Kelola paket →</a>
             </div>
             @php
-            $planColors = ['trial'=>'#f59e0b','basic'=>'#3b82f6','pro'=>'#8b5cf6','enterprise'=>'#10b981'];
-            $planLabels = ['trial'=>'Trial','basic'=>'Basic','pro'=>'Pro','enterprise'=>'Enterprise'];
+            $planColors = ['trial'=>'#f59e0b','starter'=>'#6366f1','basic'=>'#3b82f6','business'=>'#3b82f6','pro'=>'#8b5cf6','professional'=>'#8b5cf6','enterprise'=>'#10b981'];
+            $planLabels = ['trial'=>'Trial','starter'=>'Starter','basic'=>'Basic','business'=>'Business','pro'=>'Pro','professional'=>'Professional','enterprise'=>'Enterprise'];
             @endphp
             <div class="flex flex-col sm:flex-row items-center gap-6">
                 <div style="height:160px;width:160px;position:relative;flex-shrink:0" class="mx-auto sm:mx-0"><canvas id="planChart"></canvas></div>

@@ -29,8 +29,8 @@
         @php
         $groups = [
             'Penjualan & Operasional' => ['pos', 'sales', 'invoicing', 'crm', 'contracts', 'ecommerce', 'loyalty', 'commission', 'helpdesk', 'subscription_billing'],
-            'Inventori & Produksi'    => ['inventory', 'purchasing', 'production', 'manufacturing', 'fleet', 'consignment'],
-            'SDM & Keuangan'          => ['hrm', 'payroll', 'accounting', 'budget', 'bank_reconciliation', 'assets', 'landed_cost'],
+            'Inventori & Produksi'    => ['inventory', 'purchasing', 'production', 'manufacturing', 'fleet', 'consignment', 'wms'],
+            'SDM & Keuangan'          => ['hrm', 'payroll', 'accounting', 'budget', 'bank_reconciliation', 'assets', 'landed_cost', 'reimbursement'],
             'Manajemen & Analitik'    => ['projects', 'reports', 'project_billing'],
         ];
         @endphp

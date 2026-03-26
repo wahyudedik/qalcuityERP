@@ -45,7 +45,7 @@
                 <div class="text-right">
                     @if($tenant?->plan === 'trial' && $tenant?->trial_ends_at)
                         <p class="text-xs text-gray-400 mb-0.5">Trial berakhir</p>
-                        <p class="text-lg font-bold {{ $tenant->isTrialExpired() ? 'text-red-400' : 'text-gray-900 dark:text-white' }}">
+                        <p class="text-lg font-bold {{ $tenant->isTrialExpired() ? 'text-red-400' : 'text-white' }}">
                             {{ $tenant->trial_ends_at->format('d M Y') }}
                         </p>
                         @if(!$tenant->isTrialExpired())
@@ -53,7 +53,7 @@
                         @endif
                     @elseif($tenant?->plan_expires_at)
                         <p class="text-xs text-gray-400 mb-0.5">Langganan berakhir</p>
-                        <p class="text-lg font-bold {{ $tenant->isPlanExpired() ? 'text-red-400' : 'text-gray-900 dark:text-white' }}">
+                        <p class="text-lg font-bold {{ $tenant->isPlanExpired() ? 'text-red-400' : 'text-white' }}">
                             {{ $tenant->plan_expires_at->format('d M Y') }}
                         </p>
                         @if(!$tenant->isPlanExpired())
@@ -109,7 +109,7 @@
 
         {{-- Upgrade CTA (tampil jika trial atau expired) --}}
         @if(in_array($status, ['trial', 'trial_expired', 'expired']))
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-gray-900 dark:text-white">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h3 class="font-bold text-lg">
@@ -138,10 +138,10 @@
                 <div class="bg-white dark:bg-[#1e293b] rounded-2xl border shadow-sm p-5 flex flex-col relative
                     {{ $isCurrent ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-200 dark:border-white/10' }}">
                     @if($isCurrent)
-                        <span class="absolute -top-2.5 left-4 bg-blue-600 text-gray-900 dark:text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">Paket Anda</span>
+                        <span class="absolute -top-2.5 left-4 bg-blue-600 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">Paket Anda</span>
                     @endif
-                    <h4 class="font-bold text-gray-900 dark:text-white text-base">{{ $plan->name }}</h4>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                    <h4 class="font-bold text-white text-base">{{ $plan->name }}</h4>
+                    <p class="text-2xl font-bold text-white mt-2">
                         Rp {{ number_format($plan->price_monthly, 0, ',', '.') }}
                         <span class="text-sm font-normal text-gray-500 dark:text-slate-400">/bln</span>
                     </p>
@@ -219,3 +219,5 @@
 
     </div>
 </x-app-layout>
+
+

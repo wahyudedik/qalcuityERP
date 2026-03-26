@@ -9,7 +9,7 @@ class ModuleRecommendationService
         'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
         'hrm', 'payroll', 'crm', 'accounting', 'budget',
         'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce', 'projects', 'assets', 'commission', 'helpdesk', 'project_billing',
-        'loyalty', 'bank_reconciliation', 'reports', 'landed_cost', 'consignment', 'subscription_billing',
+        'loyalty', 'bank_reconciliation', 'reports', 'landed_cost', 'consignment', 'subscription_billing', 'reimbursement', 'wms',
     ];
 
     /** Module metadata: label, icon, description */
@@ -40,6 +40,8 @@ class ModuleRecommendationService
         'helpdesk'            => ['label' => 'Helpdesk & Tiket',        'icon' => '🎫',  'desc' => 'Support ticket, SLA & knowledge base'],
         'project_billing'     => ['label' => 'Project Billing',         'icon' => '📐',  'desc' => 'Timesheet→invoice, milestone, retainer'],
         'subscription_billing'=> ['label' => 'Subscription Billing',    'icon' => '🔄',  'desc' => 'Recurring invoice untuk pelanggan langganan'],
+        'reimbursement'       => ['label' => 'Reimbursement',           'icon' => '🧾',  'desc' => 'Pengajuan & pembayaran reimbursement karyawan'],
+        'wms'                 => ['label' => 'WMS (Gudang Lanjutan)',   'icon' => '🏗️',  'desc' => 'Zone, rak, bin, putaway, picking & opname'],
     ];
 
     /**
@@ -62,8 +64,8 @@ class ModuleRecommendationService
                 'reason'  => 'Manufaktur memerlukan work order, BOM multi-level, MRP, kontrol bahan baku, dan akuntansi biaya.',
             ],
             'distributor' => [
-                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'fleet', 'landed_cost', 'bank_reconciliation', 'reports'],
-                'reason'  => 'Distributor fokus pada pembelian massal, distribusi, fleet kendaraan, landed cost impor, dan piutang.',
+                'modules' => ['inventory', 'purchasing', 'wms', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'fleet', 'landed_cost', 'bank_reconciliation', 'reports'],
+                'reason'  => 'Distributor fokus pada WMS gudang lanjutan, pembelian massal, fleet kendaraan, landed cost, dan piutang.',
             ],
             'construction' => [
                 'modules' => ['projects', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'fleet', 'budget', 'reports'],

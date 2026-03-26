@@ -253,7 +253,7 @@
             request()->routeIs('quotations*','invoices*','delivery-orders*','down-payments*',
                                'sales-returns*','crm*','loyalty*','pos*','commission*','helpdesk*','subscription-billing*','sales.*',
                                'sales.index','price-lists*')                                  => 'sales',
-            request()->routeIs('inventory*','purchasing*','purchase-returns*','landed-cost*','consignment*') => 'inventory',
+            request()->routeIs('inventory*','purchasing*','purchase-returns*','landed-cost*','consignment*','wms*') => 'inventory',
             request()->routeIs('customers*','suppliers*','products*','warehouses*') => 'masterdata',
             request()->routeIs('production*','manufacturing*','fleet*','contracts*','shipping*','approvals*','ecommerce*','documents*',
                                'projects*','timesheets*','project-billing*') => 'ops',
@@ -373,8 +373,8 @@
                 @endif
             </div>
 
-            <div class="flex items-center gap-1.5">
-                @isset($topbarActions){{ $topbarActions }}@endisset
+            <div class="flex items-center gap-1.5 shrink-0">
+                @isset($topbarActions)<div class="hidden sm:flex items-center gap-1.5">{{ $topbarActions }}</div>@endisset
 
                 {{-- Theme toggle --}}
                 <button id="theme-toggle" title="Ganti tema"
@@ -590,6 +590,13 @@ const NAV_GROUPS = {
       { label: 'Konsinyasi',           href: '{{ route("consignment.index") }}',       active: {{ request()->routeIs('consignment.index') || request()->routeIs('consignment.shipments*') ? 'true' : 'false' }} },
       { label: 'Partner Konsinyasi',   href: '{{ route("consignment.partners") }}',    active: {{ request()->routeIs('consignment.partners*') ? 'true' : 'false' }} },
 @endif
+@if(($navTenant?->isModuleEnabled('wms') ?? true) && $canView('wms'))
+      { section: 'WMS Gudang' },
+      { label: 'Zone & Bin',           href: '{{ route("wms.index") }}',               active: {{ request()->routeIs('wms.index') ? 'true' : 'false' }} },
+      { label: 'Picking List',         href: '{{ route("wms.picking") }}',             active: {{ request()->routeIs('wms.picking*') ? 'true' : 'false' }} },
+      { label: 'Stock Opname',         href: '{{ route("wms.opname") }}',              active: {{ request()->routeIs('wms.opname*') ? 'true' : 'false' }} },
+      { label: 'Putaway Rules',        href: '{{ route("wms.putaway-rules") }}',       active: {{ request()->routeIs('wms.putaway-rules*') ? 'true' : 'false' }} },
+@endif
 @endif
     ]
   },
@@ -656,6 +663,10 @@ const NAV_GROUPS = {
       { label: 'Penggajian',            href: '{{ route("payroll.index") }}',          active: {{ request()->routeIs('payroll.index','payroll.process','payroll.run*') ? 'true' : 'false' }} },
       { label: 'Komponen Gaji',         href: '{{ route("payroll.components.index") }}', active: {{ request()->routeIs('payroll.components*') ? 'true' : 'false' }} },
 @endif
+@if(($navTenant?->isModuleEnabled('reimbursement') ?? true) && $canView('reimbursement'))
+      { section: 'Reimbursement' },
+      { label: 'Kelola Reimbursement', href: '{{ route("reimbursement.index") }}',     active: {{ request()->routeIs('reimbursement.index') ? 'true' : 'false' }} },
+@endif
 @endif
 @if(!$user?->isSuperAdmin() && !$user?->isAffiliate())
       { section: 'Self-Service' },
@@ -663,6 +674,7 @@ const NAV_GROUPS = {
       { label: 'Slip Gaji',             href: '{{ route("payroll.slip.index") }}',     active: {{ request()->routeIs('payroll.slip*') ? 'true' : 'false' }} },
       { label: 'Cuti Saya',             href: '{{ route("self-service.leave.index") }}', active: {{ request()->routeIs('self-service.leave*') ? 'true' : 'false' }} },
       { label: 'Absensi Saya',          href: '{{ route("self-service.attendance.index") }}', active: {{ request()->routeIs('self-service.attendance*') ? 'true' : 'false' }} },
+      { label: 'Reimbursement Saya',   href: '{{ route("reimbursement.my") }}', active: {{ request()->routeIs('reimbursement.my*') ? 'true' : 'false' }} },
 @endif
     ]
   },

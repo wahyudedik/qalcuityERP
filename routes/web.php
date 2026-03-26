@@ -144,6 +144,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/plans/{plan}/edit', [SuperAdminPlanController::class, 'edit'])->name('plans.edit');
         Route::put('/plans/{plan}', [SuperAdminPlanController::class, 'update'])->name('plans.update');
         Route::delete('/plans/{plan}', [SuperAdminPlanController::class, 'destroy'])->name('plans.destroy');
+        Route::patch('/plans/{plan}/toggle', [SuperAdminPlanController::class, 'toggleActive'])->name('plans.toggle');
 
         // Monitoring
         Route::get('/monitoring', [SuperAdminMonitoringController::class, 'index'])->name('monitoring.index');
@@ -376,10 +377,44 @@ Route::middleware('auth')->group(function () {
         Route::put('/categories/{category}', [ExpenseController::class, 'updateCategory'])->name('categories.update');
     });
 
+    // Reimbursement
+    Route::prefix('reimbursement')->name('reimbursement.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ReimbursementController::class, 'index'])->name('index')->middleware('permission:reimbursement,view');
+        Route::post('/', [\App\Http\Controllers\ReimbursementController::class, 'store'])->name('store')->middleware('permission:reimbursement,create');
+        Route::patch('/{reimbursement}/approve', [\App\Http\Controllers\ReimbursementController::class, 'approve'])->name('approve')->middleware('permission:reimbursement,edit');
+        Route::patch('/{reimbursement}/reject', [\App\Http\Controllers\ReimbursementController::class, 'reject'])->name('reject')->middleware('permission:reimbursement,edit');
+        Route::post('/{reimbursement}/pay', [\App\Http\Controllers\ReimbursementController::class, 'pay'])->name('pay')->middleware('permission:reimbursement,edit');
+        Route::delete('/{reimbursement}', [\App\Http\Controllers\ReimbursementController::class, 'destroy'])->name('destroy')->middleware('permission:reimbursement,delete');
+    });
+    // Self-service reimbursement (all roles)
+    Route::get('/my-reimbursement', [\App\Http\Controllers\ReimbursementController::class, 'myReimbursements'])->name('reimbursement.my');
+    Route::post('/my-reimbursement', [\App\Http\Controllers\ReimbursementController::class, 'submitMy'])->name('reimbursement.my.store');
+
     // Warehouse Transfers
     Route::prefix('inventory/transfers')->name('inventory.transfers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [WarehouseTransferController::class, 'index'])->name('index');
         Route::post('/', [WarehouseTransferController::class, 'store'])->name('store');
+    });
+
+    // WMS (Advanced Warehouse Management)
+    Route::prefix('wms')->name('wms.')->middleware('role:admin,manager,gudang')->group(function () {
+        Route::get('/', [\App\Http\Controllers\WmsController::class, 'index'])->name('index')->middleware('permission:wms,view');
+        Route::post('/zones', [\App\Http\Controllers\WmsController::class, 'storeZone'])->name('zones.store')->middleware('permission:wms,create');
+        Route::post('/bins', [\App\Http\Controllers\WmsController::class, 'storeBin'])->name('bins.store')->middleware('permission:wms,create');
+        Route::post('/bins/bulk', [\App\Http\Controllers\WmsController::class, 'bulkCreateBins'])->name('bins.bulk')->middleware('permission:wms,create');
+        Route::post('/putaway', [\App\Http\Controllers\WmsController::class, 'putaway'])->name('putaway')->middleware('permission:wms,create');
+        Route::get('/suggest-bin', [\App\Http\Controllers\WmsController::class, 'suggestBin'])->name('suggest-bin')->middleware('permission:wms,view');
+        Route::get('/picking', [\App\Http\Controllers\WmsController::class, 'pickingLists'])->name('picking')->middleware('permission:wms,view');
+        Route::post('/picking', [\App\Http\Controllers\WmsController::class, 'createPickingList'])->name('picking.store')->middleware('permission:wms,create');
+        Route::patch('/picking/items/{pickingListItem}', [\App\Http\Controllers\WmsController::class, 'confirmPick'])->name('picking.confirm')->middleware('permission:wms,edit');
+        Route::get('/opname', [\App\Http\Controllers\WmsController::class, 'opnameSessions'])->name('opname')->middleware('permission:wms,view');
+        Route::post('/opname', [\App\Http\Controllers\WmsController::class, 'createOpname'])->name('opname.store')->middleware('permission:wms,create');
+        Route::get('/opname/{stockOpnameSession}', [\App\Http\Controllers\WmsController::class, 'showOpname'])->name('opname.show')->middleware('permission:wms,view');
+        Route::patch('/opname/items/{stockOpnameItem}', [\App\Http\Controllers\WmsController::class, 'updateOpnameItem'])->name('opname.item.update')->middleware('permission:wms,edit');
+        Route::patch('/opname/{stockOpnameSession}/complete', [\App\Http\Controllers\WmsController::class, 'completeOpname'])->name('opname.complete')->middleware('permission:wms,edit');
+        Route::get('/putaway-rules', [\App\Http\Controllers\WmsController::class, 'putawayRules'])->name('putaway-rules')->middleware('permission:wms,view');
+        Route::post('/putaway-rules', [\App\Http\Controllers\WmsController::class, 'storePutawayRule'])->name('putaway-rules.store')->middleware('permission:wms,create');
+        Route::delete('/putaway-rules/{putawayRule}', [\App\Http\Controllers\WmsController::class, 'destroyPutawayRule'])->name('putaway-rules.destroy')->middleware('permission:wms,delete');
     });
     Route::prefix('inventory')->name('inventory.')->middleware('tenant.isolation')->group(function () {
         Route::get('/', [InventoryController::class, 'index'])->name('index');

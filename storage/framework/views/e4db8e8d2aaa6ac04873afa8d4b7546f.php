@@ -1,19 +1,28 @@
-<x-app-layout>
-    <x-slot name="title">Dashboard — Qalcuity ERP</x-slot>
-    <x-slot name="header">Dashboard</x-slot>
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+     <?php $__env->slot('title', null, []); ?> Dashboard — Qalcuity ERP <?php $__env->endSlot(); ?>
+     <?php $__env->slot('header', null, []); ?> Dashboard <?php $__env->endSlot(); ?>
 
-    @push('head')
+    <?php $__env->startPush('head'); ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-    @endpush
+    <?php $__env->stopPush(); ?>
 
-    {{-- Greeting --}}
+    
     <div class="mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selamat datang, {{ auth()->user()->name }} 👋</h2>
-        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{{ now()->translatedFormat('l, d F Y') }}</p>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selamat datang, <?php echo e(auth()->user()->name); ?> 👋</h2>
+        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5"><?php echo e(now()->translatedFormat('l, d F Y')); ?></p>
     </div>
 
-    {{-- Setup Checklist — tampil jika ada step yang belum selesai --}}
-    @php
+    
+    <?php
         $tenant = auth()->user()->tenant;
         $checkSteps = [
             'profile'   => ['label' => 'Lengkapi profil perusahaan',   'done' => !empty($tenant?->phone) && !empty($tenant?->address), 'url' => route('company-profile.index'), 'icon' => '🏢'],
@@ -27,44 +36,45 @@
         $totalSteps = count($checkSteps);
         $allDone = $doneCount === $totalSteps;
         $pct = $totalSteps > 0 ? round(($doneCount / $totalSteps) * 100) : 0;
-    @endphp
-    @if(!$allDone && $tenant)
+    ?>
+    <?php if(!$allDone && $tenant): ?>
     <div class="mb-6 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5" id="setup-checklist">
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-lg">🚀</div>
                 <div>
                     <p class="text-sm font-semibold text-gray-900 dark:text-white">Setup Bisnis Anda</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ $doneCount }}/{{ $totalSteps }} langkah selesai</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($doneCount); ?>/<?php echo e($totalSteps); ?> langkah selesai</p>
                 </div>
             </div>
             <button onclick="document.getElementById('setup-checklist').remove()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white" title="Sembunyikan">✕</button>
         </div>
         <div class="w-full h-2 bg-gray-100 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500 {{ $pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-blue-500' : 'bg-amber-500') }}" style="width:{{ $pct }}%"></div>
+            <div class="h-full rounded-full transition-all duration-500 <?php echo e($pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-blue-500' : 'bg-amber-500')); ?>" style="width:<?php echo e($pct); ?>%"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            @foreach($checkSteps as $step)
-            <a href="{{ $step['done'] ? '#' : $step['url'] }}"
+            <?php $__currentLoopData = $checkSteps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $step): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <a href="<?php echo e($step['done'] ? '#' : $step['url']); ?>"
                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
-                    {{ $step['done']
+                    <?php echo e($step['done']
                         ? 'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20'
-                        : 'bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10' }}">
-                <span class="text-lg shrink-0">{{ $step['done'] ? '✅' : $step['icon'] }}</span>
-                <span class="text-sm {{ $step['done'] ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-700 dark:text-slate-300 font-medium' }}">
-                    {{ $step['label'] }}
+                        : 'bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10'); ?>">
+                <span class="text-lg shrink-0"><?php echo e($step['done'] ? '✅' : $step['icon']); ?></span>
+                <span class="text-sm <?php echo e($step['done'] ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-700 dark:text-slate-300 font-medium'); ?>">
+                    <?php echo e($step['label']); ?>
+
                 </span>
-                @if(!$step['done'])
+                <?php if(!$step['done']): ?>
                 <svg class="w-4 h-4 ml-auto text-gray-400 dark:text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                @endif
+                <?php endif; ?>
             </a>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 
-    {{-- AI Insights Widget --}}
-    @if(!empty($insights))
+    
+    <?php if(!empty($insights)): ?>
     <div class="mb-6" id="ai-insights-section">
         <div class="flex items-center justify-between gap-2 mb-3">
             <div class="flex items-center gap-2">
@@ -86,8 +96,8 @@
             </button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="insights-grid">
-            @foreach(array_slice($insights, 0, 6) as $insight)
-            @php
+            <?php $__currentLoopData = array_slice($insights, 0, 6); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $insight): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
                 $borderColor = match($insight['severity']) {
                     'critical' => 'border-red-500/40 bg-red-500/5',
                     'warning'  => 'border-yellow-500/40 bg-yellow-500/5',
@@ -103,27 +113,28 @@
                     'warning'  => 'Perhatian',
                     default    => 'Info',
                 };
-            @endphp
-            <div class="rounded-xl border {{ $borderColor }} p-4 flex flex-col gap-2">
+            ?>
+            <div class="rounded-xl border <?php echo e($borderColor); ?> p-4 flex flex-col gap-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-sm font-semibold text-white leading-snug">{{ $insight['title'] }}</p>
-                    <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0 {{ $badgeColor }}">{{ $badgeLabel }}</span>
+                    <p class="text-sm font-semibold text-white leading-snug"><?php echo e($insight['title']); ?></p>
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0 <?php echo e($badgeColor); ?>"><?php echo e($badgeLabel); ?></span>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{{ $insight['body'] }}</p>
-                @if(!empty($insight['action']))
-                <a href="{{ route('chat.index') }}?q={{ urlencode($insight['action']) }}"
+                <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed"><?php echo e($insight['body']); ?></p>
+                <?php if(!empty($insight['action'])): ?>
+                <a href="<?php echo e(route('chat.index')); ?>?q=<?php echo e(urlencode($insight['action'])); ?>"
                    class="text-xs text-indigo-400 hover:text-indigo-300 font-medium mt-auto">
-                    Tanya AI → {{ $insight['action'] }}
+                    Tanya AI → <?php echo e($insight['action']); ?>
+
                 </a>
-                @endif
+                <?php endif; ?>
             </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 
-    {{-- Anomaly Highlight --}}
-    @if(!empty($openAnomalies) && $openAnomalies->isNotEmpty())
+    
+    <?php if(!empty($openAnomalies) && $openAnomalies->isNotEmpty()): ?>
     <div class="mb-6" id="anomaly-section">
         <div class="flex items-center justify-between gap-2 mb-3">
             <div class="flex items-center gap-2">
@@ -133,13 +144,13 @@
                     </svg>
                 </div>
                 <p class="text-sm font-semibold text-gray-900 dark:text-white">Anomali Terdeteksi</p>
-                <span class="text-xs bg-red-500/20 text-red-400 font-medium px-2 py-0.5 rounded-full">{{ $openAnomalies->count() }} open</span>
+                <span class="text-xs bg-red-500/20 text-red-400 font-medium px-2 py-0.5 rounded-full"><?php echo e($openAnomalies->count()); ?> open</span>
             </div>
-            <a href="{{ route('anomalies.index') }}" class="text-xs text-red-400 hover:text-red-300 font-medium">Lihat semua →</a>
+            <a href="<?php echo e(route('anomalies.index')); ?>" class="text-xs text-red-400 hover:text-red-300 font-medium">Lihat semua →</a>
         </div>
         <div class="space-y-2" id="anomaly-list">
-            @foreach($openAnomalies as $anomaly)
-            @php
+            <?php $__currentLoopData = $openAnomalies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $anomaly): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
                 $aBorder = match($anomaly->severity) {
                     'critical' => 'border-red-500/40 bg-red-500/5',
                     'warning'  => 'border-yellow-500/40 bg-yellow-500/5',
@@ -155,66 +166,67 @@
                     'warning'  => 'text-yellow-400',
                     default    => 'text-orange-400',
                 };
-            @endphp
-            <div class="rounded-xl border {{ $aBorder }} p-3.5 flex items-start gap-3" id="anomaly-{{ $anomaly->id }}">
-                <svg class="w-4 h-4 {{ $aIcon }} shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ?>
+            <div class="rounded-xl border <?php echo e($aBorder); ?> p-3.5 flex items-start gap-3" id="anomaly-<?php echo e($anomaly->id); ?>">
+                <svg class="w-4 h-4 <?php echo e($aIcon); ?> shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5">
-                        <p class="text-sm font-semibold text-white truncate">{{ $anomaly->title }}</p>
-                        <span class="text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 {{ $aBadge }}">
-                            {{ match($anomaly->severity) { 'critical' => 'Kritis', 'warning' => 'Perhatian', default => 'Info' } }}
+                        <p class="text-sm font-semibold text-white truncate"><?php echo e($anomaly->title); ?></p>
+                        <span class="text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 <?php echo e($aBadge); ?>">
+                            <?php echo e(match($anomaly->severity) { 'critical' => 'Kritis', 'warning' => 'Perhatian', default => 'Info' }); ?>
+
                         </span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{{ $anomaly->description }}</p>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">{{ $anomaly->created_at->diffForHumans() }}</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed"><?php echo e($anomaly->description); ?></p>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1"><?php echo e($anomaly->created_at->diffForHumans()); ?></p>
                 </div>
                 <button
-                    onclick="acknowledgeAnomaly({{ $anomaly->id }}, this)"
+                    onclick="acknowledgeAnomaly(<?php echo e($anomaly->id); ?>, this)"
                     class="text-xs text-gray-400 hover:text-green-400 transition shrink-0 font-medium"
                     title="Tandai sudah ditinjau">
                     ✓ Tinjau
                 </button>
             </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 
-    {{-- KPI Cards --}}
-    @php
+    
+    <?php
     $cards = [
         ['label' => 'Pendapatan Bulan Ini', 'value' => 'Rp ' . number_format($finance['income'], 0, ',', '.'), 'sub' => 'Profit: Rp ' . number_format($finance['profit'], 0, ',', '.'), 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'bg' => 'bg-blue-500/20', 'ic' => 'text-blue-400'],
         ['label' => 'Order Bulan Ini', 'value' => number_format($sales['this_month_orders']), 'sub' => ($sales['growth_percent'] >= 0 ? '▲ ' : '▼ ') . abs($sales['growth_percent']) . '% vs bulan lalu', 'icon' => 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z', 'bg' => 'bg-green-500/20', 'ic' => 'text-green-400'],
         ['label' => 'Stok Menipis', 'value' => $inventory['low_stock_count'], 'sub' => $inventory['total_products'] . ' total produk', 'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'bg' => $inventory['low_stock_count'] > 0 ? 'bg-red-500/20' : 'bg-green-500/20', 'ic' => $inventory['low_stock_count'] > 0 ? 'text-red-400' : 'text-green-400'],
         ['label' => 'Karyawan Hadir', 'value' => $hrm['present_today'], 'sub' => 'Dari ' . $hrm['total_employees'] . ' karyawan aktif', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'bg' => 'bg-purple-500/20', 'ic' => 'text-purple-400'],
     ];
-    @endphp
+    ?>
 
     <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        @foreach($cards as $card)
+        <?php $__currentLoopData = $cards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $card): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-start justify-between mb-4">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400 leading-tight">{{ $card['label'] }}</p>
-                <div class="w-9 h-9 rounded-xl {{ $card['bg'] }} flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 {{ $card['ic'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $card['icon'] }}"/>
+                <p class="text-xs font-medium text-gray-500 dark:text-slate-400 leading-tight"><?php echo e($card['label']); ?></p>
+                <div class="w-9 h-9 rounded-xl <?php echo e($card['bg']); ?> flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 <?php echo e($card['ic']); ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="<?php echo e($card['icon']); ?>"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $card['value'] }}</p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">{{ $card['sub'] }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($card['value']); ?></p>
+            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1"><?php echo e($card['sub']); ?></p>
         </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
-    {{-- Charts --}}
+    
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white">Penjualan 7 Hari Terakhir</p>
-                <a href="{{ route('reports.index') }}" class="text-xs text-blue-400 hover:underline">Lihat laporan →</a>
+                <a href="<?php echo e(route('reports.index')); ?>" class="text-xs text-blue-400 hover:underline">Lihat laporan →</a>
             </div>
             <div style="height:200px;position:relative">
                 <canvas id="salesChart"></canvas>
@@ -228,42 +240,42 @@
         </div>
     </div>
 
-    {{-- Bottom --}}
+    
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {{-- Low Stock --}}
+        
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white">Stok Menipis</p>
-                <span class="text-xs bg-red-500/20 text-red-400 font-medium px-2 py-0.5 rounded-full">{{ $inventory['low_stock_count'] }} item</span>
+                <span class="text-xs bg-red-500/20 text-red-400 font-medium px-2 py-0.5 rounded-full"><?php echo e($inventory['low_stock_count']); ?> item</span>
             </div>
-            @if($inventory['low_stock_items']->isEmpty())
+            <?php if($inventory['low_stock_items']->isEmpty()): ?>
             <div class="flex flex-col items-center py-6 text-gray-400 dark:text-slate-500">
                 <svg class="w-10 h-10 mb-2 text-green-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p class="text-sm">Semua stok aman</p>
             </div>
-            @else
+            <?php else: ?>
             <div class="space-y-0">
-                @foreach($inventory['low_stock_items'] as $item)
+                <?php $__currentLoopData = $inventory['low_stock_items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
                     <div>
-                        <p class="text-sm font-medium text-white">{{ $item->product->name }}</p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">{{ $item->warehouse->name }}</p>
+                        <p class="text-sm font-medium text-white"><?php echo e($item->product->name); ?></p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500"><?php echo e($item->warehouse->name); ?></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-bold text-red-400">{{ $item->quantity }} {{ $item->product->unit }}</p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">min: {{ $item->product->stock_min }}</p>
+                        <p class="text-sm font-bold text-red-400"><?php echo e($item->quantity); ?> <?php echo e($item->product->unit); ?></p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500">min: <?php echo e($item->product->stock_min); ?></p>
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
 
-        {{-- Quick Stats + CTA --}}
+        
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
             <p class="text-sm font-semibold text-white mb-4">Ringkasan Cepat</p>
             <div class="space-y-3">
-                @php
+                <?php
                 $stats = [
                     ['label' => 'Order Pending',        'value' => $sales['pending_orders'],                                    'color' => 'text-yellow-400'],
                     ['label' => 'PO Belum Diterima',    'value' => $finance['pending_po'],                                      'color' => 'text-orange-400'],
@@ -271,16 +283,16 @@
                     ['label' => 'Total Gudang',         'value' => $inventory['total_warehouses'],                              'color' => 'text-slate-300'],
                     ['label' => 'Pengeluaran Bulan Ini','value' => 'Rp ' . number_format($finance['expense'], 0, ',', '.'),     'color' => 'text-red-400'],
                 ];
-                @endphp
-                @foreach($stats as $stat)
+                ?>
+                <?php $__currentLoopData = $stats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-500 dark:text-slate-400">{{ $stat['label'] }}</span>
-                    <span class="text-sm font-semibold {{ $stat['color'] }}">{{ $stat['value'] }}</span>
+                    <span class="text-sm text-gray-500 dark:text-slate-400"><?php echo e($stat['label']); ?></span>
+                    <span class="text-sm font-semibold <?php echo e($stat['color']); ?>"><?php echo e($stat['value']); ?></span>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
             <div class="mt-5 pt-4 border-t border-gray-200 dark:border-white/10">
-                <a href="{{ route('chat.index') }}"
+                <a href="<?php echo e(route('chat.index')); ?>"
                    class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold py-2.5 rounded-xl transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                     Tanya Qalcuity AI
@@ -289,12 +301,12 @@
         </div>
     </div>
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
     <script>
     // ── Dashboard AI Refresh ──────────────────────────────────────
-    const REFRESH_URL     = "{{ route('dashboard.refresh-insights') }}";
-    const ACK_URL_BASE    = "{{ url('/dashboard/anomalies') }}";
-    const CSRF            = '{{ csrf_token() }}';
+    const REFRESH_URL     = "<?php echo e(route('dashboard.refresh-insights')); ?>";
+    const ACK_URL_BASE    = "<?php echo e(url('/dashboard/anomalies')); ?>";
+    const CSRF            = '<?php echo e(csrf_token()); ?>';
 
     async function refreshDashboardInsights() {
         const btn  = document.getElementById('btn-refresh-insights');
@@ -412,8 +424,8 @@
         new Chart(document.getElementById('salesChart'), {
             type: 'bar',
             data: {
-                labels: {!! json_encode(array_column($sales['chart'], 'date')) !!},
-                datasets: [{ label: 'Penjualan', data: {!! json_encode(array_column($sales['chart'], 'total')) !!},
+                labels: <?php echo json_encode(array_column($sales['chart'], 'date')); ?>,
+                datasets: [{ label: 'Penjualan', data: <?php echo json_encode(array_column($sales['chart'], 'total')); ?>,
                     backgroundColor: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6',
                     borderWidth: 2, borderRadius: 8, borderSkipped: false }]
             },
@@ -426,10 +438,10 @@
         new Chart(document.getElementById('financeChart'), {
             type: 'line',
             data: {
-                labels: {!! json_encode(array_column($finance['chart'], 'month')) !!},
+                labels: <?php echo json_encode(array_column($finance['chart'], 'month')); ?>,
                 datasets: [
-                    { label: 'Pemasukan',   data: {!! json_encode(array_column($finance['chart'], 'income')) !!},  borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#10b981' },
-                    { label: 'Pengeluaran', data: {!! json_encode(array_column($finance['chart'], 'expense')) !!}, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',   tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#ef4444' },
+                    { label: 'Pemasukan',   data: <?php echo json_encode(array_column($finance['chart'], 'income')); ?>,  borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#10b981' },
+                    { label: 'Pengeluaran', data: <?php echo json_encode(array_column($finance['chart'], 'expense')); ?>, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)',   tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#ef4444' },
                 ]
             },
             options: { ...chartDefaults,
@@ -443,7 +455,17 @@
 
     }, 50));
     </script>
-    @endpush
-</x-app-layout>
+    <?php $__env->stopPush(); ?>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
 
 
+<?php /**PATH E:\PROJEKU\qalcuityERP\resources\views/dashboard/tenant.blade.php ENDPATH**/ ?>

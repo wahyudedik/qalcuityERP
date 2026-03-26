@@ -3,7 +3,7 @@
     <x-slot name="header">Detail Tenant</x-slot>
     <x-slot name="topbarActions">
         <a href="{{ route('super-admin.tenants.index') }}"
-           class="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:text-white px-3 py-2 rounded-xl hover:bg-[#f8f8f8] dark:bg-white/10 transition">
+           class="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-white px-3 py-2 rounded-xl hover:bg-[#f8f8f8] dark:bg-white/10 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Kembali
         </a>
@@ -54,31 +54,31 @@
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Email</dt>
-                    <dd class="text-gray-900 dark:text-white">{{ $tenant->email }}</dd>
+                    <dd class="text-white">{{ $tenant->email }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Telepon</dt>
-                    <dd class="text-gray-900 dark:text-white">{{ $tenant->phone ?? '—' }}</dd>
+                    <dd class="text-white">{{ $tenant->phone ?? '—' }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Trial Berakhir</dt>
-                    <dd class="{{ $tenant->isTrialExpired() ? 'text-red-400 font-medium' : 'text-gray-900 dark:text-white' }}">
+                    <dd class="{{ $tenant->isTrialExpired() ? 'text-red-400 font-medium' : 'text-white' }}">
                         {{ $tenant->trial_ends_at?->format('d M Y') ?? '—' }}
                     </dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Langganan Berakhir</dt>
-                    <dd class="{{ $tenant->isPlanExpired() ? 'text-red-400 font-medium' : 'text-gray-900 dark:text-white' }}">
+                    <dd class="{{ $tenant->isPlanExpired() ? 'text-red-400 font-medium' : 'text-white' }}">
                         {{ $tenant->plan_expires_at?->format('d M Y') ?? '—' }}
                     </dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Paket Aktif</dt>
-                    <dd class="text-gray-900 dark:text-white">{{ $tenant->subscriptionPlan?->name ?? ucfirst($tenant->plan) }}</dd>
+                    <dd class="text-white">{{ $tenant->subscriptionPlan?->name ?? ucfirst($tenant->plan) }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">Terdaftar</dt>
-                    <dd class="text-gray-900 dark:text-white">{{ $tenant->created_at->format('d M Y, H:i') }}</dd>
+                    <dd class="text-white">{{ $tenant->created_at->format('d M Y, H:i') }}</dd>
                 </div>
             </dl>
 
@@ -117,7 +117,7 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tipe Plan</label>
                         <select name="plan" required
-                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-white">
                             @foreach(['trial', 'basic', 'pro', 'enterprise'] as $p)
                                 <option value="{{ $p }}" {{ $tenant->plan === $p ? 'selected' : '' }}>
                                     {{ ucfirst($p) }}
@@ -128,7 +128,7 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Definisi Paket</label>
                         <select name="subscription_plan_id"
-                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-white">
                             <option value="">— Tidak terikat definisi —</option>
                             @foreach($plans as $p)
                                 <option value="{{ $p->id }}" {{ $tenant->subscription_plan_id == $p->id ? 'selected' : '' }}>
@@ -144,14 +144,14 @@
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Trial Berakhir</label>
                         <input type="date" name="trial_ends_at"
                             value="{{ old('trial_ends_at', $tenant->trial_ends_at?->format('Y-m-d')) }}"
-                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-white">
                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Hanya berlaku jika plan = Trial</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Langganan Berakhir</label>
                         <input type="date" name="plan_expires_at"
                             value="{{ old('plan_expires_at', $tenant->plan_expires_at?->format('Y-m-d')) }}"
-                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3.5 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition bg-gray-50 dark:bg-[#0f172a] text-white">
                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Berlaku untuk plan berbayar</p>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
 
                 <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-white/10">
                     <button type="submit"
-                        class="text-sm bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white font-semibold px-5 py-2.5 rounded-xl transition">
+                        class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl transition">
                         Simpan Paket
                     </button>
                 </div>
@@ -203,10 +203,10 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
                         <td class="px-6 py-3.5">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-gray-900 dark:text-white text-xs font-bold shrink-0">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</span>
+                                <span class="text-sm font-medium text-white">{{ $user->name }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-3.5 text-sm text-gray-500 dark:text-slate-400 hidden sm:table-cell">{{ $user->email }}</td>
@@ -236,3 +236,6 @@
     }
     </script>
 </x-app-layout>
+
+
+

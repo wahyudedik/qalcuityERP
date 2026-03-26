@@ -31,12 +31,11 @@ class PlanController extends Controller
             'max_users'        => 'required|integer|min:-1',
             'max_ai_messages'  => 'required|integer|min:-1',
             'trial_days'       => 'required|integer|min:0',
-            'features'         => 'nullable|string',
             'sort_order'       => 'required|integer|min:0',
             'is_active'        => 'boolean',
         ]);
 
-        $data['features'] = $this->parseFeatures($request->input('features', ''));
+        $data['features'] = $this->buildFeatures($request);
         $data['is_active'] = $request->boolean('is_active', true);
 
         SubscriptionPlan::create($data);
@@ -60,12 +59,11 @@ class PlanController extends Controller
             'max_users'        => 'required|integer|min:-1',
             'max_ai_messages'  => 'required|integer|min:-1',
             'trial_days'       => 'required|integer|min:0',
-            'features'         => 'nullable|string',
             'sort_order'       => 'required|integer|min:0',
             'is_active'        => 'boolean',
         ]);
 
-        $data['features'] = $this->parseFeatures($request->input('features', ''));
+        $data['features'] = $this->buildFeatures($request);
         $data['is_active'] = $request->boolean('is_active', true);
 
         $plan->update($data);
@@ -85,6 +83,12 @@ class PlanController extends Controller
             ->with('success', 'Paket berhasil dihapus.');
     }
 
+    public function toggleActive(SubscriptionPlan $plan): RedirectResponse
+    {
+        $plan->update(['is_active' => !$plan->is_active]);
+        return back()->with('success', "Paket \"{$plan->name}\" " . ($plan->is_active ? 'diaktifkan' : 'dinonaktifkan') . '.');
+    }
+
     public function seed(): RedirectResponse
     {
         foreach (SubscriptionPlan::defaultPlans() as $planData) {
@@ -99,5 +103,23 @@ class PlanController extends Controller
         return array_values(array_filter(
             array_map('trim', explode("\n", $raw))
         ));
+    }
+
+    /**
+     * Build features array from checkbox list + custom input.
+     */
+    private function buildFeatures(Request $request): array
+    {
+        $features = $request->input('features_list', []);
+        $custom = $request->input('features_custom', '');
+        if ($custom) {
+            $extras = array_filter(array_map('trim', explode(',', $custom)));
+            $features = array_merge($features, $extras);
+        }
+        // Fallback: if old textarea format is used
+        if (empty($features) && $request->filled('features')) {
+            $features = $this->parseFeatures($request->input('features', ''));
+        }
+        return array_values(array_unique($features));
     }
 }

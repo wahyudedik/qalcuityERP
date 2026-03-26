@@ -405,6 +405,25 @@ class GlPostingService
         };
     }
 
+    // ─── Reimbursement ────────────────────────────────────────────
+
+    /**
+     * Pembayaran reimbursement karyawan.
+     *   Dr  5208  Beban Lain-lain (Reimbursement)
+     *   Cr  1101/1102  Kas / Bank
+     */
+    public function postReimbursement(
+        int $tenantId, int $userId, string $reference, int $refId,
+        float $amount, string $cashCode = '1101', string $date = null
+    ): GlPostingResult {
+        $date ??= today()->toDateString();
+        return $this->createAndPost('reimbursement', $reference, $refId, $tenantId, $userId, $date,
+            "Auto: Reimbursement {$reference}", [
+                ['code' => '5208', 'debit' => $amount, 'credit' => 0,       'desc' => "Beban reimbursement {$reference}"],
+                ['code' => $cashCode, 'debit' => 0,     'credit' => $amount, 'desc' => "Bayar reimbursement {$reference}"],
+            ]);
+    }
+
     // ─── Sales Commission ─────────────────────────────────────────
 
     /**

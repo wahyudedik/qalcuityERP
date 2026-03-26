@@ -5,14 +5,14 @@
 
         {{-- Document Info --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h2 class="font-semibold text-gray-900 dark:text-white mb-1">Dokumen: {{ class_basename(get_class($model)) }} #{{ $modelId }}</h2>
+            <h2 class="font-semibold text-white mb-1">Dokumen: {{ class_basename(get_class($model)) }} #{{ $modelId }}</h2>
             <p class="text-sm text-gray-500 dark:text-slate-400">Tanda tangani dokumen ini secara digital. Tanda tangan akan disimpan beserta timestamp dan IP address Anda.</p>
         </div>
 
         {{-- Existing Signatures --}}
         @if($existing->isNotEmpty())
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Tanda Tangan Sebelumnya</h3>
+            <h3 class="font-semibold text-white mb-3">Tanda Tangan Sebelumnya</h3>
             <div class="space-y-3">
                 @foreach($existing as $sig)
                 <div class="flex items-center gap-3 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
@@ -22,7 +22,7 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $sig->user?->name }}</p>
+                        <p class="text-sm font-medium text-white">{{ $sig->user?->name }}</p>
                         <p class="text-xs text-gray-500 dark:text-slate-400">{{ $sig->signed_at?->format('d M Y H:i') }} · {{ $sig->ip_address }}</p>
                     </div>
                     <img src="{{ $sig->signature_data }}" class="ml-auto h-10 border border-gray-200 dark:border-white/10 rounded-lg bg-white" alt="Tanda tangan">
@@ -34,13 +34,13 @@
 
         {{-- Signature Pad --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Tanda Tangan Anda</h3>
+            <h3 class="font-semibold text-white mb-3">Tanda Tangan Anda</h3>
             <div class="border-2 border-dashed border-white/20 rounded-xl overflow-hidden bg-white">
                 <canvas id="signature-canvas" height="200" class="w-full touch-none cursor-crosshair"></canvas>
             </div>
             <div class="flex gap-2 mt-3">
                 <button onclick="clearPad()" class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">Hapus</button>
-                <button onclick="savePad()" class="px-4 py-2 bg-blue-600 text-gray-900 dark:text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">Simpan Tanda Tangan</button>
+                <button onclick="savePad()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">Simpan Tanda Tangan</button>
             </div>
             <p id="sign-status" class="text-sm mt-2 hidden"></p>
         </div>
@@ -122,3 +122,4 @@
     </script>
     @endpush
 </x-app-layout>
+

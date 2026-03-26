@@ -26,7 +26,7 @@
                 @endif
             </div>
 
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 class="text-xl font-bold text-white mb-2">
                 @if($status === 'nonaktif')
                     Akun Dinonaktifkan
                 @elseif($status === 'trial_expired')
@@ -49,7 +49,7 @@
             <div class="space-y-3">
                 @if($status !== 'nonaktif')
                 <a href="mailto:support@qalcuity.com?subject=Perpanjang Langganan"
-                   class="block w-full bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white text-sm font-semibold py-3 px-4 rounded-xl transition">
+                   class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 px-4 rounded-xl transition">
                     Hubungi untuk Perpanjang
                 </a>
                 @endif
@@ -69,3 +69,4 @@
     </div>
 </body>
 </html>
+

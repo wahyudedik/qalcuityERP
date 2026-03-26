@@ -3,7 +3,7 @@
     <x-slot name="header">Kelola Pengguna</x-slot>
     <x-slot name="topbarActions">
         <a href="{{ route('tenant.users.create') }}"
-           class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-gray-900 dark:text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm shadow-blue-200">
+           class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm shadow-blue-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah Pengguna
         </a>
@@ -25,11 +25,11 @@
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
                     <td class="px-4 sm:px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-gray-900 dark:text-white text-sm font-bold shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
                             <div class="min-w-0">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $user->name }}</p>
+                                <p class="text-sm font-medium text-white">{{ $user->name }}</p>
                                 <p class="text-xs text-gray-500 dark:text-slate-400 truncate">{{ $user->email }}</p>
                                 {{-- Role & status shown inline on mobile --}}
                                 <div class="flex items-center gap-1.5 mt-1 sm:hidden">
@@ -112,3 +112,5 @@
         </table>
     </div>
 </x-app-layout>
+
+

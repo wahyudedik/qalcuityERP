@@ -18,4 +18,6 @@ class Warehouse extends Model
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function stockMovements(): HasMany { return $this->hasMany(StockMovement::class); }
     public function productStocks(): HasMany { return $this->hasMany(ProductStock::class); }
+    public function zones(): HasMany { return $this->hasMany(WarehouseZone::class); }
+    public function bins(): HasMany { return $this->hasMany(WarehouseBin::class); }
 }

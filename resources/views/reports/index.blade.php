@@ -258,7 +258,7 @@
         </div>
 
         {{-- AI Analysis Tip --}}
-        <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-5 text-gray-900 dark:text-white">
+        <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-5 text-white">
             <div class="flex items-start gap-3">
                 <div class="w-9 h-9 rounded-xl bg-[#f8f8f8] dark:bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,3 +326,4 @@
     </script>
     @endpush
 </x-app-layout>
+

@@ -12,7 +12,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-semibold text-gray-900 dark:text-white">Telegram Bot</h2>
+                    <h2 class="font-semibold text-white">Telegram Bot</h2>
                     <p class="text-xs text-gray-500 dark:text-slate-400">Kirim notifikasi & terima perintah via Telegram</p>
                 </div>
                 @if($telegram?->is_active)
@@ -27,7 +27,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Bot Token</label>
                     <input type="text" name="token" value="{{ $telegram?->token }}" placeholder="1234567890:ABCdef..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
+                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
                     <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Dapatkan token dari <a href="https://t.me/BotFather" target="_blank" class="text-blue-400 hover:underline">@BotFather</a></p>
                 </div>
 
@@ -46,7 +46,7 @@
                     <code class="text-xs bg-gray-50 dark:bg-[#0f172a] text-gray-700 dark:text-slate-300 px-3 py-2 rounded-lg block break-all border border-gray-200 dark:border-white/10">{{ url('/webhook/telegram') }}</code>
                 </div>
 
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-gray-900 dark:text-white rounded-xl text-sm font-medium transition">
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition">
                     Simpan Konfigurasi Telegram
                 </button>
             </form>
@@ -61,7 +61,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-semibold text-gray-900 dark:text-white">WhatsApp Bot</h2>
+                    <h2 class="font-semibold text-white">WhatsApp Bot</h2>
                     <p class="text-xs text-gray-500 dark:text-slate-400">Integrasi via WhatsApp Business API (Meta)</p>
                 </div>
                 @if($whatsapp?->is_active)
@@ -76,7 +76,7 @@
                 <div>
                     <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Access Token (Meta)</label>
                     <input type="text" name="token" value="{{ $whatsapp?->token }}" placeholder="EAABs..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
+                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -94,10 +94,11 @@
                     <code class="text-xs bg-gray-50 dark:bg-[#0f172a] text-gray-700 dark:text-slate-300 px-3 py-2 rounded-lg block break-all border border-gray-200 dark:border-white/10">{{ url('/webhook/whatsapp') }}</code>
                 </div>
 
-                <button type="submit" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-gray-900 dark:text-white rounded-xl text-sm font-medium transition">
+                <button type="submit" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition">
                     Simpan Konfigurasi WhatsApp
                 </button>
             </form>
         </div>
     </div>
 </x-app-layout>
+
