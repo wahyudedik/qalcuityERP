@@ -5,14 +5,17 @@
     <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">{{ session('success') }}</div>
     @endif
 
-    {{-- Billing Link --}}
-    @canmodule('project_billing', 'view')
-    <div class="mb-4">
-        <a href="{{ route('project-billing.show', $project) }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">
-            📐 Project Billing
+    {{-- Billing & RAB Links --}}
+    <div class="mb-4 flex items-center gap-2">
+        <a href="{{ route('projects.rab', $project) }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
+            📐 RAB (Rencana Anggaran Biaya)
         </a>
+        @canmodule('project_billing', 'view')
+        <a href="{{ route('project-billing.show', $project) }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">
+            💰 Project Billing
+        </a>
+        @endcanmodule
     </div>
-    @endcanmodule
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -85,6 +88,28 @@
                                 @if($task->due_date) · {{ $task->due_date->format('d M') }} @endif
                                 · Bobot: {{ $task->weight }}
                             </p>
+                            @if($task->isVolumeTracked())
+                            <div class="mt-1.5">
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="text-gray-500 dark:text-slate-400">Volume:</span>
+                                    <span class="font-mono font-medium {{ $task->volumeProgress() >= 100 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400' }}">
+                                        {{ number_format($task->actual_volume, $task->actual_volume == (int)$task->actual_volume ? 0 : 1) }} / {{ number_format($task->target_volume, $task->target_volume == (int)$task->target_volume ? 0 : 1) }} {{ $task->volume_unit }}
+                                    </span>
+                                    <span class="text-gray-400">({{ $task->volumeProgress() }}%)</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-white/10 rounded-full h-1.5 mt-1">
+                                    <div class="h-1.5 rounded-full {{ $task->volumeProgress() >= 100 ? 'bg-green-500' : 'bg-blue-500' }} transition-all" style="width:{{ min(100, $task->volumeProgress()) }}%"></div>
+                                </div>
+                                @if($task->status !== 'done' && $task->status !== 'cancelled')
+                                <form method="POST" action="{{ route('projects.tasks.volume', $task) }}" class="flex items-center gap-2 mt-1.5">
+                                    @csrf
+                                    <input type="number" name="volume" step="0.001" min="0.001" required placeholder="+vol" class="w-20 px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                    <input type="text" name="description" placeholder="Keterangan" class="flex-1 px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                    <button type="submit" class="px-2 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">+</button>
+                                </form>
+                                @endif
+                            </div>
+                            @endif
                         </div>
                         <form method="POST" action="{{ route('projects.tasks.destroy', $task) }}" onsubmit="return confirm('Hapus task?')">
                             @csrf @method('DELETE')
@@ -204,6 +229,27 @@
                     <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Bobot (1-100)</label>
                     <input type="number" name="weight" value="1" min="1" max="100" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
+                {{-- Volume Tracking --}}
+                <div class="border-t border-gray-100 dark:border-white/10 pt-3">
+                    <label class="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" id="toggle-volume" onchange="document.getElementById('volume-fields').classList.toggle('hidden')" class="rounded border-gray-300 dark:border-white/20 text-blue-600">
+                        <span class="text-xs font-medium text-gray-600 dark:text-slate-400">📐 Track progress berdasarkan volume fisik</span>
+                    </label>
+                    <div id="volume-fields" class="hidden grid grid-cols-3 gap-3">
+                        <input type="hidden" name="progress_method" value="status" id="progress-method-input">
+                        <div class="col-span-1">
+                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Target Volume</label>
+                            <input type="number" name="target_volume" step="0.001" placeholder="120" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Satuan</label>
+                            <input type="text" name="volume_unit" placeholder="m³, m², kg" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                        <div class="col-span-1 flex items-end">
+                            <p class="text-[10px] text-gray-400 dark:text-slate-500 pb-2">Progress otomatis dihitung dari volume aktual vs target</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('modal-add-task').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Tambah</button>
@@ -258,12 +304,16 @@
         });
         if (res.ok) {
             const data = await res.json();
-            // Update progress bar
             document.querySelectorAll('[style*="width"]').forEach(el => {
                 if (el.closest('.h-3')) el.style.width = Math.min(100, data.progress) + '%';
             });
         }
     }
+
+    // Toggle volume tracking in add task modal
+    document.getElementById('toggle-volume')?.addEventListener('change', function() {
+        document.getElementById('progress-method-input').value = this.checked ? 'volume' : 'status';
+    });
     </script>
     @endpush
 </x-app-layout>

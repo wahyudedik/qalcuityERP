@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
@@ -99,6 +101,8 @@ class ProductController extends Controller
         ]);
 
         ActivityLog::record('product_created', "Produk baru: {$product->name} (SKU: {$product->sku})", $product, [], $product->toArray());
+
+        $this->fireWebhook('product.created', $product->toArray());
 
         if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
             ProductStock::create([

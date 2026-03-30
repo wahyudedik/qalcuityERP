@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
 
 class InventoryController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
@@ -243,6 +245,16 @@ class InventoryController extends Controller
         }
 
         ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → " . ($before + $data['quantity']) . ")", $product);
+
+        $this->fireWebhook('inventory.adjusted', [
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'sku' => $product->sku,
+            'type' => 'stock_added',
+            'quantity' => (float) $data['quantity'],
+            'stock_before' => $before,
+            'stock_after' => $before + $data['quantity'],
+        ]);
 
         return back()->with('success', "Stok berhasil ditambah {$data['quantity']} {$product->unit}.");
     }

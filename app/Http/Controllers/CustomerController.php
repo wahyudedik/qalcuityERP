@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
@@ -68,6 +70,8 @@ class CustomerController extends Controller
 
         ActivityLog::record('customer_created', "Customer baru: {$customer->name}", $customer, [], $customer->toArray());
 
+        $this->fireWebhook('customer.created', $customer->toArray());
+
         return back()->with('success', "Customer {$customer->name} berhasil ditambahkan.");
     }
 
@@ -90,6 +94,8 @@ class CustomerController extends Controller
         $customer->update($data);
 
         ActivityLog::record('customer_updated', "Customer diperbarui: {$customer->name}", $customer, $old, $customer->fresh()->toArray());
+
+        $this->fireWebhook('customer.updated', $customer->fresh()->toArray());
 
         return back()->with('success', "Customer {$customer->name} berhasil diperbarui.");
     }
@@ -121,6 +127,7 @@ class CustomerController extends Controller
         }
 
         ActivityLog::record('customer_deleted', "Customer dihapus: {$customer->name}", $customer, $customer->toArray());
+        $this->fireWebhook('customer.deleted', $customer->toArray());
         $customer->delete();
 
         return back()->with('success', "Customer {$customer->name} berhasil dihapus.");

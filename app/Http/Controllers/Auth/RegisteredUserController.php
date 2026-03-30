@@ -70,7 +70,14 @@ class RegisteredUserController extends Controller
             return [$tenant, $user];
         });
 
-        event(new Registered($user));
+        // Send verification email in try-catch to prevent registration failure
+        // if mail server is down or misconfigured
+        try {
+            event(new Registered($user));
+        } catch (\Throwable $e) {
+            // Mail failed but registration succeeded — user can resend later
+            \Illuminate\Support\Facades\Log::warning('Registration email failed: ' . $e->getMessage());
+        }
 
         // Track affiliate referral
         if ($ref = $request->input('ref') ?? $request->cookie('affiliate_ref')) {

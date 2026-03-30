@@ -1,0 +1,278 @@
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+     <?php $__env->slot('header', null, []); ?> RAB — <?php echo e($project->name); ?> <?php $__env->endSlot(); ?>
+
+    <?php if(session('success')): ?>
+    <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400"><?php echo e(session('success')); ?></div>
+    <?php endif; ?>
+    <?php if(session('error')): ?>
+    <div class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-700 dark:text-red-400"><?php echo e(session('error')); ?></div>
+    <?php endif; ?>
+
+    
+    <div class="flex items-center justify-between mb-5">
+        <a href="<?php echo e(route('projects.show', $project)); ?>" class="text-sm text-blue-500 hover:text-blue-600">← Kembali ke Proyek</a>
+        <div class="flex items-center gap-2">
+            <a href="<?php echo e(route('projects.rab.export', $project)); ?>" class="px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">📥 Export CSV</a>
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">📤 Import CSV</button>
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">+ Tambah Item</button>
+        </div>
+    </div>
+
+    
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
+            <p class="text-xs text-gray-500 dark:text-slate-400">Total RAB</p>
+            <p class="text-lg font-bold text-blue-600 dark:text-blue-400">Rp <?php echo e(number_format($summary['total_rab'], 0, ',', '.')); ?></p>
+        </div>
+        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
+            <p class="text-xs text-gray-500 dark:text-slate-400">Realisasi</p>
+            <p class="text-lg font-bold <?php echo e($summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'); ?>">
+                Rp <?php echo e(number_format($summary['total_actual'], 0, ',', '.')); ?>
+
+            </p>
+        </div>
+        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
+            <p class="text-xs text-gray-500 dark:text-slate-400">Selisih</p>
+            <?php $variance = $summary['total_rab'] - $summary['total_actual']; ?>
+            <p class="text-lg font-bold <?php echo e($variance < 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'); ?>">
+                <?php echo e($variance < 0 ? '-' : ''); ?>Rp <?php echo e(number_format(abs($variance), 0, ',', '.')); ?>
+
+            </p>
+        </div>
+        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
+            <p class="text-xs text-gray-500 dark:text-slate-400">Item Pekerjaan</p>
+            <p class="text-lg font-bold text-gray-900 dark:text-white"><?php echo e($summary['item_count']); ?> <span class="text-xs font-normal text-gray-400">item</span></p>
+        </div>
+    </div>
+
+    
+    <?php if($byCategory->isNotEmpty()): ?>
+    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4 mb-6">
+        <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Breakdown per Kategori</p>
+        <div class="flex flex-wrap gap-3">
+            <?php $__currentLoopData = $byCategory; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php $pct = $summary['total_rab'] > 0 ? round($cat->total_rab / $summary['total_rab'] * 100, 1) : 0; ?>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-white/5 text-xs">
+                <span class="font-medium text-gray-700 dark:text-slate-300 capitalize"><?php echo e($cat->cat); ?></span>
+                <span class="text-gray-400">Rp <?php echo e(number_format($cat->total_rab, 0, ',', '.')); ?></span>
+                <span class="text-gray-300">(<?php echo e($pct); ?>%)</span>
+            </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    
+    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-left">
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 w-16">Kode</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">Uraian Pekerjaan</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Volume</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">Satuan</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Harga Satuan</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Koef</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Jumlah (RAB)</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Realisasi</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 w-20">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <?php $__empty_1 = true; $__currentLoopData = $tree; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php echo $__env->make('projects._rab_row', ['item' => $group, 'depth' => 0], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php $__currentLoopData = $group->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $child): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php echo $__env->make('projects._rab_row', ['item' => $child, 'depth' => 1], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php $__currentLoopData = $child->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $grandchild): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php echo $__env->make('projects._rab_row', ['item' => $grandchild, 'depth' => 2], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <tr>
+                        <td colspan="9" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                            Belum ada item RAB. Klik "Tambah Item" atau "Import CSV" untuk memulai.
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+
+                    
+                    <?php if($tree->isNotEmpty()): ?>
+                    <tr class="bg-gray-50 dark:bg-white/5 font-bold">
+                        <td class="px-4 py-3" colspan="6">
+                            <span class="text-gray-900 dark:text-white">GRAND TOTAL</span>
+                        </td>
+                        <td class="px-4 py-3 text-right text-blue-600 dark:text-blue-400">Rp <?php echo e(number_format($summary['total_rab'], 0, ',', '.')); ?></td>
+                        <td class="px-4 py-3 text-right <?php echo e($summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'); ?>">
+                            Rp <?php echo e(number_format($summary['total_actual'], 0, ',', '.')); ?>
+
+                        </td>
+                        <td></td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    <div id="addModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Tambah Item RAB</h3>
+                <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <form method="POST" action="<?php echo e(route('projects.rab.store', $project)); ?>" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe</label>
+                        <select name="type" id="rab-type" onchange="toggleItemFields()" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            <option value="group">Grup / Header</option>
+                            <option value="item" selected>Item Pekerjaan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kode</label>
+                        <input type="text" name="code" placeholder="I.1.a" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Uraian Pekerjaan *</label>
+                    <input type="text" name="name" required placeholder="Pengecoran Lantai 1" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Parent (Grup)</label>
+                    <select name="parent_id" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <option value="">— Tanpa parent (root) —</option>
+                        <?php $__currentLoopData = \App\Models\RabItem::where('project_id', $project->id)->where('type', 'group')->orderBy('sort_order')->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $g): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($g->id); ?>"><?php echo e($g->code ? $g->code . ' — ' : ''); ?><?php echo e($g->name); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+                <div id="item-fields">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
+                            <select name="category" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                <option value="">—</option>
+                                <option value="material">Material</option>
+                                <option value="labor">Upah / Tenaga</option>
+                                <option value="equipment">Alat / Sewa</option>
+                                <option value="subcontract">Subkontraktor</option>
+                                <option value="overhead">Overhead</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Satuan</label>
+                            <input type="text" name="unit" placeholder="m3, m2, kg, ls" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Volume</label>
+                            <input type="number" name="volume" step="0.001" placeholder="0" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Satuan</label>
+                            <input type="number" name="unit_price" step="1" placeholder="0" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Koefisien</label>
+                            <input type="number" name="coefficient" step="0.0001" value="1" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                    <textarea name="notes" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <div id="importModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Import RAB dari CSV</h3>
+                <button onclick="document.getElementById('importModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <form method="POST" action="<?php echo e(route('projects.rab.import', $project)); ?>" enctype="multipart/form-data" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Format kolom: <code class="bg-gray-100 dark:bg-white/10 px-1 rounded">Kode, Uraian Pekerjaan, Tipe, Kategori, Volume, Satuan, Harga Satuan, Koefisien</code></p>
+                <input type="file" name="file" accept=".csv,.txt" required class="w-full text-sm text-gray-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 dark:file:bg-white/10 file:text-gray-700 dark:file:text-white">
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <?php $__env->startPush('scripts'); ?>
+    <script>
+    function toggleItemFields() {
+        const type = document.getElementById('rab-type').value;
+        document.getElementById('item-fields').style.display = type === 'item' ? '' : 'none';
+    }
+
+    function openActualModal(id, name, currentCost, currentVolume) {
+        document.getElementById('actual-item-name').textContent = name;
+        document.getElementById('actual-cost-input').value = currentCost || '';
+        document.getElementById('actual-volume-input').value = currentVolume || '';
+        document.getElementById('actual-form').action = '/projects/rab/' + id + '/actual';
+        document.getElementById('actualModal').classList.remove('hidden');
+    }
+    </script>
+    <?php $__env->stopPush(); ?>
+
+    
+    <div id="actualModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Catat Realisasi</h3>
+                <button onclick="document.getElementById('actualModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mb-4" id="actual-item-name"></p>
+            <form method="POST" id="actual-form" class="space-y-4">
+                <?php echo csrf_field(); ?>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Realisasi Biaya (Rp)</label>
+                    <input type="number" name="actual_cost" id="actual-cost-input" step="1" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Realisasi Volume</label>
+                    <input type="number" name="actual_volume" id="actual-volume-input" step="0.001" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('actualModal').classList.add('hidden')" class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 rounded-lg text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php /**PATH E:\PROJEKU\qalcuityERP\resources\views\projects\rab.blade.php ENDPATH**/ ?>

@@ -38,12 +38,13 @@ class Project extends Model
     public function customer(): BelongsTo { return $this->belongsTo(Customer::class); }
     public function tasks(): HasMany { return $this->hasMany(ProjectTask::class); }
     public function expenses(): HasMany { return $this->hasMany(ProjectExpense::class); }
+    public function rabItems(): HasMany { return $this->hasMany(RabItem::class); }
     public function timesheets(): HasMany { return $this->hasMany(Timesheet::class); }
     public function billingConfig() { return $this->hasOne(ProjectBillingConfig::class); }
     public function milestones(): HasMany { return $this->hasMany(ProjectMilestone::class)->orderBy('sort_order'); }
     public function projectInvoices(): HasMany { return $this->hasMany(ProjectInvoice::class); }
 
-    /** Recalculate progress dari bobot task yang done */
+    /** Recalculate progress — hybrid: weight × effectiveProgress for each task */
     public function recalculateProgress(): void
     {
         $tasks = $this->tasks()->whereNotIn('status', ['cancelled'])->get();
@@ -52,8 +53,8 @@ class Project extends Model
         $totalWeight = $tasks->sum('weight');
         if ($totalWeight <= 0) return;
 
-        $doneWeight = $tasks->where('status', 'done')->sum('weight');
-        $this->update(['progress' => round(($doneWeight / $totalWeight) * 100, 2)]);
+        $weightedProgress = $tasks->sum(fn ($t) => $t->weight * $t->effectiveProgress() / 100);
+        $this->update(['progress' => round(($weightedProgress / $totalWeight) * 100, 2)]);
     }
 
     /** Recalculate actual_cost dari semua expenses */

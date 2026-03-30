@@ -46,13 +46,16 @@ class ProjectBillingController extends Controller
         abort_if($project->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'billing_type'      => 'required|in:time_material,milestone,retainer,fixed_price',
-            'hourly_rate'       => 'nullable|numeric|min:0',
-            'retainer_amount'   => 'nullable|numeric|min:0',
-            'retainer_cycle'    => 'nullable|in:monthly,quarterly',
-            'fixed_price'       => 'nullable|numeric|min:0',
-            'next_billing_date' => 'nullable|date',
-            'notes'             => 'nullable|string|max:1000',
+            'billing_type'          => 'required|in:time_material,milestone,retainer,fixed_price,termin',
+            'hourly_rate'           => 'nullable|numeric|min:0',
+            'retainer_amount'       => 'nullable|numeric|min:0',
+            'retainer_cycle'        => 'nullable|in:monthly,quarterly',
+            'fixed_price'           => 'nullable|numeric|min:0',
+            'retention_pct'         => 'nullable|numeric|min:0|max:100',
+            'contract_value'        => 'nullable|numeric|min:0',
+            'retention_release_days'=> 'nullable|integer|min:0',
+            'next_billing_date'     => 'nullable|date',
+            'notes'                 => 'nullable|string|max:1000',
         ]);
 
         ProjectBillingConfig::updateOrCreate(
@@ -284,5 +287,161 @@ class ProjectBillingController extends Controller
         });
 
         return back()->with('success', 'Invoice retainer berhasil dibuat.');
+    }
+
+    // ── Termin / Progress Payment with Retention ──────────────────
+
+    public function generateTermin(Request $request, Project $project, GlPostingService $glService)
+    {
+        abort_if($project->tenant_id !== $this->tid(), 403);
+
+        $config = $project->billingConfig;
+        if (!$config) return back()->with('error', 'Konfigurasi billing belum diset.');
+
+        $data = $request->validate([
+            'progress_pct'  => 'required|numeric|min:0.01|max:100',
+            'description'   => 'nullable|string|max:500',
+        ]);
+
+        $contractValue = (float) $config->contract_value ?: (float) $project->budget;
+        if ($contractValue <= 0) return back()->with('error', 'Nilai kontrak / budget proyek belum diset.');
+
+        $retentionPct = (float) $config->retention_pct;
+        $progressPct = (float) $data['progress_pct'];
+
+        // Calculate cumulative billed so far (gross, before retention)
+        $previousGross = ProjectInvoice::where('project_id', $project->id)
+            ->whereIn('billing_type', ['termin', 'milestone'])
+            ->sum('gross_amount');
+
+        // This termin's gross = (progress% × contract) - previous gross
+        $cumulativeGross = round($contractValue * $progressPct / 100, 2);
+        $thisGross = max(0, $cumulativeGross - $previousGross);
+
+        if ($thisGross <= 0) {
+            return back()->with('error', "Progress {$progressPct}% sudah di-billing sebelumnya. Total billed: Rp " . number_format($previousGross, 0, ',', '.'));
+        }
+
+        // Retention = % of this termin's gross
+        $retentionAmount = round($thisGross * $retentionPct / 100, 2);
+        $netAmount = $thisGross - $retentionAmount;
+
+        // Termin number
+        $terminNumber = ProjectInvoice::where('project_id', $project->id)
+            ->where('billing_type', 'termin')
+            ->count() + 1;
+
+        DB::transaction(function () use ($project, $data, $thisGross, $netAmount, $retentionAmount, $retentionPct, $progressPct, $terminNumber, $glService) {
+            $invNumber = 'INV-TRM-' . $terminNumber . '-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
+
+            $invoice = Invoice::create([
+                'tenant_id'        => $this->tid(),
+                'customer_id'      => $project->customer_id,
+                'number'           => $invNumber,
+                'subtotal_amount'  => $netAmount,
+                'tax_amount'       => 0,
+                'total_amount'     => $netAmount,
+                'paid_amount'      => 0,
+                'remaining_amount' => $netAmount,
+                'status'           => 'unpaid',
+                'due_date'         => now()->addDays(30),
+                'notes'            => "Termin #{$terminNumber} — {$project->name} (Progress: {$progressPct}%)"
+                    . ($retentionPct > 0 ? "\nRetensi {$retentionPct}%: Rp " . number_format($retentionAmount, 0, ',', '.') : '')
+                    . ($data['description'] ? "\n{$data['description']}" : ''),
+            ]);
+
+            ProjectInvoice::create([
+                'project_id'       => $project->id,
+                'tenant_id'        => $this->tid(),
+                'invoice_id'       => $invoice->id,
+                'billing_type'     => 'termin',
+                'gross_amount'     => $thisGross,
+                'total_amount'     => $netAmount,
+                'retention_amount' => $retentionAmount,
+                'termin_number'    => $terminNumber,
+                'progress_pct'     => $progressPct,
+                'status'           => 'invoiced',
+                'user_id'          => auth()->id(),
+                'notes'            => $data['description'] ?? null,
+            ]);
+
+            $glResult = $glService->postInvoiceCreated(
+                $this->tid(), auth()->id(), $invNumber, $invoice->id,
+                $netAmount, 0, $netAmount
+            );
+            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+        });
+
+        $msg = "Termin #{$terminNumber} berhasil dibuat."
+            . " Gross: Rp " . number_format($thisGross, 0, ',', '.')
+            . ($retentionAmount > 0 ? " | Retensi: Rp " . number_format($retentionAmount, 0, ',', '.') : '')
+            . " | Tagihan: Rp " . number_format($netAmount, 0, ',', '.');
+
+        return back()->with('success', $msg);
+    }
+
+    // ── Release Retention ─────────────────────────────────────────
+
+    public function releaseRetention(Request $request, ProjectInvoice $projectInvoice, GlPostingService $glService)
+    {
+        abort_if($projectInvoice->tenant_id !== $this->tid(), 403);
+
+        $outstanding = $projectInvoice->retentionOutstanding();
+        if ($outstanding <= 0) return back()->with('error', 'Retensi sudah dirilis sepenuhnya.');
+
+        $data = $request->validate([
+            'amount' => 'nullable|numeric|min:0.01|max:' . $outstanding,
+        ]);
+
+        $releaseAmount = (float) ($data['amount'] ?? $outstanding);
+        $project = $projectInvoice->project;
+
+        DB::transaction(function () use ($projectInvoice, $project, $releaseAmount, $outstanding, $glService) {
+            $newReleased = (float) $projectInvoice->retention_released + $releaseAmount;
+            $fullyReleased = $newReleased >= (float) $projectInvoice->retention_amount;
+
+            $projectInvoice->update([
+                'retention_released'      => $newReleased,
+                'retention_released_flag' => $fullyReleased,
+                'retention_release_date'  => $fullyReleased ? now() : $projectInvoice->retention_release_date,
+            ]);
+
+            // Create a separate invoice for the released retention
+            $invNumber = 'INV-RET-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
+            $invoice = Invoice::create([
+                'tenant_id'        => $this->tid(),
+                'customer_id'      => $project->customer_id,
+                'number'           => $invNumber,
+                'subtotal_amount'  => $releaseAmount,
+                'tax_amount'       => 0,
+                'total_amount'     => $releaseAmount,
+                'paid_amount'      => 0,
+                'remaining_amount' => $releaseAmount,
+                'status'           => 'unpaid',
+                'due_date'         => now()->addDays(14),
+                'notes'            => "Rilis retensi — {$project->name}"
+                    . ($projectInvoice->termin_number ? " (Termin #{$projectInvoice->termin_number})" : ''),
+            ]);
+
+            ProjectInvoice::create([
+                'project_id'       => $project->id,
+                'tenant_id'        => $this->tid(),
+                'invoice_id'       => $invoice->id,
+                'billing_type'     => 'retention_release',
+                'total_amount'     => $releaseAmount,
+                'gross_amount'     => $releaseAmount,
+                'status'           => 'invoiced',
+                'user_id'          => auth()->id(),
+                'notes'            => "Rilis retensi dari termin #{$projectInvoice->termin_number}",
+            ]);
+
+            $glResult = $glService->postInvoiceCreated(
+                $this->tid(), auth()->id(), $invNumber, $invoice->id,
+                $releaseAmount, 0, $releaseAmount
+            );
+            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+        });
+
+        return back()->with('success', "Retensi Rp " . number_format($releaseAmount, 0, ',', '.') . " berhasil dirilis.");
     }
 }

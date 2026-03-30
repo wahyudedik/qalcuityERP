@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook.verify'   => \App\Http\Middleware\VerifyWebhookSignature::class,
             'api.token'        => \App\Http\Middleware\ApiTokenAuth::class,
             'ai.quota'         => \App\Http\Middleware\CheckAiQuota::class,
+            'offline.sync'     => \App\Http\Middleware\HandleOfflineSync::class,
+            'api.rate'         => \App\Http\Middleware\RateLimitApiRequests::class,
         ]);
 
         // CheckTenantActive di-append ke web group agar berjalan di semua request
@@ -27,7 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // karena middleware ini butuh route parameters yang belum tersedia di level global
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\CheckTenantActive::class,
+            \App\Http\Middleware\HandleOfflineSync::class,
         ]);
+
+        // Offline-synced requests carry stale CSRF tokens — handled via HandleOfflineSync middleware
+        // We exclude nothing here; the middleware itself manages token-less offline requests.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->report(function (\Throwable $e): void {

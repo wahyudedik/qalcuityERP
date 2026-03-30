@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class PosController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     public function index()
     {
         $tenantId = auth()->user()->tenant_id;
@@ -123,6 +125,8 @@ class PosController extends Controller
         }
 
         ActivityLog::record('pos_checkout', "POS checkout #{$order->number}", $order);
+
+        $this->fireWebhook('order.created', $order->load('items')->toArray());
 
         return response()->json([
             'status'       => 'success',

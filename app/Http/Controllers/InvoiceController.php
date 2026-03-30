@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Mail;
 
 class InvoiceController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tenantId(): int
     {
         return auth()->user()->tenant_id;
@@ -148,6 +150,8 @@ class InvoiceController extends Controller
             'data'      => ['number' => $number],
         ]);
 
+        $this->fireWebhook('invoice.created', $invoice->load('customer')->toArray());
+
         return redirect()->route('invoices.index')->with('success', 'Invoice berhasil dibuat.');
     }
 
@@ -207,6 +211,14 @@ class InvoiceController extends Controller
                 'data'      => ['invoice_id' => $invoice->id],
             ]);
         }
+
+        $this->fireWebhook('payment.received', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->number,
+            'amount' => (float) $data['amount'],
+            'method' => $data['method'],
+            'status' => $invoice->fresh()->status,
+        ]);
 
         return back()->with('success', 'Pembayaran berhasil dicatat.');
     }

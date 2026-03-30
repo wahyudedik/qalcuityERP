@@ -15,7 +15,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/favicon.png">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js'])
     @stack('head')
     <script>
         if (localStorage.getItem('theme') === 'light') {
@@ -247,25 +247,31 @@
         $user      = auth()->user();
         $navTenant = $user?->tenant;
         // Active group detection
+        // IMPORTANT: Order matters — more specific patterns must come before generic ones.
+        // Each route prefix should appear in exactly ONE group to avoid conflicts.
         $activeGroup = match(true) {
             request()->routeIs('dashboard')                                                    => 'home',
             request()->routeIs('chat*')                                                        => 'ai',
             request()->routeIs('quotations*','invoices*','delivery-orders*','down-payments*',
-                               'sales-returns*','crm*','loyalty*','pos*','commission*','helpdesk*','subscription-billing*','sales.*',
-                               'sales.index','price-lists*')                                  => 'sales',
-            request()->routeIs('inventory*','purchasing*','purchase-returns*','landed-cost*','consignment*','wms*') => 'inventory',
-            request()->routeIs('customers*','suppliers*','products*','warehouses*') => 'masterdata',
-            request()->routeIs('production*','manufacturing*','fleet*','contracts*','shipping*','approvals*','ecommerce*','documents*',
-                               'projects*','timesheets*','project-billing*') => 'ops',
-            request()->routeIs('hrm*','payroll*','self-service*')                              => 'hrm',
+                               'sales-returns*','crm*','loyalty*','pos*','commission*',
+                               'helpdesk*','subscription-billing*','sales.*','sales.index',
+                               'price-lists*')                                                 => 'sales',
+            request()->routeIs('inventory*','purchasing*','purchase-returns*','landed-cost*',
+                               'consignment*','wms*')                                          => 'inventory',
+            request()->routeIs('customers*','suppliers*','products*','warehouses*')             => 'masterdata',
+            request()->routeIs('production*','manufacturing*','fleet*','contracts*','shipping*',
+                               'approvals*','ecommerce*','documents*','projects*','timesheets*',
+                               'project-billing*','farm*')                                     => 'ops',
+            request()->routeIs('hrm*','payroll*','self-service*','reimbursement*')              => 'hrm',
             request()->routeIs('accounting*','expenses*','bank.*','bank-accounts*',
                                'receivables*','payables*','bulk-payments*','assets*','budget*',
-                               'cost-centers*','deferred*','writeoffs*')               => 'finance',
-            request()->routeIs('reports*','kpi*','anomalies*','zero-input*','simulations*') => 'analytics',
+                               'journals*','deferred*','writeoffs*')                           => 'finance',
+            request()->routeIs('reports*','kpi*','anomalies*','zero-input*','simulations*',
+                               'forecast*')                                                    => 'analytics',
             request()->routeIs('company-profile*','settings*','tenant.users*','reminders*',
                                'import*','audit*','notifications*','bot*','api-settings*',
-                               'subscription*','cost-centers*','ai-memory*','taxes*',
-                               'custom-fields*','constraints*','company-groups*','bank-accounts*')      => 'settings',
+                               'subscription.index','cost-centers*','ai-memory*','taxes*',
+                               'custom-fields*','constraints*','company-groups*')               => 'settings',
             request()->routeIs('super-admin*')                                                 => 'superadmin',
             default                                                                            => '',
         };
@@ -375,6 +381,16 @@
 
             <div class="flex items-center gap-1.5 shrink-0">
                 @isset($topbarActions)<div class="hidden sm:flex items-center gap-1.5">{{ $topbarActions }}</div>@endisset
+
+                {{-- Offline indicator --}}
+                <div id="offline-indicator" class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium" data-pending="0">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span>Offline</span>
+                    <span id="offline-sync-badge" class="hidden ml-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold">0</span>
+                </div>
 
                 {{-- Theme toggle --}}
                 <button id="theme-toggle" title="Ganti tema"
@@ -612,6 +628,7 @@ const NAV_GROUPS = {
 @endif
 @if(($navTenant?->isModuleEnabled('manufacturing') ?? true) && $canView('manufacturing'))
       { label: 'BOM Multi-Level',       href: '{{ route("manufacturing.bom") }}',      active: {{ request()->routeIs('manufacturing.bom*') ? 'true' : 'false' }} },
+      { label: 'Mix Design Beton',      href: '{{ route("manufacturing.mix-design") }}', active: {{ request()->routeIs('manufacturing.mix-design*') ? 'true' : 'false' }} },
       { label: 'Work Center',           href: '{{ route("manufacturing.work-centers") }}', active: {{ request()->routeIs('manufacturing.work-centers*') ? 'true' : 'false' }} },
       { label: 'MRP Planning',          href: '{{ route("manufacturing.mrp") }}',      active: {{ request()->routeIs('manufacturing.mrp*') ? 'true' : 'false' }} },
 @endif
@@ -623,6 +640,12 @@ const NAV_GROUPS = {
       { label: 'Maintenance',           href: '{{ route("fleet.maintenance") }}',      active: {{ request()->routeIs('fleet.maintenance*') ? 'true' : 'false' }} },
 @endif
       @if($canView('shipping'))      { label: 'Pengiriman',            href: '{{ route("shipping.index") }}',         active: {{ request()->routeIs('shipping*') ? 'true' : 'false' }} }, @endif
+@if(($navTenant?->isModuleEnabled('agriculture') ?? true))
+      { label: 'Manajemen Lahan',       href: '{{ route("farm.plots") }}',             active: {{ request()->routeIs('farm.plots*') ? 'true' : 'false' }} },
+      { label: 'Siklus Tanam',          href: '{{ route("farm.cycles") }}',            active: {{ request()->routeIs('farm.cycles*') ? 'true' : 'false' }} },
+      { label: 'Pencatatan Panen',      href: '{{ route("farm.harvests") }}',           active: {{ request()->routeIs('farm.harvests*') ? 'true' : 'false' }} },
+      { label: 'Analisis Biaya Lahan',  href: '{{ route("farm.analytics") }}',          active: {{ request()->routeIs('farm.analytics*') ? 'true' : 'false' }} },
+@endif
 @if(($navTenant?->isModuleEnabled('contracts') ?? true) && $canView('contracts'))
       { label: 'Kontrak',               href: '{{ route("contracts.index") }}',        active: {{ request()->routeIs('contracts.index') || request()->routeIs('contracts.show') ? 'true' : 'false' }} },
       { label: 'Template Kontrak',      href: '{{ route("contracts.templates") }}',    active: {{ request()->routeIs('contracts.templates*') ? 'true' : 'false' }} },
@@ -665,7 +688,7 @@ const NAV_GROUPS = {
 @endif
 @if(($navTenant?->isModuleEnabled('reimbursement') ?? true) && $canView('reimbursement'))
       { section: 'Reimbursement' },
-      { label: 'Kelola Reimbursement', href: '{{ route("reimbursement.index") }}',     active: {{ request()->routeIs('reimbursement.index') ? 'true' : 'false' }} },
+      { label: 'Kelola Reimbursement', href: '{{ route("reimbursement.index") }}',     active: {{ request()->routeIs('reimbursement.index','reimbursement.store','reimbursement.approve','reimbursement.reject','reimbursement.pay','reimbursement.destroy') ? 'true' : 'false' }} },
 @endif
 @endif
 @if(!$user?->isSuperAdmin() && !$user?->isAffiliate())
@@ -719,7 +742,7 @@ const NAV_GROUPS = {
     title: 'Analitik',
     items: [
 @if(($navTenant?->isModuleEnabled('reports') ?? true) && $canView('reports'))
-      { label: 'Laporan',               href: '{{ route("reports.index") }}',          active: {{ request()->routeIs('reports.index') ? 'true' : 'false' }} },
+      { label: 'Laporan',               href: '{{ route("reports.index") }}',          active: {{ request()->routeIs('reports.index','reports.sales*','reports.finance*','reports.inventory*','reports.hrm*','reports.receivables*','reports.profit-loss*','reports.income-statement*','reports.payroll*','reports.aging*','reports.balance-sheet*','reports.cash-flow*','reports.budget*') ? 'true' : 'false' }} },
 @endif
       @if($canView('kpi'))           { label: 'KPI Dashboard',         href: '{{ route("kpi.index") }}',              active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }} }, @endif
       @if($canView('reports'))       { label: 'AI Forecasting',        href: '{{ route("forecast.index") }}',         active: {{ request()->routeIs('forecast*') ? 'true' : 'false' }} }, @endif

@@ -3,10 +3,16 @@
     "short_name": "Qalcuity",
     "description": "Sistem ERP berbasis AI untuk UMKM dan industri",
     "start_url": "/dashboard",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#0f172a",
     "theme_color": "#0f172a",
     "orientation": "any",
+    "categories": [
+        "business",
+        "finance",
+        "productivity"
+    ],
     "icons": [
         {
             "src": "/favicon.png",
@@ -31,6 +37,25 @@
             "name": "AI Chat",
             "url": "/chat",
             "description": "Chat dengan AI ERP"
+        },
+        {
+            "name": "Dashboard",
+            "url": "/dashboard",
+            "description": "Lihat ringkasan bisnis"
+        },
+        {
+            "name": "Inventori",
+            "url": "/inventory",
+            "description": "Kelola stok barang"
+        },
+        {
+            "name": "Invoice",
+            "url": "/invoices",
+            "description": "Kelola faktur"
         }
-    ]
+    ],
+    "handle_links": "preferred",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    }
 }

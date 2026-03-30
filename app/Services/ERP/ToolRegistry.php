@@ -49,6 +49,8 @@ class ToolRegistry
             new WhatsAppTools($tenantId, $userId),
             new DocumentGeneratorTools($tenantId, $userId),
             new AppGuideTools($tenantId, $userId),
+            new ConcreteMixTools($tenantId, $userId),
+            new FarmTools($tenantId, $userId),
         ];
 
         foreach ($instances as $instance) {
@@ -158,6 +160,10 @@ class ToolRegistry
             'create_work_order', 'update_work_order_status', 'record_production_output',
             'create_project', 'update_project_progress', 'add_project_expense',
             'log_timesheet', 'add_project_task',
+            'add_rab_item', 'record_rab_actual', 'record_volume_progress',
+            'setup_concrete_standards', 'create_mix_design',
+            'create_farm_plot', 'update_plot_status', 'record_farm_activity',
+            'start_crop_cycle', 'advance_crop_phase', 'log_harvest',
             'transfer_stock', 'receive_transfer', 'adjust_stock',
             'apply_industry_template',
             // New modules

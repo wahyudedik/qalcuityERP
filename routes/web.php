@@ -183,7 +183,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/subscription/expired', fn() => view('subscription.expired'))->name('subscription.expired')->withoutMiddleware(\App\Http\Middleware\CheckTenantActive::class);
 
     // Reports & Export (admin + manager only)
-    Route::prefix('reports')->name('reports.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('reports')->name('reports.')->middleware(['role:admin,manager', 'throttle:export'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/sales/excel',     [ReportController::class, 'exportSalesExcel'])->name('sales.excel');
         Route::get('/sales/pdf',       [ReportController::class, 'exportSalesPdf'])->name('sales.pdf');
@@ -253,12 +253,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/webhooks/{webhookSubscription}', [\App\Http\Controllers\ApiSettingsController::class, 'destroyWebhook'])->name('webhooks.destroy');
         Route::post('/webhooks/{webhookSubscription}/test', [\App\Http\Controllers\ApiSettingsController::class, 'testWebhook'])->name('webhooks.test');
         Route::get('/webhooks/{webhookSubscription}/deliveries', [\App\Http\Controllers\ApiSettingsController::class, 'webhookDeliveries'])->name('webhooks.deliveries');
+        Route::post('/webhooks/deliveries/{webhookDelivery}/retry', [\App\Http\Controllers\ApiSettingsController::class, 'retryDelivery'])->name('webhooks.deliveries.retry');
+        Route::get('/webhooks/log', [\App\Http\Controllers\ApiSettingsController::class, 'deliveryLog'])->name('webhooks.log');
     });
 
     // POS Kasir
     Route::prefix('pos')->name('pos.')->middleware('permission:pos,view')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
-        Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout')->middleware('permission:pos,create');
+        Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout')->middleware(['permission:pos,create', 'throttle:pos-checkout']);
         Route::get('/barcode', [PosController::class, 'findByBarcode'])->name('barcode');
     });
 
@@ -628,8 +630,18 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
         Route::post('/{project}/tasks', [ProjectController::class, 'storeTask'])->name('tasks.store');
         Route::patch('/tasks/{task}/status', [ProjectController::class, 'updateTaskStatus'])->name('tasks.status');
+        Route::post('/tasks/{task}/volume', [ProjectController::class, 'recordVolume'])->name('tasks.volume');
         Route::delete('/tasks/{task}', [ProjectController::class, 'destroyTask'])->name('tasks.destroy');
         Route::post('/{project}/expenses', [ProjectController::class, 'storeExpense'])->name('expenses.store');
+
+        // RAB (Rencana Anggaran Biaya)
+        Route::get('/{project}/rab', [\App\Http\Controllers\RabController::class, 'index'])->name('rab');
+        Route::post('/{project}/rab', [\App\Http\Controllers\RabController::class, 'store'])->name('rab.store');
+        Route::put('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'update'])->name('rab.update');
+        Route::post('/rab/{rabItem}/actual', [\App\Http\Controllers\RabController::class, 'recordActual'])->name('rab.actual');
+        Route::delete('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'destroy'])->name('rab.destroy');
+        Route::get('/{project}/rab/export', [\App\Http\Controllers\RabController::class, 'export'])->name('rab.export');
+        Route::post('/{project}/rab/import', [\App\Http\Controllers\RabController::class, 'import'])->name('rab.import');
     });
 
     // Budget vs Actual (admin + manager only)
@@ -707,10 +719,20 @@ Route::middleware('auth')->group(function () {
     // Import CSV (admin + manager only)
     Route::prefix('import')->name('import.')->middleware('role:admin,manager')->group(function () {
         Route::get('/', [ImportController::class, 'index'])->name('index');
-        Route::post('/products', [ImportController::class, 'importProducts'])->name('products');
-        Route::post('/employees', [ImportController::class, 'importEmployees'])->name('employees');
-        Route::post('/customers', [ImportController::class, 'importCustomers'])->name('customers');
+        Route::post('/products', [ImportController::class, 'importProducts'])->name('products')->middleware('throttle:import');
+        Route::post('/employees', [ImportController::class, 'importEmployees'])->name('employees')->middleware('throttle:import');
+        Route::post('/customers', [ImportController::class, 'importCustomers'])->name('customers')->middleware('throttle:import');
+        Route::post('/suppliers', [ImportController::class, 'importSuppliers'])->name('suppliers')->middleware('throttle:import');
+        Route::post('/warehouses', [ImportController::class, 'importWarehouses'])->name('warehouses')->middleware('throttle:import');
+        Route::post('/coa', [ImportController::class, 'importChartOfAccounts'])->name('coa')->middleware('throttle:import');
         Route::get('/template/{type}', [ImportController::class, 'downloadTemplate'])->name('template');
+        // Bulk export
+        Route::get('/export/products', [ImportController::class, 'exportProducts'])->name('export.products')->middleware('throttle:export');
+        Route::get('/export/customers', [ImportController::class, 'exportCustomers'])->name('export.customers')->middleware('throttle:export');
+        Route::get('/export/suppliers', [ImportController::class, 'exportSuppliers'])->name('export.suppliers')->middleware('throttle:export');
+        Route::get('/export/employees', [ImportController::class, 'exportEmployees'])->name('export.employees')->middleware('throttle:export');
+        Route::get('/export/warehouses', [ImportController::class, 'exportWarehouses'])->name('export.warehouses')->middleware('throttle:export');
+        Route::get('/export/coa', [ImportController::class, 'exportChartOfAccounts'])->name('export.coa')->middleware('throttle:export');
     });
 
     // Payment Gateway
@@ -775,6 +797,38 @@ Route::middleware('auth')->group(function () {
         Route::delete('/work-centers/{workCenter}', [ManufacturingController::class, 'destroyWorkCenter'])->name('work-centers.destroy')->middleware('permission:manufacturing,delete');
         Route::get('/mrp', [ManufacturingController::class, 'mrp'])->name('mrp')->middleware('permission:manufacturing,view');
         Route::post('/{workOrder}/consume', [ManufacturingController::class, 'consumeMaterials'])->name('consume')->middleware('permission:manufacturing,create');
+
+        // Mix Design (Mutu Beton)
+        Route::get('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'index'])->name('mix-design')->middleware('permission:manufacturing,view');
+        Route::post('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'store'])->name('mix-design.store')->middleware('permission:manufacturing,create');
+        Route::post('/mix-design/seed-standards', [\App\Http\Controllers\ConcreteMixDesignController::class, 'seedStandards'])->name('mix-design.seed')->middleware('permission:manufacturing,create');
+        Route::put('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'update'])->name('mix-design.update')->middleware('permission:manufacturing,edit');
+        Route::delete('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'destroy'])->name('mix-design.destroy')->middleware('permission:manufacturing,delete');
+        Route::get('/mix-design/{mixDesign}/calculate', [\App\Http\Controllers\ConcreteMixDesignController::class, 'calculate'])->name('mix-design.calculate');
+        Route::post('/mix-design/{mixDesign}/generate-bom', [\App\Http\Controllers\ConcreteMixDesignController::class, 'generateBom'])->name('mix-design.generate-bom')->middleware('permission:manufacturing,create');
+    });
+
+    // Farm / Agriculture — Manajemen Lahan
+    Route::prefix('farm')->name('farm.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/plots', [\App\Http\Controllers\FarmPlotController::class, 'index'])->name('plots');
+        Route::post('/plots', [\App\Http\Controllers\FarmPlotController::class, 'store'])->name('plots.store');
+        Route::get('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'show'])->name('plots.show');
+        Route::put('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'update'])->name('plots.update');
+        Route::patch('/plots/{farmPlot}/status', [\App\Http\Controllers\FarmPlotController::class, 'updateStatus'])->name('plots.status');
+        Route::delete('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'destroy'])->name('plots.destroy');
+        Route::post('/plots/{farmPlot}/activities', [\App\Http\Controllers\FarmPlotController::class, 'storeActivity'])->name('plots.activities.store');
+        // Crop Cycles
+        Route::get('/cycles', [\App\Http\Controllers\CropCycleController::class, 'index'])->name('cycles');
+        Route::post('/cycles', [\App\Http\Controllers\CropCycleController::class, 'store'])->name('cycles.store');
+        Route::get('/cycles/{cropCycle}', [\App\Http\Controllers\CropCycleController::class, 'show'])->name('cycles.show');
+        Route::patch('/cycles/{cropCycle}/phase', [\App\Http\Controllers\CropCycleController::class, 'advancePhase'])->name('cycles.phase');
+        Route::post('/cycles/{cropCycle}/activities', [\App\Http\Controllers\CropCycleController::class, 'storeActivity'])->name('cycles.activities.store');
+        // Harvest Logs
+        Route::get('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'index'])->name('harvests');
+        Route::post('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'store'])->name('harvests.store');
+        Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show');
+        // Analytics
+        Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics');
     });
 
     // Fleet Management
@@ -873,6 +927,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/milestones/{projectMilestone}/invoice', [ProjectBillingController::class, 'generateMilestone'])->name('milestones.invoice')->middleware('permission:project_billing,create');
         Route::post('/{project}/time-material', [ProjectBillingController::class, 'generateTimeMaterial'])->name('time-material')->middleware('permission:project_billing,create');
         Route::post('/{project}/retainer', [ProjectBillingController::class, 'generateRetainer'])->name('retainer')->middleware('permission:project_billing,create');
+        Route::post('/{project}/termin', [ProjectBillingController::class, 'generateTermin'])->name('termin')->middleware('permission:project_billing,create');
+        Route::post('/invoices/{projectInvoice}/release-retention', [ProjectBillingController::class, 'releaseRetention'])->name('release-retention')->middleware('permission:project_billing,edit');
     });
 
     // Subscription Billing
@@ -1158,14 +1214,14 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 // Bot Webhooks (no auth, verified by platform token)
-Route::post('/webhook/telegram', [BotController::class, 'telegramWebhook'])->name('webhook.telegram');
+Route::post('/webhook/telegram', [BotController::class, 'telegramWebhook'])->name('webhook.telegram')->middleware('throttle:webhook-inbound');
 Route::get('/webhook/whatsapp', [BotController::class, 'whatsappWebhook'])->name('webhook.whatsapp.verify');
-Route::post('/webhook/whatsapp', [BotController::class, 'whatsappWebhook'])->name('webhook.whatsapp');
+Route::post('/webhook/whatsapp', [BotController::class, 'whatsappWebhook'])->name('webhook.whatsapp')->middleware('throttle:webhook-inbound');
 
 // Payment Gateway Webhooks (no auth, verified by signature middleware)
 Route::post('/webhook/midtrans', [\App\Http\Controllers\PaymentGatewayController::class, 'midtransWebhook'])
     ->name('webhook.midtrans')
-    ->middleware('webhook.verify:midtrans');
+    ->middleware(['webhook.verify:midtrans', 'throttle:webhook-inbound']);
 Route::post('/webhook/xendit', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditWebhook'])
     ->name('webhook.xendit')
-    ->middleware('webhook.verify:xendit');
+    ->middleware(['webhook.verify:xendit', 'throttle:webhook-inbound']);

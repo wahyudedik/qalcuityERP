@@ -9,7 +9,7 @@
         * {
             box-sizing: border-box;
             margin: 0;
-            padding: 0;
+            padding: 0
         }
 
         body {
@@ -20,85 +20,97 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 1rem;
+            padding: 1rem
         }
 
         .card {
             text-align: center;
-            max-width: 360px;
-            width: 100%;
+            max-width: 400px;
+            width: 100%
         }
 
         .icon {
             font-size: 3.5rem;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.25rem
         }
 
         h1 {
             font-size: 1.375rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: .5rem
         }
 
         p {
             color: #94a3b8;
-            font-size: 0.875rem;
-            line-height: 1.6;
+            font-size: .875rem;
+            line-height: 1.6
         }
 
         .actions {
             margin-top: 1.75rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: .75rem
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.875rem;
-            font-size: 0.875rem;
+            padding: .75rem 1.5rem;
+            border-radius: .875rem;
+            font-size: .875rem;
             font-weight: 600;
             cursor: pointer;
             border: none;
-            transition: opacity .15s;
+            transition: opacity .15s
         }
 
         .btn:active {
-            opacity: .8;
+            opacity: .8
         }
 
         .btn-primary {
             background: #3b82f6;
-            color: #fff;
+            color: #fff
         }
 
         .btn-secondary {
             background: #1e293b;
             color: #94a3b8;
-            border: 1px solid #334155;
+            border: 1px solid #334155
         }
 
         .queue-info {
             margin-top: 1.5rem;
-            padding: 0.875rem 1rem;
+            padding: .875rem 1rem;
             background: #1e293b;
-            border-radius: 0.875rem;
+            border-radius: .875rem;
             border: 1px solid #334155;
             text-align: left;
-            display: none;
+            display: none
         }
 
         .queue-info.visible {
-            display: block;
+            display: block
         }
 
         .queue-info p {
-            font-size: 0.8rem;
-            color: #64748b;
+            font-size: .8rem;
+            color: #64748b
         }
 
         .queue-info strong {
-            color: #f59e0b;
+            color: #f59e0b
+        }
+
+        .queue-section {
+            margin-top: .75rem;
+            padding-top: .75rem;
+            border-top: 1px solid #334155
+        }
+
+        .queue-section:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none
         }
 
         .status-dot {
@@ -108,7 +120,7 @@
             border-radius: 50%;
             background: #ef4444;
             margin-right: 6px;
-            animation: pulse 1.5s infinite;
+            animation: pulse 1.5s infinite
         }
 
         @keyframes pulse {
@@ -122,6 +134,18 @@
                 opacity: .4
             }
         }
+
+        .module-tag {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #334155;
+            color: #94a3b8;
+            margin-right: 4px
+        }
     </style>
 </head>
 
@@ -129,12 +153,20 @@
     <div class="card">
         <div class="icon">📡</div>
         <h1>Tidak Ada Koneksi</h1>
-        <p>Periksa koneksi internet Anda. Transaksi POS yang dibuat saat offline akan otomatis tersinkronisasi saat
-            koneksi pulih.</p>
+        <p>Periksa koneksi internet Anda. Perubahan yang dibuat saat offline akan otomatis tersinkronisasi saat koneksi
+            pulih.</p>
 
         <div class="queue-info" id="queue-info">
-            <p><span class="status-dot"></span><strong id="queue-count">0</strong> transaksi menunggu sinkronisasi</p>
-            <p style="margin-top:4px">Akan dikirim otomatis saat online kembali.</p>
+            <div id="pos-queue-section" class="queue-section" style="display:none">
+                <p><span class="status-dot"></span><span class="module-tag">POS</span><strong id="pos-count">0</strong>
+                    transaksi menunggu</p>
+            </div>
+            <div id="erp-queue-section" class="queue-section" style="display:none">
+                <p><span class="status-dot"></span><span class="module-tag">ERP</span><strong id="erp-count">0</strong>
+                    perubahan menunggu</p>
+                <div id="erp-modules" style="margin-top:6px"></div>
+            </div>
+            <p style="margin-top:8px">Akan dikirim otomatis saat online kembali.</p>
         </div>
 
         <div class="actions">
@@ -144,29 +176,71 @@
     </div>
 
     <script>
-        // Cek antrian POS offline
-        async function checkQueue() {
-            try {
-                const req = indexedDB.open('qalcuity-pos', 1);
-                req.onsuccess = e => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains('pos_queue')) return;
-                    const tx = db.transaction('pos_queue', 'readonly');
-                    const store = tx.objectStore('pos_queue');
-                    const countReq = store.count();
-                    countReq.onsuccess = () => {
-                        const count = countReq.result;
-                        if (count > 0) {
-                            document.getElementById('queue-count').textContent = count;
-                            document.getElementById('queue-info').classList.add('visible');
-                        }
-                    };
-                };
-            } catch { }
-        }
-        checkQueue();
+        async function checkQueues() {
+            let hasItems = false;
 
-        // Auto-reload saat online kembali
+            // Check POS queue
+            try {
+                const posDb = await openIdb('qalcuity-pos', 1);
+                if (posDb.objectStoreNames.contains('pos_queue')) {
+                    const count = await idbCount(posDb, 'pos_queue');
+                    if (count > 0) {
+                        document.getElementById('pos-count').textContent = count;
+                        document.getElementById('pos-queue-section').style.display = '';
+                        hasItems = true;
+                    }
+                }
+            } catch { }
+
+            // Check ERP mutation queue
+            try {
+                const erpDb = await openIdb('qalcuity-erp', 1);
+                if (erpDb.objectStoreNames.contains('mutation_queue')) {
+                    const items = await idbGetAll(erpDb, 'mutation_queue');
+                    if (items.length > 0) {
+                        document.getElementById('erp-count').textContent = items.length;
+                        document.getElementById('erp-queue-section').style.display = '';
+                        hasItems = true;
+
+                        // Group by module
+                        const byModule = {};
+                        items.forEach(i => { byModule[i.module] = (byModule[i.module] || 0) + 1; });
+                        const el = document.getElementById('erp-modules');
+                        el.innerHTML = Object.entries(byModule).map(([mod, cnt]) =>
+                            `<span class="module-tag">${mod}</span><span style="color:#94a3b8;font-size:.75rem">${cnt} item</span> `
+                        ).join('');
+                    }
+                }
+            } catch { }
+
+            if (hasItems) {
+                document.getElementById('queue-info').classList.add('visible');
+            }
+        }
+
+        function openIdb(name, ver) {
+            return new Promise((resolve, reject) => {
+                const r = indexedDB.open(name, ver);
+                r.onsuccess = e => resolve(e.target.result);
+                r.onerror = e => reject(e.target.error);
+            });
+        }
+        function idbCount(db, store) {
+            return new Promise(r => {
+                const req = db.transaction(store, 'readonly').objectStore(store).count();
+                req.onsuccess = () => r(req.result);
+                req.onerror = () => r(0);
+            });
+        }
+        function idbGetAll(db, store) {
+            return new Promise(r => {
+                const req = db.transaction(store, 'readonly').objectStore(store).getAll();
+                req.onsuccess = () => r(req.result);
+                req.onerror = () => r([]);
+            });
+        }
+
+        checkQueues();
         window.addEventListener('online', () => location.reload());
     </script>
 </body>

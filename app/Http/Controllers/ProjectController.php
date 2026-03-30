@@ -107,18 +107,24 @@ class ProjectController extends Controller
         abort_unless($project->tenant_id === $this->tid(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'assigned_to' => 'nullable|exists:users,id',
-            'due_date'    => 'nullable|date',
-            'weight'      => 'nullable|integer|min:1|max:100',
-            'description' => 'nullable|string',
+            'name'            => 'required|string|max:255',
+            'assigned_to'     => 'nullable|exists:users,id',
+            'due_date'        => 'nullable|date',
+            'weight'          => 'nullable|integer|min:1|max:100',
+            'description'     => 'nullable|string',
+            'progress_method' => 'nullable|in:status,volume',
+            'target_volume'   => 'nullable|numeric|min:0',
+            'volume_unit'     => 'nullable|string|max:30',
         ]);
 
         $task = ProjectTask::create([
-            'project_id' => $project->id,
-            'tenant_id'  => $this->tid(),
-            'status'     => 'todo',
-            'weight'     => $data['weight'] ?? 1,
+            'project_id'      => $project->id,
+            'tenant_id'       => $this->tid(),
+            'status'          => 'todo',
+            'weight'          => $data['weight'] ?? 1,
+            'progress_method' => $data['progress_method'] ?? 'status',
+            'target_volume'   => (float) ($data['target_volume'] ?? 0),
+            'volume_unit'     => $data['volume_unit'] ?? null,
         ] + $data);
 
         // Notifikasi ke user yang di-assign (jika bukan diri sendiri)
@@ -168,6 +174,49 @@ class ProjectController extends Controller
         $task->delete();
         $project->recalculateProgress();
         return back()->with('success', 'Task dihapus.');
+    }
+
+    // ── Volume Progress ────────────────────────────────────────────────────
+
+    public function recordVolume(Request $request, ProjectTask $task)
+    {
+        abort_unless($task->tenant_id === $this->tid(), 403);
+        abort_unless($task->isVolumeTracked(), 422, 'Task ini tidak menggunakan tracking volume.');
+
+        $data = $request->validate([
+            'volume'      => 'required|numeric|min:0.001',
+            'date'        => 'nullable|date',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $newActual = (float) $task->actual_volume + (float) $data['volume'];
+
+        \App\Models\TaskVolumeLog::create([
+            'project_task_id' => $task->id,
+            'tenant_id'       => $this->tid(),
+            'user_id'         => auth()->id(),
+            'volume'          => (float) $data['volume'],
+            'cumulative'      => $newActual,
+            'date'            => $data['date'] ?? today(),
+            'description'     => $data['description'] ?? null,
+        ]);
+
+        $task->update(['actual_volume' => $newActual]);
+        $task->syncStatusFromVolume();
+        $task->project->recalculateProgress();
+
+        $pct = $task->volumeProgress();
+        $msg = "Volume dicatat: +{$data['volume']} {$task->volume_unit} → {$newActual}/{$task->target_volume} {$task->volume_unit} ({$pct}%)";
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok'       => true,
+                'progress' => $task->project->fresh()->progress,
+                'volume'   => ['actual' => $newActual, 'target' => $task->target_volume, 'pct' => $pct],
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     // ── Expenses ───────────────────────────────────────────────────────────

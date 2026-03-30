@@ -123,18 +123,23 @@ class OnboardingTools
         'agriculture' => [
             'label'      => 'Pertanian / Perkebunan',
             'warehouses' => ['Gudang Panen', 'Gudang Pupuk & Pestisida'],
-            'categories' => ['Bibit & Pupuk', 'Pestisida', 'Upah Panen', 'Sewa Lahan', 'Irigasi', 'Transportasi', 'Peralatan'],
+            'categories' => ['Bibit & Pupuk', 'Pestisida', 'Upah Panen', 'Sewa Lahan', 'Irigasi', 'Transportasi', 'Peralatan', 'Olah Tanah'],
             'products'   => [
                 ['name' => 'Hasil Panen Utama', 'unit' => 'kg',   'category' => 'Hasil Panen', 'price_sell' => 5000],
                 ['name' => 'Pupuk Urea',        'unit' => 'kg',   'category' => 'Input',       'price_sell' => 0],
+                ['name' => 'Pupuk NPK',         'unit' => 'kg',   'category' => 'Input',       'price_sell' => 0],
                 ['name' => 'Pestisida',         'unit' => 'liter','category' => 'Input',       'price_sell' => 0],
             ],
             'shortcuts'  => [
+                '"tambah lahan A1 sawah 2 hektar" → create_farm_plot',
+                '"daftar lahan" atau "status semua blok" → get_farm_plots',
+                '"blok A1 sudah ditanam padi" → update_plot_status',
+                '"pupuk urea 50 kg di blok A1 biaya 200 ribu" → record_farm_activity',
+                '"panen 500 kg padi dari lahan B2 grade A" → record_farm_activity',
                 '"catat panen 500 kg" → add_stock',
-                '"buat WO panen lahan A" → create_work_order',
                 '"jual 1 ton ke pengepul X" → create_sales_order',
-                '"biaya produksi per kg berapa?" → get_recipe_cost',
                 '"laporan laba rugi bulan ini" → get_profit_loss',
+                '"lahan mana yang siap panen?" → get_farm_plots status=ready_harvest',
             ],
         ],
     ];

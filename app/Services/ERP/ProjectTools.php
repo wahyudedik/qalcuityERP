@@ -6,6 +6,8 @@ use App\Models\Customer;
 use App\Models\Project;
 use App\Models\ProjectExpense;
 use App\Models\ProjectTask;
+use App\Models\RabItem;
+use App\Models\TaskVolumeLog;
 use App\Models\Timesheet;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -133,21 +135,111 @@ class ProjectTools
             ],
             [
                 'name'        => 'add_project_task',
-                'description' => 'Tambah task/pekerjaan baru ke proyek yang sudah ada. Gunakan untuk: '
-                    . '"tambah task finishing ke proyek rumah A", '
-                    . '"buat task testing untuk proyek website", '
+                'description' => 'Tambah task/pekerjaan baru ke proyek yang sudah ada. '
+                    . 'Mendukung tracking volume fisik untuk konstruksi. Gunakan untuk: '
+                    . '"tambah task pengecoran lantai 1 target 120 m3 proyek rumah A", '
+                    . '"buat task galian pondasi 500 m3", '
                     . '"tambah pekerjaan instalasi listrik ke proyek X".',
                 'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
-                        'project_name' => ['type' => 'string',  'description' => 'Nama atau nomor proyek'],
-                        'task_name'    => ['type' => 'string',  'description' => 'Nama task/pekerjaan'],
-                        'budget'       => ['type' => 'number',  'description' => 'Anggaran task (opsional)'],
-                        'weight'       => ['type' => 'integer', 'description' => 'Bobot task untuk progress (default: 1)'],
-                        'due_date'     => ['type' => 'string',  'description' => 'Deadline task YYYY-MM-DD (opsional)'],
-                        'assigned_to'  => ['type' => 'string',  'description' => 'Nama karyawan yang ditugaskan (opsional)'],
+                        'project_name'    => ['type' => 'string',  'description' => 'Nama atau nomor proyek'],
+                        'task_name'       => ['type' => 'string',  'description' => 'Nama task/pekerjaan'],
+                        'budget'          => ['type' => 'number',  'description' => 'Anggaran task (opsional)'],
+                        'weight'          => ['type' => 'integer', 'description' => 'Bobot task untuk progress (default: 1)'],
+                        'due_date'        => ['type' => 'string',  'description' => 'Deadline task YYYY-MM-DD (opsional)'],
+                        'assigned_to'     => ['type' => 'string',  'description' => 'Nama karyawan yang ditugaskan (opsional)'],
+                        'progress_method' => ['type' => 'string',  'description' => 'Metode tracking: "status" (default, berbasis status task) atau "volume" (berbasis volume fisik, untuk konstruksi)'],
+                        'target_volume'   => ['type' => 'number',  'description' => 'Target volume fisik (wajib jika progress_method=volume). Contoh: 120 untuk 120 m³'],
+                        'volume_unit'     => ['type' => 'string',  'description' => 'Satuan volume: m3, m2, m, kg, batang, titik, unit, dll'],
                     ],
                     'required' => ['project_name', 'task_name'],
+                ],
+            ],
+            // ── RAB (Rencana Anggaran Biaya) ──────────────────────
+            [
+                'name'        => 'add_rab_item',
+                'description' => 'Tambah item RAB (Rencana Anggaran Biaya) ke proyek. '
+                    . 'Gunakan untuk: "tambah RAB semen 100 sak harga 65000", '
+                    . '"RAB pengecoran lantai 1: 120 m3 harga 1.200.000/m3", '
+                    . '"buat grup RAB Pekerjaan Struktur".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'project_name' => ['type' => 'string',  'description' => 'Nama atau nomor proyek'],
+                        'name'         => ['type' => 'string',  'description' => 'Uraian pekerjaan / nama item'],
+                        'type'         => ['type' => 'string',  'description' => 'Tipe: "group" (header/grup) atau "item" (item pekerjaan). Default: item'],
+                        'group_name'   => ['type' => 'string',  'description' => 'Nama grup parent (opsional, untuk memasukkan item ke dalam grup)'],
+                        'code'         => ['type' => 'string',  'description' => 'Kode item, misal: I, I.1, I.1.a (opsional)'],
+                        'category'     => ['type' => 'string',  'description' => 'Kategori: material, labor, equipment, subcontract, overhead (opsional)'],
+                        'volume'       => ['type' => 'number',  'description' => 'Volume/kuantitas pekerjaan'],
+                        'unit'         => ['type' => 'string',  'description' => 'Satuan: m3, m2, kg, sak, batang, ls, unit, titik, dll'],
+                        'unit_price'   => ['type' => 'number',  'description' => 'Harga satuan (Rupiah)'],
+                        'coefficient'  => ['type' => 'number',  'description' => 'Koefisien pengali (default: 1)'],
+                        'notes'        => ['type' => 'string',  'description' => 'Catatan tambahan (opsional)'],
+                    ],
+                    'required' => ['project_name', 'name'],
+                ],
+            ],
+            [
+                'name'        => 'get_rab',
+                'description' => 'Lihat RAB (Rencana Anggaran Biaya) proyek. '
+                    . 'Gunakan untuk: "lihat RAB proyek rumah A", "total RAB berapa?", '
+                    . '"breakdown biaya proyek", "RAB vs realisasi".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'project_name' => ['type' => 'string', 'description' => 'Nama atau nomor proyek'],
+                    ],
+                    'required' => ['project_name'],
+                ],
+            ],
+            [
+                'name'        => 'record_rab_actual',
+                'description' => 'Catat realisasi biaya dan volume aktual untuk item RAB. '
+                    . 'Gunakan untuk: "realisasi pengecoran lantai 1 sudah 80 m3 biaya 90 juta", '
+                    . '"update realisasi semen 60 juta".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'project_name'  => ['type' => 'string', 'description' => 'Nama atau nomor proyek'],
+                        'item_name'     => ['type' => 'string', 'description' => 'Nama item RAB yang akan diupdate'],
+                        'actual_cost'   => ['type' => 'number', 'description' => 'Realisasi biaya (Rupiah)'],
+                        'actual_volume' => ['type' => 'number', 'description' => 'Realisasi volume (opsional)'],
+                    ],
+                    'required' => ['project_name', 'item_name'],
+                ],
+            ],
+            // ── Volume Progress ───────────────────────────────────
+            [
+                'name'        => 'record_volume_progress',
+                'description' => 'Catat progress volume fisik untuk task proyek. '
+                    . 'Gunakan untuk: "pengecoran lantai 2 sudah 45 m3", '
+                    . '"progress galian hari ini 30 m3", '
+                    . '"catat volume pemasangan bata 50 m2 hari ini".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'project_name' => ['type' => 'string', 'description' => 'Nama atau nomor proyek'],
+                        'task_name'    => ['type' => 'string', 'description' => 'Nama task/pekerjaan'],
+                        'volume'       => ['type' => 'number', 'description' => 'Volume yang dikerjakan (ditambahkan ke volume aktual)'],
+                        'description'  => ['type' => 'string', 'description' => 'Keterangan pekerjaan (opsional)'],
+                    ],
+                    'required' => ['project_name', 'task_name', 'volume'],
+                ],
+            ],
+            [
+                'name'        => 'get_volume_progress',
+                'description' => 'Lihat progress volume fisik semua task di proyek. '
+                    . 'Gunakan untuk: "progress volume proyek rumah A", '
+                    . '"berapa persen pengecoran sudah selesai?", '
+                    . '"volume fisik proyek hari ini".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'project_name' => ['type' => 'string', 'description' => 'Nama atau nomor proyek'],
+                    ],
+                    'required' => ['project_name'],
                 ],
             ],
         ];
@@ -493,7 +585,6 @@ class ProjectTools
             return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
         }
 
-        // Cari user yang ditugaskan jika ada
         $assignedTo = null;
         if (!empty($args['assigned_to'])) {
             $assignedUser = User::where('tenant_id', $this->tenantId)
@@ -502,26 +593,322 @@ class ProjectTools
             $assignedTo = $assignedUser?->id;
         }
 
+        $progressMethod = $args['progress_method'] ?? 'status';
+        $targetVolume = (float) ($args['target_volume'] ?? 0);
+        $volumeUnit = $args['volume_unit'] ?? null;
+
+        // Auto-detect volume tracking if target_volume is provided
+        if ($targetVolume > 0 && $progressMethod === 'status') {
+            $progressMethod = 'volume';
+        }
+
         $task = ProjectTask::create([
-            'project_id'  => $project->id,
-            'tenant_id'   => $this->tenantId,
-            'assigned_to' => $assignedTo,
-            'name'        => $args['task_name'],
-            'budget'      => $args['budget'] ?? 0,
-            'weight'      => $args['weight'] ?? 1,
-            'due_date'    => $args['due_date'] ?? null,
-            'status'      => 'todo',
+            'project_id'      => $project->id,
+            'tenant_id'       => $this->tenantId,
+            'assigned_to'     => $assignedTo,
+            'name'            => $args['task_name'],
+            'budget'          => $args['budget'] ?? 0,
+            'weight'          => $args['weight'] ?? 1,
+            'due_date'        => $args['due_date'] ?? null,
+            'status'          => 'todo',
+            'progress_method' => $progressMethod,
+            'target_volume'   => $targetVolume,
+            'volume_unit'     => $volumeUnit,
         ]);
 
         $assignMsg = $assignedTo ? " — ditugaskan ke **{$args['assigned_to']}**" : '';
         $dueMsg    = !empty($args['due_date'])
             ? ", deadline: **" . \Carbon\Carbon::parse($args['due_date'])->format('d M Y') . "**"
             : '';
+        $volMsg = $task->isVolumeTracked()
+            ? "\n📐 Tracking volume: **{$targetVolume} {$volumeUnit}** (progress otomatis dari volume fisik)"
+            : '';
 
         return [
             'status'  => 'success',
-            'message' => "Task **{$task->name}** berhasil ditambahkan ke proyek **{$project->name}**{$assignMsg}{$dueMsg}.",
-            'data'    => ['task' => $task->name, 'project' => $project->name],
+            'message' => "Task **{$task->name}** berhasil ditambahkan ke proyek **{$project->name}**{$assignMsg}{$dueMsg}.{$volMsg}",
+            'data'    => [
+                'task'            => $task->name,
+                'project'         => $project->name,
+                'progress_method' => $progressMethod,
+                'target_volume'   => $targetVolume,
+                'volume_unit'     => $volumeUnit,
+            ],
+        ];
+    }
+
+    // ─── RAB Executors ───────────────────────────────────────────
+
+    public function addRabItem(array $args): array
+    {
+        $project = $this->findProject($args['project_name']);
+        if (!$project) {
+            return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
+        }
+
+        $type = strtolower($args['type'] ?? 'item');
+        $type = in_array($type, ['group', 'grup', 'header']) ? 'group' : 'item';
+
+        // Find parent group if specified
+        $parentId = null;
+        if (!empty($args['group_name'])) {
+            $parent = RabItem::where('project_id', $project->id)
+                ->where('type', 'group')
+                ->where('name', 'like', "%{$args['group_name']}%")
+                ->first();
+            $parentId = $parent?->id;
+        }
+
+        $maxSort = RabItem::where('project_id', $project->id)
+            ->where('parent_id', $parentId)
+            ->max('sort_order') ?? 0;
+
+        $item = RabItem::create([
+            'project_id'  => $project->id,
+            'tenant_id'   => $this->tenantId,
+            'parent_id'   => $parentId,
+            'code'        => $args['code'] ?? null,
+            'name'        => $args['name'],
+            'type'        => $type,
+            'category'    => $args['category'] ?? null,
+            'volume'      => (float) ($args['volume'] ?? 0),
+            'unit'        => $args['unit'] ?? null,
+            'unit_price'  => (float) ($args['unit_price'] ?? 0),
+            'coefficient' => (float) ($args['coefficient'] ?? 1),
+            'sort_order'  => $maxSort + 1,
+            'notes'       => $args['notes'] ?? null,
+        ]);
+
+        RabItem::recalculateProject($project->id);
+
+        $subtotalMsg = $type === 'item' && $item->subtotal > 0
+            ? " — subtotal: **Rp " . number_format($item->subtotal, 0, ',', '.') . "**"
+            : '';
+        $parentMsg = $parentId ? " (di dalam grup \"{$parent->name}\")" : '';
+
+        return [
+            'status'  => 'success',
+            'message' => ($type === 'group' ? "Grup" : "Item") . " RAB **{$item->name}** berhasil ditambahkan ke proyek **{$project->name}**{$parentMsg}{$subtotalMsg}.",
+            'data'    => [
+                'id'        => $item->id,
+                'name'      => $item->name,
+                'type'      => $type,
+                'volume'    => $item->volume,
+                'unit'      => $item->unit,
+                'unit_price'=> $item->unit_price,
+                'subtotal'  => $item->subtotal,
+                'total_rab' => RabItem::where('project_id', $project->id)->whereNull('parent_id')->sum('subtotal'),
+            ],
+        ];
+    }
+
+    public function getRab(array $args): array
+    {
+        $project = $this->findProject($args['project_name']);
+        if (!$project) {
+            return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
+        }
+
+        $items = RabItem::where('project_id', $project->id)->orderBy('sort_order')->get();
+
+        if ($items->isEmpty()) {
+            return [
+                'status'  => 'empty',
+                'message' => "Proyek **{$project->name}** belum memiliki RAB. Gunakan `add_rab_item` untuk menambahkan item.",
+            ];
+        }
+
+        $totalRab    = $items->whereNull('parent_id')->sum('subtotal');
+        $totalActual = $items->where('type', 'item')->sum('actual_cost');
+
+        $rows = [];
+        foreach ($items as $item) {
+            $row = [
+                'kode'       => $item->code,
+                'uraian'     => $item->name,
+                'tipe'       => $item->type,
+            ];
+            if ($item->type === 'item') {
+                $row['volume']      = $item->volume . ' ' . $item->unit;
+                $row['harga_satuan']= 'Rp ' . number_format($item->unit_price, 0, ',', '.');
+                $row['koefisien']   = $item->coefficient != 1 ? $item->coefficient : null;
+                $row['subtotal']    = 'Rp ' . number_format($item->subtotal, 0, ',', '.');
+                $row['realisasi']   = $item->actual_cost > 0 ? 'Rp ' . number_format($item->actual_cost, 0, ',', '.') : null;
+                $row['kategori']    = $item->category;
+            } else {
+                $row['subtotal']  = 'Rp ' . number_format($item->subtotal, 0, ',', '.');
+                $row['realisasi'] = $item->actual_cost > 0 ? 'Rp ' . number_format($item->actual_cost, 0, ',', '.') : null;
+            }
+            $rows[] = $row;
+        }
+
+        $variance = $totalRab - $totalActual;
+
+        return [
+            'status'  => 'success',
+            'message' => "RAB proyek **{$project->name}**",
+            'data'    => [
+                'project'        => $project->name,
+                'total_rab'      => 'Rp ' . number_format($totalRab, 0, ',', '.'),
+                'total_realisasi'=> 'Rp ' . number_format($totalActual, 0, ',', '.'),
+                'selisih'        => ($variance >= 0 ? '' : '-') . 'Rp ' . number_format(abs($variance), 0, ',', '.'),
+                'status_budget'  => $variance >= 0 ? 'UNDER BUDGET' : 'OVER BUDGET',
+                'jumlah_item'    => $items->where('type', 'item')->count(),
+                'items'          => $rows,
+                'url'            => "/projects/{$project->id}/rab",
+            ],
+        ];
+    }
+
+    public function recordRabActual(array $args): array
+    {
+        $project = $this->findProject($args['project_name']);
+        if (!$project) {
+            return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
+        }
+
+        $item = RabItem::where('project_id', $project->id)
+            ->where('type', 'item')
+            ->where('name', 'like', "%{$args['item_name']}%")
+            ->first();
+
+        if (!$item) {
+            return ['status' => 'not_found', 'message' => "Item RAB \"{$args['item_name']}\" tidak ditemukan di proyek {$project->name}."];
+        }
+
+        $item->update([
+            'actual_cost'   => isset($args['actual_cost']) ? (float) $args['actual_cost'] : $item->actual_cost,
+            'actual_volume' => isset($args['actual_volume']) ? (float) $args['actual_volume'] : $item->actual_volume,
+        ]);
+
+        RabItem::recalculateProject($project->id);
+
+        $overBudget = $item->actual_cost > $item->subtotal;
+
+        return [
+            'status'  => 'success',
+            'message' => "Realisasi item **{$item->name}** berhasil dicatat."
+                . "\n- RAB: Rp " . number_format($item->subtotal, 0, ',', '.')
+                . "\n- Realisasi: Rp " . number_format($item->actual_cost, 0, ',', '.')
+                . "\n- " . ($overBudget ? "⚠️ **OVER BUDGET** " : "✅ Under budget ")
+                . "(" . $item->realizationPercent() . "%)"
+                . ($item->actual_volume > 0 ? "\n- Volume: {$item->actual_volume}/{$item->volume} {$item->unit} ({$item->volumeProgress()}%)" : ''),
+            'data'    => [
+                'item'           => $item->name,
+                'rab'            => $item->subtotal,
+                'actual'         => $item->actual_cost,
+                'realization_pct'=> $item->realizationPercent(),
+                'over_budget'    => $overBudget,
+            ],
+        ];
+    }
+
+    // ─── Volume Progress Executors ───────────────────────────────
+
+    public function recordVolumeProgress(array $args): array
+    {
+        $project = $this->findProject($args['project_name']);
+        if (!$project) {
+            return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
+        }
+
+        $task = $project->tasks()
+            ->where('name', 'like', "%{$args['task_name']}%")
+            ->first();
+
+        if (!$task) {
+            return ['status' => 'not_found', 'message' => "Task \"{$args['task_name']}\" tidak ditemukan di proyek {$project->name}."];
+        }
+
+        if (!$task->isVolumeTracked()) {
+            return [
+                'status'  => 'error',
+                'message' => "Task **{$task->name}** tidak menggunakan tracking volume. "
+                    . "Target volume: {$task->target_volume} {$task->volume_unit}. "
+                    . "Ubah progress_method ke 'volume' dan set target_volume terlebih dahulu.",
+            ];
+        }
+
+        $volume = (float) $args['volume'];
+        $newActual = (float) $task->actual_volume + $volume;
+
+        TaskVolumeLog::create([
+            'project_task_id' => $task->id,
+            'tenant_id'       => $this->tenantId,
+            'user_id'         => $this->userId,
+            'volume'          => $volume,
+            'cumulative'      => $newActual,
+            'date'            => today(),
+            'description'     => $args['description'] ?? null,
+        ]);
+
+        $task->update(['actual_volume' => $newActual]);
+        $task->syncStatusFromVolume();
+        $project->recalculateProgress();
+        $project->refresh();
+
+        $pct = $task->volumeProgress();
+        $remaining = $task->remainingVolume();
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+
+        return [
+            'status'  => 'success',
+            'message' => "Volume dicatat untuk **{$task->name}**:"
+                . "\n- Ditambahkan: **+{$fmt($volume)} {$task->volume_unit}**"
+                . "\n- Total: **{$fmt($newActual)} / {$fmt($task->target_volume)} {$task->volume_unit}** ({$pct}%)"
+                . ($remaining > 0 ? "\n- Sisa: **{$fmt($remaining)} {$task->volume_unit}**" : "\n- ✅ **Target tercapai!**")
+                . "\n- Progress proyek: **{$project->progress}%**",
+            'data'    => [
+                'task'     => $task->name,
+                'actual'   => $newActual,
+                'target'   => $task->target_volume,
+                'unit'     => $task->volume_unit,
+                'pct'      => $pct,
+                'remaining'=> $remaining,
+                'project_progress' => $project->progress,
+            ],
+        ];
+    }
+
+    public function getVolumeProgress(array $args): array
+    {
+        $project = $this->findProject($args['project_name']);
+        if (!$project) {
+            return ['status' => 'not_found', 'message' => "Proyek \"{$args['project_name']}\" tidak ditemukan."];
+        }
+
+        $tasks = $project->tasks()->whereNotIn('status', ['cancelled'])->get();
+        $volumeTasks = $tasks->filter(fn ($t) => $t->isVolumeTracked());
+
+        if ($volumeTasks->isEmpty()) {
+            return [
+                'status'  => 'empty',
+                'message' => "Proyek **{$project->name}** belum memiliki task dengan tracking volume. "
+                    . "Tambahkan task dengan progress_method='volume' dan target_volume.",
+            ];
+        }
+
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+
+        $rows = $volumeTasks->map(fn ($t) => [
+            'task'      => $t->name,
+            'target'    => "{$fmt($t->target_volume)} {$t->volume_unit}",
+            'actual'    => "{$fmt($t->actual_volume)} {$t->volume_unit}",
+            'progress'  => "{$t->volumeProgress()}%",
+            'remaining' => "{$fmt($t->remainingVolume())} {$t->volume_unit}",
+            'status'    => $t->status,
+        ]);
+
+        return [
+            'status'  => 'success',
+            'message' => "Progress volume fisik proyek **{$project->name}** ({$project->progress}% overall)",
+            'data'    => [
+                'project'          => $project->name,
+                'project_progress' => $project->progress,
+                'volume_tasks'     => $rows->toArray(),
+                'total_tasks'      => $tasks->count(),
+                'volume_tracked'   => $volumeTasks->count(),
+            ],
         ];
     }
 

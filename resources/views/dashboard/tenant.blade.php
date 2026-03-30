@@ -6,6 +6,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     @endpush
 
+    {{-- Offline sync status --}}
+    <x-offline-sync-status />
+
     {{-- Greeting --}}
     <div class="mb-6">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selamat datang, {{ auth()->user()->name }} 👋</h2>
@@ -442,6 +445,16 @@
         });
 
     }, 50));
+
+    // ── Offline: cache dashboard stats for offline viewing ──────────
+    if (window.ErpOffline) {
+        const statsEls = document.querySelectorAll('[data-stat-key]');
+        const statsData = {};
+        statsEls.forEach(el => { statsData[el.dataset.statKey] = el.textContent.trim(); });
+        if (Object.keys(statsData).length > 0) {
+            window.ErpOffline.cacheData('dashboard:stats', 'dashboard', statsData);
+        }
+    }
     </script>
     @endpush
 </x-app-layout>

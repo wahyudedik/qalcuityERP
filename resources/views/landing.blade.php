@@ -3,10 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qalcuity ERP — ERP Cerdas Berbasis AI untuk Bisnis Indonesia</title>
+    <title>Qalcuity ERP — ERP Cerdas Berbasis AI untuk Semua Industri Indonesia</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.png">
-    <meta name="description" content="Kelola inventory, penjualan, keuangan, SDM, dan 25+ modul bisnis dengan AI. Platform ERP SaaS modern untuk bisnis Indonesia.">
+    <link rel="canonical" href="{{ url('/') }}">
+    <meta name="description" content="Platform ERP AI untuk semua industri: retail, F&B, konstruksi, pabrik beton, pertanian, manufaktur, distributor, dan jasa. 40+ modul terintegrasi dengan AI chat. Gratis 14 hari.">
+    <meta name="keywords" content="ERP Indonesia, ERP AI, software akuntansi, aplikasi kasir POS, manajemen inventori, ERP konstruksi, ERP pertanian, ERP pabrik beton, ERP manufaktur, SaaS ERP, Qalcuity">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Noteds Technology">
+
+    {{-- Open Graph --}}
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:title" content="Qalcuity ERP — ERP Cerdas Berbasis AI untuk Semua Industri">
+    <meta property="og:description" content="Kelola inventory, penjualan, keuangan, SDM, konstruksi, pertanian, dan 40+ modul bisnis dengan AI. Cukup ketik perintah, AI langsung bertindak.">
+    <meta property="og:image" content="{{ url('/logo.png') }}">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:site_name" content="Qalcuity ERP">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Qalcuity ERP — ERP AI untuk Semua Industri Indonesia">
+    <meta name="twitter:description" content="40+ modul ERP terintegrasi AI. Retail, F&B, konstruksi, pertanian, manufaktur, distributor.">
+    <meta name="twitter:image" content="{{ url('/logo.png') }}">
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800,900&display=swap" rel="stylesheet"/>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -16,6 +36,35 @@
         .card-hover { transition: transform .2s ease, box-shadow .2s ease; }
         .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px -8px rgba(0,0,0,.1); }
     </style>
+
+    {{-- Structured Data --}}
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "SoftwareApplication",
+        "name": "Qalcuity ERP",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Platform ERP berbasis AI untuk semua industri Indonesia. 40+ modul terintegrasi: inventori, penjualan, keuangan, SDM, konstruksi, pertanian, manufaktur.",
+        "url": "{{ url('/') }}",
+        "offers": {
+            "@@type": "AggregateOffer",
+            "priceCurrency": "IDR",
+            "lowPrice": "99000",
+            "highPrice": "999000",
+            "offerCount": "4"
+        },
+        "creator": {
+            "@@type": "Organization",
+            "name": "Noteds Technology"
+        },
+        "aggregateRating": {
+            "@@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "150"
+        }
+    }
+    </script>
 </head>
 <body class="font-[Inter,sans-serif] bg-white text-gray-900 antialiased">
 
@@ -28,6 +77,7 @@
         <div class="hidden md:flex items-center gap-0.5 text-sm font-medium">
             <a href="#fitur" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Fitur</a>
             <a href="#modul" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Modul</a>
+            <a href="#industri" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Industri</a>
             <a href="#harga" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Harga</a>
             <a href="#open-clow" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Open Clow</a>
             <a href="#affiliate" class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Affiliate</a>
@@ -55,6 +105,7 @@
     <div x-show="open" x-transition class="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
         <a href="#fitur" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Fitur</a>
         <a href="#modul" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Modul</a>
+        <a href="#industri" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Industri</a>
         <a href="#harga" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Harga</a>
         <a href="#open-clow" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Open Clow</a>
         <a href="#affiliate" @click="open=false" class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Affiliate</a>
@@ -89,7 +140,7 @@
         </h1>
 
         <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-            Kelola inventory, penjualan, keuangan, SDM, produksi, CRM, fleet, kontrak, helpdesk, dan 35+ modul bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung bertindak.
+            Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, CRM, fleet, dan 40+ modul bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung bertindak. Cocok untuk retail, F&B, pabrik beton, perkebunan, distributor, dan semua jenis industri.
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -167,8 +218,8 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             @foreach([
-                ['value' => '35+',    'label' => 'Modul ERP Terintegrasi'],
-                ['value' => '99.9%',  'label' => 'Uptime SLA'],
+                ['value' => '40+',    'label' => 'Modul ERP Terintegrasi'],
+                ['value' => '8+',     'label' => 'Industri Didukung'],
                 ['value' => 'AI',     'label' => 'Powered by Qalcuity AI'],
                 ['value' => '4.9★',   'label' => 'Rating Pengguna'],
             ] as $s)
@@ -223,7 +274,7 @@
         <div class="text-center mb-16">
             <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Modul Lengkap</span>
             <h2 class="text-4xl font-black text-gray-900 mt-3">Semua yang bisnis Anda butuhkan</h2>
-            <p class="text-gray-400 mt-4 max-w-lg mx-auto">35+ modul terintegrasi, dikelola lewat satu antarmuka AI.</p>
+            <p class="text-gray-400 mt-4 max-w-lg mx-auto">40+ modul terintegrasi, dikelola lewat satu antarmuka AI.</p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
             @php
@@ -233,11 +284,11 @@
                 ['emoji'=>'🏭','title'=>'Pembelian',    'color'=>'orange','items'=>['Purchase Order','Supplier','Landed Cost','3-Way Matching']],
                 ['emoji'=>'👥','title'=>'SDM & Payroll','color'=>'purple','items'=>['Karyawan & Absensi','Penggajian','Overtime','Komisi Sales']],
                 ['emoji'=>'💰','title'=>'Keuangan',     'color'=>'indigo','items'=>['Jurnal GL','Anggaran','Rekonsiliasi Bank','Multi-currency']],
-                ['emoji'=>'🏗️','title'=>'Manufaktur',   'color'=>'amber', 'items'=>['Work Order','BOM Multi-Level','MRP Planning','Work Center']],
-                ['emoji'=>'📋','title'=>'Proyek',       'color'=>'teal',  'items'=>['Manajemen proyek','Timesheet','Project Billing','Milestone']],
-                ['emoji'=>'🤝','title'=>'CRM & Sales',  'color'=>'rose',  'items'=>['Pipeline lead','Helpdesk & Tiket','Knowledge Base','SLA Tracking']],
-                ['emoji'=>'🚛','title'=>'Fleet & Aset', 'color'=>'slate', 'items'=>['Kendaraan & Driver','BBM & Maintenance','Aset & Depresiasi','Trip Tracking']],
-                ['emoji'=>'📝','title'=>'Kontrak & Dok','color'=>'yellow','items'=>['Manajemen Kontrak','Recurring Billing','Digital Signature','AI Forecasting']],
+                ['emoji'=>'🏗️','title'=>'Konstruksi',   'color'=>'amber', 'items'=>['RAB Detail','Mix Design Beton','Progress Volume','Retensi & Termin']],
+                ['emoji'=>'🌾','title'=>'Pertanian',    'color'=>'teal',  'items'=>['Manajemen Lahan','Siklus Tanam','Pencatatan Panen','Biaya per Hektar']],
+                ['emoji'=>'⚙️','title'=>'Manufaktur',   'color'=>'slate', 'items'=>['Work Order','BOM Multi-Level','MRP Planning','Mix Design']],
+                ['emoji'=>'📋','title'=>'Proyek',       'color'=>'rose',  'items'=>['Task & Milestone','Timesheet','Project Billing','Volume Tracking']],
+                ['emoji'=>'🤝','title'=>'CRM & Sales',  'color'=>'yellow','items'=>['Pipeline lead','Helpdesk & Tiket','Knowledge Base','SLA Tracking']],
             ];
             $mc = ['blue'=>['b'=>'border-blue-200','t'=>'text-blue-700','d'=>'bg-blue-400'],'green'=>['b'=>'border-green-200','t'=>'text-green-700','d'=>'bg-green-400'],'orange'=>['b'=>'border-orange-200','t'=>'text-orange-700','d'=>'bg-orange-400'],'purple'=>['b'=>'border-purple-200','t'=>'text-purple-700','d'=>'bg-purple-400'],'indigo'=>['b'=>'border-indigo-200','t'=>'text-indigo-700','d'=>'bg-indigo-400'],'amber'=>['b'=>'border-amber-200','t'=>'text-amber-700','d'=>'bg-amber-400'],'teal'=>['b'=>'border-teal-200','t'=>'text-teal-700','d'=>'bg-teal-400'],'rose'=>['b'=>'border-rose-200','t'=>'text-rose-700','d'=>'bg-rose-400'],'slate'=>['b'=>'border-slate-200','t'=>'text-slate-700','d'=>'bg-slate-400'],'yellow'=>['b'=>'border-yellow-200','t'=>'text-yellow-700','d'=>'bg-yellow-400']];
             @endphp
@@ -257,15 +308,15 @@
             @endforeach
         </div>
         <div class="mt-5 flex flex-wrap gap-2 justify-center">
-            @foreach(['🚚 Pengiriman','🛍️ E-Commerce','🤖 Bot WA/Telegram','🏦 Rekonsiliasi Bank','⭐ Loyalty Program','✍️ Tanda Tangan Digital','📊 AI Forecasting','🔔 Push Notification','🏪 Konsinyasi','📐 Project Billing','🔄 Subscription Billing','🎫 Helpdesk & Tiket','🚢 Landed Cost','💵 Komisi Sales'] as $tag)
+            @foreach(['🚚 Pengiriman','🛍️ E-Commerce','🤖 Bot WA/Telegram','🏦 Rekonsiliasi Bank','⭐ Loyalty Program','✍️ Tanda Tangan Digital','📊 AI Forecasting','🔔 Push Notification','🏪 Konsinyasi','📐 Project Billing','🔄 Subscription Billing','🎫 Helpdesk & Tiket','🚢 Landed Cost','💵 Komisi Sales','🚛 Fleet & Aset','📝 Kontrak','🧮 Mix Design Beton','📐 RAB Konstruksi','🌱 Siklus Tanam','🌾 Pencatatan Panen','📦 Bulk Import/Export','🔗 Webhook Outbound'] as $tag)
             <span class="text-xs bg-white border border-gray-200 rounded-full px-3 py-1.5 text-gray-500 shadow-sm">{{ $tag }}</span>
             @endforeach
         </div>
         <div class="mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white text-center">
             <p class="text-lg font-bold mb-2">Semua modul terhubung ke Qalcuity AI</p>
             <p class="text-blue-200 text-sm max-w-lg mx-auto">
-                Cukup ketik <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Buatkan laporan penjualan bulan ini"</span> atau
-                <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Cek karyawan yang belum absen hari ini"</span> — AI langsung mengeksekusi.
+                Cukup ketik <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Hitung kebutuhan beton K-300 untuk 50 m³"</span> atau
+                <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Panen 500 kg padi dari blok A1 grade A"</span> — AI langsung mengeksekusi.
             </p>
         </div>
     </div>
@@ -373,11 +424,12 @@
                     <span class="ml-auto text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">Chart.js</span>
                 </div>
                 <div class="space-y-2.5">
-                    @foreach([['Jan','60%','Rp 28jt'],['Feb','75%','Rp 35jt'],['Mar','55%','Rp 26jt'],['Apr','90%','Rp 42jt'],['Mei','80%','Rp 38jt']] as [$m,$p,$v])
+                    @php $chartData = [['m'=>'Jan','p'=>'60%','v'=>'Rp 28jt'],['m'=>'Feb','p'=>'75%','v'=>'Rp 35jt'],['m'=>'Mar','p'=>'55%','v'=>'Rp 26jt'],['m'=>'Apr','p'=>'90%','v'=>'Rp 42jt'],['m'=>'Mei','p'=>'80%','v'=>'Rp 38jt']]; @endphp
+                    @foreach($chartData as $cd)
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-400 w-6 shrink-0">{{ $m }}</span>
-                        <div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full" style="width:{{ $p }}"></div></div>
-                        <span class="text-xs text-gray-500 w-12 text-right shrink-0">{{ $v }}</span>
+                        <span class="text-xs text-gray-400 w-6 shrink-0">{{ $cd['m'] }}</span>
+                        <div class="flex-1 bg-gray-100 rounded-full h-1.5"><div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full" style="width:{{ $cd['p'] }}"></div></div>
+                        <span class="text-xs text-gray-500 w-12 text-right shrink-0">{{ $cd['v'] }}</span>
                     </div>
                     @endforeach
                 </div>
@@ -387,8 +439,41 @@
     </div>
 </section>
 
+{{-- ══ INDUSTRI ══ --}}
+<section id="industri" class="py-24 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Untuk Semua Industri</span>
+            <h2 class="text-4xl font-black text-gray-900 mt-3">Satu platform, semua jenis bisnis</h2>
+            <p class="text-gray-400 mt-4 max-w-lg mx-auto">Template industri siap pakai dengan AI yang memahami konteks spesifik bisnis Anda.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @php
+            $industries = [
+                ['emoji'=>'🏪','title'=>'Retail & Toko','desc'=>'POS, inventori, loyalty, multi-gudang, e-commerce','color'=>'bg-blue-50 border-blue-200'],
+                ['emoji'=>'🍜','title'=>'F&B & Kuliner','desc'=>'POS kasir, resep/BOM, stok bahan baku, HPP per menu','color'=>'bg-orange-50 border-orange-200'],
+                ['emoji'=>'🏗️','title'=>'Konstruksi','desc'=>'RAB detail, mix design beton, progress volume, retensi & termin','color'=>'bg-amber-50 border-amber-200'],
+                ['emoji'=>'🌾','title'=>'Pertanian','desc'=>'Manajemen lahan, siklus tanam, pencatatan panen, biaya per hektar','color'=>'bg-green-50 border-green-200'],
+                ['emoji'=>'🏭','title'=>'Manufaktur','desc'=>'BOM multi-level, work order, MRP planning, work center','color'=>'bg-slate-50 border-slate-200'],
+                ['emoji'=>'📦','title'=>'Distributor','desc'=>'WMS gudang, landed cost, konsinyasi, fleet kendaraan','color'=>'bg-purple-50 border-purple-200'],
+                ['emoji'=>'🔧','title'=>'Jasa & Konsultan','desc'=>'Project billing, timesheet, kontrak, CRM pipeline','color'=>'bg-rose-50 border-rose-200'],
+                ['emoji'=>'🧱','title'=>'Pabrik Beton','desc'=>'Mix design SNI (K-175 s/d K-500), hitung kebutuhan material, HPP per m³','color'=>'bg-cyan-50 border-cyan-200'],
+            ];
+            @endphp
+            @foreach($industries as $ind)
+            <div class="card-hover bg-white border {{ $ind['color'] }} rounded-2xl p-5">
+                <span class="text-3xl">{{ $ind['emoji'] }}</span>
+                <h3 class="font-bold text-gray-900 mt-3 mb-1.5 text-sm">{{ $ind['title'] }}</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">{{ $ind['desc'] }}</p>
+            </div>
+            @endforeach
+        </div>
+        <p class="text-center text-sm text-gray-400 mt-8">Ketik <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template konstruksi"</span> atau <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template pertanian"</span> di AI Chat untuk langsung mulai.</p>
+    </div>
+</section>
+
 {{-- ══ HOW IT WORKS ══ --}}
-<section class="py-24 bg-gray-50">
+<section class="py-24 bg-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Cara Kerja</span>
@@ -552,13 +637,16 @@
         <div x-data="{ active: null }" class="space-y-2">
             @php
             $faqs = [
-                ['q'=>'Apakah data saya aman?','a'=>'Ya. Setiap perusahaan memiliki data yang terisolasi penuh. Tidak ada akses silang antar perusahaan.'],
+                ['q'=>'Apakah data saya aman?','a'=>'Ya. Setiap perusahaan memiliki data yang terisolasi penuh (multi-tenant). Tidak ada akses silang antar perusahaan. Semua data dienkripsi.'],
+                ['q'=>'Industri apa saja yang didukung?','a'=>'Qalcuity ERP mendukung semua jenis industri: retail, F&B, konstruksi, pabrik beton, pertanian/perkebunan, manufaktur, distributor, jasa/konsultan, dan lainnya. Setiap industri memiliki template siap pakai dengan modul yang direkomendasikan.'],
+                ['q'=>'Apakah cocok untuk bisnis konstruksi?','a'=>'Ya. Kami memiliki modul khusus konstruksi: RAB (Rencana Anggaran Biaya) dengan breakdown volume × harga satuan × koefisien, mix design beton standar SNI (K-175 s/d K-500), progress fisik per volume, dan billing termin dengan retensi.'],
+                ['q'=>'Apakah cocok untuk pertanian/perkebunan?','a'=>'Ya. Modul pertanian mencakup: manajemen lahan/blok kebun, siklus tanam (persiapan → tanam → panen → pasca panen), pencatatan panen per grade kualitas, dan analisis biaya per hektar serta HPP per kg hasil panen.'],
                 ['q'=>'Apakah AI bisa salah mengeksekusi perintah?','a'=>'Qalcuity AI memiliki lapisan validasi sebelum melakukan operasi write ke database. Untuk aksi kritis, AI akan meminta konfirmasi terlebih dahulu.'],
                 ['q'=>'Berapa banyak pengguna yang bisa ditambahkan?','a'=>'Starter: 2 pengguna, Business: 10 pengguna, Professional: 25 pengguna, Enterprise: tidak terbatas.'],
-                ['q'=>'Apakah bisa diakses dari mobile?','a'=>'Ya, antarmuka Qalcuity ERP responsif dan dapat diakses dari browser mobile manapun.'],
-                ['q'=>'Bagaimana cara migrasi data dari sistem lama?','a'=>'Kami menyediakan template import Excel untuk produk, pelanggan, dan supplier. Tim support kami siap membantu proses migrasi.'],
+                ['q'=>'Apakah bisa diakses dari mobile?','a'=>'Ya. Qalcuity ERP adalah PWA (Progressive Web App) yang bisa diinstall di smartphone dan bekerja offline untuk modul tertentu.'],
+                ['q'=>'Bagaimana cara migrasi data dari sistem lama?','a'=>'Kami menyediakan bulk import CSV/Excel untuk semua master data: produk, pelanggan, supplier, karyawan, gudang, dan chart of accounts. Mendukung mode update untuk data yang sudah ada.'],
+                ['q'=>'Apakah ada API untuk integrasi?','a'=>'Ya. REST API lengkap dengan rate limiting per plan, webhook outbound untuk notifikasi real-time ke sistem pihak ketiga, dan HMAC signature verification.'],
                 ['q'=>'Apakah ada kontrak jangka panjang?','a'=>'Tidak. Semua plan berbasis bulanan dan bisa dibatalkan kapan saja tanpa penalti.'],
-                ['q'=>'Apa itu Qalcuity AI?','a'=>'Qalcuity AI adalah asisten ERP cerdas yang terintegrasi langsung ke semua modul bisnis Anda. Anda bisa mengelola seluruh operasional bisnis hanya lewat percakapan natural.'],
             ];
             @endphp
             @foreach($faqs as $i => $faq)
@@ -690,16 +778,19 @@
         <div class="mt-16 text-center">
             <h3 class="text-2xl font-black text-white mb-8">Fungsi Open Clow Agent untuk Bisnis Kamu</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @foreach([
-                    ['🤖','Customer Service AI','Jawab pertanyaan pelanggan 24/7 otomatis'],
-                    ['📊','Analisis Data','Analisis penjualan, stok, dan keuangan real-time'],
-                    ['📝','Pembuatan Konten','Generate deskripsi produk, email, dan laporan'],
-                    ['🔗','Integrasi Sistem','Hubungkan dengan WhatsApp, Shopee, Tokopedia'],
-                ] as [$emoji, $title, $desc])
+                @php
+                $clowFuncs = [
+                    ['emoji'=>'🤖','title'=>'Customer Service AI','desc'=>'Jawab pertanyaan pelanggan 24/7 otomatis'],
+                    ['emoji'=>'📊','title'=>'Analisis Data','desc'=>'Analisis penjualan, stok, dan keuangan real-time'],
+                    ['emoji'=>'📝','title'=>'Pembuatan Konten','desc'=>'Generate deskripsi produk, email, dan laporan'],
+                    ['emoji'=>'🔗','title'=>'Integrasi Sistem','desc'=>'Hubungkan dengan WhatsApp, Shopee, Tokopedia'],
+                ];
+                @endphp
+                @foreach($clowFuncs as $cf)
                 <div class="bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
-                    <span class="text-2xl">{{ $emoji }}</span>
-                    <h4 class="font-bold text-white text-sm mt-3 mb-1">{{ $title }}</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">{{ $desc }}</p>
+                    <span class="text-2xl">{{ $cf['emoji'] }}</span>
+                    <h4 class="font-bold text-white text-sm mt-3 mb-1">{{ $cf['title'] }}</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">{{ $cf['desc'] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -752,6 +843,7 @@
                 <ul class="space-y-2.5 text-sm">
                     <li><a href="#fitur" class="text-gray-500 hover:text-gray-900 transition">Fitur</a></li>
                     <li><a href="#modul" class="text-gray-500 hover:text-gray-900 transition">Modul</a></li>
+                    <li><a href="#industri" class="text-gray-500 hover:text-gray-900 transition">Industri</a></li>
                     <li><a href="#harga" class="text-gray-500 hover:text-gray-900 transition">Harga</a></li>
                 </ul>
             </div>

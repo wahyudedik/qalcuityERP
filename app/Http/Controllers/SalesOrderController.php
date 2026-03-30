@@ -21,6 +21,8 @@ use Illuminate\Support\Str;
 
 class SalesOrderController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tid(): int
     {
         return auth()->user()->tenant_id;
@@ -224,6 +226,8 @@ class SalesOrderController extends Controller
             // Store GL result for flash message after transaction commits
             $GLOBALS['_gl_result'] = $glResult;
         });
+
+        $this->fireWebhook('order.created', $so->load('items', 'customer')->toArray());
 
         $successMsg = 'Sales Order berhasil dibuat.';
         if (isset($GLOBALS['_gl_result']) && $GLOBALS['_gl_result']->isFailed()) {

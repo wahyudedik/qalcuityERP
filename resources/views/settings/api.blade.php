@@ -95,7 +95,10 @@
     {{-- ── Webhooks ── --}}
     <div class="bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300">Webhook Outbound</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300">Webhook Outbound</h2>
+                <a href="{{ route('api-settings.webhooks.log') }}" class="text-xs text-blue-500 hover:text-blue-600 transition">Delivery Log →</a>
+            </div>
             <button onclick="document.getElementById('addWebhookModal').classList.remove('hidden')"
                     class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -118,9 +121,17 @@
                         </div>
                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 truncate max-w-xs">{{ $wh->url }}</p>
                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Events: {{ implode(', ', $wh->events ?? []) }}</p>
-                        @if($wh->last_triggered_at)
-                        <p class="text-xs text-gray-400 dark:text-slate-500">Terakhir: {{ $wh->last_triggered_at->diffForHumans() }}</p>
-                        @endif
+                        <div class="flex items-center gap-3 mt-0.5">
+                            @if($wh->last_triggered_at)
+                            <p class="text-xs text-gray-400 dark:text-slate-500">Terakhir: {{ $wh->last_triggered_at->diffForHumans() }}</p>
+                            @endif
+                            @if($wh->retry_count > 0)
+                            <p class="text-xs text-amber-500">{{ $wh->retry_count }} gagal berturut</p>
+                            @endif
+                        </div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                            Secret: <code class="bg-gray-100 dark:bg-white/5 px-1 rounded text-[10px]">{{ Str::mask($wh->secret, '*', 4) }}</code>
+                        </p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <form method="POST" action="{{ route('api-settings.webhooks.test', $wh) }}">
@@ -212,13 +223,20 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Events</label>
-                <div class="space-y-1.5">
-                    @foreach($availableEvents as $ev)
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="events[]" value="{{ $ev }}"
-                               class="rounded border-gray-300 dark:border-white/20 text-blue-600">
-                        <span class="text-sm text-gray-700 dark:text-slate-300 font-mono text-xs">{{ $ev }}</span>
-                    </label>
+                <div class="space-y-3 max-h-64 overflow-y-auto">
+                    @foreach($availableEvents as $group => $events)
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1">{{ $group }}</p>
+                        <div class="space-y-1">
+                            @foreach($events as $ev)
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="events[]" value="{{ $ev }}"
+                                       class="rounded border-gray-300 dark:border-white/20 text-blue-600">
+                                <span class="text-sm text-gray-700 dark:text-slate-300 font-mono text-xs">{{ $ev }}</span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
                     @endforeach
                 </div>
             </div>

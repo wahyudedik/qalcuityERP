@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 
-    // ── Read-only endpoints ──────────────────────────────────────
-    Route::middleware('api.token:read')->group(function () {
+    // ── Read-only endpoints (60 req/min base, scaled by plan) ────
+    Route::middleware(['api.token:read', 'throttle:api-read'])->group(function () {
         Route::get('/stats',              [ApiStatsController::class,   'summary']);
         Route::get('/products',           [ApiProductController::class, 'index']);
         Route::get('/products/{id}',      [ApiProductController::class, 'show']);
@@ -30,8 +30,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/customers/{id}',     [ApiCustomerController::class,'show']);
     });
 
-    // ── Write endpoints ──────────────────────────────────────────
-    Route::middleware('api.token:write')->group(function () {
+    // ── Write endpoints (20 req/min base, scaled by plan) ────────
+    Route::middleware(['api.token:write', 'throttle:api-write'])->group(function () {
         Route::post('/orders',                    [ApiOrderController::class,   'store']);
         Route::patch('/orders/{id}/status',       [ApiOrderController::class,   'updateStatus']);
         Route::post('/customers',                 [ApiCustomerController::class,'store']);

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ExpenseController extends Controller
 {
+    use \App\Traits\DispatchesWebhooks;
+
     private function tid(): int
     {
         return auth()->user()->tenant_id;
@@ -118,6 +120,8 @@ class ExpenseController extends Controller
         ActivityLog::record('expense_created',
             "Pengeluaran dicatat: {$number} - {$category->name} Rp " . number_format($data['amount'], 0, ',', '.'),
             $expense);
+
+        $this->fireWebhook('expense.created', $expense->toArray());
 
         // ── GL Auto-Posting ───────────────────────────────────────
         $glResult = app(GlPostingService::class)->postExpense(

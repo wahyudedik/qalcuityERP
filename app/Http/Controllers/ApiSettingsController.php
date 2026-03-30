@@ -22,13 +22,7 @@ class ApiSettingsController extends Controller
         $tokens   = ApiToken::where('tenant_id', $tenantId)->latest()->get();
         $webhooks = WebhookSubscription::where('tenant_id', $tenantId)->latest()->get();
 
-        $availableEvents = [
-            'order.created', 'order.status_changed',
-            'invoice.created', 'invoice.paid',
-            'customer.created',
-            'payment.received',
-            '*',
-        ];
+        $availableEvents = \App\Services\WebhookService::EVENTS;
 
         return view('settings.api', compact('tokens', 'webhooks', 'availableEvents'));
     }
@@ -127,5 +121,33 @@ class ApiSettingsController extends Controller
 
         $deliveries = $webhookSubscription->deliveries()->latest()->limit(50)->get();
         return response()->json($deliveries);
+    }
+
+    public function retryDelivery(Request $request, WebhookDelivery $webhookDelivery)
+    {
+        $subscription = $webhookDelivery->subscription;
+        abort_if($subscription->tenant_id !== $request->user()->tenant_id, 403);
+
+        \App\Jobs\DispatchWebhookJob::dispatch(
+            $subscription,
+            $webhookDelivery->event,
+            $webhookDelivery->payload,
+            $webhookDelivery->attempt + 1,
+        );
+
+        return back()->with('success', 'Webhook sedang dikirim ulang.');
+    }
+
+    public function deliveryLog(Request $request)
+    {
+        $tenantId = $request->user()->tenant_id;
+        abort_if(!$tenantId, 403);
+
+        $deliveries = WebhookDelivery::whereHas('subscription', fn ($q) => $q->where('tenant_id', $tenantId))
+            ->with('subscription:id,name,url')
+            ->latest()
+            ->paginate(50);
+
+        return view('settings.webhook-log', compact('deliveries'));
     }
 }

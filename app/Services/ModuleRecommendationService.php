@@ -9,7 +9,7 @@ class ModuleRecommendationService
         'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
         'hrm', 'payroll', 'crm', 'accounting', 'budget',
         'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce', 'projects', 'assets', 'commission', 'helpdesk', 'project_billing',
-        'loyalty', 'bank_reconciliation', 'reports', 'landed_cost', 'consignment', 'subscription_billing', 'reimbursement', 'wms',
+        'loyalty', 'bank_reconciliation', 'reports', 'landed_cost', 'consignment', 'subscription_billing', 'reimbursement', 'wms', 'agriculture',
     ];
 
     /** Module metadata: label, icon, description */
@@ -42,6 +42,7 @@ class ModuleRecommendationService
         'subscription_billing'=> ['label' => 'Subscription Billing',    'icon' => '🔄',  'desc' => 'Recurring invoice untuk pelanggan langganan'],
         'reimbursement'       => ['label' => 'Reimbursement',           'icon' => '🧾',  'desc' => 'Pengajuan & pembayaran reimbursement karyawan'],
         'wms'                 => ['label' => 'WMS (Gudang Lanjutan)',   'icon' => '🏗️',  'desc' => 'Zone, rak, bin, putaway, picking & opname'],
+        'agriculture'         => ['label' => 'Pertanian / Lahan',      'icon' => '🌾',  'desc' => 'Manajemen lahan, siklus tanam & panen'],
     ];
 
     /**
@@ -76,8 +77,8 @@ class ModuleRecommendationService
                 'reason'  => 'Bisnis jasa fokus pada pipeline klien, project billing, kontrak, helpdesk, dan penagihan.',
             ],
             'agriculture' => [
-                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports'],
-                'reason'  => 'Pertanian perlu kontrol stok hasil panen, pembelian input, dan penjualan.',
+                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports', 'agriculture'],
+                'reason'  => 'Pertanian perlu manajemen lahan/blok, kontrol stok hasil panen, pembelian input, dan penjualan.',
             ],
             default => [
                 'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'reports'],
