@@ -76,6 +76,8 @@ class PermissionService
         'custom_fields'  => ['view', 'create', 'edit', 'delete'],
         'company_groups' => ['view', 'create', 'edit', 'delete'],
         'zero_input'     => ['view', 'create'],
+        'agriculture'    => ['view', 'create', 'edit', 'delete'],
+        'rab'            => ['view', 'create', 'edit', 'delete'],
     ];
 
     /**
@@ -143,6 +145,8 @@ class PermissionService
             'writeoffs'      => ['view', 'create'],
             'deferred'       => ['view', 'create'],
             'bulk_payments'  => ['view', 'create'],
+            'agriculture'    => ['view', 'create', 'edit', 'delete'],
+            'rab'            => ['view', 'create', 'edit', 'delete'],
         ],
 
         'staff' => [
@@ -188,6 +192,7 @@ class PermissionService
             'fleet'         => ['view', 'create', 'edit'],
             'consignment'   => ['view', 'create', 'edit'],
             'wms'           => ['view', 'create', 'edit'],
+            'agriculture'   => ['view', 'create', 'edit'],
             'documents'    => ['view', 'create'],
             'reminders'    => ['view', 'create', 'delete'],
         ],
@@ -373,6 +378,8 @@ class PermissionService
             'custom_fields'  => 'Custom Fields',
             'company_groups' => 'Grup Perusahaan',
             'zero_input'     => 'Input Cerdas (AI)',
+            'agriculture'    => 'Pertanian / Lahan',
+            'rab'            => 'RAB (Rencana Anggaran Biaya)',
             default          => ucfirst(str_replace('_', ' ', $module)),
         };
     }
@@ -385,7 +392,7 @@ class PermissionService
         return [
             'Penjualan' => ['sales', 'invoices', 'quotations', 'delivery', 'sales_returns', 'down_payments', 'price_lists', 'crm', 'loyalty', 'pos', 'commission', 'helpdesk', 'subscription_billing'],
             'Inventori & Pembelian' => ['inventory', 'products', 'warehouses', 'purchasing', 'consignment', 'wms'],
-            'Operasional' => ['production', 'manufacturing', 'fleet', 'contracts', 'shipping', 'approvals', 'ecommerce', 'documents', 'projects', 'timesheets', 'project_billing'],
+            'Operasional' => ['production', 'manufacturing', 'fleet', 'contracts', 'shipping', 'approvals', 'ecommerce', 'documents', 'projects', 'timesheets', 'project_billing', 'agriculture', 'rab'],
             'SDM & Penggajian' => ['hrm', 'payroll', 'overtime', 'training', 'disciplinary', 'reimbursement'],
             'Keuangan' => ['expenses', 'receivables', 'bank', 'budget', 'assets', 'accounting', 'journals', 'deferred', 'writeoffs', 'bulk_payments', 'cost_centers', 'landed_cost'],
             'Analitik & AI' => ['reports', 'kpi', 'anomalies', 'simulations', 'zero_input'],

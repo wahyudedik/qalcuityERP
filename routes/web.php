@@ -635,13 +635,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/{project}/expenses', [ProjectController::class, 'storeExpense'])->name('expenses.store');
 
         // RAB (Rencana Anggaran Biaya)
-        Route::get('/{project}/rab', [\App\Http\Controllers\RabController::class, 'index'])->name('rab');
-        Route::post('/{project}/rab', [\App\Http\Controllers\RabController::class, 'store'])->name('rab.store');
-        Route::put('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'update'])->name('rab.update');
-        Route::post('/rab/{rabItem}/actual', [\App\Http\Controllers\RabController::class, 'recordActual'])->name('rab.actual');
-        Route::delete('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'destroy'])->name('rab.destroy');
-        Route::get('/{project}/rab/export', [\App\Http\Controllers\RabController::class, 'export'])->name('rab.export');
-        Route::post('/{project}/rab/import', [\App\Http\Controllers\RabController::class, 'import'])->name('rab.import');
+        Route::get('/{project}/rab', [\App\Http\Controllers\RabController::class, 'index'])->name('rab')->middleware('permission:rab,view');
+        Route::post('/{project}/rab', [\App\Http\Controllers\RabController::class, 'store'])->name('rab.store')->middleware('permission:rab,create');
+        Route::put('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'update'])->name('rab.update')->middleware('permission:rab,edit');
+        Route::post('/rab/{rabItem}/actual', [\App\Http\Controllers\RabController::class, 'recordActual'])->name('rab.actual')->middleware('permission:rab,edit');
+        Route::delete('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'destroy'])->name('rab.destroy')->middleware('permission:rab,delete');
+        Route::get('/{project}/rab/export', [\App\Http\Controllers\RabController::class, 'export'])->name('rab.export')->middleware('permission:rab,view');
+        Route::post('/{project}/rab/import', [\App\Http\Controllers\RabController::class, 'import'])->name('rab.import')->middleware('permission:rab,create');
     });
 
     // Budget vs Actual (admin + manager only)
@@ -809,26 +809,26 @@ Route::middleware('auth')->group(function () {
     });
 
     // Farm / Agriculture — Manajemen Lahan
-    Route::prefix('farm')->name('farm.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/plots', [\App\Http\Controllers\FarmPlotController::class, 'index'])->name('plots');
-        Route::post('/plots', [\App\Http\Controllers\FarmPlotController::class, 'store'])->name('plots.store');
-        Route::get('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'show'])->name('plots.show');
-        Route::put('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'update'])->name('plots.update');
-        Route::patch('/plots/{farmPlot}/status', [\App\Http\Controllers\FarmPlotController::class, 'updateStatus'])->name('plots.status');
-        Route::delete('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'destroy'])->name('plots.destroy');
-        Route::post('/plots/{farmPlot}/activities', [\App\Http\Controllers\FarmPlotController::class, 'storeActivity'])->name('plots.activities.store');
+    Route::prefix('farm')->name('farm.')->middleware('role:admin,manager,gudang')->group(function () {
+        Route::get('/plots', [\App\Http\Controllers\FarmPlotController::class, 'index'])->name('plots')->middleware('permission:agriculture,view');
+        Route::post('/plots', [\App\Http\Controllers\FarmPlotController::class, 'store'])->name('plots.store')->middleware('permission:agriculture,create');
+        Route::get('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'show'])->name('plots.show')->middleware('permission:agriculture,view');
+        Route::put('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'update'])->name('plots.update')->middleware('permission:agriculture,edit');
+        Route::patch('/plots/{farmPlot}/status', [\App\Http\Controllers\FarmPlotController::class, 'updateStatus'])->name('plots.status')->middleware('permission:agriculture,edit');
+        Route::delete('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'destroy'])->name('plots.destroy')->middleware('permission:agriculture,delete');
+        Route::post('/plots/{farmPlot}/activities', [\App\Http\Controllers\FarmPlotController::class, 'storeActivity'])->name('plots.activities.store')->middleware('permission:agriculture,create');
         // Crop Cycles
-        Route::get('/cycles', [\App\Http\Controllers\CropCycleController::class, 'index'])->name('cycles');
-        Route::post('/cycles', [\App\Http\Controllers\CropCycleController::class, 'store'])->name('cycles.store');
-        Route::get('/cycles/{cropCycle}', [\App\Http\Controllers\CropCycleController::class, 'show'])->name('cycles.show');
-        Route::patch('/cycles/{cropCycle}/phase', [\App\Http\Controllers\CropCycleController::class, 'advancePhase'])->name('cycles.phase');
-        Route::post('/cycles/{cropCycle}/activities', [\App\Http\Controllers\CropCycleController::class, 'storeActivity'])->name('cycles.activities.store');
+        Route::get('/cycles', [\App\Http\Controllers\CropCycleController::class, 'index'])->name('cycles')->middleware('permission:agriculture,view');
+        Route::post('/cycles', [\App\Http\Controllers\CropCycleController::class, 'store'])->name('cycles.store')->middleware('permission:agriculture,create');
+        Route::get('/cycles/{cropCycle}', [\App\Http\Controllers\CropCycleController::class, 'show'])->name('cycles.show')->middleware('permission:agriculture,view');
+        Route::patch('/cycles/{cropCycle}/phase', [\App\Http\Controllers\CropCycleController::class, 'advancePhase'])->name('cycles.phase')->middleware('permission:agriculture,edit');
+        Route::post('/cycles/{cropCycle}/activities', [\App\Http\Controllers\CropCycleController::class, 'storeActivity'])->name('cycles.activities.store')->middleware('permission:agriculture,create');
         // Harvest Logs
-        Route::get('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'index'])->name('harvests');
-        Route::post('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'store'])->name('harvests.store');
-        Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show');
+        Route::get('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'index'])->name('harvests')->middleware('permission:agriculture,view');
+        Route::post('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'store'])->name('harvests.store')->middleware('permission:agriculture,create');
+        Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show')->middleware('permission:agriculture,view');
         // Analytics
-        Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics');
+        Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics')->middleware('permission:agriculture,view');
     });
 
     // Fleet Management

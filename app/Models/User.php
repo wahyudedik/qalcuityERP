@@ -130,6 +130,10 @@ class User extends Authenticatable implements MustVerifyEmail
                 'get_warehouses', 'create_warehouse', 'transfer_stock', 'receive_transfer', 'adjust_stock',
                 // Purchasing read
                 'get_purchase_orders', 'get_suppliers',
+                // Farm / Agriculture
+                'create_farm_plot', 'get_farm_plots', 'update_plot_status', 'record_farm_activity',
+                'start_crop_cycle', 'get_crop_cycles', 'advance_crop_phase', 'log_harvest',
+                'get_farm_cost_analysis',
                 // Notifikasi
                 'get_notifications', 'get_dashboard_summary',
                 // Panduan aplikasi

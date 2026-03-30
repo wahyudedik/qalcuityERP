@@ -69,8 +69,8 @@ class ModuleRecommendationService
                 'reason'  => 'Distributor fokus pada WMS gudang lanjutan, pembelian massal, fleet kendaraan, landed cost, dan piutang.',
             ],
             'construction' => [
-                'modules' => ['projects', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'fleet', 'budget', 'reports'],
-                'reason'  => 'Konstruksi butuh manajemen proyek, RAB, fleet kendaraan, dan kontrol pengeluaran per proyek.',
+                'modules' => ['projects', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'fleet', 'budget', 'reports', 'agriculture'],
+                'reason'  => 'Konstruksi butuh manajemen proyek, RAB, mix design beton, fleet kendaraan, termin & retensi, dan kontrol pengeluaran per proyek.',
             ],
             'service' => [
                 'modules' => ['crm', 'projects', 'project_billing', 'contracts', 'helpdesk', 'invoicing', 'accounting', 'hrm', 'payroll', 'budget', 'reports'],
