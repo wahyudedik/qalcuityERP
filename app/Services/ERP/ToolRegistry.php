@@ -51,6 +51,7 @@ class ToolRegistry
             new AppGuideTools($tenantId, $userId),
             new ConcreteMixTools($tenantId, $userId),
             new FarmTools($tenantId, $userId),
+            new AdvisorTools($tenantId, $userId),
         ];
 
         foreach ($instances as $instance) {

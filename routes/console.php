@@ -41,6 +41,14 @@ Schedule::call(function () {
     });
 })->weeklyOn(1, '08:00')->name('generate-ai-insights-weekly')->withoutOverlapping();
 
+// AI Financial Advisor — rekomendasi strategis mingguan — Senin jam 09:00
+Schedule::call(function () {
+    Tenant::where('is_active', true)->each(function ($tenant) {
+        \App\Jobs\GenerateAiAdvisorRecommendations::dispatch($tenant->id, 'weekly')
+            ->delay(now()->addSeconds(rand(1, 120)));
+    });
+})->weeklyOn(1, '09:00')->name('ai-advisor-weekly')->withoutOverlapping();
+
 // AI Digest mingguan — Jumat jam 17:00 (ringkasan akhir pekan)
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {

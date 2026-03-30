@@ -118,8 +118,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'get_loyalty_info', 'add_loyalty_points', 'redeem_loyalty_points',
                 // Notifikasi & info
                 'get_notifications', 'get_dashboard_summary',
-                // Panduan aplikasi
-                'get_app_guide',
+                // Panduan & Advisor
+                'get_app_guide', 'get_ai_advisor',
             ],
 
             'gudang' => [
@@ -136,8 +136,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'get_farm_cost_analysis',
                 // Notifikasi
                 'get_notifications', 'get_dashboard_summary',
-                // Panduan aplikasi
-                'get_app_guide',
+                // Panduan & Advisor
+                'get_app_guide', 'get_ai_advisor',
             ],
 
             'staff' => [
@@ -146,8 +146,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'get_sales_summary', 'get_dashboard_summary',
                 'get_notifications', 'get_pos_products',
                 'create_quick_sale', 'get_employees',
-                // Panduan aplikasi
-                'get_app_guide',
+                // Panduan & Advisor
+                'get_app_guide', 'get_ai_advisor',
             ],
 
             default => [], // role tidak dikenal: blokir semua
