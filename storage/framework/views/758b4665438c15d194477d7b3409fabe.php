@@ -49,44 +49,44 @@
     ];
     ?>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
         <?php $__currentLoopData = $cards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $card): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <div class="flex items-start justify-between mb-4">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400 leading-tight"><?php echo e($card['label']); ?></p>
-                <div class="w-9 h-9 rounded-xl <?php echo e($card['bg']); ?> flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 <?php echo e($card['ic']); ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-3 sm:p-5 overflow-hidden">
+            <div class="flex items-start justify-between mb-2 sm:mb-4">
+                <p class="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-slate-400 leading-tight"><?php echo e($card['label']); ?></p>
+                <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-xl <?php echo e($card['bg']); ?> flex items-center justify-center shrink-0 ml-1">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 <?php echo e($card['ic']); ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="<?php echo e($card['icon']); ?>"/>
                     </svg>
                 </div>
             </div>
-            <p class="text-xl font-bold text-gray-900 dark:text-white"><?php echo e($card['value']); ?></p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1"><?php echo e($card['sub']); ?></p>
+            <p class="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate"><?php echo e($card['value']); ?></p>
+            <p class="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500 mt-1 truncate"><?php echo e($card['sub']); ?></p>
         </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 sm:p-5 min-w-0">
             <div class="flex items-center justify-between mb-4">
-                <p class="text-sm font-semibold text-gray-900 dark:text-white">Pertumbuhan Tenant (6 Bulan)</p>
-                <a href="<?php echo e(route('super-admin.tenants.index')); ?>" class="text-xs text-blue-400 hover:underline">Lihat semua →</a>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Pertumbuhan Tenant (6 Bulan)</p>
+                <a href="<?php echo e(route('super-admin.tenants.index')); ?>" class="text-xs text-blue-400 hover:underline shrink-0 ml-2">Lihat semua →</a>
             </div>
-            <div style="height:200px;position:relative"><canvas id="growthChart"></canvas></div>
+            <div class="relative" style="height:200px"><canvas id="growthChart"></canvas></div>
         </div>
 
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 sm:p-5 min-w-0">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white">Distribusi Paket</p>
-                <a href="<?php echo e(route('super-admin.plans.index')); ?>" class="text-xs text-blue-400 hover:underline">Kelola paket →</a>
+                <a href="<?php echo e(route('super-admin.plans.index')); ?>" class="text-xs text-blue-400 hover:underline shrink-0 ml-2">Kelola paket →</a>
             </div>
             <?php
             $planColors = ['trial'=>'#f59e0b','starter'=>'#6366f1','basic'=>'#3b82f6','business'=>'#3b82f6','pro'=>'#8b5cf6','professional'=>'#8b5cf6','enterprise'=>'#10b981'];
             $planLabels = ['trial'=>'Trial','starter'=>'Starter','basic'=>'Basic','business'=>'Business','pro'=>'Pro','professional'=>'Professional','enterprise'=>'Enterprise'];
             ?>
-            <div class="flex flex-col sm:flex-row items-center gap-6">
-                <div style="height:160px;width:160px;position:relative;flex-shrink:0" class="mx-auto sm:mx-0"><canvas id="planChart"></canvas></div>
-                <div class="space-y-2 flex-1">
+            <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                <div class="relative shrink-0 mx-auto sm:mx-0" style="height:120px;width:120px"><canvas id="planChart"></canvas></div>
+                <div class="space-y-2 flex-1 w-full">
                     <?php $__currentLoopData = $planDist; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -204,7 +204,7 @@
 
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Aksi Cepat</p>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <a href="<?php echo e(route('super-admin.tenants.index')); ?>" class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition text-sm font-medium text-gray-700 dark:text-slate-300">
                         <svg class="w-4 h-4 text-gray-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         Kelola Tenant
