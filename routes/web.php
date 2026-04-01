@@ -829,6 +829,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show')->middleware('permission:agriculture,view');
         // Analytics
         Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics')->middleware('permission:agriculture,view');
+        // Livestock
+        Route::get('/livestock', [\App\Http\Controllers\LivestockController::class, 'index'])->name('livestock')->middleware('permission:agriculture,view');
+        Route::post('/livestock', [\App\Http\Controllers\LivestockController::class, 'store'])->name('livestock.store')->middleware('permission:agriculture,create');
+        Route::get('/livestock/{livestockHerd}', [\App\Http\Controllers\LivestockController::class, 'show'])->name('livestock.show')->middleware('permission:agriculture,view');
+        Route::post('/livestock/{livestockHerd}/movement', [\App\Http\Controllers\LivestockController::class, 'recordMovement'])->name('livestock.movement')->middleware('permission:agriculture,create');
+        Route::post('/livestock/{livestockHerd}/feed', [\App\Http\Controllers\LivestockController::class, 'storeFeedLog'])->name('livestock.feed.store')->middleware('permission:agriculture,create');
+        Route::post('/livestock/{livestockHerd}/health', [\App\Http\Controllers\LivestockController::class, 'storeHealthRecord'])->name('livestock.health.store')->middleware('permission:agriculture,create');
+        Route::post('/livestock/{livestockHerd}/vaccinations/generate', [\App\Http\Controllers\LivestockController::class, 'generateVaccinationSchedule'])->name('livestock.vaccinations.generate')->middleware('permission:agriculture,create');
+        Route::patch('/vaccinations/{vaccination}/record', [\App\Http\Controllers\LivestockController::class, 'recordVaccination'])->name('livestock.vaccinations.record')->middleware('permission:agriculture,edit');
     });
 
     // Fleet Management

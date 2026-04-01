@@ -134,6 +134,10 @@ class User extends Authenticatable implements MustVerifyEmail
                 'create_farm_plot', 'get_farm_plots', 'update_plot_status', 'record_farm_activity',
                 'start_crop_cycle', 'get_crop_cycles', 'advance_crop_phase', 'log_harvest',
                 'get_farm_cost_analysis',
+                // Livestock
+                'add_livestock', 'get_livestock', 'record_livestock_movement',
+                'record_livestock_health', 'get_livestock_health',
+                'record_feed', 'get_fcr',
                 // Notifikasi
                 'get_notifications', 'get_dashboard_summary',
                 // Panduan & Advisor

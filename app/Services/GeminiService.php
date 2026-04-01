@@ -314,6 +314,34 @@ Kamu juga dapat menganalisis gambar, foto, dan dokumen (PDF, CSV, teks) yang dik
 - "biaya per hektar", "yield per hektar", "biaya pupuk per lahan" → `get_farm_cost_analysis`
 - Setelah get_farm_cost_analysis, sajikan dalam tabel perbandingan dan highlight lahan paling efisien (HPP terendah) vs paling mahal
 
+## PETERNAKAN — POPULASI TERNAK:
+- "masukkan 1000 DOC ayam broiler ke kandang A", "beli 50 ekor sapi" → `add_livestock`
+- "daftar ternak", "populasi ayam", "berapa ekor sapi?" → `get_livestock`
+- "ayam mati 15 ekor di FLK-001", "mortalitas ternak" → `record_livestock_movement` dengan type=death
+- "jual 200 ekor ayam dari FLK-001 harga 10 juta" → `record_livestock_movement` dengan type=sold
+- "sapi lahir 2 ekor di HRD-001" → `record_livestock_movement` dengan type=birth
+- "pindah 50 ekor ke kandang B" → `record_livestock_movement` dengan type=transfer_out
+- Jenis ternak: ayam_broiler, ayam_layer, sapi, kambing, bebek, ikan, babi, kelinci
+- Setelah record_livestock_movement, tampilkan populasi terbaru dan mortalitas rate
+
+## PETERNAKAN — KESEHATAN & VAKSINASI:
+- "ayam FLK-001 kena CRD 50 ekor mati 5", "sapi sakit diare" → `record_livestock_health` dengan type=illness
+- "obati FLK-001 pakai antibiotik biaya 200 ribu" → `record_livestock_health` dengan type=treatment
+- "FLK-001 sudah sembuh" → `record_livestock_health` dengan type=recovery
+- "kesehatan ternak FLK-001", "jadwal vaksin ayam" → `get_livestock_health`
+- "vaksin yang terlambat", "mortalitas per kandang" → `get_livestock_health`
+- Vaksinasi otomatis di-generate untuk ayam broiler (ND, Gumboro) dan layer (Marek, ND, Fowl Pox, Coryza)
+- Jika ada kematian dicatat di health record, populasi otomatis berkurang
+
+## PETERNAKAN — PAKAN & FCR:
+- "kasih pakan 50 kg starter ke FLK-001", "pakan grower 100 kg" → `record_feed`
+- "catat pakan hari ini 80 kg berat rata-rata 1.2 kg" → `record_feed` dengan avg_body_weight_kg
+- "FCR ayam FLK-001", "efisiensi pakan", "berapa FCR?" → `get_fcr`
+- "perbandingan FCR semua ternak", "biaya pakan per kg daging" → `get_fcr` tanpa parameter
+- FCR = Total Pakan (kg) / Total Weight Gain (kg). Semakin rendah semakin efisien.
+- Target FCR broiler: 1.4-1.8. Layer: 2.0-2.5. Sapi: 6-8.
+- Untuk hitung FCR, user perlu catat berat rata-rata saat pemberian pakan (sampling timbang)
+
 ## MULTI-WAREHOUSE & TRANSFER STOK:
 - "stok gudang A", "isi gudang Surabaya", "barang di gudang X" → `get_warehouse_stock` dengan warehouse_name=nama gudang
 - "stok semua gudang", "perbandingan stok antar gudang" → `get_warehouse_stock` tanpa parameter
@@ -482,6 +510,7 @@ Kamu juga dapat menganalisis gambar, foto, dan dokumen (PDF, CSV, teks) yang dik
 - "setup template konstruksi", "preset kontraktor" → `apply_industry_template` dengan industry=construction
 - "setup template jasa", "preset konsultan" → `apply_industry_template` dengan industry=service
 - "setup template pertanian", "preset perkebunan" → `apply_industry_template` dengan industry=agriculture
+- "setup template peternakan", "preset ternak ayam" → `apply_industry_template` dengan industry=livestock
 - "setup template retail", "preset toko" → `apply_industry_template` dengan industry=retail
 - "command apa saja untuk F&B?", "tips untuk konveksi", "shortcut distributor" → `get_industry_shortcuts`
 - Setelah `apply_industry_template` berhasil, tampilkan daftar shortcuts yang relevan untuk industri tersebut.

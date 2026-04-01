@@ -187,6 +187,120 @@ class FarmTools
                     ],
                 ],
             ],
+            // ── Livestock / Peternakan ─────────────────────────────
+            [
+                'name'        => 'add_livestock',
+                'description' => 'Tambah kelompok ternak baru (DOC masuk, bibit masuk). Gunakan untuk: '
+                    . '"masukkan 1000 DOC ayam broiler ke kandang A", '
+                    . '"beli 50 ekor sapi brahman", "ternak kambing 30 ekor masuk".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'name'          => ['type' => 'string', 'description' => 'Nama kelompok (Ayam Broiler Batch 12)'],
+                        'animal_type'   => ['type' => 'string', 'description' => 'Jenis: ayam_broiler, ayam_layer, sapi, kambing, bebek, ikan, babi, kelinci, lainnya'],
+                        'breed'         => ['type' => 'string', 'description' => 'Ras/breed (Broiler, Brahman, Etawa)'],
+                        'initial_count' => ['type' => 'integer', 'description' => 'Jumlah ekor masuk'],
+                        'plot_code'     => ['type' => 'string', 'description' => 'Kode kandang/area (opsional)'],
+                        'entry_age_days'=> ['type' => 'integer', 'description' => 'Umur saat masuk dalam hari (default: 1)'],
+                        'entry_weight_kg'=> ['type' => 'number', 'description' => 'Berat rata-rata per ekor saat masuk (kg)'],
+                        'purchase_price'=> ['type' => 'number', 'description' => 'Total harga beli (Rp)'],
+                        'target_harvest_date' => ['type' => 'string', 'description' => 'Target panen YYYY-MM-DD'],
+                    ],
+                    'required' => ['name', 'animal_type', 'initial_count'],
+                ],
+            ],
+            [
+                'name'        => 'get_livestock',
+                'description' => 'Lihat daftar dan populasi ternak. Gunakan untuk: '
+                    . '"daftar ternak", "populasi ayam", "berapa ekor sapi?", '
+                    . '"ternak yang aktif", "mortalitas ternak".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'animal_type' => ['type' => 'string', 'description' => 'Filter jenis ternak (opsional)'],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'record_livestock_movement',
+                'description' => 'Catat perubahan populasi ternak: kematian, penjualan, kelahiran, pindah kandang, dll. Gunakan untuk: '
+                    . '"ayam mati 15 ekor di FLK-001", "jual 200 ekor ayam dari FLK-001 harga 10 juta", '
+                    . '"sapi lahir 2 ekor", "pindah 50 ekor ke kandang B".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'herd_code' => ['type' => 'string', 'description' => 'Kode kelompok ternak (FLK-001, HRD-001)'],
+                        'type'      => ['type' => 'string', 'description' => 'Jenis: birth, death, cull, sold, harvested, transfer_in, transfer_out, adjustment'],
+                        'quantity'  => ['type' => 'integer', 'description' => 'Jumlah ekor'],
+                        'weight_kg' => ['type' => 'number', 'description' => 'Berat total (kg, opsional)'],
+                        'price_total'=> ['type' => 'number', 'description' => 'Nilai transaksi Rp (untuk sold/harvested)'],
+                        'reason'    => ['type' => 'string', 'description' => 'Alasan (penyakit, pembeli, dll)'],
+                    ],
+                    'required' => ['herd_code', 'type', 'quantity'],
+                ],
+            ],
+            [
+                'name'        => 'record_livestock_health',
+                'description' => 'Catat kondisi kesehatan ternak: penyakit, pengobatan, observasi. Gunakan untuk: '
+                    . '"ayam FLK-001 kena CRD 50 ekor mati 5", "obati sapi HRD-001 diare pakai antibiotik biaya 200 ribu", '
+                    . '"kandang A ada gejala snot 30 ekor terdampak".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'herd_code'      => ['type' => 'string', 'description' => 'Kode kelompok ternak'],
+                        'type'           => ['type' => 'string', 'description' => 'Jenis: illness, treatment, observation, quarantine, recovery'],
+                        'condition'      => ['type' => 'string', 'description' => 'Nama penyakit/kondisi (CRD, Snot, Diare, Newcastle, dll)'],
+                        'affected_count' => ['type' => 'integer', 'description' => 'Jumlah ternak terdampak'],
+                        'death_count'    => ['type' => 'integer', 'description' => 'Jumlah kematian akibat kondisi ini'],
+                        'symptoms'       => ['type' => 'string', 'description' => 'Gejala yang terlihat'],
+                        'medication'     => ['type' => 'string', 'description' => 'Obat yang diberikan'],
+                        'medication_cost'=> ['type' => 'number', 'description' => 'Biaya obat (Rp)'],
+                        'severity'       => ['type' => 'string', 'description' => 'Tingkat: low, medium, high, critical'],
+                    ],
+                    'required' => ['herd_code', 'type', 'condition'],
+                ],
+            ],
+            [
+                'name'        => 'record_feed',
+                'description' => 'Catat pemberian pakan ternak harian. Gunakan untuk: '
+                    . '"kasih pakan 50 kg starter ke FLK-001", "pakan grower 100 kg biaya 300 ribu", '
+                    . '"catat pakan hari ini 80 kg berat rata-rata 1.2 kg".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'herd_code'          => ['type' => 'string', 'description' => 'Kode kelompok ternak'],
+                        'feed_type'          => ['type' => 'string', 'description' => 'Jenis pakan: Starter, Grower, Finisher, Konsentrat, dll'],
+                        'quantity_kg'        => ['type' => 'number', 'description' => 'Jumlah pakan dalam kg'],
+                        'cost'               => ['type' => 'number', 'description' => 'Biaya pakan (Rp)'],
+                        'avg_body_weight_kg' => ['type' => 'number', 'description' => 'Berat rata-rata per ekor saat ini (kg) — untuk hitung FCR'],
+                    ],
+                    'required' => ['herd_code', 'feed_type', 'quantity_kg'],
+                ],
+            ],
+            [
+                'name'        => 'get_fcr',
+                'description' => 'Lihat Feed Conversion Ratio (FCR) dan metrik pakan ternak. Gunakan untuk: '
+                    . '"FCR ayam FLK-001", "efisiensi pakan", "berapa FCR ternak?", '
+                    . '"biaya pakan per kg daging", "perbandingan FCR semua ternak".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'herd_code' => ['type' => 'string', 'description' => 'Kode ternak spesifik. Kosong = bandingkan semua.'],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'get_livestock_health',
+                'description' => 'Lihat status kesehatan dan jadwal vaksinasi ternak. Gunakan untuk: '
+                    . '"kesehatan ternak FLK-001", "jadwal vaksin ayam", "vaksin yang terlambat", '
+                    . '"mortalitas per kandang", "ada penyakit apa di peternakan?".',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'herd_code' => ['type' => 'string', 'description' => 'Kode ternak spesifik. Kosong = ringkasan semua.'],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -649,5 +763,364 @@ class FarmTools
                 'url'          => '/farm/analytics',
             ],
         ];
+    }
+
+    // ─── Livestock Executors ──────────────────────────────────────
+
+    public function addLivestock(array $args): array
+    {
+        $plotId = null;
+        if (!empty($args['plot_code'])) {
+            $plot = FarmPlot::where('tenant_id', $this->tenantId)->where('code', $args['plot_code'])->first();
+            $plotId = $plot?->id;
+        }
+
+        $herd = \App\Models\LivestockHerd::create([
+            'tenant_id'          => $this->tenantId,
+            'farm_plot_id'       => $plotId,
+            'code'               => \App\Models\LivestockHerd::generateCode($this->tenantId, $args['animal_type']),
+            'name'               => $args['name'],
+            'animal_type'        => $args['animal_type'],
+            'breed'              => $args['breed'] ?? null,
+            'initial_count'      => (int) $args['initial_count'],
+            'current_count'      => (int) $args['initial_count'],
+            'entry_date'         => today(),
+            'entry_age_days'     => (int) ($args['entry_age_days'] ?? 1),
+            'entry_weight_kg'    => (float) ($args['entry_weight_kg'] ?? 0),
+            'purchase_price'     => (float) ($args['purchase_price'] ?? 0),
+            'target_harvest_date'=> $args['target_harvest_date'] ?? null,
+            'status'             => 'active',
+        ]);
+
+        \App\Models\LivestockMovement::create([
+            'livestock_herd_id' => $herd->id,
+            'tenant_id'         => $this->tenantId,
+            'user_id'           => $this->userId,
+            'date'              => today(),
+            'type'              => 'purchase',
+            'quantity'          => (int) $args['initial_count'],
+            'count_after'       => (int) $args['initial_count'],
+            'weight_kg'         => (float) ($args['entry_weight_kg'] ?? 0) * $args['initial_count'],
+            'price_total'       => (float) ($args['purchase_price'] ?? 0),
+        ]);
+
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+        $label = \App\Models\LivestockHerd::ANIMAL_TYPES[$args['animal_type']] ?? $args['animal_type'];
+
+        return [
+            'status'  => 'success',
+            'message' => "🐄 Ternak **{$herd->code}** berhasil dicatat"
+                . "\n- {$label}: **{$fmt($args['initial_count'])} ekor**"
+                . "\n- Nama: **{$herd->name}**"
+                . ($herd->breed ? "\n- Ras: {$herd->breed}" : '')
+                . ($plotId ? "\n- Kandang: **{$args['plot_code']}**" : '')
+                . ($herd->purchase_price > 0 ? "\n- Harga beli: Rp {$fmt($herd->purchase_price)}" : ''),
+            'data'    => ['code' => $herd->code, 'count' => $herd->current_count],
+        ];
+    }
+
+    public function getLivestock(array $args): array
+    {
+        $query = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('status', 'active')
+            ->with('plot');
+
+        if (!empty($args['animal_type'])) {
+            $query->where('animal_type', 'like', "%{$args['animal_type']}%");
+        }
+
+        $herds = $query->orderByDesc('created_at')->get();
+
+        if ($herds->isEmpty()) {
+            return ['status' => 'empty', 'message' => 'Belum ada data ternak. Gunakan `add_livestock` untuk menambahkan.'];
+        }
+
+        $totalAnimals = $herds->sum('current_count');
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+
+        $rows = $herds->map(fn ($h) => [
+            'kode'       => $h->code,
+            'nama'       => $h->name,
+            'jenis'      => $h->animalLabel(),
+            'populasi'   => "{$fmt($h->current_count)} ekor",
+            'awal'       => $h->initial_count,
+            'mortalitas' => abs($h->mortalityCount()) . " ({$h->mortalityRate()}%)",
+            'umur'       => ($h->ageDays() ?? '-') . ' hari',
+            'kandang'    => $h->plot?->code ?? '-',
+        ]);
+
+        return [
+            'status'  => 'success',
+            'message' => "Populasi ternak ({$herds->count()} kelompok, total {$fmt($totalAnimals)} ekor)",
+            'data'    => ['herds' => $rows->toArray(), 'total' => $totalAnimals, 'url' => '/farm/livestock'],
+        ];
+    }
+
+    public function recordLivestockMovement(array $args): array
+    {
+        $herd = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('code', $args['herd_code'])
+            ->first();
+
+        if (!$herd) return ['status' => 'not_found', 'message' => "Ternak \"{$args['herd_code']}\" tidak ditemukan."];
+
+        $qty = (int) $args['quantity'];
+        $isOutbound = in_array($args['type'], \App\Models\LivestockMovement::OUTBOUND_TYPES);
+        $signedQty = $isOutbound ? -$qty : $qty;
+        $newCount = $herd->current_count + $signedQty;
+
+        if ($newCount < 0) {
+            return ['status' => 'error', 'message' => "Populasi tidak bisa negatif. Saat ini: {$herd->current_count}, dikurangi: {$qty}."];
+        }
+
+        \App\Models\LivestockMovement::create([
+            'livestock_herd_id' => $herd->id,
+            'tenant_id'         => $this->tenantId,
+            'user_id'           => $this->userId,
+            'date'              => today(),
+            'type'              => $args['type'],
+            'quantity'          => $signedQty,
+            'count_after'       => $newCount,
+            'weight_kg'         => (float) ($args['weight_kg'] ?? 0),
+            'price_total'       => (float) ($args['price_total'] ?? 0),
+            'reason'            => $args['reason'] ?? null,
+        ]);
+
+        $herd->update(['current_count' => $newCount]);
+
+        if ($newCount <= 0 && in_array($args['type'], ['sold', 'harvested'])) {
+            $herd->update(['status' => $args['type'] === 'sold' ? 'sold' : 'harvested']);
+        }
+
+        $label = \App\Models\LivestockMovement::TYPE_LABELS[$args['type']] ?? $args['type'];
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+
+        $msg = "{$label} di **{$herd->code}** ({$herd->name})"
+            . "\n- Jumlah: **{$qty} ekor**"
+            . "\n- Populasi sekarang: **{$fmt($newCount)} ekor**"
+            . "\n- Mortalitas: {$herd->mortalityRate()}%";
+
+        if (($args['price_total'] ?? 0) > 0) {
+            $msg .= "\n- Nilai: Rp {$fmt($args['price_total'])}";
+        }
+
+        return ['status' => 'success', 'message' => $msg, 'data' => ['code' => $herd->code, 'count' => $newCount]];
+    }
+
+    // ─── Health & Vaccination Executors ────────────────────────────
+
+    public function recordFeed(array $args): array
+    {
+        $herd = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('code', $args['herd_code'])->first();
+        if (!$herd) return ['status' => 'not_found', 'message' => "Ternak \"{$args['herd_code']}\" tidak ditemukan."];
+
+        \App\Models\LivestockFeedLog::create([
+            'livestock_herd_id'     => $herd->id,
+            'tenant_id'             => $this->tenantId,
+            'user_id'               => $this->userId,
+            'date'                  => today(),
+            'feed_type'             => $args['feed_type'],
+            'quantity_kg'           => (float) $args['quantity_kg'],
+            'cost'                  => (float) ($args['cost'] ?? 0),
+            'population_at_feeding' => $herd->current_count,
+            'avg_body_weight_kg'    => (float) ($args['avg_body_weight_kg'] ?? 0),
+        ]);
+
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+        $fcr = $herd->fresh()->fcr();
+        $feedPerHead = $herd->current_count > 0 ? round($args['quantity_kg'] * 1000 / $herd->current_count, 1) : 0;
+
+        $msg = "🌾 Pakan dicatat untuk **{$herd->code}** ({$herd->name})"
+            . "\n- Jenis: **{$args['feed_type']}** — **{$fmt($args['quantity_kg'])} kg**"
+            . "\n- Per ekor: **{$feedPerHead}g**"
+            . (($args['cost'] ?? 0) > 0 ? "\n- Biaya: Rp {$fmt($args['cost'])}" : '')
+            . (($args['avg_body_weight_kg'] ?? 0) > 0 ? "\n- Berat rata-rata: **{$args['avg_body_weight_kg']} kg/ekor**" : '')
+            . "\n- Total pakan kumulatif: **{$fmt($herd->totalFeedKg())} kg**"
+            . ($fcr ? "\n- 📊 **FCR: {$fcr}** " . ($fcr <= 1.6 ? '(sangat baik ✅)' : ($fcr <= 1.8 ? '(baik ✅)' : ($fcr <= 2.2 ? '(cukup ⚠️)' : '(perlu perbaikan ❌)'))) : '');
+
+        return ['status' => 'success', 'message' => $msg, 'data' => ['code' => $herd->code, 'fcr' => $fcr]];
+    }
+
+    public function getFcr(array $args): array
+    {
+        $fmt = fn ($v) => number_format($v, $v == (int)$v ? 0 : 1, ',', '.');
+
+        if (!empty($args['herd_code'])) {
+            $herd = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+                ->where('code', $args['herd_code'])->first();
+            if (!$herd) return ['status' => 'not_found', 'message' => "Ternak \"{$args['herd_code']}\" tidak ditemukan."];
+
+            $fcr = $herd->fcr();
+            $totalFeed = $herd->totalFeedKg();
+            $totalFeedCost = $herd->totalFeedCost();
+            $latestWeight = $herd->latestBodyWeight();
+            $weightGain = $herd->weightGain();
+            $feedCostPerKg = $herd->feedCostPerKgGain();
+            $avgDaily = $herd->avgDailyFeed();
+
+            $msg = "📊 FCR **{$herd->code}** ({$herd->name})"
+                . "\n\n| Metrik | Nilai |"
+                . "\n|--------|-------|"
+                . "\n| FCR | **" . ($fcr ?? '-') . "** |"
+                . "\n| Total Pakan | {$fmt($totalFeed)} kg |"
+                . "\n| Biaya Pakan | Rp {$fmt($totalFeedCost)} |"
+                . "\n| Berat Masuk | {$herd->entry_weight_kg} kg/ekor |"
+                . "\n| Berat Sekarang | " . ($latestWeight ? "{$latestWeight} kg/ekor" : '-') . " |"
+                . "\n| Weight Gain | " . ($weightGain ? "+{$weightGain} kg" : '-') . " |"
+                . "\n| Biaya Pakan/kg Gain | " . ($feedCostPerKg ? "Rp {$fmt($feedCostPerKg)}" : '-') . " |"
+                . "\n| Pakan Harian | " . ($avgDaily ? "{$avgDaily} kg/hari" : '-') . " |"
+                . "\n| Populasi | {$herd->current_count} ekor |"
+                . "\n| Umur | " . ($herd->ageDays() ?? '-') . " hari |";
+
+            return ['status' => 'success', 'message' => $msg, 'data' => ['fcr' => $fcr, 'code' => $herd->code]];
+        }
+
+        // Compare all herds
+        $herds = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('status', 'active')->get();
+
+        if ($herds->isEmpty()) return ['status' => 'empty', 'message' => 'Belum ada data ternak.'];
+
+        $rows = $herds->map(fn ($h) => [
+            'kode'       => $h->code,
+            'nama'       => $h->name,
+            'populasi'   => $h->current_count,
+            'total_pakan'=> "{$fmt($h->totalFeedKg())} kg",
+            'berat'      => $h->latestBodyWeight() ? "{$h->latestBodyWeight()} kg" : '-',
+            'fcr'        => $h->fcr() ?? '-',
+            'biaya_per_kg'=> $h->feedCostPerKgGain() ? "Rp {$fmt($h->feedCostPerKgGain())}" : '-',
+        ])->filter(fn ($r) => $r['fcr'] !== '-');
+
+        if ($rows->isEmpty()) {
+            return ['status' => 'info', 'message' => 'Belum ada data pakan yang cukup untuk menghitung FCR. Catat pemberian pakan harian dengan berat rata-rata untuk mendapatkan FCR.'];
+        }
+
+        $best = $rows->sortBy('fcr')->first();
+
+        $msg = "📊 **Perbandingan FCR Semua Ternak**\n";
+        $msg .= "\n| Kode | Nama | Populasi | Pakan | Berat | FCR | Biaya/kg |";
+        $msg .= "\n|------|------|----------|-------|-------|-----|----------|";
+        foreach ($rows as $r) {
+            $msg .= "\n| {$r['kode']} | {$r['nama']} | {$r['populasi']} | {$r['total_pakan']} | {$r['berat']} | **{$r['fcr']}** | {$r['biaya_per_kg']} |";
+        }
+        $msg .= "\n\n🏆 Paling efisien: **{$best['kode']}** (FCR {$best['fcr']})";
+
+        return ['status' => 'success', 'message' => $msg, 'data' => ['herds' => $rows->toArray()]];
+    }
+
+    public function recordLivestockHealth(array $args): array
+    {
+        $herd = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('code', $args['herd_code'])->first();
+        if (!$herd) return ['status' => 'not_found', 'message' => "Ternak \"{$args['herd_code']}\" tidak ditemukan."];
+
+        $deathCount = (int) ($args['death_count'] ?? 0);
+
+        \App\Models\LivestockHealthRecord::create([
+            'livestock_herd_id' => $herd->id,
+            'tenant_id'         => $this->tenantId,
+            'user_id'           => $this->userId,
+            'date'              => today(),
+            'type'              => $args['type'],
+            'condition'         => $args['condition'],
+            'affected_count'    => (int) ($args['affected_count'] ?? 0),
+            'death_count'       => $deathCount,
+            'symptoms'          => $args['symptoms'] ?? null,
+            'medication'        => $args['medication'] ?? null,
+            'medication_cost'   => (float) ($args['medication_cost'] ?? 0),
+            'severity'          => $args['severity'] ?? 'medium',
+            'status'            => $args['type'] === 'recovery' ? 'resolved' : 'active',
+        ]);
+
+        // Auto-record deaths
+        if ($deathCount > 0) {
+            $newCount = max(0, $herd->current_count - $deathCount);
+            \App\Models\LivestockMovement::create([
+                'livestock_herd_id' => $herd->id,
+                'tenant_id' => $this->tenantId, 'user_id' => $this->userId,
+                'date' => today(), 'type' => 'death',
+                'quantity' => -$deathCount, 'count_after' => $newCount,
+                'reason' => $args['condition'],
+            ]);
+            $herd->update(['current_count' => $newCount]);
+        }
+
+        $label = \App\Models\LivestockHealthRecord::TYPE_LABELS[$args['type']] ?? $args['type'];
+        $msg = "{$label} dicatat di **{$herd->code}** ({$herd->name})"
+            . "\n- Kondisi: **{$args['condition']}**"
+            . (($args['affected_count'] ?? 0) > 0 ? "\n- Terdampak: **{$args['affected_count']} ekor**" : '')
+            . ($deathCount > 0 ? "\n- 💀 Kematian: **{$deathCount} ekor** → populasi: {$herd->fresh()->current_count}" : '')
+            . (($args['medication'] ?? '') ? "\n- Obat: {$args['medication']}" : '')
+            . "\n- Mortalitas total: **{$herd->mortalityRate()}%**";
+
+        return ['status' => 'success', 'message' => $msg];
+    }
+
+    public function getLivestockHealth(array $args): array
+    {
+        if (!empty($args['herd_code'])) {
+            $herd = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+                ->where('code', $args['herd_code'])->first();
+            if (!$herd) return ['status' => 'not_found', 'message' => "Ternak \"{$args['herd_code']}\" tidak ditemukan."];
+
+            $health = $herd->healthRecords()->latest('date')->take(10)->get();
+            $vaccinations = $herd->vaccinations;
+            $overdue = $vaccinations->filter(fn ($v) => $v->isOverdue());
+
+            $msg = "🏥 Kesehatan **{$herd->code}** ({$herd->name})"
+                . "\n- Populasi: **{$herd->current_count}** ekor | Mortalitas: **{$herd->mortalityRate()}%**";
+
+            if ($overdue->isNotEmpty()) {
+                $msg .= "\n\n⚠️ **{$overdue->count()} vaksin terlambat:**";
+                foreach ($overdue as $v) {
+                    $msg .= "\n- {$v->vaccine_name} (jadwal: {$v->scheduled_date->format('d M Y')})";
+                }
+            }
+
+            $upcoming = $vaccinations->where('status', 'scheduled')->filter(fn ($v) => $v->scheduled_date->isFuture());
+            if ($upcoming->isNotEmpty()) {
+                $msg .= "\n\n💉 **Vaksin mendatang:**";
+                foreach ($upcoming->take(5) as $v) {
+                    $msg .= "\n- {$v->vaccine_name} — {$v->scheduled_date->format('d M Y')} (hari ke-{$v->dose_age_days})";
+                }
+            }
+
+            if ($health->isNotEmpty()) {
+                $msg .= "\n\n📋 **Riwayat kesehatan terbaru:**";
+                foreach ($health->take(5) as $hr) {
+                    $msg .= "\n- [{$hr->date->format('d M')}] {$hr->typeLabel()} — {$hr->condition}";
+                    if ($hr->death_count > 0) $msg .= " (💀 {$hr->death_count} mati)";
+                }
+            }
+
+            return ['status' => 'success', 'message' => $msg, 'data' => ['code' => $herd->code, 'mortality_rate' => $herd->mortalityRate()]];
+        }
+
+        // Summary all herds
+        $herds = \App\Models\LivestockHerd::where('tenant_id', $this->tenantId)
+            ->where('status', 'active')->get();
+
+        if ($herds->isEmpty()) return ['status' => 'empty', 'message' => 'Belum ada data ternak.'];
+
+        $totalOverdueVax = 0;
+        $rows = $herds->map(function ($h) use (&$totalOverdueVax) {
+            $overdue = $h->vaccinations->filter(fn ($v) => $v->isOverdue())->count();
+            $totalOverdueVax += $overdue;
+            $activeIllness = $h->healthRecords()->where('status', 'active')->count();
+            return [
+                'kode'       => $h->code,
+                'nama'       => $h->name,
+                'populasi'   => $h->current_count,
+                'mortalitas' => $h->mortalityRate() . '%',
+                'vaksin_terlambat' => $overdue,
+                'penyakit_aktif'   => $activeIllness,
+            ];
+        });
+
+        $msg = "🏥 Ringkasan kesehatan ternak ({$herds->count()} kelompok)";
+        if ($totalOverdueVax > 0) $msg .= "\n⚠️ **{$totalOverdueVax} vaksinasi terlambat!**";
+
+        return ['status' => 'success', 'message' => $msg, 'data' => ['herds' => $rows->toArray()]];
     }
 }

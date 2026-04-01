@@ -135,11 +135,31 @@ class OnboardingTools
                 '"daftar lahan" atau "status semua blok" → get_farm_plots',
                 '"blok A1 sudah ditanam padi" → update_plot_status',
                 '"pupuk urea 50 kg di blok A1 biaya 200 ribu" → record_farm_activity',
-                '"panen 500 kg padi dari lahan B2 grade A" → record_farm_activity',
-                '"catat panen 500 kg" → add_stock',
+                '"panen 500 kg padi dari lahan B2 grade A" → log_harvest',
                 '"jual 1 ton ke pengepul X" → create_sales_order',
-                '"laporan laba rugi bulan ini" → get_profit_loss',
                 '"lahan mana yang siap panen?" → get_farm_plots status=ready_harvest',
+                '"biaya per lahan" → get_farm_cost_analysis',
+            ],
+        ],
+        'livestock' => [
+            'label'      => 'Peternakan',
+            'warehouses' => ['Gudang Pakan', 'Gudang Obat & Vaksin'],
+            'categories' => ['Pakan Ternak', 'Obat & Vaksin', 'Upah Pekerja', 'Sewa Kandang', 'Peralatan Kandang', 'Transportasi', 'DOC / Bibit'],
+            'products'   => [
+                ['name' => 'Pakan Starter',  'unit' => 'kg',   'category' => 'Pakan',  'price_sell' => 0],
+                ['name' => 'Pakan Grower',   'unit' => 'kg',   'category' => 'Pakan',  'price_sell' => 0],
+                ['name' => 'Pakan Finisher', 'unit' => 'kg',   'category' => 'Pakan',  'price_sell' => 0],
+                ['name' => 'Vaksin ND-IB',   'unit' => 'dosis','category' => 'Vaksin', 'price_sell' => 0],
+            ],
+            'shortcuts'  => [
+                '"masukkan 1000 DOC ayam broiler ke kandang A" → add_livestock',
+                '"daftar ternak" atau "populasi ayam" → get_livestock',
+                '"ayam mati 15 ekor di FLK-001" → record_livestock_movement type=death',
+                '"kasih pakan 50 kg starter ke FLK-001" → record_feed',
+                '"FCR ayam FLK-001" → get_fcr',
+                '"jual 200 ekor ayam harga 10 juta" → record_livestock_movement type=sold',
+                '"kesehatan ternak FLK-001" → get_livestock_health',
+                '"jadwal vaksin ayam" → get_livestock_health',
             ],
         ],
     ];
@@ -193,7 +213,7 @@ class OnboardingTools
                     'properties' => [
                         'industry' => [
                             'type'        => 'string',
-                            'description' => 'Jenis industri: fnb, retail, manufacture, distributor, construction, service, agriculture',
+                            'description' => 'Jenis industri: fnb, retail, manufacture, distributor, construction, service, agriculture, livestock',
                         ],
                         'include_products'   => ['type' => 'boolean', 'description' => 'Tambahkan produk contoh (default: true)'],
                         'include_categories' => ['type' => 'boolean', 'description' => 'Tambahkan kategori pengeluaran (default: true)'],
@@ -212,7 +232,7 @@ class OnboardingTools
                     'properties' => [
                         'industry' => [
                             'type'        => 'string',
-                            'description' => 'Jenis industri: fnb, retail, manufacture, distributor, construction, service, agriculture. Kosong = tampilkan semua.',
+                            'description' => 'Jenis industri: fnb, retail, manufacture, distributor, construction, service, agriculture, livestock. Kosong = tampilkan semua.',
                         ],
                     ],
                 ],

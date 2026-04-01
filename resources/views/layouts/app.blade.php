@@ -645,6 +645,7 @@ const NAV_GROUPS = {
       { label: 'Siklus Tanam',          href: '{{ route("farm.cycles") }}',            active: {{ request()->routeIs('farm.cycles*') ? 'true' : 'false' }} },
       { label: 'Pencatatan Panen',      href: '{{ route("farm.harvests") }}',           active: {{ request()->routeIs('farm.harvests*') ? 'true' : 'false' }} },
       { label: 'Analisis Biaya Lahan',  href: '{{ route("farm.analytics") }}',          active: {{ request()->routeIs('farm.analytics*') ? 'true' : 'false' }} },
+      { label: 'Populasi Ternak',       href: '{{ route("farm.livestock") }}',          active: {{ request()->routeIs('farm.livestock*') ? 'true' : 'false' }} },
 @endif
 @if(($navTenant?->isModuleEnabled('contracts') ?? true) && $canView('contracts'))
       { label: 'Kontrak',               href: '{{ route("contracts.index") }}',        active: {{ request()->routeIs('contracts.index') || request()->routeIs('contracts.show') ? 'true' : 'false' }} },

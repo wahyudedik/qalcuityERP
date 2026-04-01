@@ -65,6 +65,7 @@ class AppGuideTools
         'crop_cycles'     => ['group' => 'ops',        'icon' => '⚙️', 'label' => 'Siklus Tanam',      'path' => '/farm/cycles',      'section' => null],
         'harvest_logs'    => ['group' => 'ops',        'icon' => '⚙️', 'label' => 'Pencatatan Panen',  'path' => '/farm/harvests',    'section' => null],
         'farm_analytics'  => ['group' => 'ops',        'icon' => '⚙️', 'label' => 'Analisis Biaya Lahan','path' => '/farm/analytics', 'section' => null],
+        'livestock'       => ['group' => 'ops',        'icon' => '⚙️', 'label' => 'Populasi Ternak',   'path' => '/farm/livestock',   'section' => null],
 
         // ── SDM (ikon: 👥 users) ──
         'hrm'             => ['group' => 'hrm',        'icon' => '👥', 'label' => 'SDM & Karyawan',      'path' => '/hrm',              'section' => 'Manajemen SDM'],
@@ -476,6 +477,12 @@ class AppGuideTools
             'tanam'      => ['farm_plots'],
             'siklus'     => ['crop_cycles'],
             'musim tanam'=> ['crop_cycles'],
+            'ternak'     => ['livestock'],
+            'peternakan' => ['livestock'],
+            'kandang'    => ['livestock'],
+            'ayam'       => ['livestock'],
+            'sapi'       => ['livestock'],
+            'kambing'    => ['livestock'],
             'konsinyasi' => ['consignment'],
             'ecommerce'  => ['ecommerce'],
             'timesheet'  => ['timesheets'],

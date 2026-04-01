@@ -78,7 +78,8 @@
                         'distributor'  => ['icon' => '📦', 'label' => 'Distributor',       'desc' => 'Grosir, agen'],
                         'construction' => ['icon' => '🏗️', 'label' => 'Konstruksi',        'desc' => 'Kontraktor, builder'],
                         'service'      => ['icon' => '🔧', 'label' => 'Jasa',              'desc' => 'Konsultan, servis'],
-                        'agriculture'  => ['icon' => '🌾', 'label' => 'Pertanian',         'desc' => 'Kebun, ternak'],
+                        'agriculture'  => ['icon' => '🌾', 'label' => 'Pertanian',         'desc' => 'Kebun, perkebunan'],
+                        'livestock'    => ['icon' => '🐄', 'label' => 'Peternakan',        'desc' => 'Ayam, sapi, kambing'],
                         'other'        => ['icon' => '💼', 'label' => 'Lainnya',           'desc' => 'Jenis bisnis lain'],
                     ];
                     ?>

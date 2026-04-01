@@ -649,6 +649,7 @@ const NAV_GROUPS = {
       { label: 'Siklus Tanam',          href: '<?php echo e(route("farm.cycles")); ?>',            active: <?php echo e(request()->routeIs('farm.cycles*') ? 'true' : 'false'); ?> },
       { label: 'Pencatatan Panen',      href: '<?php echo e(route("farm.harvests")); ?>',           active: <?php echo e(request()->routeIs('farm.harvests*') ? 'true' : 'false'); ?> },
       { label: 'Analisis Biaya Lahan',  href: '<?php echo e(route("farm.analytics")); ?>',          active: <?php echo e(request()->routeIs('farm.analytics*') ? 'true' : 'false'); ?> },
+      { label: 'Populasi Ternak',       href: '<?php echo e(route("farm.livestock")); ?>',          active: <?php echo e(request()->routeIs('farm.livestock*') ? 'true' : 'false'); ?> },
 <?php endif; ?>
 <?php if(($navTenant?->isModuleEnabled('contracts') ?? true) && $canView('contracts')): ?>
       { label: 'Kontrak',               href: '<?php echo e(route("contracts.index")); ?>',        active: <?php echo e(request()->routeIs('contracts.index') || request()->routeIs('contracts.show') ? 'true' : 'false'); ?> },

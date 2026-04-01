@@ -144,6 +144,10 @@ class Tenant extends Model
             'konveksi'      => 'Konveksi / Garmen',
             'distributor'   => 'Distributor / Grosir',
             'jasa'          => 'Usaha Jasa',
+            'construction'  => 'Konstruksi / Kontraktor',
+            'agriculture'   => 'Pertanian / Perkebunan',
+            'livestock'     => 'Peternakan',
+            'manufacture'   => 'Manufaktur / Pabrik',
             default         => 'Bisnis Umum',
         };
     }

@@ -165,6 +165,7 @@ class ToolRegistry
             'setup_concrete_standards', 'create_mix_design',
             'create_farm_plot', 'update_plot_status', 'record_farm_activity',
             'start_crop_cycle', 'advance_crop_phase', 'log_harvest',
+            'add_livestock', 'record_livestock_movement', 'record_livestock_health', 'record_feed',
             'transfer_stock', 'receive_transfer', 'adjust_stock',
             'apply_industry_template',
             // New modules

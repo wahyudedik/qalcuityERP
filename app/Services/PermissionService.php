@@ -169,6 +169,7 @@ class PermissionService
             'expenses'      => ['view', 'create'],
             'zero_input'    => ['view', 'create'],
             'helpdesk'      => ['view', 'create'],
+            'agriculture'   => ['view'],
         ],
 
         'kasir' => [
@@ -193,6 +194,7 @@ class PermissionService
             'consignment'   => ['view', 'create', 'edit'],
             'wms'           => ['view', 'create', 'edit'],
             'agriculture'   => ['view', 'create', 'edit'],
+            'rab'           => ['view'],
             'documents'    => ['view', 'create'],
             'reminders'    => ['view', 'create', 'delete'],
         ],
@@ -318,6 +320,8 @@ class PermissionService
     {
         return match($module) {
             'dashboard'      => 'Dashboard',
+            'customers'      => 'Data Customer',
+            'suppliers'      => 'Data Supplier',
             'sales'          => 'Sales Order',
             'invoices'       => 'Invoice',
             'quotations'     => 'Penawaran Harga',
@@ -330,8 +334,6 @@ class PermissionService
             'inventory'      => 'Inventori',
             'products'       => 'Data Produk',
             'warehouses'     => 'Data Gudang',
-            'customers'      => 'Data Customer',
-            'suppliers'      => 'Data Supplier',
             'pos'            => 'Point of Sale',
             'hrm'            => 'SDM (HRM)',
             'payroll'        => 'Penggajian',
@@ -380,6 +382,9 @@ class PermissionService
             'zero_input'     => 'Input Cerdas (AI)',
             'agriculture'    => 'Pertanian / Lahan',
             'rab'            => 'RAB (Rencana Anggaran Biaya)',
+            'overtime'       => 'Lembur',
+            'training'       => 'Pelatihan & Sertifikasi',
+            'disciplinary'   => 'Surat Peringatan',
             default          => ucfirst(str_replace('_', ' ', $module)),
         };
     }
@@ -391,7 +396,7 @@ class PermissionService
     {
         return [
             'Penjualan' => ['sales', 'invoices', 'quotations', 'delivery', 'sales_returns', 'down_payments', 'price_lists', 'crm', 'loyalty', 'pos', 'commission', 'helpdesk', 'subscription_billing'],
-            'Inventori & Pembelian' => ['inventory', 'products', 'warehouses', 'purchasing', 'consignment', 'wms'],
+            'Inventori & Pembelian' => ['inventory', 'products', 'warehouses', 'customers', 'suppliers', 'purchasing', 'consignment', 'wms'],
             'Operasional' => ['production', 'manufacturing', 'fleet', 'contracts', 'shipping', 'approvals', 'ecommerce', 'documents', 'projects', 'timesheets', 'project_billing', 'agriculture', 'rab'],
             'SDM & Penggajian' => ['hrm', 'payroll', 'overtime', 'training', 'disciplinary', 'reimbursement'],
             'Keuangan' => ['expenses', 'receivables', 'bank', 'budget', 'assets', 'accounting', 'journals', 'deferred', 'writeoffs', 'bulk_payments', 'cost_centers', 'landed_cost'],

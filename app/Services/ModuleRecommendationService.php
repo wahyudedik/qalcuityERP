@@ -80,6 +80,10 @@ class ModuleRecommendationService
                 'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports', 'agriculture'],
                 'reason'  => 'Pertanian perlu manajemen lahan/blok, kontrol stok hasil panen, pembelian input, dan penjualan.',
             ],
+            'livestock' => [
+                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports', 'agriculture'],
+                'reason'  => 'Peternakan perlu tracking populasi, pakan & FCR, vaksinasi, dan penjualan ternak.',
+            ],
             default => [
                 'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'reports'],
                 'reason'  => 'Modul dasar yang cocok untuk berbagai jenis bisnis.',
