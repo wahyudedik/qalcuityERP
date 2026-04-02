@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,11 +10,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, AuditsChanges;
+
     protected $fillable = [
-        'tenant_id', 'name', 'sku', 'barcode', 'category', 'unit',
-        'price_buy', 'price_sell', 'stock_min', 'description', 'image', 'is_active',
-        'has_expiry', 'expiry_alert_days',
+        'tenant_id',
+        'name',
+        'sku',
+        'barcode',
+        'category',
+        'unit',
+        'price_buy',
+        'price_sell',
+        'stock_min',
+        'description',
+        'image',
+        'is_active',
+        'has_expiry',
+        'expiry_alert_days',
     ];
 
     protected function casts(): array
@@ -27,10 +40,22 @@ class Product extends Model
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function stockMovements(): HasMany { return $this->hasMany(StockMovement::class); }
-    public function productStocks(): HasMany { return $this->hasMany(ProductStock::class); }
-    public function batches(): HasMany { return $this->hasMany(ProductBatch::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+    public function productStocks(): HasMany
+    {
+        return $this->hasMany(ProductStock::class);
+    }
+    public function batches(): HasMany
+    {
+        return $this->hasMany(ProductBatch::class);
+    }
 
     public function stockInWarehouse(int $warehouseId): int
     {

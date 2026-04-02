@@ -11,7 +11,10 @@ class CompanyGroup extends Model
 {
     protected $fillable = ['owner_user_id', 'name', 'currency_code'];
 
-    public function owner(): BelongsTo { return $this->belongsTo(User::class, 'owner_user_id'); }
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_user_id');
+    }
 
     public function members(): BelongsToMany
     {
@@ -23,5 +26,35 @@ class CompanyGroup extends Model
     public function intercompanyTransactions(): HasMany
     {
         return $this->hasMany(IntercompanyTransaction::class);
+    }
+
+    public function consolidationReports(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationReport::class);
+    }
+
+    public function masterAccounts(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationMasterAccount::class);
+    }
+
+    public function accountMappings(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationAccountMapping::class);
+    }
+
+    public function eliminations(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationElimination::class);
+    }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationAdjustment::class);
+    }
+
+    public function ownerships(): HasMany
+    {
+        return $this->hasMany(\App\Models\ConsolidationOwnership::class);
     }
 }

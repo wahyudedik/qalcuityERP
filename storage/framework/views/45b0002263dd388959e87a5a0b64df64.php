@@ -1,0 +1,116 @@
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+     <?php $__env->slot('header', null, []); ?> Driver / Pengemudi <?php $__env->endSlot(); ?>
+
+    <div class="flex flex-col sm:flex-row gap-2 mb-4">
+        <form method="GET" class="flex-1 flex gap-2">
+            <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari nama / SIM..."
+                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
+        </form>
+        <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'fleet', 'create')): ?>
+        <button onclick="document.getElementById('modal-add-driver').classList.remove('hidden')"
+            class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Driver</button>
+        <?php endif; ?>
+    </div>
+
+    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Nama</th>
+                        <th class="px-4 py-3 text-left hidden sm:table-cell">No. SIM</th>
+                        <th class="px-4 py-3 text-center hidden sm:table-cell">Tipe SIM</th>
+                        <th class="px-4 py-3 text-left hidden md:table-cell">Telepon</th>
+                        <th class="px-4 py-3 text-center">Status</th>
+                        <th class="px-4 py-3 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <?php $__empty_1 = true; $__currentLoopData = $drivers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php
+                        $dc = ['active'=>'green','on_trip'=>'blue','off_duty'=>'amber','inactive'=>'gray'][$d->status] ?? 'gray';
+                        $dl = ['active'=>'Aktif','on_trip'=>'Dalam Trip','off_duty'=>'Libur','inactive'=>'Nonaktif'][$d->status] ?? $d->status;
+                    ?>
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <td class="px-4 py-3 text-gray-900 dark:text-white"><?php echo e($d->name); ?>
+
+                            <?php if($d->employee): ?> <span class="text-xs text-gray-400">(<?php echo e($d->employee->employee_id ?? ''); ?>)</span> <?php endif; ?>
+                        </td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-gray-700 dark:text-slate-300 font-mono text-xs"><?php echo e($d->license_number ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-center hidden sm:table-cell text-gray-700 dark:text-slate-300"><?php echo e($d->license_type ?? '-'); ?></td>
+                        <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400"><?php echo e($d->phone ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-<?php echo e($dc); ?>-100 text-<?php echo e($dc); ?>-700 dark:bg-<?php echo e($dc); ?>-500/20 dark:text-<?php echo e($dc); ?>-400"><?php echo e($dl); ?></span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'fleet', 'delete')): ?>
+                            <form method="POST" action="<?php echo e(url('fleet/drivers')); ?>/<?php echo e($d->id); ?>" class="inline" onsubmit="return confirm('Hapus driver ini?')">
+                                <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                <button type="submit" class="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700">Hapus</button>
+                            </form>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada driver.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php if($drivers->hasPages()): ?><div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($drivers->links()); ?></div><?php endif; ?>
+    </div>
+
+    
+    <div id="modal-add-driver" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Tambah Driver</h3>
+                <button onclick="document.getElementById('modal-add-driver').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+            </div>
+            <form method="POST" action="<?php echo e(route('fleet.drivers.store')); ?>" class="p-6 space-y-4">
+                <?php echo csrf_field(); ?>
+                <?php $cls = 'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white'; ?>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama *</label><input type="text" name="name" required class="<?php echo e($cls); ?>"></div>
+                    <?php if($employees->isNotEmpty()): ?>
+                    <div class="col-span-2"><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Link Karyawan</label>
+                        <select name="employee_id" class="<?php echo e($cls); ?>"><option value="">-- Tanpa Link --</option>
+                            <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $e): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($e->id); ?>"><?php echo e($e->name); ?> (<?php echo e($e->employee_id); ?>)</option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                    <div><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">No. SIM</label><input type="text" name="license_number" class="<?php echo e($cls); ?>"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe SIM</label>
+                        <select name="license_type" class="<?php echo e($cls); ?>"><option value="">-</option><option value="A">A</option><option value="B1">B1</option><option value="B2">B2</option><option value="C">C</option></select>
+                    </div>
+                    <div><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">SIM Expired</label><input type="date" name="license_expiry" class="<?php echo e($cls); ?>"></div>
+                    <div><label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Telepon</label><input type="text" name="phone" class="<?php echo e($cls); ?>"></div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('modal-add-driver').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php /**PATH E:\PROJEKU\qalcuityERP\resources\views/fleet/drivers.blade.php ENDPATH**/ ?>

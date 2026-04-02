@@ -1,0 +1,344 @@
+<x-app-layout>
+    <x-slot name="header">Mode Lapangan</x-slot>
+
+    <style>
+        .mobile-hub-page {
+            min-height: 100vh;
+            background: #030712;
+            padding: 0 0 2rem;
+        }
+
+        /* ── Header ── */
+        .mob-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            padding: 1.25rem 1.25rem 1rem;
+        }
+
+        .mob-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .mob-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -0.01em;
+        }
+
+        .mob-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .mob-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .mob-user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            line-height: 1.2;
+        }
+
+        .mob-role-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            margin-top: 0.15rem;
+        }
+
+        /* ── Stats Strip ── */
+        .mob-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.625rem;
+            padding: 0.875rem 1.25rem 0;
+        }
+
+        .mob-stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.875rem;
+            padding: 0.625rem 0.5rem;
+            text-align: center;
+        }
+
+        .mob-stat-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        .mob-stat-label {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 0.25rem;
+        }
+
+        /* ── Section Label ── */
+        .mob-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 1.25rem 1.25rem 0.625rem;
+        }
+
+        /* ── Action Grid ── */
+        .mob-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+            padding: 0 1.25rem;
+        }
+
+        .mob-action-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 9rem;
+            padding: 1.25rem 1rem;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.25rem;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.18s, border-color 0.18s, transform 0.12s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mob-action-card:active {
+            transform: scale(0.96);
+        }
+
+        .mob-action-card:hover {
+            background: #263449;
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .mob-action-card.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .mob-card-glow {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            opacity: 0.12;
+            filter: blur(18px);
+        }
+
+        .mob-card-icon {
+            font-size: 2rem;
+            line-height: 1;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .mob-card-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1.3;
+            position: relative;
+        }
+
+        .mob-card-desc {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .mob-card-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            padding: 0 0.35rem;
+            border-radius: 999px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .mob-card-badge.zero {
+            background: rgba(255, 255, 255, 0.08);
+            color: #475569;
+        }
+
+        /* Color accents per card */
+        .card-opname .mob-card-glow {
+            background: #22d3ee;
+        }
+
+        .card-picking .mob-card-glow {
+            background: #3b82f6;
+        }
+
+        .card-transfer .mob-card-glow {
+            background: #a855f7;
+        }
+
+        .card-farm .mob-card-glow {
+            background: #22c55e;
+        }
+
+        /* ── Back Link ── */
+        .mob-back-wrap {
+            padding: 1.5rem 1.25rem 0;
+        }
+
+        .mob-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8rem;
+            color: #475569;
+            text-decoration: none;
+            padding: 0.5rem 0.875rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.03);
+            transition: color 0.15s, background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mob-back-link:hover {
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.06);
+        }
+    </style>
+
+    <div class="mobile-hub-page">
+
+        {{-- ── Header ── --}}
+        <div class="mob-header">
+            <div class="mob-header-top">
+                <span class="mob-title">📱 Mode Lapangan</span>
+                <div class="mob-user-info">
+                    <div class="mob-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                    <div>
+                        <div class="mob-user-name">{{ $user->name }}</div>
+                        <div class="mob-role-badge">{{ ucfirst($user->role ?? 'staff') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Stats Strip ── --}}
+        <div class="mob-stats">
+            <div class="mob-stat-card">
+                <div class="mob-stat-num" style="color:#60a5fa">{{ $pendingPicking }}</div>
+                <div class="mob-stat-label">Picking Aktif</div>
+            </div>
+            <div class="mob-stat-card">
+                <div class="mob-stat-num" style="color:#34d399">{{ $pendingOpname }}</div>
+                <div class="mob-stat-label">Opname Aktif</div>
+            </div>
+            <div class="mob-stat-card">
+                <div class="mob-stat-num" style="color:#fb923c">{{ $myPicking }}</div>
+                <div class="mob-stat-label">Tugas Saya</div>
+            </div>
+        </div>
+
+        {{-- ── Action Cards ── --}}
+        <p class="mob-section-label">Pilih Aktivitas</p>
+        <div class="mob-actions-grid">
+
+            {{-- Stock Opname --}}
+            <a href="{{ route('mobile.opname') }}" class="mob-action-card card-opname">
+                <div class="mob-card-glow"></div>
+                @if ($pendingOpname > 0)
+                    <span class="mob-card-badge">{{ $pendingOpname }}</span>
+                @else
+                    <span class="mob-card-badge zero">0</span>
+                @endif
+                <span class="mob-card-icon">📋</span>
+                <span class="mob-card-title">Stock Opname</span>
+                <span class="mob-card-desc">Hitung & verifikasi stok fisik gudang</span>
+            </a>
+
+            {{-- Picking --}}
+            <a href="{{ route('mobile.picking') }}" class="mob-action-card card-picking">
+                <div class="mob-card-glow"></div>
+                @if ($pendingPicking > 0)
+                    <span class="mob-card-badge">{{ $pendingPicking }}</span>
+                @else
+                    <span class="mob-card-badge zero">0</span>
+                @endif
+                <span class="mob-card-icon">🛒</span>
+                <span class="mob-card-title">Picking</span>
+                <span class="mob-card-desc">Ambil barang dari bin untuk pengiriman</span>
+            </a>
+
+            {{-- Transfer Stok (placeholder) --}}
+            <div class="mob-action-card card-transfer disabled">
+                <div class="mob-card-glow"></div>
+                <span class="mob-card-icon">↔️</span>
+                <span class="mob-card-title">Transfer Stok</span>
+                <span class="mob-card-desc">Pindah stok antar gudang / bin</span>
+            </div>
+
+            {{-- Aktivitas Lahan --}}
+            <a href="{{ route('mobile.farm-activity') }}" class="mob-action-card card-farm">
+                <div class="mob-card-glow"></div>
+                <span class="mob-card-icon">🌾</span>
+                <span class="mob-card-title">Aktivitas Lahan</span>
+                <span class="mob-card-desc">Catat kegiatan & panen di lahan</span>
+            </a>
+
+        </div>
+
+        {{-- ── Back Link ── --}}
+        <div class="mob-back-wrap">
+            <a href="{{ route('dashboard') }}" class="mob-back-link">
+                ← Kembali ke Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</x-app-layout>

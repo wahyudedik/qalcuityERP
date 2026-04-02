@@ -1,0 +1,1095 @@
+openapi: 3.0.3
+info:
+  title: Qalcuity ERP — REST API
+  version: "1.0"
+  description: |
+    REST API untuk integrasi pihak ketiga dengan Qalcuity ERP.
+
+    ## Autentikasi
+
+    Semua request harus menyertakan API token melalui salah satu cara berikut (urutan prioritas):
+
+    1. **Bearer Token** — Header `Authorization: Bearer <token>`
+    2. **Custom Header** — Header `X-API-Token: <token>`
+    3. **Query Parameter** — `?api_token=<token>`
+
+    Token dibuat melalui menu **Pengaturan → API & Webhook** di dashboard.
+    Setiap token memiliki **abilities** (`read`, `write`, `delete`, `*`) dan opsional masa berlaku.
+
+    ## Rate Limiting
+
+    | Grup        | Base Limit  | Header                              |
+    |-------------|-------------|-------------------------------------|
+    | Read (GET)  | 60 req/min  | `X-RateLimit-Limit`, `X-RateLimit-Remaining` |
+    | Write (POST/PUT/PATCH) | 20 req/min | `X-RateLimit-Limit`, `X-RateLimit-Remaining` |
+
+    Limit di-scale berdasarkan paket tenant:
+    - **Starter** ×1 · **Basic** ×1.5 · **Business** ×2 · **Professional/Pro** ×3 · **Enterprise** ×10
+
+    Jika limit terlampaui, API mengembalikan **429 Too Many Requests** dengan header `Retry-After`.
+
+    ## Format Response
+
+    Semua response dibungkus dalam envelope:
+
+    ```json
+    {
+      "success": true,
+      "message": "OK",
+      "data": { ... }
+    }
+    ```
+
+    Response error:
+    ```json
+    {
+      "success": false,
+      "message": "Deskripsi error"
+    }
+    ```
+
+    ## Pagination
+
+    Endpoint yang mengembalikan daftar menggunakan pagination Laravel:
+
+    ```json
+    {
+      "success": true,
+      "message": "OK",
+      "data": {
+        "current_page": 1,
+        "data": [ ... ],
+        "last_page": 5,
+        "per_page": 50,
+        "total": 230,
+        "next_page_url": "...?page=2",
+        "prev_page_url": null
+      }
+    }
+    ```
+
+    ## Webhook
+
+    Webhook outbound dapat dikonfigurasi di dashboard. Event yang didukung:
+    - `order.created` — Order baru dibuat
+    - `order.status_changed` — Status order berubah
+
+    Payload dikirim via POST dengan header `X-Webhook-Signature` (HMAC SHA-256).
+
+  contact:
+    name: Qalcuity ERP Support
+    email: support@qalcuity.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+tags:
+  - name: Stats
+    description: Ringkasan statistik bisnis
+  - name: Products
+    description: Data produk & stok
+  - name: Orders
+    description: Sales orders (PO dari customer)
+  - name: Invoices
+    description: Invoice & tagihan
+  - name: Customers
+    description: Data pelanggan
+
+security:
+  - BearerAuth: []
+  - ApiTokenHeader: []
+  - ApiTokenQuery: []
+
+paths:
+  # ── Stats ─────────────────────────────────────────────────────
+  /stats:
+    get:
+      operationId: getStats
+      tags: [Stats]
+      summary: Ringkasan statistik bisnis
+      description: |
+        Mengembalikan ringkasan omzet, jumlah order, income, expense, profit,
+        piutang jatuh tempo, total customer, dan total produk aktif untuk periode tertentu.
+      parameters:
+        - name: period
+          in: query
+          description: "Periode dalam format `YYYY-MM`. Default: bulan berjalan."
+          schema:
+            type: string
+            example: "2026-03"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/StatsSummary"
+              example:
+                success: true
+                message: OK
+                data:
+                  period: "2026-03"
+                  revenue: 125000000
+                  orders: 342
+                  income: 130000000
+                  expense: 85000000
+                  profit: 45000000
+                  overdue_ar: 12500000
+                  total_customers: 158
+                  total_products: 87
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  # ── Products ──────────────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [Products]
+      summary: Daftar produk aktif
+      description: Mengembalikan daftar produk aktif milik tenant, termasuk stok per gudang. Paginated (50/page).
+      parameters:
+        - $ref: "#/components/parameters/Page"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Paginated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [Products]
+      summary: Detail satu produk
+      description: Mengembalikan detail produk beserta stok per gudang.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Orders ────────────────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [Orders]
+      summary: Daftar sales orders
+      description: Mengembalikan daftar sales order milik tenant. Bisa difilter berdasarkan status dan rentang tanggal.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - name: status
+          in: query
+          description: "Filter status: `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `completed`, `cancelled`"
+          schema:
+            type: string
+            enum: [pending, confirmed, processing, shipped, delivered, completed, cancelled]
+        - name: from
+          in: query
+          description: Tanggal awal (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Tanggal akhir (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Paginated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+    post:
+      operationId: createOrder
+      tags: [Orders]
+      summary: Buat sales order baru
+      description: |
+        Membuat sales order baru beserta item-itemnya.
+        Membutuhkan token dengan ability `write`.
+        Akan memicu webhook event `order.created`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+            example:
+              customer_id: 12
+              date: "2026-04-01"
+              notes: "Order via API — Tokopedia"
+              items:
+                - product_id: 5
+                  quantity: 10
+                  price: 15000
+                - product_id: 8
+                  quantity: 5
+                  price: 25000
+      responses:
+        "201":
+          description: Order berhasil dibuat
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+              example:
+                success: true
+                message: Dibuat.
+                data:
+                  id: 456
+                  number: "SO-API-A1B2C3"
+                  status: pending
+                  total: 275000
+                  date: "2026-04-01"
+                  customer:
+                    id: 12
+                    name: "Toko Maju"
+                  items:
+                    - product_id: 5
+                      quantity: 10
+                      price: 15000
+                      subtotal: 150000
+                    - product_id: 8
+                      quantity: 5
+                      price: 25000
+                      subtotal: 125000
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [Orders]
+      summary: Detail satu sales order
+      description: Mengembalikan detail sales order beserta customer dan item.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [Orders]
+      summary: Update status order
+      description: |
+        Mengubah status sales order. Membutuhkan token dengan ability `write`.
+        Akan memicu webhook event `order.status_changed`.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+                  description: Status baru
+            example:
+              status: confirmed
+      responses:
+        "200":
+          description: Status berhasil diupdate
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  # ── Invoices ──────────────────────────────────────────────────
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [Invoices]
+      summary: Daftar invoice
+      description: Mengembalikan daftar invoice milik tenant. Bisa difilter berdasarkan status dan overdue.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - name: status
+          in: query
+          description: "Filter status: `unpaid`, `partial`, `paid`"
+          schema:
+            type: string
+            enum: [unpaid, partial, paid]
+        - name: overdue
+          in: query
+          description: "Set `true` untuk hanya invoice jatuh tempo"
+          schema:
+            type: string
+            enum: ["true", "false"]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Paginated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [Invoices]
+      summary: Detail satu invoice
+      description: Mengembalikan detail invoice beserta customer dan installments.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Invoice"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ── Customers ─────────────────────────────────────────────────
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [Customers]
+      summary: Daftar pelanggan
+      description: Mengembalikan daftar pelanggan milik tenant. Mendukung pencarian berdasarkan nama.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - name: search
+          in: query
+          description: Cari berdasarkan nama (partial match)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Paginated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+    post:
+      operationId: createCustomer
+      tags: [Customers]
+      summary: Buat pelanggan baru
+      description: Membuat data pelanggan baru. Membutuhkan token dengan ability `write`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+            example:
+              name: "PT Maju Bersama"
+              email: "finance@majubersama.co.id"
+              phone: "021-5551234"
+              address: "Jl. Sudirman No. 100, Jakarta"
+      responses:
+        "201":
+          description: Customer berhasil dibuat
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Customer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [Customers]
+      summary: Detail satu pelanggan
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Customer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    put:
+      operationId: updateCustomer
+      tags: [Customers]
+      summary: Update data pelanggan
+      description: Update data pelanggan yang sudah ada. Membutuhkan token dengan ability `write`. Hanya field yang dikirim yang akan diupdate.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerRequest"
+            example:
+              phone: "0812-9999-8888"
+              address: "Jl. Gatot Subroto No. 200, Jakarta"
+      responses:
+        "200":
+          description: Customer berhasil diupdate
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Customer"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+# ═══════════════════════════════════════════════════════════════
+# Components
+# ═══════════════════════════════════════════════════════════════
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: "Header `Authorization: Bearer <token>`"
+    ApiTokenHeader:
+      type: apiKey
+      in: header
+      name: X-API-Token
+      description: "Header `X-API-Token: <token>`"
+    ApiTokenQuery:
+      type: apiKey
+      in: query
+      name: api_token
+      description: "Query parameter `?api_token=<token>` (tidak disarankan untuk production)"
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID resource
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+      description: Nomor halaman
+
+  schemas:
+    # ── Envelope ──
+    SuccessEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: OK
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+
+    Paginated:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        data:
+          type: array
+          items: {}
+        last_page:
+          type: integer
+          example: 5
+        per_page:
+          type: integer
+          example: 50
+        total:
+          type: integer
+          example: 230
+        next_page_url:
+          type: string
+          nullable: true
+        prev_page_url:
+          type: string
+          nullable: true
+
+    # ── Domain Models ──
+    StatsSummary:
+      type: object
+      properties:
+        period:
+          type: string
+          example: "2026-03"
+        revenue:
+          type: number
+          format: double
+          description: Total omzet dari sales orders (excl. cancelled)
+        orders:
+          type: integer
+          description: Jumlah sales orders
+        income:
+          type: number
+          format: double
+          description: Total pemasukan (income transactions)
+        expense:
+          type: number
+          format: double
+          description: Total pengeluaran (expense transactions)
+        profit:
+          type: number
+          format: double
+          description: Income - Expense
+        overdue_ar:
+          type: number
+          format: double
+          description: Total piutang jatuh tempo
+        total_customers:
+          type: integer
+          description: Jumlah customer aktif
+        total_products:
+          type: integer
+          description: Jumlah produk aktif
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "Kopi Susu"
+        sku:
+          type: string
+          nullable: true
+          example: "KPI-001"
+        barcode:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+          example: "Minuman"
+        unit:
+          type: string
+          example: "pcs"
+        price_buy:
+          type: string
+          description: Harga beli (decimal string)
+          example: "8000.00"
+        price_sell:
+          type: string
+          description: Harga jual (decimal string)
+          example: "15000.00"
+        stock_min:
+          type: integer
+          description: Batas minimum stok untuk alert
+          example: 10
+        description:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        stocks:
+          type: array
+          description: Stok per gudang
+          items:
+            $ref: "#/components/schemas/ProductStock"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProductStock:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        warehouse_id:
+          type: integer
+        quantity:
+          type: integer
+          example: 150
+        warehouse:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+              example: "Gudang Utama"
+            code:
+              type: string
+              nullable: true
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          example: "SO-API-A1B2C3"
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, completed, cancelled]
+        date:
+          type: string
+          format: date
+        total:
+          type: string
+          description: Total order (decimal string)
+          example: "500000.00"
+        notes:
+          type: string
+          nullable: true
+        payment_type:
+          type: string
+          nullable: true
+          enum: [cash, credit, transfer, qris]
+        source:
+          type: string
+          nullable: true
+          description: "Sumber order: `pos`, `web`, atau `null` (manual)"
+        customer:
+          $ref: "#/components/schemas/Customer"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        sales_order_id:
+          type: integer
+        product_id:
+          type: integer
+        quantity:
+          type: number
+          format: double
+          example: 10
+        price:
+          type: string
+          example: "15000.00"
+        discount:
+          type: string
+          example: "0.00"
+        total:
+          type: string
+          example: "150000.00"
+        product:
+          $ref: "#/components/schemas/Product"
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          example: "INV-2026-0001"
+        status:
+          type: string
+          enum: [unpaid, partial, paid]
+        total_amount:
+          type: string
+          example: "500000.00"
+        paid_amount:
+          type: string
+          example: "200000.00"
+        remaining_amount:
+          type: string
+          example: "300000.00"
+        due_date:
+          type: string
+          format: date
+        notes:
+          type: string
+          nullable: true
+        customer:
+          $ref: "#/components/schemas/Customer"
+        installments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              amount:
+                type: string
+              due_date:
+                type: string
+                format: date
+              status:
+                type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "PT Maju Bersama"
+        email:
+          type: string
+          nullable: true
+          example: "finance@majubersama.co.id"
+        phone:
+          type: string
+          nullable: true
+          example: "021-5551234"
+        company:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        npwp:
+          type: string
+          nullable: true
+        credit_limit:
+          type: string
+          nullable: true
+          example: "50000000.00"
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ── Request Bodies ──
+    CreateOrderRequest:
+      type: object
+      required: [date, items]
+      properties:
+        customer_id:
+          type: integer
+          nullable: true
+          description: ID pelanggan (opsional, bisa null untuk walk-in)
+        date:
+          type: string
+          format: date
+          description: Tanggal order
+        notes:
+          type: string
+          nullable: true
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [product_id, quantity, price]
+            properties:
+              product_id:
+                type: integer
+                description: ID produk
+              quantity:
+                type: number
+                format: double
+                minimum: 0.01
+                description: Jumlah item
+              price:
+                type: number
+                format: double
+                minimum: 0
+                description: Harga satuan
+
+    CreateCustomerRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        phone:
+          type: string
+          maxLength: 50
+          nullable: true
+        address:
+          type: string
+          nullable: true
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        phone:
+          type: string
+          maxLength: 50
+          nullable: true
+        address:
+          type: string
+          nullable: true
+
+    # ── Error Schemas ──
+    ValidationErrorBody:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "The items field is required."
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            items: ["The items field is required."]
+            date: ["The date field is required."]
+
+    RateLimitErrorBody:
+      type: object
+      properties:
+        error:
+          type: string
+          example: rate_limit_exceeded
+        message:
+          type: string
+          example: "API read rate limit terlampaui. Coba lagi dalam 42 detik."
+        retry_after:
+          type: integer
+          example: 42
+
+  responses:
+    Unauthorized:
+      description: Token tidak valid atau tidak disertakan
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "API token diperlukan."
+    Forbidden:
+      description: Token tidak memiliki izin yang diperlukan
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Token tidak memiliki izin 'write'."
+    NotFound:
+      description: Resource tidak ditemukan
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "No query results for model."
+    BadRequest:
+      description: Request tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    ValidationError:
+      description: Validasi gagal (422)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ValidationErrorBody"
+    RateLimited:
+      description: Rate limit terlampaui (429)
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Detik sebelum bisa request lagi
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Limit per menit
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Sisa request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RateLimitErrorBody"

@@ -12,21 +12,39 @@ class NotificationController extends Controller
 {
     public function index(Request $request): View
     {
-        $user = $request->user();
+        $user   = $request->user();
+        $module = $request->get('module');
 
         if ($user->isSuperAdmin()) {
-            // Super admin hanya lihat notifikasi yang ditujukan ke user ini
-            // Tidak pakai OR whereNull(tenant_id) karena bisa bocor ke semua tenant
-            $notifications = ErpNotification::where('user_id', $user->id)
-                ->latest()
-                ->paginate(30);
+            $query = ErpNotification::where('user_id', $user->id)->latest();
+            if ($module && $module !== 'all') {
+                $query->byModule($module);
+            }
+            $notifications = $query->paginate(30)->withQueryString();
+
+            $moduleCounts = ErpNotification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->selectRaw('module, count(*) as count')
+                ->groupBy('module')
+                ->pluck('count', 'module');
         } else {
-            $notifications = ErpNotification::where('tenant_id', $user->tenant_id)
-                ->latest()
-                ->paginate(30);
+            $tenantId = $user->tenant_id;
+            $query    = ErpNotification::where('tenant_id', $tenantId)->latest();
+            if ($module && $module !== 'all') {
+                $query->byModule($module);
+            }
+            $notifications = $query->paginate(30)->withQueryString();
+
+            $moduleCounts = ErpNotification::where('tenant_id', $tenantId)
+                ->whereNull('read_at')
+                ->selectRaw('module, count(*) as count')
+                ->groupBy('module')
+                ->pluck('count', 'module');
         }
 
-        return view('notifications.index', compact('notifications'));
+        $activeModule = $module ?: 'all';
+
+        return view('notifications.index', compact('notifications', 'moduleCounts', 'activeModule'));
     }
 
     public function markRead(Request $request, ErpNotification $notification): RedirectResponse

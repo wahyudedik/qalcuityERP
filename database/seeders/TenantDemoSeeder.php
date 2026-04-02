@@ -82,7 +82,7 @@ class TenantDemoSeeder extends Seeder
             $this->seedConsignment();
             $this->seedCommission();
             $this->seedHelpdesk();
-            $this->seedSubscriptionBilling();
+            $this->seedSubscriptionBilling(); 
         });
 
         $this->command->info('TenantDemoSeeder selesai!');

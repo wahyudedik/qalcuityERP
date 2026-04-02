@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\AnalyzeUserPatterns;
 use App\Jobs\CheckTrialExpiry;
 use App\Jobs\ProcessRecurringJournals;
 use App\Jobs\ExpireLoyaltyPoints;
@@ -8,6 +9,9 @@ use App\Jobs\GenerateTenantReport;
 use App\Jobs\RunAssetDepreciation;
 use App\Jobs\SendAiDigest;
 use App\Jobs\SyncEcommerceOrders;
+use App\Jobs\RetryFailedMarketplaceSyncs;
+use App\Jobs\SyncMarketplacePrices;
+use App\Jobs\SyncMarketplaceStock;
 use App\Jobs\UpdateCurrencyRates;
 use App\Models\AiUsageLog;
 use App\Models\ChatMessage;
@@ -49,13 +53,13 @@ Schedule::call(function () {
     });
 })->weeklyOn(1, '09:00')->name('ai-advisor-weekly')->withoutOverlapping();
 
-// AI Digest mingguan — Jumat jam 17:00 (ringkasan akhir pekan)
+// AI Digest harian — jam 08:00 (job SendAiDigest mengelola filter frekuensi per user)
 Schedule::call(function () {
     Tenant::where('is_active', true)->each(function ($tenant) {
-        SendAiDigest::dispatch($tenant->id, 'weekly')
+        SendAiDigest::dispatch($tenant->id, 'daily')
             ->delay(now()->addSeconds(rand(1, 30)));
     });
-})->weeklyOn(5, '17:00')->name('send-ai-digest-weekly')->withoutOverlapping();
+})->dailyAt('08:00')->name('send-ai-digest-daily')->withoutOverlapping();
 
 // ─── ERP Notifications ────────────────────────────────────────────────────────
 
@@ -149,6 +153,30 @@ Schedule::job(new SyncEcommerceOrders())
     ->withoutOverlapping()
     ->onOneServer();
 
+// Sinkronisasi stok ke marketplace — setiap jam
+Schedule::job(new SyncMarketplaceStock())
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Sinkronisasi harga ke marketplace — setiap 6 jam
+Schedule::job(new SyncMarketplacePrices())
+    ->everySixHours()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Retry sync marketplace yang gagal — setiap 5 menit
+Schedule::job(new RetryFailedMarketplaceSyncs())
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Hitung elastisitas harga — setiap hari jam 04:00
+Schedule::job(new \App\Jobs\CalculatePriceElasticity())
+    ->dailyAt('04:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // ─── Monthly Reports ──────────────────────────────────────────────────────────
 
 // Generate laporan bulanan untuk semua tenant — tanggal 1 setiap bulan jam 01:00
@@ -229,3 +257,22 @@ Schedule::command('anomalies:detect')
     ->withoutOverlapping()
     ->onOneServer()
     ->name('detect-anomalies-daily');
+
+// ─── Audit Trail Retention ───────────────────────────────────────────────
+
+// Purge old audit logs beyond retention period — setiap hari jam 02:00
+Schedule::command('audit:purge --no-interaction')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/audit-purge.log'))
+    ->name('audit-purge-daily');
+
+//  AI User Pattern Analysis 
+
+// Analisis pola perilaku user dari data transaksi  setiap hari jam 03:00
+Schedule::job(new AnalyzeUserPatterns())
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('analyze-user-patterns');

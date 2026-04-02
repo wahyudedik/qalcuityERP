@@ -7,18 +7,91 @@ use Illuminate\Database\Eloquent\Model;
 class ActivityLog extends Model
 {
     protected $fillable = [
-        'tenant_id', 'user_id', 'action', 'model_type', 'model_id',
-        'description', 'old_values', 'new_values', 'ip_address', 'user_agent',
-        'is_ai_action', 'ai_tool_name',
+        'tenant_id',
+        'user_id',
+        'action',
+        'model_type',
+        'model_id',
+        'description',
+        'old_values',
+        'new_values',
+        'ip_address',
+        'user_agent',
+        'is_ai_action',
+        'ai_tool_name',
+        'rolled_back_at',
+        'rolled_back_by',
     ];
 
     protected $casts = [
-        'old_values'   => 'array',
-        'new_values'   => 'array',
-        'is_ai_action' => 'boolean',
+        'old_values'     => 'array',
+        'new_values'     => 'array',
+        'is_ai_action'   => 'boolean',
+        'rolled_back_at' => 'datetime',
     ];
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function rolledBackByUser()
+    {
+        return $this->belongsTo(User::class, 'rolled_back_by');
+    }
+
+    /**
+     * Can this entry be rolled back?
+     */
+    public function isRollbackable(): bool
+    {
+        return config('audit.rollback_enabled', true)
+            && $this->model_type
+            && $this->model_id
+            && !empty($this->old_values)
+            && is_null($this->rolled_back_at)
+            && !$this->is_ai_action
+            && str_contains($this->action, 'updated');
+    }
+
+    /**
+     * Rollback this change: restore old_values to the model.
+     */
+    public function rollback(int $userId): bool
+    {
+        if (!$this->isRollbackable()) {
+            return false;
+        }
+
+        $modelClass = $this->model_type;
+        $model = $modelClass::find($this->model_id);
+
+        if (!$model) {
+            return false;
+        }
+
+        $before = collect($model->toArray())
+            ->only(array_keys($this->old_values))
+            ->toArray();
+
+        $model->update($this->old_values);
+
+        // Mark this entry as rolled back
+        $this->update([
+            'rolled_back_at' => now(),
+            'rolled_back_by' => $userId,
+        ]);
+
+        // Create a new audit entry for the rollback
+        static::record(
+            action: 'rollback',
+            description: "Rollback: {$this->description} (log #{$this->id})",
+            model: $model,
+            oldValues: $before,
+            newValues: $this->old_values,
+        );
+
+        return true;
+    }
 
     public static function record(
         string $action,

@@ -15,7 +15,7 @@ class DemoProductSeeder extends Seeder
         // Seed untuk semua tenant yang ada
         $tenants = Tenant::all();
 
-        foreach ($tenants as $tenant) {
+        foreach ($tenants as $tenant) { 
             // Pastikan ada warehouse
             $warehouse = Warehouse::firstOrCreate(
                 ['tenant_id' => $tenant->id, 'name' => 'Gudang Utama'],

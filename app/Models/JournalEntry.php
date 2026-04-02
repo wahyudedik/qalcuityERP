@@ -2,19 +2,34 @@
 
 namespace App\Models;
 
+use App\Models\AccountingPeriod;
+use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\AccountingPeriod;
 
 class JournalEntry extends Model
 {
+    use AuditsChanges;
+
     protected $fillable = [
-        'tenant_id', 'period_id', 'user_id', 'number', 'date', 'description',
-        'reference', 'reference_type', 'reference_id',
-        'currency_code', 'currency_rate', 'status',
-        'reversed_by', 'posted_by', 'posted_at',
-        'is_recurring', 'recurring_journal_id',
+        'tenant_id',
+        'period_id',
+        'user_id',
+        'number',
+        'date',
+        'description',
+        'reference',
+        'reference_type',
+        'reference_id',
+        'currency_code',
+        'currency_rate',
+        'status',
+        'reversed_by',
+        'posted_by',
+        'posted_at',
+        'is_recurring',
+        'recurring_journal_id',
     ];
 
     protected $casts = [
@@ -24,22 +39,46 @@ class JournalEntry extends Model
         'is_recurring'  => 'boolean',
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function period(): BelongsTo { return $this->belongsTo(AccountingPeriod::class, 'period_id'); }
-    public function lines(): HasMany { return $this->hasMany(JournalEntryLine::class); }
-    public function postedBy(): BelongsTo { return $this->belongsTo(User::class, 'posted_by'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(AccountingPeriod::class, 'period_id');
+    }
+    public function lines(): HasMany
+    {
+        return $this->hasMany(JournalEntryLine::class);
+    }
+    public function postedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'posted_by');
+    }
 
     /** Total debit (harus = total credit untuk balanced entry) */
-    public function totalDebit(): float { return (float) $this->lines()->sum('debit'); }
-    public function totalCredit(): float { return (float) $this->lines()->sum('credit'); }
-    public function isBalanced(): bool { return abs($this->totalDebit() - $this->totalCredit()) < 0.01; }
+    public function totalDebit(): float
+    {
+        return (float) $this->lines()->sum('debit');
+    }
+    public function totalCredit(): float
+    {
+        return (float) $this->lines()->sum('credit');
+    }
+    public function isBalanced(): bool
+    {
+        return abs($this->totalDebit() - $this->totalCredit()) < 0.01;
+    }
 
     /** Post jurnal — ubah status ke posted */
     public function post(int $userId): void
     {
         if (! $this->isBalanced()) {
-            throw new \RuntimeException('Jurnal tidak balance: debit ≠ credit.');
+            throw new \RuntimeException('Jurnal tidak balance: debit != credit.');
         }
         $this->update([
             'status'    => 'posted',

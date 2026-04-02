@@ -31,6 +31,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_enabled',
         'two_factor_confirmed_at',
         'two_factor_recovery_codes',
+        'digest_frequency',
+        'digest_day',
+        'digest_time',
+        'gamification_points',
+        'gamification_level',
     ];
 
     protected $hidden = [
@@ -67,15 +72,63 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(UserPermission::class);
     }
 
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    public function userAchievements(): HasMany
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
+
+    public function pointsLog(): HasMany
+    {
+        return $this->hasMany(UserPointsLog::class);
+    }
+
+    // ─── Gamification Helpers ──────────────────────────────────────
+
+    public function totalPoints(): int
+    {
+        return $this->gamification_points;
+    }
+
+    public function currentLevel(): int
+    {
+        return $this->gamification_level;
+    }
+
     // ─── Role Helpers ─────────────────────────────────────────────
 
-    public function isSuperAdmin(): bool { return $this->role === 'super_admin'; }
-    public function isAdmin(): bool      { return $this->role === 'admin'; }
-    public function isManager(): bool    { return $this->role === 'manager'; }
-    public function isStaff(): bool      { return $this->role === 'staff'; }
-    public function isKasir(): bool      { return $this->role === 'kasir'; }
-    public function isGudang(): bool     { return $this->role === 'gudang'; }
-    public function isAffiliate(): bool  { return $this->role === 'affiliate'; }
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+    public function isKasir(): bool
+    {
+        return $this->role === 'kasir';
+    }
+    public function isGudang(): bool
+    {
+        return $this->role === 'gudang';
+    }
+    public function isAffiliate(): bool
+    {
+        return $this->role === 'affiliate';
+    }
 
     public function hasRole(string|array $roles): bool
     {
@@ -87,7 +140,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function roleLabel(): string
     {
-        return match($this->role) {
+        return match ($this->role) {
             'super_admin' => 'Super Admin',
             'admin'       => 'Admin',
             'manager'     => 'Manager',
@@ -105,53 +158,89 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function allowedAiTools(): ?array
     {
-        return match($this->role) {
+        return match ($this->role) {
             'admin', 'manager', 'super_admin' => null, // semua tools
 
             'kasir' => [
                 // POS & penjualan
-                'get_pos_products', 'create_quick_sale', 'get_sales_summary',
-                'get_customers', 'create_customer',
+                'get_pos_products',
+                'create_quick_sale',
+                'get_sales_summary',
+                'get_customers',
+                'create_customer',
                 // Inventory read-only
-                'get_products', 'get_stock_alerts',
+                'get_products',
+                'get_stock_alerts',
                 // Loyalty
-                'get_loyalty_info', 'add_loyalty_points', 'redeem_loyalty_points',
+                'get_loyalty_info',
+                'add_loyalty_points',
+                'redeem_loyalty_points',
                 // Notifikasi & info
-                'get_notifications', 'get_dashboard_summary',
+                'get_notifications',
+                'get_dashboard_summary',
                 // Panduan & Advisor
-                'get_app_guide', 'get_ai_advisor',
+                'get_app_guide',
+                'get_ai_advisor',
             ],
 
             'gudang' => [
                 // Inventory full
-                'get_products', 'create_product', 'update_product', 'update_product_image',
-                'add_stock', 'get_stock_alerts', 'get_stock_movements',
+                'get_products',
+                'create_product',
+                'update_product',
+                'update_product_image',
+                'add_stock',
+                'get_stock_alerts',
+                'get_stock_movements',
                 // Warehouse
-                'get_warehouses', 'create_warehouse', 'transfer_stock', 'receive_transfer', 'adjust_stock',
+                'get_warehouses',
+                'create_warehouse',
+                'transfer_stock',
+                'receive_transfer',
+                'adjust_stock',
                 // Purchasing read
-                'get_purchase_orders', 'get_suppliers',
+                'get_purchase_orders',
+                'get_suppliers',
                 // Farm / Agriculture
-                'create_farm_plot', 'get_farm_plots', 'update_plot_status', 'record_farm_activity',
-                'start_crop_cycle', 'get_crop_cycles', 'advance_crop_phase', 'log_harvest',
+                'create_farm_plot',
+                'get_farm_plots',
+                'update_plot_status',
+                'record_farm_activity',
+                'start_crop_cycle',
+                'get_crop_cycles',
+                'advance_crop_phase',
+                'log_harvest',
                 'get_farm_cost_analysis',
                 // Livestock
-                'add_livestock', 'get_livestock', 'record_livestock_movement',
-                'record_livestock_health', 'get_livestock_health',
-                'record_feed', 'get_fcr',
+                'add_livestock',
+                'get_livestock',
+                'record_livestock_movement',
+                'record_livestock_health',
+                'get_livestock_health',
+                'record_feed',
+                'get_fcr',
                 // Notifikasi
-                'get_notifications', 'get_dashboard_summary',
+                'get_notifications',
+                'get_dashboard_summary',
                 // Panduan & Advisor
-                'get_app_guide', 'get_ai_advisor',
+                'get_app_guide',
+                'get_ai_advisor',
             ],
 
             'staff' => [
                 // Read-only untuk sebagian besar modul
-                'get_products', 'get_stock_alerts', 'get_customers',
-                'get_sales_summary', 'get_dashboard_summary',
-                'get_notifications', 'get_pos_products',
-                'create_quick_sale', 'get_employees',
+                'get_products',
+                'get_stock_alerts',
+                'get_customers',
+                'get_sales_summary',
+                'get_dashboard_summary',
+                'get_notifications',
+                'get_pos_products',
+                'create_quick_sale',
+                'get_employees',
                 // Panduan & Advisor
-                'get_app_guide', 'get_ai_advisor',
+                'get_app_guide',
+                'get_ai_advisor',
             ],
 
             default => [], // role tidak dikenal: blokir semua

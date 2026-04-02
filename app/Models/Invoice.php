@@ -2,22 +2,44 @@
 
 namespace App\Models;
 
+use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Invoice extends Model
 {
+    use AuditsChanges;
+
     protected $fillable = [
-        'tenant_id', 'sales_order_id', 'customer_id', 'number',
-        'total_amount', 'paid_amount', 'remaining_amount', 'status', 'due_date', 'notes',
-        'currency_code', 'currency_rate', 'tax_rate_id', 'tax_amount', 'subtotal_amount',
+        'tenant_id',
+        'sales_order_id',
+        'customer_id',
+        'number',
+        'total_amount',
+        'paid_amount',
+        'remaining_amount',
+        'status',
+        'due_date',
+        'notes',
+        'currency_code',
+        'currency_rate',
+        'tax_rate_id',
+        'tax_amount',
+        'subtotal_amount',
         // Task 35: State machine
-        'posting_status', 'posted_by', 'posted_at', 'cancelled_by', 'cancelled_at', 'cancel_reason',
+        'posting_status',
+        'posted_by',
+        'posted_at',
+        'cancelled_by',
+        'cancelled_at',
+        'cancel_reason',
         // Task 36: Revision
-        'revision_number', 'original_invoice_id',
+        'revision_number',
+        'original_invoice_id',
         // Task 37: Numbering
-        'doc_sequence', 'doc_year',
+        'doc_sequence',
+        'doc_year',
     ];
 
     protected function casts(): array
@@ -79,12 +101,27 @@ class Invoice extends Model
             ->orderBy('revision');
     }
 
-    public function taxRate() { return $this->belongsTo(\App\Models\TaxRate::class); }
+    public function taxRate()
+    {
+        return $this->belongsTo(\App\Models\TaxRate::class);
+    }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function salesOrder(): BelongsTo { return $this->belongsTo(SalesOrder::class); }
-    public function customer(): BelongsTo { return $this->belongsTo(Customer::class); }
-    public function payments(): MorphMany { return $this->morphMany(Payment::class, 'payable'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class);
+    }
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+    public function payments(): MorphMany
+    {
+        return $this->morphMany(Payment::class, 'payable');
+    }
     public function installments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(InvoiceInstallment::class);
@@ -132,6 +169,6 @@ class Invoice extends Model
     /** Hari keterlambatan (negatif = belum jatuh tempo) */
     public function daysOverdue(): int
     {
-        return (int) now()->startOfDay()->diffInDays($this->due_date->startOfDay(), false) * -1;
+        return (int) (now()->startOfDay()->diffInDays($this->due_date->startOfDay(), false) * (-1));
     }
 }

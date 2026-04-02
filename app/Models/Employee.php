@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,11 +10,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, AuditsChanges;
+
     protected $fillable = [
-        'tenant_id', 'user_id', 'employee_id', 'name', 'email', 'phone',
-        'position', 'department', 'join_date', 'resign_date', 'status',
-        'salary', 'bank_name', 'bank_account', 'address',
+        'tenant_id',
+        'user_id',
+        'employee_id',
+        'name',
+        'email',
+        'phone',
+        'position',
+        'department',
+        'join_date',
+        'resign_date',
+        'status',
+        'salary',
+        'bank_name',
+        'bank_account',
+        'address',
     ];
 
     protected function casts(): array
@@ -25,15 +39,42 @@ class Employee extends Model
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function manager(): BelongsTo { return $this->belongsTo(Employee::class, 'manager_id'); }
-    public function subordinates(): HasMany { return $this->hasMany(Employee::class, 'manager_id'); }
-    public function attendances(): HasMany { return $this->hasMany(Attendance::class); }
-    public function reports(): HasMany { return $this->hasMany(EmployeeReport::class); }
-    public function leaveRequests(): HasMany { return $this->hasMany(LeaveRequest::class); }
-    public function performanceReviews(): HasMany { return $this->hasMany(PerformanceReview::class); }
-    public function salaryComponents(): HasMany { return $this->hasMany(EmployeeSalaryComponent::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'manager_id');
+    }
+    public function subordinates(): HasMany
+    {
+        return $this->hasMany(Employee::class, 'manager_id');
+    }
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+    public function reports(): HasMany
+    {
+        return $this->hasMany(EmployeeReport::class);
+    }
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+    public function performanceReviews(): HasMany
+    {
+        return $this->hasMany(PerformanceReview::class);
+    }
+    public function salaryComponents(): HasMany
+    {
+        return $this->hasMany(EmployeeSalaryComponent::class);
+    }
 
     /** Sisa cuti tahunan tahun ini */
     public function remainingAnnualLeave(int $quota = 12): int

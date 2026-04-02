@@ -10,7 +10,7 @@ use App\Services\PeriodLockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class PeriodLockController extends Controller
+class PeriodLockController extends Controller 
 {
     public function __construct(
         private PeriodLockService   $lockService,

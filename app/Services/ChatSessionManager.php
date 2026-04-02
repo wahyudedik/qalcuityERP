@@ -136,6 +136,38 @@ class ChatSessionManager
                 if (!empty($args['product_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'product', ['value' => $args['product_name']]);
                 }
+                // Rekam supplier yang sering digunakan
+                if (!empty($args['supplier_name'])) {
+                    $memoryService->recordAction($tenantId, $userId, 'frequent_suppliers', [
+                        'value'        => $args['supplier_name'],
+                        'product_name' => $args['product_name'] ?? null,
+                    ]);
+                }
+                // Rekam kuantitas order yang umum digunakan
+                $qty = $args['quantity'] ?? $args['qty'] ?? null;
+                if ($qty !== null) {
+                    $memoryService->recordAction($tenantId, $userId, 'typical_order_quantity', ['value' => $qty]);
+                }
+                // Rekam diskon yang digunakan
+                $discount = $args['discount'] ?? $args['discount_percent'] ?? null;
+                if ($discount !== null) {
+                    $memoryService->recordAction($tenantId, $userId, 'preferred_discount', ['value' => $discount]);
+                }
+                // Rekam syarat pembayaran yang digunakan
+                $paymentTerms = $args['payment_terms'] ?? $args['terms_days'] ?? null;
+                if ($paymentTerms !== null) {
+                    $memoryService->recordAction($tenantId, $userId, 'preferred_payment_terms', ['value' => $paymentTerms]);
+                }
+                // Rekam alamat pengiriman yang digunakan
+                $address = $args['delivery_address'] ?? $args['address'] ?? null;
+                if ($address !== null) {
+                    $memoryService->recordAction($tenantId, $userId, 'preferred_delivery_address', ['value' => $address]);
+                }
+                // Rekam preferensi pajak
+                $taxPref = $args['tax_included'] ?? $args['include_tax'] ?? null;
+                if ($taxPref !== null) {
+                    $memoryService->recordAction($tenantId, $userId, 'tax_preference', ['value' => $taxPref]);
+                }
             }
         } catch (\Throwable) {
             // Jangan biarkan error memory mengganggu flow utama

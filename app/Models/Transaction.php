@@ -2,15 +2,26 @@
 
 namespace App\Models;
 
+use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
     protected $fillable = [
-        'tenant_id', 'user_id', 'expense_category_id', 'number', 'type',
-        'reference', 'reference_type', 'date', 'amount',
-        'payment_method', 'account', 'description', 'attachment',
+        'tenant_id',
+        'user_id',
+        'expense_category_id',
+        'number',
+        'type',
+        'reference',
+        'reference_type',
+        'date',
+        'amount',
+        'payment_method',
+        'account',
+        'description',
+        'attachment',
     ];
 
     protected function casts(): array
@@ -21,9 +32,18 @@ class Transaction extends Model
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function category(): BelongsTo { return $this->belongsTo(ExpenseCategory::class, 'expense_category_id'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
 
     /** Jurnal GL yang di-auto-post untuk transaksi ini */
     public function journalEntry(): \Illuminate\Database\Eloquent\Relations\HasOne

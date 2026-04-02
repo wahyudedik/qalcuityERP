@@ -11,43 +11,131 @@
         </form>
     </x-slot>
 
-    <div class="max-w-2xl">
+    @php
+        $tabs = [
+            'all' => ['label' => 'Semua', 'icon' => '🔔'],
+            'inventory' => ['label' => 'Inventori', 'icon' => '📦'],
+            'finance' => ['label' => 'Keuangan', 'icon' => '💰'],
+            'hrm' => ['label' => 'HRM', 'icon' => '👥'],
+            'sales' => ['label' => 'Penjualan', 'icon' => '🛒'],
+            'ai' => ['label' => 'AI', 'icon' => '🤖'],
+            'system' => ['label' => 'Sistem', 'icon' => '⚙️'],
+        ];
+
+        $moduleColors = [
+            'inventory' => 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+            'finance' => 'bg-green-500/20 text-green-400 border-green-500/30',
+            'hrm' => 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+            'sales' => 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+            'ai' => 'bg-pink-500/20 text-pink-400 border-pink-500/30',
+            'system' => 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+        ];
+
+        $iconColors = [
+            'inventory' => ['bg' => 'bg-orange-500/20', 'text' => 'text-orange-400'],
+            'finance' => ['bg' => 'bg-green-500/20', 'text' => 'text-green-400'],
+            'hrm' => ['bg' => 'bg-purple-500/20', 'text' => 'text-purple-400'],
+            'sales' => ['bg' => 'bg-cyan-500/20', 'text' => 'text-cyan-400'],
+            'ai' => ['bg' => 'bg-pink-500/20', 'text' => 'text-pink-400'],
+            'system' => ['bg' => 'bg-slate-500/20', 'text' => 'text-slate-400'],
+        ];
+
+        $totalUnread = $moduleCounts->sum();
+    @endphp
+
+    <div class="max-w-2xl space-y-4">
+
+        {{-- Module Tab Bar --}}
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-1.5">
+            <div class="flex flex-wrap gap-1">
+                @foreach ($tabs as $key => $tab)
+                    @php
+                        $count = $key === 'all' ? $totalUnread : $moduleCounts[$key] ?? 0;
+                        $isActive = $activeModule === $key;
+                    @endphp
+                    <a href="{{ route('notifications.index', $key !== 'all' ? ['module' => $key] : []) }}"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all
+                               {{ $isActive
+                                   ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                                   : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                        <span>{{ $tab['icon'] }}</span>
+                        <span>{{ $tab['label'] }}</span>
+                        @if ($count > 0)
+                            <span
+                                class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-xs font-bold
+                                         {{ $isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white' }}">
+                                {{ $count > 99 ? '99+' : $count }}
+                            </span>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Notifications List --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
             @forelse($notifications as $notif)
-            <div class="flex items-start gap-4 px-6 py-4 border-b border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition {{ $notif->isRead() ? 'opacity-50' : '' }}">
-                <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center
-                    {{ $notif->type === 'low_stock' ? 'bg-red-500/20' : ($notif->type === 'missing_report' ? 'bg-amber-500/20' : 'bg-blue-500/20') }}">
-                    <svg class="w-4 h-4 {{ $notif->type === 'low_stock' ? 'text-red-400' : ($notif->type === 'missing_report' ? 'text-amber-400' : 'text-blue-400') }}"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $notif->title }}</p>
-                        @if(!$notif->isRead())
-                        <form method="POST" action="{{ route('notifications.read', $notif) }}" class="shrink-0">
-                            @csrf
-                            <button type="submit" class="text-xs text-blue-400 hover:underline whitespace-nowrap">Tandai dibaca</button>
-                        </form>
-                        @endif
+                @php
+                    $mod = $notif->module ?? 'system';
+                    $iconBg = $iconColors[$mod]['bg'] ?? 'bg-blue-500/20';
+                    $iconTxt = $iconColors[$mod]['text'] ?? 'text-blue-400';
+                    $badgeCls = $moduleColors[$mod] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+                    $badgeLabel = $tabs[$mod]['label'] ?? ucfirst($mod);
+                    $badgeIcon = $tabs[$mod]['icon'] ?? '🔔';
+                @endphp
+                <div
+                    class="flex items-start gap-4 px-6 py-4 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition {{ $notif->isRead() ? 'opacity-50' : '' }}">
+                    <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center {{ $iconBg }}">
+                        <svg class="w-4 h-4 {{ $iconTxt }}" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
                     </div>
-                    <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $notif->body }}</p>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">{{ $notif->created_at->diffForHumans() }}</p>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2 flex-wrap min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $notif->title }}</p>
+                                @if ($activeModule === 'all')
+                                    <span
+                                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium border {{ $badgeCls }} shrink-0">
+                                        {{ $badgeIcon }} {{ $badgeLabel }}
+                                    </span>
+                                @endif
+                            </div>
+                            @if (!$notif->isRead())
+                                <form method="POST" action="{{ route('notifications.read', $notif) }}"
+                                    class="shrink-0">
+                                    @csrf
+                                    <button type="submit"
+                                        class="text-xs text-blue-400 hover:underline whitespace-nowrap">Tandai
+                                        dibaca</button>
+                                </form>
+                            @endif
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $notif->body }}
+                        </p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
+                            {{ $notif->created_at->diffForHumans() }}</p>
+                    </div>
                 </div>
-            </div>
             @empty
-            <div class="flex flex-col items-center py-16 text-gray-400 dark:text-slate-500">
-                <svg class="w-12 h-12 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                <p class="text-sm">Tidak ada notifikasi</p>
-            </div>
+                <div class="flex flex-col items-center py-16 text-gray-400 dark:text-slate-500">
+                    <svg class="w-12 h-12 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <p class="text-sm">Tidak ada notifikasi</p>
+                    @if ($activeModule !== 'all')
+                        <a href="{{ route('notifications.index') }}"
+                            class="mt-2 text-xs text-blue-400 hover:underline">Lihat semua notifikasi</a>
+                    @endif
+                </div>
             @endforelse
         </div>
 
-        @if(method_exists($notifications, 'hasPages') && $notifications->hasPages())
-        <div class="mt-4">{{ $notifications->links() }}</div>
+        @if (method_exists($notifications, 'hasPages') && $notifications->hasPages())
+            <div class="mt-4">{{ $notifications->links() }}</div>
         @endif
     </div>
 </x-app-layout>

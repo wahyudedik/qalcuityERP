@@ -48,6 +48,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\WarehouseTransferController;
 use App\Http\Controllers\ReminderController;
@@ -55,6 +56,7 @@ use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\PeriodLockController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\GamificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -66,6 +68,31 @@ Route::get('/', function () {
 
 Route::get('/offline', fn() => response()->file(public_path('offline.html')))->name('offline');
 
+// API Documentation (static files served via route for Herd/Valet compatibility)
+Route::get('/api-docs/{path?}', function ($path = 'index.html') {
+    $filePath = public_path("api-docs/{$path}");
+
+    if (!file_exists($filePath) || !is_file($filePath)) {
+        abort(404);
+    }
+
+    $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+    $contentType = match ($extension) {
+        'html' => 'text/html; charset=utf-8',
+        'json' => 'application/json',
+        'yaml', 'yml' => 'text/yaml',
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'png' => 'image/png',
+        'svg' => 'image/svg+xml',
+        default => 'text/plain'
+    };
+
+    return response()->file($filePath, [
+        'Content-Type' => $contentType,
+    ]);
+})->where('path', '.*')->name('api-docs');
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -75,6 +102,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.refresh-insights');
     Route::post('/dashboard/anomalies/{anomaly}/acknowledge', [DashboardController::class, 'acknowledgeAnomaly'])
         ->name('dashboard.anomaly.acknowledge');
+    Route::post('/dashboard/widgets/save', [DashboardController::class, 'saveWidgets'])
+        ->name('dashboard.widgets.save');
+    Route::post('/dashboard/widgets/reset', [DashboardController::class, 'resetWidgets'])
+        ->name('dashboard.widgets.reset');
 });
 
 // Onboarding wizard
@@ -105,6 +136,8 @@ Route::middleware('auth')->group(function () {
     // Notifications
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/preferences', [NotificationPreferenceController::class, 'index'])->name('preferences');
+        Route::post('/preferences', [NotificationPreferenceController::class, 'update'])->name('preferences.update');
         Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('read');
         Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
     });
@@ -112,6 +145,13 @@ Route::middleware('auth')->group(function () {
     // Push Subscription (browser push notifications)
     Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+
+    // Gamification
+    Route::prefix('gamification')->name('gamification.')->group(function () {
+        Route::get('/', [GamificationController::class, 'index'])->name('index');
+        Route::get('/achievements', [GamificationController::class, 'achievements'])->name('achievements');
+        Route::get('/leaderboard', [GamificationController::class, 'leaderboard'])->name('leaderboard');
+    });
 
     // Tenant User Management (admin only)
     Route::prefix('users')->name('tenant.users.')->middleware('role:admin')->group(function () {
@@ -193,7 +233,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventory/pdf',   [ReportController::class, 'exportInventoryPdf'])->name('inventory.pdf');
         Route::get('/hrm/excel',       [ReportController::class, 'exportHrmExcel'])->name('hrm.excel');
         Route::get('/hrm/pdf',         [ReportController::class, 'exportHrmPdf'])->name('hrm.pdf');
-        Route::get('/receivables/excel',[ReportController::class, 'exportReceivablesExcel'])->name('receivables.excel');
+        Route::get('/receivables/excel', [ReportController::class, 'exportReceivablesExcel'])->name('receivables.excel');
         Route::get('/receivables/pdf', [ReportController::class, 'exportReceivablesPdf'])->name('receivables.pdf');
         Route::get('/profit-loss/pdf', [ReportController::class, 'exportProfitLossPdf'])->name('profit-loss.pdf');
         Route::get('/income-statement/excel', [ReportController::class, 'exportIncomeStatementExcel'])->name('income-statement.excel');
@@ -278,7 +318,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // Audit Trail
-    Route::get('/audit', [AuditController::class, 'index'])->name('audit.index')->middleware('role:admin');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
+        Route::get('/audit/{activityLog}', [AuditController::class, 'show'])->name('audit.show');
+        Route::post('/audit/{activityLog}/rollback', [AuditController::class, 'rollback'])->name('audit.rollback');
+        Route::get('/audit-export', [AuditController::class, 'export'])->name('audit.export');
+    });
 
     // Bank Reconciliation (admin + manager only)
     Route::prefix('bank')->name('bank.')->middleware('role:admin,manager')->group(function () {
@@ -340,8 +385,16 @@ Route::middleware('auth')->group(function () {
     // E-commerce (admin + manager only)
     Route::prefix('ecommerce')->name('ecommerce.')->middleware('role:admin,manager')->group(function () {
         Route::get('/', [EcommerceController::class, 'index'])->name('index');
+        Route::get('/dashboard', [EcommerceController::class, 'dashboard'])->name('dashboard');
         Route::post('/channels', [EcommerceController::class, 'storeChannel'])->name('channels.store');
+        Route::put('/channels/{channel}', [EcommerceController::class, 'updateChannel'])->name('channels.update');
+        Route::delete('/channels/{channel}', [EcommerceController::class, 'destroyChannel'])->name('channels.destroy');
         Route::post('/channels/{channel}/sync', [EcommerceController::class, 'sync'])->name('channels.sync');
+        Route::post('/channels/{channel}/sync-stock', [EcommerceController::class, 'syncStockManual'])->name('channels.sync-stock');
+        Route::post('/channels/{channel}/sync-prices', [EcommerceController::class, 'syncPricesManual'])->name('channels.sync-prices');
+        Route::get('/channels/{channel}/mappings', [EcommerceController::class, 'mappings'])->name('channels.mappings');
+        Route::post('/channels/{channel}/mappings', [EcommerceController::class, 'storeMapping'])->name('channels.mappings.store');
+        Route::delete('/mappings/{mapping}', [EcommerceController::class, 'destroyMapping'])->name('mappings.destroy');
     });
 
     // Sales AI — contextual suggestions (AJAX)
@@ -355,7 +408,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('accounting/ai')->name('accounting.ai.')->middleware(['role:admin,manager', 'ai.quota'])->group(function () {
         Route::get('/suggest-accounts',    [\App\Http\Controllers\AccountingAiController::class, 'suggestAccounts'])->name('suggest-accounts');
         Route::post('/check-journal',      [\App\Http\Controllers\AccountingAiController::class, 'checkJournal'])->name('check-journal');
-        Route::get('/categorize-statement',[\App\Http\Controllers\AccountingAiController::class, 'categorizeStatement'])->name('categorize-statement');
+        Route::get('/categorize-statement', [\App\Http\Controllers\AccountingAiController::class, 'categorizeStatement'])->name('categorize-statement');
     });
 
     // Sales Orders
@@ -593,7 +646,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/',           [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
         Route::put('/{product}',   [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
         Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
-        Route::delete('/{product}',[\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
+        Route::delete('/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
     });
 
     // Warehouses (master data)
@@ -1166,6 +1219,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('settings/ai-memory')->name('ai-memory.')->group(function () {
         Route::get('/', [\App\Http\Controllers\AiMemoryController::class, 'index'])->name('index');
         Route::post('/reset', [\App\Http\Controllers\AiMemoryController::class, 'reset'])->name('reset');
+        Route::post('/prune', [\App\Http\Controllers\AiMemoryController::class, 'pruneStale'])->name('prune');
+        Route::post('/{memory}/lock', [\App\Http\Controllers\AiMemoryController::class, 'lock'])->name('lock');
         Route::delete('/{aiMemory}', [\App\Http\Controllers\AiMemoryController::class, 'destroy'])->name('destroy');
     });
 
@@ -1196,8 +1251,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{customField}', [\App\Http\Controllers\CustomFieldController::class, 'destroy'])->name('destroy');
     });
 
-    // Multi Company — Task 55
-    Route::prefix('company-groups')->name('company-groups.')->middleware('role:admin')->group(function () {
+    // Multi Company — Enterprise Feature
+    Route::prefix('company-groups')->name('company-groups.')->middleware(['role:admin', 'permission:company_groups,view'])->group(function () {
         Route::get('/', [\App\Http\Controllers\CompanyGroupController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\CompanyGroupController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\CompanyGroupController::class, 'store'])->name('store');
@@ -1207,6 +1262,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{companyGroup}/transactions', [\App\Http\Controllers\CompanyGroupController::class, 'storeTransaction'])->name('transactions.store');
         Route::post('/transactions/{transaction}/post', [\App\Http\Controllers\CompanyGroupController::class, 'postTransaction'])->name('transactions.post');
         Route::post('/transactions/{transaction}/void', [\App\Http\Controllers\CompanyGroupController::class, 'voidTransaction'])->name('transactions.void');
+        Route::get('/{companyGroup}/export', [\App\Http\Controllers\CompanyGroupController::class, 'exportCsv'])->name('export');
     });
 
     // Zero Input ERP — Task 56
@@ -1218,9 +1274,59 @@ Route::middleware('auth')->group(function () {
         Route::post('/{zeroInputLog}/confirm', [\App\Http\Controllers\ZeroInputController::class, 'confirm'])->name('confirm');
         Route::post('/{zeroInputLog}/reject', [\App\Http\Controllers\ZeroInputController::class, 'reject'])->name('reject');
     });
+
+    // Multi-Company Consolidation — Enterprise Feature
+    Route::prefix('consolidation')->name('consolidation.')->middleware(['role:admin'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\ConsolidationController::class, 'index'])->name('index');
+
+        // Company Group Management
+        Route::get('/groups/create', [\App\Http\Controllers\ConsolidationController::class, 'createGroup'])->name('groups.create');
+        Route::post('/groups', [\App\Http\Controllers\ConsolidationController::class, 'storeGroup'])->name('groups.store');
+        Route::get('/groups/{group}', [\App\Http\Controllers\ConsolidationController::class, 'show'])->name('show');
+        Route::post('/groups/{group}/members', [\App\Http\Controllers\ConsolidationController::class, 'addMember'])->name('members.add');
+        Route::delete('/groups/{group}/members/{tenantId}', [\App\Http\Controllers\ConsolidationController::class, 'removeMember'])->name('members.remove');
+
+        // Consolidation Reports
+        Route::post('/groups/{group}/reports', [\App\Http\Controllers\ConsolidationController::class, 'generateReport'])->name('report.generate');
+        Route::get('/groups/{group}/reports/{report}', [\App\Http\Controllers\ConsolidationController::class, 'showReport'])->name('report.show');
+        Route::post('/groups/{group}/reports/{report}/finalize', [\App\Http\Controllers\ConsolidationController::class, 'finalizeReport'])->name('report.finalize');
+        Route::get('/groups/{group}/reports/{report}/export', [\App\Http\Controllers\ConsolidationController::class, 'exportReport'])->name('report.export');
+
+        // Master Chart of Accounts
+        Route::get('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'masterAccounts'])->name('master-accounts');
+        Route::post('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'storeMasterAccount'])->name('master-accounts.store');
+
+        // Account Mappings
+        Route::get('/groups/{group}/mappings', [\App\Http\Controllers\ConsolidationController::class, 'accountMappings'])->name('mappings');
+        Route::patch('/groups/{group}/mappings/{mapping}', [\App\Http\Controllers\ConsolidationController::class, 'updateMapping'])->name('mappings.update');
+
+        // Elimination Entries
+        Route::get('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'eliminations'])->name('eliminations');
+        Route::post('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'storeElimination'])->name('eliminations.store');
+
+        // Ownership Structure
+        Route::get('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'ownerships'])->name('ownerships');
+        Route::post('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'storeOwnership'])->name('ownerships.store');
+    });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
+
+// ── Mobile (Mode Lapangan) ─────────────────────────────────────────────────
+use App\Http\Controllers\MobileController;
+
+Route::prefix('mobile')->name('mobile.')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [MobileController::class, 'hub'])->name('hub');
+    Route::get('/picking', [MobileController::class, 'picking'])->name('picking');
+    Route::get('/picking/{id}', [MobileController::class, 'pickingShow'])->name('picking.show');
+    Route::post('/picking/{id}/confirm', [MobileController::class, 'pickingConfirm'])->name('picking.confirm');
+    Route::get('/opname', [MobileController::class, 'opname'])->name('opname');
+    Route::get('/opname/{id}', [MobileController::class, 'opnameShow'])->name('opname.show');
+    Route::post('/opname/{id}/update', [MobileController::class, 'opnameUpdate'])->name('opname.update');
+    Route::patch('/opname/{id}/complete', [MobileController::class, 'opnameComplete'])->name('opname.complete');
+    Route::get('/farm-activity', [MobileController::class, 'farmActivity'])->name('farm-activity');
+    Route::post('/farm-activity', [MobileController::class, 'farmActivityStore'])->name('farm-activity.store');
+});
 
 // Bot Webhooks (no auth, verified by platform token)
 Route::post('/webhook/telegram', [BotController::class, 'telegramWebhook'])->name('webhook.telegram')->middleware('throttle:webhook-inbound');

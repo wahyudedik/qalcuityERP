@@ -10,7 +10,7 @@
 
 /* ── Chat markdown styles ─────────────────────────────────── */
 .prose-chat p {
-    @apply text-sm text-gray-800 leading-relaxed mb-2;
+    @apply text-sm text-gray-800 dark:text-gray-300 leading-relaxed mb-2;
 }
 
 .prose-chat p:last-child {
@@ -22,11 +22,11 @@
 }
 
 .prose-chat th {
-    @apply bg-gray-50 text-gray-600 font-medium text-xs uppercase tracking-wide px-4 py-2.5 text-left border-b border-gray-200;
+    @apply bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 font-medium text-xs uppercase tracking-wide px-4 py-2.5 text-left border-b border-gray-200 dark:border-slate-600;
 }
 
 .prose-chat td {
-    @apply px-4 py-2.5 text-gray-700 border-b border-gray-100;
+    @apply px-4 py-2.5 text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-700;
 }
 
 .prose-chat tr:last-child td {
@@ -34,7 +34,7 @@
 }
 
 .prose-chat tr:hover td {
-    @apply bg-gray-50;
+    @apply bg-gray-50 dark:bg-slate-700/50;
 }
 
 .prose-chat ul {
@@ -46,13 +46,13 @@
 }
 
 .prose-chat li {
-    @apply text-sm text-gray-700;
+    @apply text-sm text-gray-700 dark:text-gray-300;
 }
 
 .prose-chat h1,
 .prose-chat h2,
 .prose-chat h3 {
-    @apply font-semibold text-gray-800 mt-3 mb-1;
+    @apply font-semibold text-gray-800 dark:text-gray-100 mt-3 mb-1;
 }
 
 .prose-chat h1 {
@@ -68,23 +68,23 @@
 }
 
 .prose-chat strong {
-    @apply font-semibold text-gray-900;
+    @apply font-semibold text-gray-900 dark:text-gray-100;
 }
 
 .prose-chat em {
-    @apply italic text-gray-600;
+    @apply italic text-gray-600 dark:text-gray-400;
 }
 
 .prose-chat hr {
-    @apply my-3 border-gray-200;
+    @apply my-3 border-gray-200 dark:border-slate-700;
 }
 
 .prose-chat blockquote {
-    @apply border-l-4 border-blue-400 pl-4 my-2 text-gray-600 italic;
+    @apply border-l-4 border-blue-400 dark:border-blue-500 pl-4 my-2 text-gray-600 dark:text-gray-400 italic;
 }
 
 .prose-chat code {
-    @apply bg-gray-100 text-red-600 text-xs px-1.5 py-0.5 rounded font-mono;
+    @apply bg-gray-100 dark:bg-slate-800 text-red-600 dark:text-red-400 text-xs px-1.5 py-0.5 rounded font-mono;
 }
 
 .prose-chat pre code {

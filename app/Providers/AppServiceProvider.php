@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Observers\ProductObserver;
+use App\Observers\ProductStockObserver;
 use App\Services\ChatSessionManager;
 use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
@@ -34,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Register model observers
+        Product::observe(ProductObserver::class);
+        ProductStock::observe(ProductStockObserver::class);
+
         $this->configureRateLimiting();
         $this->registerBladeDirectives();
     }
@@ -84,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
             $limit = (int) (60 * $multiplier);
 
             return $tenantId
-                ? Limit::perMinute($limit)->by('api-read:tenant:' . $tenantId)->response(fn () => $this->rateLimitResponse('API read', $limit))
+                ? Limit::perMinute($limit)->by('api-read:tenant:' . $tenantId)->response(fn() => $this->rateLimitResponse('API read', $limit))
                 : Limit::perMinute(10)->by('api-read:ip:' . $request->ip());
         });
 
@@ -96,7 +104,7 @@ class AppServiceProvider extends ServiceProvider
             $limit = (int) (20 * $multiplier);
 
             return $tenantId
-                ? Limit::perMinute($limit)->by('api-write:tenant:' . $tenantId)->response(fn () => $this->rateLimitResponse('API write', $limit))
+                ? Limit::perMinute($limit)->by('api-write:tenant:' . $tenantId)->response(fn() => $this->rateLimitResponse('API write', $limit))
                 : Limit::perMinute(5)->by('api-write:ip:' . $request->ip());
         });
 
@@ -105,7 +113,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('webhook-inbound', function (Request $request) {
             return Limit::perMinute(30)
                 ->by('webhook:ip:' . $request->ip())
-                ->response(fn () => $this->rateLimitResponse('Webhook', 30));
+                ->response(fn() => $this->rateLimitResponse('Webhook', 30));
         });
 
         // ── POS checkout ──────────────────────────────────────────

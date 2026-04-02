@@ -12,7 +12,9 @@ use App\Models\SalesOrder;
 use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserDashboardConfig;
 use App\Services\AiInsightService;
+use App\Services\DashboardWidgetService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -32,26 +34,65 @@ class DashboardController extends Controller
             return redirect()->route('onboarding.show');
         }
 
-        // AI Insights — ambil dari cache atau generate on-demand (max 1x per jam)
-        $insights = cache()->remember("ai_insights_{$tenantId}", now()->addHour(), function () use ($tenantId) {
-            return app(AiInsightService::class)->analyze($tenantId);
-        });
+        // ── Widget config per user ──────────────────────────────────
+        $config = UserDashboardConfig::where('user_id', $user->id)->first();
+        $userWidgets = $config?->widgets ?? DashboardWidgetService::defaultsForRole($user->role);
 
-        // Anomali open terbaru untuk highlight di dashboard
-        $openAnomalies = AnomalyAlert::where('tenant_id', $tenantId)
-            ->where('status', 'open')
-            ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
-            ->latest()
-            ->limit(5)
-            ->get();
+        $registry       = DashboardWidgetService::registry();
+        $availableKeys  = array_keys(DashboardWidgetService::availableForRole($user->role));
+        $requiredGroups = DashboardWidgetService::requiredDataGroups($userWidgets);
+
+        // ── Load only required data groups ──────────────────────────
+        $dataGroups = [];
+        if (in_array('sales', $requiredGroups))     $dataGroups['sales']     = $this->salesStats($tenantId);
+        if (in_array('inventory', $requiredGroups))  $dataGroups['inventory'] = $this->inventoryStats($tenantId);
+        if (in_array('finance', $requiredGroups))    $dataGroups['finance']   = $this->financeStats($tenantId);
+        if (in_array('hrm', $requiredGroups))        $dataGroups['hrm']       = $this->hrmStats($tenantId);
+        if (in_array('pos', $requiredGroups))        $dataGroups['pos']       = $this->posStats($tenantId);
+
+        if (in_array('insights', $requiredGroups)) {
+            $dataGroups['insights'] = [
+                'insights' => cache()->remember("ai_insights_{$tenantId}", now()->addHour(), function () use ($tenantId) {
+                    return app(AiInsightService::class)->analyze($tenantId);
+                }),
+            ];
+        }
+
+        if (in_array('anomalies', $requiredGroups)) {
+            $dataGroups['anomalies'] = [
+                'openAnomalies' => AnomalyAlert::where('tenant_id', $tenantId)
+                    ->where('status', 'open')
+                    ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
+                    ->latest()
+                    ->limit(5)
+                    ->get(),
+            ];
+        }
+
+        if (in_array('gamification', $requiredGroups)) {
+            $dataGroups['gamification'] = \App\Services\GamificationService::getUserStats($user);
+        }
+
+        // ── Map data to each widget ─────────────────────────────────
+        $widgetData = [];
+        foreach ($userWidgets as $w) {
+            $key   = $w['key'];
+            $meta  = $registry[$key] ?? null;
+            if (!$meta) continue;
+
+            $group = $meta['data_group'];
+            if ($group === 'all') {
+                $widgetData[$key] = $dataGroups;
+            } else {
+                $widgetData[$key] = $dataGroups[$group] ?? [];
+            }
+        }
 
         return view('dashboard.tenant', [
-            'sales'          => $this->salesStats($tenantId),
-            'inventory'      => $this->inventoryStats($tenantId),
-            'finance'        => $this->financeStats($tenantId),
-            'hrm'            => $this->hrmStats($tenantId),
-            'insights'       => $insights,
-            'openAnomalies'  => $openAnomalies,
+            'userWidgets'   => $userWidgets,
+            'widgetData'    => $widgetData,
+            'registry'      => $registry,
+            'availableKeys' => $availableKeys,
         ]);
     }
 
@@ -87,7 +128,7 @@ class DashboardController extends Controller
         return response()->json([
             'insights'  => array_slice($insights, 0, 6),
             'anomalies' => $anomalies,
-            'updated_at'=> now()->format('H:i'),
+            'updated_at' => now()->format('H:i'),
         ]);
     }
 
@@ -114,10 +155,11 @@ class DashboardController extends Controller
         $totalTenants  = Tenant::count();
         $activeTenants = Tenant::where('is_active', true)->get();
         $trialTenants  = Tenant::where('plan', 'trial')->count();
-        $expiredTenants= Tenant::where('is_active', true)
-            ->where(fn($q) => $q
-                ->where(fn($q2) => $q2->where('plan', 'trial')->where('trial_ends_at', '<', now()))
-                ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereNotNull('plan_expires_at')->where('plan_expires_at', '<', now()))
+        $expiredTenants = Tenant::where('is_active', true)
+            ->where(
+                fn($q) => $q
+                    ->where(fn($q2) => $q2->where('plan', 'trial')->where('trial_ends_at', '<', now()))
+                    ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereNotNull('plan_expires_at')->where('plan_expires_at', '<', now()))
             )->count();
 
         $totalUsers = User::where('role', '!=', 'super_admin')->count();
@@ -137,14 +179,16 @@ class DashboardController extends Controller
             ->sum('subscription_plans.price_monthly');
 
         // Tenants expiring in 7 / 14 / 30 days (trial or paid)
-        $expiringIn7  = Tenant::where('is_active', true)->where(fn($q) => $q
-            ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(7)]))
-            ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(7)]))
+        $expiringIn7  = Tenant::where('is_active', true)->where(
+            fn($q) => $q
+                ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(7)]))
+                ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(7)]))
         )->get();
 
-        $expiringIn30 = Tenant::where('is_active', true)->where(fn($q) => $q
-            ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(30)]))
-            ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(30)]))
+        $expiringIn30 = Tenant::where('is_active', true)->where(
+            fn($q) => $q
+                ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(30)]))
+                ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(30)]))
         )->with('admins')->orderByRaw("COALESCE(trial_ends_at, plan_expires_at) ASC")->get();
 
         // Tenant growth chart — last 6 months — 1 aggregate query (was 6 separate queries)
@@ -183,10 +227,21 @@ class DashboardController extends Controller
             ->load('tenant');
 
         return compact(
-            'totalTenants', 'activeTenants', 'trialTenants', 'expiredTenants',
-            'totalUsers', 'newThisMonth', 'newThisWeek', 'aiThisMonth',
-            'mrrEstimate', 'expiringIn7', 'expiringIn30',
-            'growthChart', 'planDist', 'recentTenants', 'topAiTenants'
+            'totalTenants',
+            'activeTenants',
+            'trialTenants',
+            'expiredTenants',
+            'totalUsers',
+            'newThisMonth',
+            'newThisWeek',
+            'aiThisMonth',
+            'mrrEstimate',
+            'expiringIn7',
+            'expiringIn30',
+            'growthChart',
+            'planDist',
+            'recentTenants',
+            'topAiTenants'
         );
     }
 
@@ -328,5 +383,65 @@ class DashboardController extends Controller
                 ->whereDate('date', today())->where('status', 'absent')->count(),
             'total_customers' => Customer::where('tenant_id', $tenantId)->where('is_active', true)->count(),
         ];
+    }
+
+    private function posStats(int $tenantId): array
+    {
+        $stats = SalesOrder::where('tenant_id', $tenantId)
+            ->where('source', 'pos')
+            ->whereDate('date', today())
+            ->whereNotIn('status', ['cancelled'])
+            ->selectRaw('COALESCE(SUM(total), 0) as revenue, COUNT(*) as cnt')
+            ->first();
+
+        $revenue = (float) $stats->revenue;
+        $count   = (int) $stats->cnt;
+
+        return [
+            'revenue'    => $revenue,
+            'count'      => $count,
+            'avg_ticket' => $count > 0 ? round($revenue / $count) : 0,
+        ];
+    }
+
+    // ─── Widget CRUD ─────────────────────────────────────────────
+
+    public function saveWidgets(Request $request)
+    {
+        $request->validate([
+            'widgets'          => 'required|array',
+            'widgets.*.key'    => 'required|string',
+            'widgets.*.order'  => 'required|integer|min:0',
+            'widgets.*.visible' => 'required|boolean',
+        ]);
+
+        $user      = $request->user();
+        $available = array_keys(DashboardWidgetService::availableForRole($user->role));
+
+        // Only keep widgets the user's role can see
+        $widgets = collect($request->widgets)
+            ->filter(fn($w) => in_array($w['key'], $available))
+            ->sortBy('order')
+            ->values()
+            ->toArray();
+
+        UserDashboardConfig::updateOrCreate(
+            ['user_id' => $user->id],
+            ['widgets' => $widgets],
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function resetWidgets(Request $request)
+    {
+        $user = $request->user();
+
+        UserDashboardConfig::where('user_id', $user->id)->delete();
+
+        return response()->json([
+            'ok'      => true,
+            'widgets' => DashboardWidgetService::defaultsForRole($user->role),
+        ]);
     }
 }

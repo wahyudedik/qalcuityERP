@@ -46,7 +46,7 @@ class MrpService
             ->where('purchase_orders.tenant_id', $tenantId)
             ->whereIn('purchase_orders.status', ['confirmed', 'partial'])
             ->whereIn('purchase_order_items.product_id', $productIds)
-            ->selectRaw('purchase_order_items.product_id, SUM(purchase_order_items.quantity) as pending_qty')
+            ->selectRaw('purchase_order_items.product_id, SUM(purchase_order_items.quantity_ordered - purchase_order_items.quantity_received) as pending_qty')
             ->groupBy('purchase_order_items.product_id')
             ->pluck('pending_qty', 'purchase_order_items.product_id');
 
@@ -125,7 +125,7 @@ class MrpService
             ->where('purchase_orders.tenant_id', $tenantId)
             ->whereIn('purchase_orders.status', ['confirmed', 'partial'])
             ->whereIn('purchase_order_items.product_id', $productIds)
-            ->selectRaw('purchase_order_items.product_id, SUM(purchase_order_items.quantity) as pending_qty')
+            ->selectRaw('purchase_order_items.product_id, SUM(purchase_order_items.quantity_ordered - purchase_order_items.quantity_received) as pending_qty')
             ->groupBy('purchase_order_items.product_id')
             ->pluck('pending_qty', 'purchase_order_items.product_id');
 

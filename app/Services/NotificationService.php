@@ -21,6 +21,16 @@ use App\Notifications\TrialExpiryNotification;
 class NotificationService
 {
     /**
+     * Check if a specific user has the notification type enabled for the given channel.
+     * Returns true (enabled) by default when no preference record exists.
+     * Only call this when there is a specific target user — tenant-wide notifications skip this.
+     */
+    private function shouldNotify(int $userId, string $type, string $channel = 'in_app'): bool
+    {
+        return \App\Models\NotificationPreference::isEnabled($userId, $type, $channel);
+    }
+
+    /**
      * Cek stok di bawah minimum dan buat notifikasi.
      */
     public function checkLowStock(int $tenantId): int
@@ -54,19 +64,22 @@ class NotificationService
             if ($exists) continue;
 
             foreach ($recipients as $userId) {
-                ErpNotification::create([
-                    'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => 'low_stock',
-                    'title'     => '⚠️ Stok Menipis',
-                    'body'      => "Stok **{$stock->product->name}** di gudang **{$stock->warehouse->name}** tinggal {$stock->quantity} {$stock->product->unit} (min: {$stock->product->stock_min}).",
-                    'data'      => [
-                        'product_id'   => $stock->product_id,
-                        'warehouse_id' => $stock->warehouse_id,
-                        'quantity'     => $stock->quantity,
-                        'stock_min'    => $stock->product->stock_min,
-                    ],
-                ]);
+                if ($this->shouldNotify($userId, 'low_stock', 'in_app')) {
+                    ErpNotification::create([
+                        'tenant_id' => $tenantId,
+                        'user_id'   => $userId,
+                        'type'      => 'low_stock',
+                        'module'    => 'inventory',
+                        'title'     => '⚠️ Stok Menipis',
+                        'body'      => "Stok **{$stock->product->name}** di gudang **{$stock->warehouse->name}** tinggal {$stock->quantity} {$stock->product->unit} (min: {$stock->product->stock_min}).",
+                        'data'      => [
+                            'product_id'   => $stock->product_id,
+                            'warehouse_id' => $stock->warehouse_id,
+                            'quantity'     => $stock->quantity,
+                            'stock_min'    => $stock->product->stock_min,
+                        ],
+                    ]);
+                }
             }
 
             $emailItems[] = [
@@ -82,7 +95,9 @@ class NotificationService
         if (!empty($emailItems)) {
             $adminUsers = User::whereIn('id', $recipients)->get();
             foreach ($adminUsers as $admin) {
-                $admin->notify(new LowStockEmailNotification($emailItems));
+                if ($this->shouldNotify($admin->id, 'low_stock', 'email')) {
+                    $admin->notify(new LowStockEmailNotification($emailItems));
+                }
             }
         }
 
@@ -129,19 +144,22 @@ class NotificationService
         $more  = $missing->count() > 5 ? ' dan ' . ($missing->count() - 5) . ' lainnya' : '';
 
         foreach ($admins as $userId) {
-            ErpNotification::create([
-                'tenant_id' => $tenantId,
-                'user_id'   => $userId,
-                'type'      => 'missing_report',
-                'title'     => '📋 Laporan Belum Masuk',
-                'body'      => "{$missing->count()} karyawan belum mengumpulkan laporan {$type}: {$names}{$more}.",
-                'data'      => [
-                    'report_type'  => $type,
-                    'period_start' => $periodStart,
-                    'count'        => $missing->count(),
-                    'employees'    => $missing->pluck('name')->toArray(),
-                ],
-            ]);
+            if ($this->shouldNotify($userId, 'missing_report', 'in_app')) {
+                ErpNotification::create([
+                    'tenant_id' => $tenantId,
+                    'user_id'   => $userId,
+                    'type'      => 'missing_report',
+                    'module'    => 'hrm',
+                    'title'     => '📋 Laporan Belum Masuk',
+                    'body'      => "{$missing->count()} karyawan belum mengumpulkan laporan {$type}: {$names}{$more}.",
+                    'data'      => [
+                        'report_type'  => $type,
+                        'period_start' => $periodStart,
+                        'count'        => $missing->count(),
+                        'employees'    => $missing->pluck('name')->toArray(),
+                    ],
+                ]);
+            }
         }
 
         return $missing->count();
@@ -196,20 +214,25 @@ class NotificationService
             'number'      => $inv->number,
             'customer'    => $inv->customer?->name ?? '-',
             'amount'      => (float) $inv->remaining_amount,
-            'days_overdue'=> $inv->daysOverdue(),
+            'days_overdue' => $inv->daysOverdue(),
         ])->toArray();
 
         foreach ($recipients as $user) {
-            ErpNotification::create([
-                'tenant_id' => $tenantId,
-                'user_id'   => $user->id,
-                'type'      => 'invoice_overdue_summary',
-                'title'     => "⚠️ {$count} Invoice Jatuh Tempo",
-                'body'      => "{$count} invoice senilai Rp " . number_format($totalAmount, 0, ',', '.') . " belum dibayar.",
-                'data'      => ['count' => $count, 'total_amount' => $totalAmount],
-            ]);
+            if ($this->shouldNotify($user->id, 'invoice_overdue', 'in_app')) {
+                ErpNotification::create([
+                    'tenant_id' => $tenantId,
+                    'user_id'   => $user->id,
+                    'type'      => 'invoice_overdue_summary',
+                    'module'    => 'finance',
+                    'title'     => "⚠️ {$count} Invoice Jatuh Tempo",
+                    'body'      => "{$count} invoice senilai Rp " . number_format($totalAmount, 0, ',', '.') . " belum dibayar.",
+                    'data'      => ['count' => $count, 'total_amount' => $totalAmount],
+                ]);
+            }
 
-            $user->notify(new InvoiceOverdueNotification($invoiceData, $tenant?->name ?? 'ERP'));
+            if ($this->shouldNotify($user->id, 'invoice_overdue', 'email')) {
+                $user->notify(new InvoiceOverdueNotification($invoiceData, $tenant?->name ?? 'ERP'));
+            }
         }
 
         return $count;
@@ -257,16 +280,21 @@ class NotificationService
             : "🔧 {$count} Jadwal Pemeliharaan Aset Mendatang";
 
         foreach ($recipients as $user) {
-            ErpNotification::create([
-                'tenant_id' => $tenantId,
-                'user_id'   => $user->id,
-                'type'      => 'asset_maintenance_due',
-                'title'     => $title,
-                'body'      => "{$count} jadwal pemeliharaan aset perlu perhatian.",
-                'data'      => ['count' => $count, 'overdue' => $overdueCount],
-            ]);
+            if ($this->shouldNotify($user->id, 'asset_maintenance_due', 'in_app')) {
+                ErpNotification::create([
+                    'tenant_id' => $tenantId,
+                    'user_id'   => $user->id,
+                    'type'      => 'asset_maintenance_due',
+                    'module'    => 'hrm',
+                    'title'     => $title,
+                    'body'      => "{$count} jadwal pemeliharaan aset perlu perhatian.",
+                    'data'      => ['count' => $count, 'overdue' => $overdueCount],
+                ]);
+            }
 
-            $user->notify(new AssetMaintenanceDueNotification($items, $tenant?->name ?? 'ERP'));
+            if ($this->shouldNotify($user->id, 'asset_maintenance_due', 'email')) {
+                $user->notify(new AssetMaintenanceDueNotification($items, $tenant?->name ?? 'ERP'));
+            }
         }
 
         return $count;
@@ -318,22 +346,27 @@ class NotificationService
         ])->toArray();
 
         foreach ($recipients as $user) {
-            ErpNotification::create([
-                'tenant_id' => $tenantId,
-                'user_id'   => $user->id,
-                'type'      => 'budget_alert',
-                'title'     => $title,
-                'body'      => $exceeded->isNotEmpty()
-                    ? "{$exceeded->count()} anggaran telah terlampaui. Segera tinjau pengeluaran."
-                    : "{$warning->count()} anggaran sudah di atas 80%. Perhatikan pengeluaran.",
-                'data'      => [
-                    'exceeded_count' => $exceeded->count(),
-                    'warning_count'  => $warning->count(),
-                    'period'         => $currentPeriod,
-                ],
-            ]);
+            if ($this->shouldNotify($user->id, 'budget_alert', 'in_app')) {
+                ErpNotification::create([
+                    'tenant_id' => $tenantId,
+                    'user_id'   => $user->id,
+                    'type'      => 'budget_alert',
+                    'module'    => 'finance',
+                    'title'     => $title,
+                    'body'      => $exceeded->isNotEmpty()
+                        ? "{$exceeded->count()} anggaran telah terlampaui. Segera tinjau pengeluaran."
+                        : "{$warning->count()} anggaran sudah di atas 80%. Perhatikan pengeluaran.",
+                    'data'      => [
+                        'exceeded_count' => $exceeded->count(),
+                        'warning_count'  => $warning->count(),
+                        'period'         => $currentPeriod,
+                    ],
+                ]);
+            }
 
-            $user->notify(new BudgetExceededNotification($budgetData, $tenant?->name ?? 'ERP'));
+            if ($this->shouldNotify($user->id, 'budget_alert', 'email')) {
+                $user->notify(new BudgetExceededNotification($budgetData, $tenant?->name ?? 'ERP'));
+            }
         }
 
         return $budgets->count();
@@ -369,16 +402,21 @@ class NotificationService
                     ->get();
 
                 foreach ($admins as $admin) {
-                    $admin->notify(new TrialExpiryNotification($tenant, $daysLeft));
+                    if ($this->shouldNotify($admin->id, 'trial_expiry', 'email')) {
+                        $admin->notify(new TrialExpiryNotification($tenant, $daysLeft));
+                    }
 
-                    ErpNotification::create([
-                        'tenant_id' => $tenant->id,
-                        'user_id'   => $admin->id,
-                        'type'      => 'trial_expiry',
-                        'title'     => "⏰ Trial berakhir dalam {$daysLeft} hari",
-                        'body'      => "Trial gratis Anda akan berakhir dalam {$daysLeft} hari. Upgrade sekarang untuk tetap menggunakan Qalcuity ERP.",
-                        'data'      => ['days_left' => $daysLeft],
-                    ]);
+                    if ($this->shouldNotify($admin->id, 'trial_expiry', 'in_app')) {
+                        ErpNotification::create([
+                            'tenant_id' => $tenant->id,
+                            'user_id'   => $admin->id,
+                            'type'      => 'trial_expiry',
+                            'module'    => 'system',
+                            'title'     => "⏰ Trial berakhir dalam {$daysLeft} hari",
+                            'body'      => "Trial gratis Anda akan berakhir dalam {$daysLeft} hari. Upgrade sekarang untuk tetap menggunakan Qalcuity ERP.",
+                            'data'      => ['days_left' => $daysLeft],
+                        ]);
+                    }
                 }
 
                 $count++;
@@ -426,22 +464,25 @@ class NotificationService
             $label = $days === 0 ? 'hari ini' : "dalam {$days} hari";
 
             foreach ($recipients as $userId) {
-                ErpNotification::create([
-                    'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => $notifKey,
-                    'title'     => '⏰ Produk Akan Expired',
-                    'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
-                                   "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
-                                   "akan expired {$label} ({$batch->expiry_date->format('d/m/Y')}).",
-                    'data'      => [
-                        'batch_id'    => $batch->id,
-                        'product_id'  => $batch->product_id,
-                        'days_left'   => $days,
-                        'expiry_date' => $batch->expiry_date->toDateString(),
-                        'quantity'    => $batch->quantity,
-                    ],
-                ]);
+                if ($this->shouldNotify($userId, 'product_expiry', 'in_app')) {
+                    ErpNotification::create([
+                        'tenant_id' => $tenantId,
+                        'user_id'   => $userId,
+                        'type'      => $notifKey,
+                        'module'    => 'inventory',
+                        'title'     => '⏰ Produk Akan Expired',
+                        'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
+                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
+                            "akan expired {$label} ({$batch->expiry_date->format('d/m/Y')}).",
+                        'data'      => [
+                            'batch_id'    => $batch->id,
+                            'product_id'  => $batch->product_id,
+                            'days_left'   => $days,
+                            'expiry_date' => $batch->expiry_date->toDateString(),
+                            'quantity'    => $batch->quantity,
+                        ],
+                    ]);
+                }
             }
             $count++;
         }
@@ -467,21 +508,24 @@ class NotificationService
             if ($exists) continue;
 
             foreach ($recipients as $userId) {
-                ErpNotification::create([
-                    'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => $notifKey,
-                    'title'     => '🔴 Produk Expired',
-                    'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
-                                   "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
-                                   "sudah EXPIRED sejak {$batch->expiry_date->format('d/m/Y')}. Segera lakukan tindakan.",
-                    'data'      => [
-                        'batch_id'    => $batch->id,
-                        'product_id'  => $batch->product_id,
-                        'expiry_date' => $batch->expiry_date->toDateString(),
-                        'quantity'    => $batch->quantity,
-                    ],
-                ]);
+                if ($this->shouldNotify($userId, 'product_expiry', 'in_app')) {
+                    ErpNotification::create([
+                        'tenant_id' => $tenantId,
+                        'user_id'   => $userId,
+                        'type'      => $notifKey,
+                        'module'    => 'inventory',
+                        'title'     => '🔴 Produk Expired',
+                        'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
+                            "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
+                            "sudah EXPIRED sejak {$batch->expiry_date->format('d/m/Y')}. Segera lakukan tindakan.",
+                        'data'      => [
+                            'batch_id'    => $batch->id,
+                            'product_id'  => $batch->product_id,
+                            'expiry_date' => $batch->expiry_date->toDateString(),
+                            'quantity'    => $batch->quantity,
+                        ],
+                    ]);
+                }
             }
             $count++;
         }
