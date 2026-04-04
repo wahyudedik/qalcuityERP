@@ -49,16 +49,16 @@ class SalesOrder extends Model
     protected function casts(): array
     {
         return [
-            'date'          => 'date',
+            'date' => 'date',
             'delivery_date' => 'date',
-            'due_date'      => 'date',
-            'subtotal'      => 'decimal:2',
-            'discount'      => 'decimal:2',
-            'tax'           => 'decimal:2',
-            'total'         => 'decimal:2',
-            'tax_amount'    => 'decimal:2',
+            'due_date' => 'date',
+            'subtotal' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'tax' => 'decimal:2',
+            'total' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
             'currency_rate' => 'float',
-            'posted_at'     => 'datetime',
+            'posted_at' => 'datetime',
         ];
     }
 
@@ -96,7 +96,7 @@ class SalesOrder extends Model
     {
         return $this->hasMany(SalesOrderItem::class);
     }
-    public function invoice(): HasMany
+    public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }

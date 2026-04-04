@@ -14,7 +14,7 @@ class ForecastService
      * Revenue forecast — linear regression on monthly SO totals.
      * Returns historical + projected months.
      */
-    public function revenueForcast(int $tenantId, int $monthsHistory = 6, int $monthsForecast = 6): array
+    public function revenueForecast(int $tenantId, int $monthsHistory = 6, int $monthsForecast = 6): array
     {
         $historical = [];
         for ($i = $monthsHistory - 1; $i >= 0; $i--) {
@@ -25,9 +25,9 @@ class ForecastService
                 ->sum('total');
             $historical[] = [
                 'period' => $date->format('Y-m'),
-                'label'  => $date->translatedFormat('M Y'),
+                'label' => $date->translatedFormat('M Y'),
                 'amount' => (float) $total,
-                'type'   => 'actual',
+                'type' => 'actual',
             ];
         }
 
@@ -37,8 +37,10 @@ class ForecastService
         if ($n >= 2) {
             $sumX = $sumY = $sumXY = $sumX2 = 0;
             foreach ($historical as $i => $h) {
-                $sumX += $i; $sumY += $h['amount'];
-                $sumXY += $i * $h['amount']; $sumX2 += $i * $i;
+                $sumX += $i;
+                $sumY += $h['amount'];
+                $sumXY += $i * $h['amount'];
+                $sumX2 += $i * $i;
             }
             $denom = ($n * $sumX2 - $sumX * $sumX);
             $slope = $denom != 0 ? ($n * $sumXY - $sumX * $sumY) / $denom : 0;
@@ -49,9 +51,9 @@ class ForecastService
                 $predicted = max(0, $intercept + $slope * ($n + $i));
                 $projected[] = [
                     'period' => $date->format('Y-m'),
-                    'label'  => $date->translatedFormat('M Y'),
+                    'label' => $date->translatedFormat('M Y'),
                     'amount' => round($predicted, 0),
-                    'type'   => 'forecast',
+                    'type' => 'forecast',
                 ];
             }
         }
@@ -68,7 +70,8 @@ class ForecastService
         // Historical
         for ($i = $monthsHistory - 1; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $y = $date->year; $m = $date->month;
+            $y = $date->year;
+            $m = $date->month;
 
             $inflow = (float) Invoice::where('tenant_id', $tenantId)
                 ->where('status', 'paid')
@@ -80,12 +83,12 @@ class ForecastService
                 ->sum('amount');
 
             $data[] = [
-                'period'  => $date->format('Y-m'),
-                'label'   => $date->translatedFormat('M Y'),
-                'inflow'  => $inflow,
+                'period' => $date->format('Y-m'),
+                'label' => $date->translatedFormat('M Y'),
+                'inflow' => $inflow,
                 'outflow' => $outflow,
-                'net'     => $inflow - $outflow,
-                'type'    => 'actual',
+                'net' => $inflow - $outflow,
+                'type' => 'actual',
             ];
         }
 
@@ -105,12 +108,12 @@ class ForecastService
             $projOutflow = round($avgOutflow * 1.02, 0); // assume 2% cost increase
 
             $data[] = [
-                'period'  => $date->format('Y-m'),
-                'label'   => $date->translatedFormat('M Y'),
-                'inflow'  => $projInflow,
+                'period' => $date->format('Y-m'),
+                'label' => $date->translatedFormat('M Y'),
+                'inflow' => $projInflow,
                 'outflow' => $projOutflow,
-                'net'     => $projInflow - $projOutflow,
-                'type'    => 'forecast',
+                'net' => $projInflow - $projOutflow,
+                'type' => 'forecast',
             ];
         }
 
@@ -166,14 +169,14 @@ class ForecastService
             }
 
             $result[] = [
-                'product_id'   => $p->id,
+                'product_id' => $p->id,
                 'product_name' => $p->name,
-                'unit'         => $p->unit,
-                'monthly_avg'  => round($avgMonthly, 0),
-                'current_stock'=> (float) $stock,
+                'unit' => $p->unit,
+                'monthly_avg' => round($avgMonthly, 0),
+                'current_stock' => (float) $stock,
                 'months_of_stock' => $avgMonthly > 0 ? round($stock / $avgMonthly, 1) : null,
-                'forecast'     => $forecast,
-                'trend'        => round($trend * 100, 1), // % per month
+                'forecast' => $forecast,
+                'trend' => round($trend * 100, 1), // % per month
             ];
         }
 
@@ -207,7 +210,7 @@ class ForecastService
         $collectionRate = $total > 0 ? round($collected / $total * 100, 1) : 0;
 
         return [
-            'aging'           => $unpaid,
+            'aging' => $unpaid,
             'collection_rate' => $collectionRate,
             'estimated_collection' => round(($unpaid->total ?? 0) * $collectionRate / 100, 0),
         ];

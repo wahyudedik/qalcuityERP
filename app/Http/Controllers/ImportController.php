@@ -31,28 +31,41 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         if (!in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
         $warehouse = Warehouse::where('tenant_id', $this->tenantId())->first();
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip'); // skip | update
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (count($row) < 1 || empty(trim($row[0] ?? ''))) continue;
+            if (!is_array($row) || count($row) < 1 || empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) { $skipped++; continue; }
+            if (!$name) {
+                $skipped++;
+                continue;
+            }
 
             $validator = Validator::make($data, [
-                'name'       => 'required|string|max:255',
+                'name' => 'required|string|max:255',
                 'price_sell' => 'nullable|numeric|min:0',
-                'price_buy'  => 'nullable|numeric|min:0',
-                'stock_min'  => 'nullable|integer|min:0',
+                'price_buy' => 'nullable|numeric|min:0',
+                'stock_min' => 'nullable|integer|min:0',
             ]);
             if ($validator->fails()) {
                 $errors[] = "Baris " . ($i + 2) . ": " . implode(', ', $validator->errors()->all());
@@ -63,13 +76,13 @@ class ImportController extends Controller
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'barcode'    => $data['barcode'] ?? null,
-                    'category'   => $data['category'] ?? null,
-                    'unit'       => $data['unit'] ?: null,
+                    'barcode' => $data['barcode'] ?? null,
+                    'category' => $data['category'] ?? null,
+                    'unit' => $data['unit'] ?: null,
                     'price_sell' => isset($data['price_sell']) && $data['price_sell'] !== '' ? (float) $data['price_sell'] : null,
-                    'price_buy'  => isset($data['price_buy']) && $data['price_buy'] !== '' ? (float) $data['price_buy'] : null,
-                    'stock_min'  => isset($data['stock_min']) && $data['stock_min'] !== '' ? (int) $data['stock_min'] : null,
-                ], fn ($v) => $v !== null));
+                    'price_buy' => isset($data['price_buy']) && $data['price_buy'] !== '' ? (float) $data['price_buy'] : null,
+                    'stock_min' => isset($data['stock_min']) && $data['stock_min'] !== '' ? (int) $data['stock_min'] : null,
+                ], fn($v) => $v !== null));
                 $updated++;
                 continue;
             } elseif ($existing) {
@@ -81,24 +94,24 @@ class ImportController extends Controller
                 : strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)) . '-' . rand(100, 999);
 
             $product = Product::create([
-                'tenant_id'  => $this->tenantId(),
-                'name'       => $name,
-                'sku'        => $sku,
-                'barcode'    => $data['barcode'] ?? null,
-                'category'   => $data['category'] ?? null,
-                'unit'       => $data['unit'] ?? 'pcs',
+                'tenant_id' => $this->tenantId(),
+                'name' => $name,
+                'sku' => $sku,
+                'barcode' => $data['barcode'] ?? null,
+                'category' => $data['category'] ?? null,
+                'unit' => $data['unit'] ?? 'pcs',
                 'price_sell' => (float) ($data['price_sell'] ?? 0),
-                'price_buy'  => (float) ($data['price_buy'] ?? 0),
-                'stock_min'  => (int) ($data['stock_min'] ?? 5),
-                'description'=> $data['description'] ?? null,
-                'is_active'  => true,
+                'price_buy' => (float) ($data['price_buy'] ?? 0),
+                'stock_min' => (int) ($data['stock_min'] ?? 5),
+                'description' => $data['description'] ?? null,
+                'is_active' => true,
             ]);
 
             if ($warehouse && !empty($data['initial_stock']) && (int) $data['initial_stock'] > 0) {
                 ProductStock::create([
-                    'product_id'   => $product->id,
+                    'product_id' => $product->id,
                     'warehouse_id' => $warehouse->id,
-                    'quantity'     => (int) $data['initial_stock'],
+                    'quantity' => (int) $data['initial_stock'],
                 ]);
             }
             $created++;
@@ -115,47 +128,60 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         if (!in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? ''))) continue;
+            if (empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) { $skipped++; continue; }
+            if (!$name) {
+                $skipped++;
+                continue;
+            }
 
             $existing = Customer::where('tenant_id', $this->tenantId())->where('name', $name)->first();
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'email'        => $data['email'] ?? null,
-                    'phone'        => $data['phone'] ?? null,
-                    'company'      => $data['company'] ?? null,
-                    'address'      => $data['address'] ?? null,
-                    'npwp'         => $data['npwp'] ?? null,
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'company' => $data['company'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'npwp' => $data['npwp'] ?? null,
                     'credit_limit' => isset($data['credit_limit']) && $data['credit_limit'] !== '' ? (float) $data['credit_limit'] : null,
-                ], fn ($v) => $v !== null));
+                ], fn($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
             } else {
                 Customer::create([
-                    'tenant_id'    => $this->tenantId(),
-                    'name'         => $name,
-                    'email'        => $data['email'] ?? null,
-                    'phone'        => $data['phone'] ?? null,
-                    'company'      => $data['company'] ?? null,
-                    'address'      => $data['address'] ?? null,
-                    'npwp'         => $data['npwp'] ?? null,
+                    'tenant_id' => $this->tenantId(),
+                    'name' => $name,
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'company' => $data['company'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'npwp' => $data['npwp'] ?? null,
                     'credit_limit' => (float) ($data['credit_limit'] ?? 0),
-                    'is_active'    => true,
+                    'is_active' => true,
                 ]);
                 $created++;
             }
@@ -172,51 +198,64 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         if (!in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? ''))) continue;
+            if (empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) { $skipped++; continue; }
+            if (!$name) {
+                $skipped++;
+                continue;
+            }
 
             $existing = Supplier::where('tenant_id', $this->tenantId())->where('name', $name)->first();
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'email'        => $data['email'] ?? null,
-                    'phone'        => $data['phone'] ?? null,
-                    'company'      => $data['company'] ?? null,
-                    'address'      => $data['address'] ?? null,
-                    'npwp'         => $data['npwp'] ?? null,
-                    'bank_name'    => $data['bank_name'] ?? null,
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'company' => $data['company'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'npwp' => $data['npwp'] ?? null,
+                    'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
-                    'bank_holder'  => $data['bank_holder'] ?? null,
-                ], fn ($v) => $v !== null));
+                    'bank_holder' => $data['bank_holder'] ?? null,
+                ], fn($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
             } else {
                 Supplier::create([
-                    'tenant_id'    => $this->tenantId(),
-                    'name'         => $name,
-                    'email'        => $data['email'] ?? null,
-                    'phone'        => $data['phone'] ?? null,
-                    'company'      => $data['company'] ?? null,
-                    'address'      => $data['address'] ?? null,
-                    'npwp'         => $data['npwp'] ?? null,
-                    'bank_name'    => $data['bank_name'] ?? null,
+                    'tenant_id' => $this->tenantId(),
+                    'name' => $name,
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'company' => $data['company'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'npwp' => $data['npwp'] ?? null,
+                    'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
-                    'bank_holder'  => $data['bank_holder'] ?? null,
-                    'is_active'    => true,
+                    'bank_holder' => $data['bank_holder'] ?? null,
+                    'is_active' => true,
                 ]);
                 $created++;
             }
@@ -233,60 +272,76 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         if (!in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip');
         $counter = Employee::where('tenant_id', $this->tenantId())->count();
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? ''))) continue;
+            if (empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) { $skipped++; continue; }
+            if (!$name) {
+                $skipped++;
+                continue;
+            }
 
             $joinDate = null;
             if (!empty($data['join_date'])) {
-                try { $joinDate = \Carbon\Carbon::parse($data['join_date'])->format('Y-m-d'); } catch (\Exception $e) {}
+                try {
+                    $joinDate = \Carbon\Carbon::parse($data['join_date'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                }
             }
 
             $existing = Employee::where('tenant_id', $this->tenantId())->where('name', $name)->first();
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'email'       => $data['email'] ?? null,
-                    'phone'       => $data['phone'] ?? null,
-                    'position'    => $data['position'] ?? null,
-                    'department'  => $data['department'] ?? null,
-                    'salary'      => isset($data['salary']) && $data['salary'] !== '' ? (float) $data['salary'] : null,
-                    'bank_name'   => $data['bank_name'] ?? null,
-                    'bank_account'=> $data['bank_account'] ?? null,
-                    'address'     => $data['address'] ?? null,
-                ], fn ($v) => $v !== null));
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'position' => $data['position'] ?? null,
+                    'department' => $data['department'] ?? null,
+                    'salary' => isset($data['salary']) && $data['salary'] !== '' ? (float) $data['salary'] : null,
+                    'bank_name' => $data['bank_name'] ?? null,
+                    'bank_account' => $data['bank_account'] ?? null,
+                    'address' => $data['address'] ?? null,
+                ], fn($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
             } else {
                 $counter++;
                 Employee::create([
-                    'tenant_id'    => $this->tenantId(),
-                    'name'         => $name,
-                    'email'        => $data['email'] ?? null,
-                    'phone'        => $data['phone'] ?? null,
-                    'position'     => $data['position'] ?? null,
-                    'department'   => $data['department'] ?? null,
-                    'join_date'    => $joinDate ?? today(),
-                    'status'       => 'active',
-                    'salary'       => (float) ($data['salary'] ?? 0),
-                    'bank_name'    => $data['bank_name'] ?? null,
+                    'tenant_id' => $this->tenantId(),
+                    'name' => $name,
+                    'email' => $data['email'] ?? null,
+                    'phone' => $data['phone'] ?? null,
+                    'position' => $data['position'] ?? null,
+                    'department' => $data['department'] ?? null,
+                    'join_date' => $joinDate ?? today(),
+                    'status' => 'active',
+                    'salary' => (float) ($data['salary'] ?? 0),
+                    'bank_name' => $data['bank_name'] ?? null,
                     'bank_account' => $data['bank_account'] ?? null,
-                    'address'      => $data['address'] ?? null,
-                    'employee_id'  => $data['employee_id'] ?? ('EMP-' . str_pad($counter, 4, '0', STR_PAD_LEFT)),
+                    'address' => $data['address'] ?? null,
+                    'employee_id' => $data['employee_id'] ?? ('EMP-' . str_pad($counter, 4, '0', STR_PAD_LEFT)),
                 ]);
                 $created++;
             }
@@ -303,38 +358,51 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         if (!in_array('name', $headers)) {
             return back()->with('error', 'Kolom "name" wajib ada di baris pertama (header).');
         }
 
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? ''))) continue;
+            if (empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
             $name = trim($data['name'] ?? '');
-            if (!$name) { $skipped++; continue; }
+            if (!$name) {
+                $skipped++;
+                continue;
+            }
 
             $existing = Warehouse::where('tenant_id', $this->tenantId())->where('name', $name)->first();
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'code'    => $data['code'] ?? null,
+                    'code' => $data['code'] ?? null,
                     'address' => $data['address'] ?? null,
-                ], fn ($v) => $v !== null));
+                ], fn($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
             } else {
                 Warehouse::create([
                     'tenant_id' => $this->tenantId(),
-                    'name'      => $name,
-                    'code'      => $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 5)),
-                    'address'   => $data['address'] ?? null,
+                    'name' => $name,
+                    'code' => $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 5)),
+                    'address' => $data['address'] ?? null,
                     'is_active' => true,
                 ]);
                 $created++;
@@ -352,8 +420,14 @@ class ImportController extends Controller
     {
         $request->validate(['file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120']);
 
-        $rows    = $this->parseFile($request->file('file'));
-        $headers = $this->normalizeHeaders($rows[0] ?? []);
+        $rows = $this->parseFile($request->file('file'));
+        if (!is_array($rows) || empty($rows)) {
+            return back()->with('error', 'File parsing failed or file is empty.');
+        }
+        if (!isset($rows[0]) || !is_array($rows[0])) {
+            return back()->with('error', 'File header row is invalid.');
+        }
+        $headers = $this->normalizeHeaders($rows[0]);
 
         $required = ['code', 'name', 'type'];
         foreach ($required as $col) {
@@ -363,18 +437,25 @@ class ImportController extends Controller
         }
 
         $validTypes = ['asset', 'liability', 'equity', 'revenue', 'expense', 'cogs'];
-        $created = 0; $skipped = 0; $updated = 0; $errors = [];
+        $created = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
         $mode = $request->input('mode', 'skip');
 
         foreach (array_slice($rows, 1) as $i => $row) {
-            if (empty(trim($row[0] ?? ''))) continue;
+            if (empty(trim($row[0] ?? '')))
+                continue;
             $data = $this->mapRow($headers, $row);
 
             $code = trim($data['code'] ?? '');
             $name = trim($data['name'] ?? '');
             $type = strtolower(trim($data['type'] ?? ''));
 
-            if (!$code || !$name) { $skipped++; continue; }
+            if (!$code || !$name) {
+                $skipped++;
+                continue;
+            }
 
             if (!in_array($type, $validTypes)) {
                 $errors[] = "Baris " . ($i + 2) . ": Tipe \"{$type}\" tidak valid. Gunakan: " . implode(', ', $validTypes);
@@ -391,7 +472,10 @@ class ImportController extends Controller
                 $parentCode = substr($code, 0, -1);
                 while (strlen($parentCode) > 0) {
                     $parent = ChartOfAccount::where('tenant_id', $this->tenantId())->where('code', $parentCode)->first();
-                    if ($parent) { $parentId = $parent->id; break; }
+                    if ($parent) {
+                        $parentId = $parent->id;
+                        break;
+                    }
                     $parentCode = substr($parentCode, 0, -1);
                 }
             }
@@ -400,28 +484,28 @@ class ImportController extends Controller
 
             if ($existing && $mode === 'update') {
                 $existing->update(array_filter([
-                    'name'           => $name,
-                    'type'           => $type,
+                    'name' => $name,
+                    'type' => $type,
                     'normal_balance' => $normalBalance,
-                    'description'    => $data['description'] ?? null,
-                    'is_header'      => $isHeader,
-                    'parent_id'      => $parentId,
-                ], fn ($v) => $v !== null));
+                    'description' => $data['description'] ?? null,
+                    'is_header' => $isHeader,
+                    'parent_id' => $parentId,
+                ], fn($v) => $v !== null));
                 $updated++;
             } elseif ($existing) {
                 $skipped++;
             } else {
                 ChartOfAccount::create([
-                    'tenant_id'      => $this->tenantId(),
-                    'code'           => $code,
-                    'name'           => $name,
-                    'type'           => $type,
+                    'tenant_id' => $this->tenantId(),
+                    'code' => $code,
+                    'name' => $name,
+                    'type' => $type,
                     'normal_balance' => $normalBalance,
-                    'level'          => $level,
-                    'is_header'      => $isHeader,
-                    'is_active'      => true,
-                    'description'    => $data['description'] ?? null,
-                    'parent_id'      => $parentId,
+                    'level' => $level,
+                    'is_header' => $isHeader,
+                    'is_active' => true,
+                    'description' => $data['description'] ?? null,
+                    'parent_id' => $parentId,
                 ]);
                 $created++;
             }
@@ -445,9 +529,15 @@ class ImportController extends Controller
 
         $headers = ['name', 'sku', 'barcode', 'category', 'unit', 'price_sell', 'price_buy', 'stock_min', 'total_stock', 'description'];
 
-        $rows = $products->map(fn ($p) => [
-            $p->name, $p->sku, $p->barcode, $p->category, $p->unit,
-            $p->price_sell, $p->price_buy, $p->stock_min,
+        $rows = $products->map(fn($p) => [
+            $p->name,
+            $p->sku,
+            $p->barcode,
+            $p->category,
+            $p->unit,
+            $p->price_sell,
+            $p->price_buy,
+            $p->stock_min,
             $p->productStocks->sum('quantity'),
             $p->description,
         ]);
@@ -461,9 +551,15 @@ class ImportController extends Controller
         $items = Customer::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'email', 'phone', 'company', 'address', 'npwp', 'credit_limit', 'is_active'];
-        $rows = $items->map(fn ($c) => [
-            $c->name, $c->email, $c->phone, $c->company, $c->address,
-            $c->npwp, $c->credit_limit, $c->is_active ? '1' : '0',
+        $rows = $items->map(fn($c) => [
+            $c->name,
+            $c->email,
+            $c->phone,
+            $c->company,
+            $c->address,
+            $c->npwp,
+            $c->credit_limit,
+            $c->is_active ? '1' : '0',
         ]);
 
         return $this->downloadCsv("export-customer-" . date('Ymd'), $headers, $rows);
@@ -475,9 +571,16 @@ class ImportController extends Controller
         $items = Supplier::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'email', 'phone', 'company', 'address', 'npwp', 'bank_name', 'bank_account', 'bank_holder', 'is_active'];
-        $rows = $items->map(fn ($s) => [
-            $s->name, $s->email, $s->phone, $s->company, $s->address,
-            $s->npwp, $s->bank_name, $s->bank_account, $s->bank_holder,
+        $rows = $items->map(fn($s) => [
+            $s->name,
+            $s->email,
+            $s->phone,
+            $s->company,
+            $s->address,
+            $s->npwp,
+            $s->bank_name,
+            $s->bank_account,
+            $s->bank_holder,
             $s->is_active ? '1' : '0',
         ]);
 
@@ -490,10 +593,19 @@ class ImportController extends Controller
         $items = Employee::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'employee_id', 'email', 'phone', 'position', 'department', 'join_date', 'status', 'salary', 'bank_name', 'bank_account', 'address'];
-        $rows = $items->map(fn ($e) => [
-            $e->name, $e->employee_id, $e->email, $e->phone, $e->position,
-            $e->department, $e->join_date?->format('Y-m-d'), $e->status,
-            $e->salary, $e->bank_name, $e->bank_account, $e->address,
+        $rows = $items->map(fn($e) => [
+            $e->name,
+            $e->employee_id,
+            $e->email,
+            $e->phone,
+            $e->position,
+            $e->department,
+            $e->join_date?->format('Y-m-d'),
+            $e->status,
+            $e->salary,
+            $e->bank_name,
+            $e->bank_account,
+            $e->address,
         ]);
 
         return $this->downloadCsv("export-karyawan-" . date('Ymd'), $headers, $rows);
@@ -505,7 +617,7 @@ class ImportController extends Controller
         $items = Warehouse::where('tenant_id', $tid)->orderBy('name')->get();
 
         $headers = ['name', 'code', 'address', 'is_active'];
-        $rows = $items->map(fn ($w) => [$w->name, $w->code, $w->address, $w->is_active ? '1' : '0']);
+        $rows = $items->map(fn($w) => [$w->name, $w->code, $w->address, $w->is_active ? '1' : '0']);
 
         return $this->downloadCsv("export-gudang-" . date('Ymd'), $headers, $rows);
     }
@@ -516,9 +628,14 @@ class ImportController extends Controller
         $items = ChartOfAccount::where('tenant_id', $tid)->orderBy('code')->get();
 
         $headers = ['code', 'name', 'type', 'normal_balance', 'level', 'is_header', 'description'];
-        $rows = $items->map(fn ($a) => [
-            $a->code, $a->name, $a->type, $a->normal_balance,
-            $a->level, $a->is_header ? '1' : '0', $a->description,
+        $rows = $items->map(fn($a) => [
+            $a->code,
+            $a->name,
+            $a->type,
+            $a->normal_balance,
+            $a->level,
+            $a->is_header ? '1' : '0',
+            $a->description,
         ]);
 
         return $this->downloadCsv("export-coa-" . date('Ymd'), $headers, $rows);
@@ -529,39 +646,39 @@ class ImportController extends Controller
     public function downloadTemplate(string $type)
     {
         $templates = [
-            'products'   => [
-                'headers'  => ['name', 'sku', 'barcode', 'category', 'unit', 'price_sell', 'price_buy', 'stock_min', 'initial_stock', 'description'],
+            'products' => [
+                'headers' => ['name', 'sku', 'barcode', 'category', 'unit', 'price_sell', 'price_buy', 'stock_min', 'initial_stock', 'description'],
                 'examples' => ['Produk Contoh', 'SKU-001', '8991234567890', 'Kategori A', 'pcs', '10000', '7000', '5', '100', 'Deskripsi produk'],
             ],
-            'customers'  => [
-                'headers'  => ['name', 'email', 'phone', 'company', 'address', 'npwp', 'credit_limit'],
+            'customers' => [
+                'headers' => ['name', 'email', 'phone', 'company', 'address', 'npwp', 'credit_limit'],
                 'examples' => ['PT Maju Jaya', 'info@majujaya.com', '02112345678', 'PT Maju Jaya', 'Jakarta Selatan', '01.234.567.8-901.000', '5000000'],
             ],
-            'suppliers'  => [
-                'headers'  => ['name', 'email', 'phone', 'company', 'address', 'npwp', 'bank_name', 'bank_account', 'bank_holder'],
+            'suppliers' => [
+                'headers' => ['name', 'email', 'phone', 'company', 'address', 'npwp', 'bank_name', 'bank_account', 'bank_holder'],
                 'examples' => ['CV Sumber Makmur', 'info@sumber.com', '02198765432', 'CV Sumber Makmur', 'Bandung', '02.345.678.9-012.000', 'BCA', '1234567890', 'CV Sumber Makmur'],
             ],
-            'employees'  => [
-                'headers'  => ['name', 'employee_id', 'email', 'phone', 'position', 'department', 'join_date', 'salary', 'bank_name', 'bank_account', 'address'],
+            'employees' => [
+                'headers' => ['name', 'employee_id', 'email', 'phone', 'position', 'department', 'join_date', 'salary', 'bank_name', 'bank_account', 'address'],
                 'examples' => ['Budi Santoso', 'EMP-001', 'budi@email.com', '08123456789', 'Staff', 'Operasional', '2024-01-01', '3000000', 'BCA', '1234567890', 'Jakarta'],
             ],
             'warehouses' => [
-                'headers'  => ['name', 'code', 'address'],
+                'headers' => ['name', 'code', 'address'],
                 'examples' => ['Gudang Utama', 'GU-01', 'Jl. Industri No. 1, Jakarta'],
             ],
-            'coa'        => [
-                'headers'  => ['code', 'name', 'type', 'is_header', 'description'],
+            'coa' => [
+                'headers' => ['code', 'name', 'type', 'is_header', 'description'],
                 'examples' => ['1100', 'Kas & Bank', 'asset', '1', 'Akun kas dan bank'],
             ],
         ];
 
         abort_if(!isset($templates[$type]), 404);
 
-        $t   = $templates[$type];
+        $t = $templates[$type];
         $csv = implode(',', $t['headers']) . "\n" . implode(',', $t['examples']) . "\n";
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"template-import-{$type}.csv\"",
         ]);
     }
@@ -608,7 +725,7 @@ class ImportController extends Controller
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
             $sheet = $spreadsheet->getActiveSheet();
             foreach ($sheet->toArray() as $row) {
-                $rows[] = array_map(fn ($v) => (string) ($v ?? ''), $row);
+                $rows[] = array_map(fn($v) => (string) ($v ?? ''), $row);
             }
         } catch (\Throwable $e) {
             // Fallback: try as CSV
@@ -619,7 +736,7 @@ class ImportController extends Controller
 
     private function normalizeHeaders(array $row): array
     {
-        return array_map(fn ($h) => strtolower(trim(str_replace(["\xEF\xBB\xBF", "\r", "\n"], '', $h))), $row);
+        return array_map(fn($h) => strtolower(trim(str_replace(["\xEF\xBB\xBF", "\r", "\n"], '', $h))), $row);
     }
 
     private function mapRow(array $headers, array $row): array
@@ -640,7 +757,7 @@ class ImportController extends Controller
         }
 
         return response($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}.csv\"",
         ]);
     }

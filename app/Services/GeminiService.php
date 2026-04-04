@@ -19,18 +19,18 @@ use Illuminate\Support\Facades\Log;
 class GeminiService
 {
     protected Client $client;
-    protected array  $models;
-    protected array  $rateLimitCodes;
+    protected array $models;
+    protected array $rateLimitCodes;
     protected string $activeModel;
     protected ?string $tenantContext = null;
     protected string $language = 'id'; // default Bahasa Indonesia
 
     public function __construct()
     {
-        $this->client         = \Gemini::factory()->withApiKey(config('gemini.api_key'))->make();
-        $this->models         = config('gemini.fallback_models');
+        $this->client = \Gemini::factory()->withApiKey(config('gemini.api_key'))->make();
+        $this->models = config('gemini.fallback_models');
         $this->rateLimitCodes = config('gemini.rate_limit_codes', [429, 503, 500]);
-        $this->activeModel    = config('gemini.model');
+        $this->activeModel = config('gemini.model');
     }
 
     /** Inject konteks bisnis tenant ke system prompt */
@@ -750,7 +750,7 @@ PROMPT,
     public function chatWithTools(string $message, array $history, array $toolDeclarations): array
     {
         $contents = $this->buildHistory($history);
-        $tool     = $this->buildTool($toolDeclarations);
+        $tool = $this->buildTool($toolDeclarations);
 
         return $this->runWithFallback(function (string $model) use ($message, $contents, $tool) {
             $modelBuilder = $this->client
@@ -769,7 +769,7 @@ PROMPT,
             }
 
             $functionCalls = [];
-            $text          = '';
+            $text = '';
 
             foreach ($response->candidates as $candidate) {
                 foreach ($candidate->content->parts as $part) {
@@ -795,14 +795,14 @@ PROMPT,
      */
     public function sendFunctionResults(
         string $originalMessage,
-        array  $history,
-        array  $toolDeclarations,
-        array  $functionResults
+        array $history,
+        array $toolDeclarations,
+        array $functionResults
     ): array {
         $tool = $this->buildTool($toolDeclarations);
 
         // Bangun history + pesan user
-        $contents   = $this->buildHistory($history);
+        $contents = $this->buildHistory($history);
         $contents[] = Content::parse(part: $originalMessage, role: Role::USER);
 
         // Tambahkan model's function call turn (role: MODEL) — wajib ada sebelum function response
@@ -870,7 +870,7 @@ PROMPT,
 
             foreach ($files as $file) {
                 $mimeType = $this->resolveMimeType($file['mime_type']);
-                $parts[]  = new Part(
+                $parts[] = new Part(
                     inlineData: new Blob(
                         mimeType: $mimeType,
                         data: $file['data'], // base64 encoded
@@ -923,21 +923,21 @@ PROMPT,
     {
         return match (strtolower($mimeType)) {
             'image/jpeg', 'image/jpg' => MimeType::IMAGE_JPEG,
-            'image/png'               => MimeType::IMAGE_PNG,
-            'image/webp'              => MimeType::IMAGE_WEBP,
-            'image/heic'              => MimeType::IMAGE_HEIC,
-            'image/heif'              => MimeType::IMAGE_HEIF,
-            'application/pdf'         => MimeType::APPLICATION_PDF,
-            'text/plain'              => MimeType::TEXT_PLAIN,
-            'text/csv'                => MimeType::TEXT_CSV,
-            'text/markdown'           => MimeType::TEXT_MARKDOWN,
-            'text/html'               => MimeType::TEXT_HTML,
-            'application/json'        => MimeType::APPLICATION_JSON,
-            'video/mp4'               => MimeType::VIDEO_MP4,
+            'image/png' => MimeType::IMAGE_PNG,
+            'image/webp' => MimeType::IMAGE_WEBP,
+            'image/heic' => MimeType::IMAGE_HEIC,
+            'image/heif' => MimeType::IMAGE_HEIF,
+            'application/pdf' => MimeType::APPLICATION_PDF,
+            'text/plain' => MimeType::TEXT_PLAIN,
+            'text/csv' => MimeType::TEXT_CSV,
+            'text/markdown' => MimeType::TEXT_MARKDOWN,
+            'text/html' => MimeType::TEXT_HTML,
+            'application/json' => MimeType::APPLICATION_JSON,
+            'video/mp4' => MimeType::VIDEO_MP4,
             'audio/mpeg', 'audio/mp3' => MimeType::AUDIO_MP3,
-            'audio/wav'               => MimeType::AUDIO_WAV,
-            'audio/ogg'               => MimeType::AUDIO_OGG,
-            default                   => MimeType::IMAGE_JPEG,
+            'audio/wav' => MimeType::AUDIO_WAV,
+            'audio/ogg' => MimeType::AUDIO_OGG,
+            default => MimeType::IMAGE_JPEG,
         };
     }
 
@@ -958,16 +958,22 @@ PROMPT,
                     }
                 }
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             // Fallback: try the simple accessor
-            try { $text = $response->text() ?? ''; } catch (\Throwable) {}
+            Log::warning("GeminiService: failed to iterate response candidates: {$e->getMessage()}");
+            try {
+                $text = $response->text() ?? '';
+            } catch (\Throwable $e) {
+                Log::warning("Gemini response parsing failed: {$e->getMessage()}");
+                $text = '';
+            }
         }
         return $text;
     }
 
     protected function runWithFallback(callable $fn): array
     {
-        $queue   = $this->buildModelQueue();
+        $queue = $this->buildModelQueue();
         $timeout = config('gemini.timeout', 60); // detik
 
         foreach ($queue as $model) {
@@ -1054,15 +1060,15 @@ PROMPT,
     {
         $type = match ($prop['type'] ?? 'string') {
             'integer' => DataType::INTEGER,
-            'number'  => DataType::NUMBER,
+            'number' => DataType::NUMBER,
             'boolean' => DataType::BOOLEAN,
-            'array'   => DataType::ARRAY,
-            'object'  => DataType::OBJECT,
-            default   => DataType::STRING,
+            'array' => DataType::ARRAY ,
+            'object' => DataType::OBJECT,
+            default => DataType::STRING,
         };
 
         $args = [
-            'type'        => $type,
+            'type' => $type,
             'description' => $prop['description'] ?? null,
         ];
 
@@ -1090,16 +1096,30 @@ PROMPT,
             return true;
         }
         foreach ([
-            'quota', 'rate limit', 'resource exhausted', '429', 'too many requests',
-            'high demand', 'try again later', 'overloaded', 'capacity', 'unavailable',
-            'service unavailable', 'temporarily', 'please try again',
+            'quota',
+            'rate limit',
+            'resource exhausted',
+            '429',
+            'too many requests',
+            'high demand',
+            'try again later',
+            'overloaded',
+            'capacity',
+            'unavailable',
+            'service unavailable',
+            'temporarily',
+            'please try again',
         ] as $kw) {
-            if (str_contains($message, $kw)) return true;
+            if (str_contains($message, $kw))
+                return true;
         }
         return false;
     }
 
-    public function getActiveModel(): string { return $this->activeModel; }
+    public function getActiveModel(): string
+    {
+        return $this->activeModel;
+    }
 
     public function setModel(string $model): static
     {

@@ -4,14 +4,17 @@ namespace App\Notifications;
 
 use App\Models\Reminder;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ReminderNotification extends Notification
+class ReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Reminder $reminder) {}
+    public function __construct(public Reminder $reminder)
+    {
+    }
 
     public function via(object $notifiable): array
     {

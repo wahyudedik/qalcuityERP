@@ -35,6 +35,11 @@ class RevenueManagementController extends Controller
         $startDate = now();
         $endDate = now()->addDays(30);
 
+        // NOTE: These services require tenantId as a constructor argument resolved at runtime,
+        // so traditional constructor DI is not straightforward here. Services are instantiated
+        // directly with the tenant context. Consider a factory or service locator pattern
+        // if this becomes harder to test in the future.
+
         // Get KPIs
         $optimizationService = new RateOptimizationService($this->getTenantId());
         $kpis = $optimizationService->getKPIs(now()->subDays(30), now());

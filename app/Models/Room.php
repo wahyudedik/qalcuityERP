@@ -13,6 +13,8 @@ class Room extends Model
 {
     use SoftDeletes, AuditsChanges;
 
+    protected $appends = ['housekeeping_stats'];
+
     protected $fillable = [
         'tenant_id',
         'room_type_id',

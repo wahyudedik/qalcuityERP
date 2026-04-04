@@ -42,6 +42,16 @@ class ErrorContextEnricher
             return [];
         }
 
+        // Safely retrieve session ID only when session is available
+        $sessionId = null;
+        try {
+            if (request()->hasSession() && request()->session()->isStarted()) {
+                $sessionId = request()->session()->getId();
+            }
+        } catch (\Throwable $e) {
+            // Session not available (e.g. during queue jobs or console commands)
+        }
+
         return [
             'request' => [
                 'url' => request()->fullUrl(),
@@ -53,7 +63,7 @@ class ErrorContextEnricher
                 'input' => self::sanitizeInput(request()->all()),
                 'headers' => request()->headers->all(),
                 'cookies' => request()->cookies->all(),
-                'session_id' => request()->session()->getId(),
+                'session_id' => $sessionId,
             ],
         ];
     }
@@ -176,16 +186,17 @@ class ErrorContextEnricher
      */
     protected static function getServerUptime(): ?string
     {
-        try {
-            if (PHP_OS_FAMILY === 'Linux') {
-                $uptime = shell_exec('uptime -p');
-                return trim($uptime) ?: null;
+        if (PHP_OS_FAMILY === 'Windows') {
+            $uptime = 'N/A (Windows)';
+        } else {
+            try {
+                $uptime = trim(shell_exec('uptime -p 2>/dev/null') ?? 'N/A');
+            } catch (\Throwable $e) {
+                $uptime = 'N/A';
             }
-        } catch (\Throwable $e) {
-            return null;
         }
 
-        return null;
+        return $uptime ?: null;
     }
 
     /**

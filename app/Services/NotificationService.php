@@ -42,12 +42,19 @@ class NotificationService
             ->select('product_stocks.*')
             ->get();
 
-        if ($lowStocks->isEmpty()) return 0;
+        if ($lowStocks->isEmpty())
+            return 0;
 
         // Kirim ke semua admin & manager tenant
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->pluck('id');
+
+        // Preload notification preferences to avoid N+1 queries inside the loop
+        $preferences = \App\Models\NotificationPreference::whereIn('user_id', $recipients)
+            ->where('type', 'low_stock')
+            ->get()
+            ->keyBy(fn($p) => "{$p->user_id}_{$p->channel}");
 
         $count = 0;
         $emailItems = [];
@@ -61,22 +68,25 @@ class NotificationService
                 ->whereDate('created_at', today())
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists)
+                continue;
 
             foreach ($recipients as $userId) {
-                if ($this->shouldNotify($userId, 'low_stock', 'in_app')) {
+                $prefKey = "{$userId}_in_app";
+                $inAppEnabled = isset($preferences[$prefKey]) ? (bool) $preferences[$prefKey]->is_enabled : true;
+                if ($inAppEnabled) {
                     ErpNotification::create([
                         'tenant_id' => $tenantId,
-                        'user_id'   => $userId,
-                        'type'      => 'low_stock',
-                        'module'    => 'inventory',
-                        'title'     => '⚠️ Stok Menipis',
-                        'body'      => "Stok **{$stock->product->name}** di gudang **{$stock->warehouse->name}** tinggal {$stock->quantity} {$stock->product->unit} (min: {$stock->product->stock_min}).",
-                        'data'      => [
-                            'product_id'   => $stock->product_id,
+                        'user_id' => $userId,
+                        'type' => 'low_stock',
+                        'module' => 'inventory',
+                        'title' => '⚠️ Stok Menipis',
+                        'body' => "Stok **{$stock->product->name}** di gudang **{$stock->warehouse->name}** tinggal {$stock->quantity} {$stock->product->unit} (min: {$stock->product->stock_min}).",
+                        'data' => [
+                            'product_id' => $stock->product_id,
                             'warehouse_id' => $stock->warehouse_id,
-                            'quantity'     => $stock->quantity,
-                            'stock_min'    => $stock->product->stock_min,
+                            'quantity' => $stock->quantity,
+                            'stock_min' => $stock->product->stock_min,
                         ],
                     ]);
                 }
@@ -84,9 +94,9 @@ class NotificationService
 
             $emailItems[] = [
                 'product' => $stock->product->name,
-                'qty'     => $stock->quantity,
-                'unit'    => $stock->product->unit ?? 'pcs',
-                'min'     => $stock->product->stock_min,
+                'qty' => $stock->quantity,
+                'unit' => $stock->product->unit ?? 'pcs',
+                'min' => $stock->product->stock_min,
             ];
             $count++;
         }
@@ -95,7 +105,9 @@ class NotificationService
         if (!empty($emailItems)) {
             $adminUsers = User::whereIn('id', $recipients)->get();
             foreach ($adminUsers as $admin) {
-                if ($this->shouldNotify($admin->id, 'low_stock', 'email')) {
+                $emailPrefKey = "{$admin->id}_email";
+                $emailEnabled = isset($preferences[$emailPrefKey]) ? (bool) $preferences[$emailPrefKey]->is_enabled : true;
+                if ($emailEnabled) {
                     $admin->notify(new LowStockEmailNotification($emailItems));
                 }
             }
@@ -124,7 +136,8 @@ class NotificationService
             ->whereNotIn('id', $submitted)
             ->get();
 
-        if ($missing->isEmpty()) return 0;
+        if ($missing->isEmpty())
+            return 0;
 
         // Kirim ke admin
         $admins = User::where('tenant_id', $tenantId)
@@ -138,25 +151,26 @@ class NotificationService
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($exists) return 0;
+        if ($exists)
+            return 0;
 
         $names = $missing->pluck('name')->take(5)->implode(', ');
-        $more  = $missing->count() > 5 ? ' dan ' . ($missing->count() - 5) . ' lainnya' : '';
+        $more = $missing->count() > 5 ? ' dan ' . ($missing->count() - 5) . ' lainnya' : '';
 
         foreach ($admins as $userId) {
             if ($this->shouldNotify($userId, 'missing_report', 'in_app')) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => 'missing_report',
-                    'module'    => 'hrm',
-                    'title'     => '📋 Laporan Belum Masuk',
-                    'body'      => "{$missing->count()} karyawan belum mengumpulkan laporan {$type}: {$names}{$more}.",
-                    'data'      => [
-                        'report_type'  => $type,
+                    'user_id' => $userId,
+                    'type' => 'missing_report',
+                    'module' => 'hrm',
+                    'title' => '📋 Laporan Belum Masuk',
+                    'body' => "{$missing->count()} karyawan belum mengumpulkan laporan {$type}: {$names}{$more}.",
+                    'data' => [
+                        'report_type' => $type,
                         'period_start' => $periodStart,
-                        'count'        => $missing->count(),
-                        'employees'    => $missing->pluck('name')->toArray(),
+                        'count' => $missing->count(),
+                        'employees' => $missing->pluck('name')->toArray(),
                     ],
                 ]);
             }
@@ -171,12 +185,12 @@ class NotificationService
     public function runChecksForTenant(int $tenantId): array
     {
         return [
-            'low_stock'              => $this->checkLowStock($tenantId),
-            'missing_reports'        => $this->checkMissingReports($tenantId, 'weekly'),
-            'invoice_overdue'        => $this->checkInvoiceOverdue($tenantId),
-            'asset_maintenance_due'  => $this->checkAssetMaintenanceDue($tenantId),
-            'budget_exceeded'        => $this->checkBudgetExceeded($tenantId),
-            'product_expiry'         => $this->checkProductExpiry($tenantId),
+            'low_stock' => $this->checkLowStock($tenantId),
+            'missing_reports' => $this->checkMissingReports($tenantId, 'weekly'),
+            'invoice_overdue' => $this->checkInvoiceOverdue($tenantId),
+            'asset_maintenance_due' => $this->checkAssetMaintenanceDue($tenantId),
+            'budget_exceeded' => $this->checkBudgetExceeded($tenantId),
+            'product_expiry' => $this->checkProductExpiry($tenantId),
         ];
     }
 
@@ -190,7 +204,8 @@ class NotificationService
             ->with('customer')
             ->get();
 
-        if ($overdueInvoices->isEmpty()) return 0;
+        if ($overdueInvoices->isEmpty())
+            return 0;
 
         // Satu notifikasi batch per hari
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
@@ -198,22 +213,24 @@ class NotificationService
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent) return 0;
+        if ($alreadySent)
+            return 0;
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty()) return 0;
+        if ($recipients->isEmpty())
+            return 0;
 
-        $tenant      = Tenant::find($tenantId);
+        $tenant = Tenant::find($tenantId);
         $totalAmount = $overdueInvoices->sum('remaining_amount');
-        $count       = $overdueInvoices->count();
+        $count = $overdueInvoices->count();
 
         $invoiceData = $overdueInvoices->map(fn($inv) => [
-            'number'      => $inv->number,
-            'customer'    => $inv->customer?->name ?? '-',
-            'amount'      => (float) $inv->remaining_amount,
+            'number' => $inv->number,
+            'customer' => $inv->customer?->name ?? '-',
+            'amount' => (float) $inv->remaining_amount,
             'days_overdue' => $inv->daysOverdue(),
         ])->toArray();
 
@@ -221,12 +238,12 @@ class NotificationService
             if ($this->shouldNotify($user->id, 'invoice_overdue', 'in_app')) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $user->id,
-                    'type'      => 'invoice_overdue_summary',
-                    'module'    => 'finance',
-                    'title'     => "⚠️ {$count} Invoice Jatuh Tempo",
-                    'body'      => "{$count} invoice senilai Rp " . number_format($totalAmount, 0, ',', '.') . " belum dibayar.",
-                    'data'      => ['count' => $count, 'total_amount' => $totalAmount],
+                    'user_id' => $user->id,
+                    'type' => 'invoice_overdue_summary',
+                    'module' => 'finance',
+                    'title' => "⚠️ {$count} Invoice Jatuh Tempo",
+                    'body' => "{$count} invoice senilai Rp " . number_format($totalAmount, 0, ',', '.') . " belum dibayar.",
+                    'data' => ['count' => $count, 'total_amount' => $totalAmount],
                 ]);
             }
 
@@ -249,29 +266,32 @@ class NotificationService
             ->with('asset')
             ->get();
 
-        if ($maintenances->isEmpty()) return 0;
+        if ($maintenances->isEmpty())
+            return 0;
 
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
             ->where('type', 'asset_maintenance_due')
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent) return 0;
+        if ($alreadySent)
+            return 0;
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty()) return 0;
+        if ($recipients->isEmpty())
+            return 0;
 
         $tenant = Tenant::find($tenantId);
-        $count  = $maintenances->count();
+        $count = $maintenances->count();
 
         $items = $maintenances->map(fn($m) => [
-            'asset_name'     => $m->asset?->name ?? '-',
-            'type'           => $m->type,
+            'asset_name' => $m->asset?->name ?? '-',
+            'type' => $m->type,
             'scheduled_date' => $m->scheduled_date->format('d M Y'),
-            'days_until'     => (int) now()->startOfDay()->diffInDays($m->scheduled_date, false),
+            'days_until' => (int) now()->startOfDay()->diffInDays($m->scheduled_date, false),
         ])->toArray();
 
         $overdueCount = count(array_filter($items, fn($i) => $i['days_until'] < 0));
@@ -283,12 +303,12 @@ class NotificationService
             if ($this->shouldNotify($user->id, 'asset_maintenance_due', 'in_app')) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $user->id,
-                    'type'      => 'asset_maintenance_due',
-                    'module'    => 'hrm',
-                    'title'     => $title,
-                    'body'      => "{$count} jadwal pemeliharaan aset perlu perhatian.",
-                    'data'      => ['count' => $count, 'overdue' => $overdueCount],
+                    'user_id' => $user->id,
+                    'type' => 'asset_maintenance_due',
+                    'module' => 'hrm',
+                    'title' => $title,
+                    'body' => "{$count} jadwal pemeliharaan aset perlu perhatian.",
+                    'data' => ['count' => $count, 'overdue' => $overdueCount],
                 ]);
             }
 
@@ -313,53 +333,56 @@ class NotificationService
             ->whereRaw('(realized / amount * 100) >= 80')
             ->get();
 
-        if ($budgets->isEmpty()) return 0;
+        if ($budgets->isEmpty())
+            return 0;
 
         $alreadySent = ErpNotification::where('tenant_id', $tenantId)
             ->where('type', 'budget_alert')
             ->whereDate('created_at', today())
             ->exists();
 
-        if ($alreadySent) return 0;
+        if ($alreadySent)
+            return 0;
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
             ->get();
 
-        if ($recipients->isEmpty()) return 0;
+        if ($recipients->isEmpty())
+            return 0;
 
-        $tenant   = Tenant::find($tenantId);
+        $tenant = Tenant::find($tenantId);
         $exceeded = $budgets->filter(fn($b) => $b->usage_percent >= 100);
-        $warning  = $budgets->filter(fn($b) => $b->usage_percent >= 80 && $b->usage_percent < 100);
+        $warning = $budgets->filter(fn($b) => $b->usage_percent >= 80 && $b->usage_percent < 100);
 
         $title = $exceeded->isNotEmpty()
             ? "💰 {$exceeded->count()} Anggaran Terlampaui"
             : "💰 {$warning->count()} Anggaran Hampir Habis";
 
         $budgetData = $budgets->map(fn($b) => [
-            'name'          => $b->name,
-            'department'    => $b->department ?? '-',
-            'amount'        => $b->amount,
-            'realized'      => $b->realized,
+            'name' => $b->name,
+            'department' => $b->department ?? '-',
+            'amount' => $b->amount,
+            'realized' => $b->realized,
             'usage_percent' => $b->usage_percent,
-            'period'        => $b->period,
+            'period' => $b->period,
         ])->toArray();
 
         foreach ($recipients as $user) {
             if ($this->shouldNotify($user->id, 'budget_alert', 'in_app')) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $user->id,
-                    'type'      => 'budget_alert',
-                    'module'    => 'finance',
-                    'title'     => $title,
-                    'body'      => $exceeded->isNotEmpty()
+                    'user_id' => $user->id,
+                    'type' => 'budget_alert',
+                    'module' => 'finance',
+                    'title' => $title,
+                    'body' => $exceeded->isNotEmpty()
                         ? "{$exceeded->count()} anggaran telah terlampaui. Segera tinjau pengeluaran."
                         : "{$warning->count()} anggaran sudah di atas 80%. Perhatikan pengeluaran.",
-                    'data'      => [
+                    'data' => [
                         'exceeded_count' => $exceeded->count(),
-                        'warning_count'  => $warning->count(),
-                        'period'         => $currentPeriod,
+                        'warning_count' => $warning->count(),
+                        'period' => $currentPeriod,
                     ],
                 ]);
             }
@@ -386,7 +409,8 @@ class NotificationService
             ->each(function (Tenant $tenant) use (&$count) {
                 $daysLeft = (int) now()->diffInDays($tenant->trial_ends_at, false);
 
-                if (!in_array($daysLeft, [7, 3, 1])) return;
+                if (!in_array($daysLeft, [7, 3, 1]))
+                    return;
 
                 // Cek sudah kirim hari ini
                 $alreadySent = ErpNotification::where('tenant_id', $tenant->id)
@@ -395,7 +419,8 @@ class NotificationService
                     ->whereDate('created_at', today())
                     ->exists();
 
-                if ($alreadySent) return;
+                if ($alreadySent)
+                    return;
 
                 $admins = User::where('tenant_id', $tenant->id)
                     ->whereIn('role', ['admin'])
@@ -409,12 +434,12 @@ class NotificationService
                     if ($this->shouldNotify($admin->id, 'trial_expiry', 'in_app')) {
                         ErpNotification::create([
                             'tenant_id' => $tenant->id,
-                            'user_id'   => $admin->id,
-                            'type'      => 'trial_expiry',
-                            'module'    => 'system',
-                            'title'     => "⏰ Trial berakhir dalam {$daysLeft} hari",
-                            'body'      => "Trial gratis Anda akan berakhir dalam {$daysLeft} hari. Upgrade sekarang untuk tetap menggunakan Qalcuity ERP.",
-                            'data'      => ['days_left' => $daysLeft],
+                            'user_id' => $admin->id,
+                            'type' => 'trial_expiry',
+                            'module' => 'system',
+                            'title' => "⏰ Trial berakhir dalam {$daysLeft} hari",
+                            'body' => "Trial gratis Anda akan berakhir dalam {$daysLeft} hari. Upgrade sekarang untuk tetap menggunakan Qalcuity ERP.",
+                            'data' => ['days_left' => $daysLeft],
                         ]);
                     }
                 }
@@ -436,7 +461,8 @@ class NotificationService
             ->whereIn('role', ['admin', 'manager'])
             ->pluck('id');
 
-        if ($recipients->isEmpty()) return 0;
+        if ($recipients->isEmpty())
+            return 0;
 
         $count = 0;
 
@@ -451,7 +477,7 @@ class NotificationService
             ->filter(fn($batch) => $batch->daysUntilExpiry() <= ($batch->product->expiry_alert_days ?? 2));
 
         foreach ($expiringSoon as $batch) {
-            $days     = $batch->daysUntilExpiry();
+            $days = $batch->daysUntilExpiry();
             $notifKey = "expiry_soon_{$batch->id}_" . today()->format('Ymd');
 
             $exists = ErpNotification::where('tenant_id', $tenantId)
@@ -459,7 +485,8 @@ class NotificationService
                 ->whereDate('created_at', today())
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists)
+                continue;
 
             $label = $days === 0 ? 'hari ini' : "dalam {$days} hari";
 
@@ -467,19 +494,19 @@ class NotificationService
                 if ($this->shouldNotify($userId, 'product_expiry', 'in_app')) {
                     ErpNotification::create([
                         'tenant_id' => $tenantId,
-                        'user_id'   => $userId,
-                        'type'      => $notifKey,
-                        'module'    => 'inventory',
-                        'title'     => '⏰ Produk Akan Expired',
-                        'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
+                        'user_id' => $userId,
+                        'type' => $notifKey,
+                        'module' => 'inventory',
+                        'title' => '⏰ Produk Akan Expired',
+                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
                             "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
                             "akan expired {$label} ({$batch->expiry_date->format('d/m/Y')}).",
-                        'data'      => [
-                            'batch_id'    => $batch->id,
-                            'product_id'  => $batch->product_id,
-                            'days_left'   => $days,
+                        'data' => [
+                            'batch_id' => $batch->id,
+                            'product_id' => $batch->product_id,
+                            'days_left' => $days,
                             'expiry_date' => $batch->expiry_date->toDateString(),
-                            'quantity'    => $batch->quantity,
+                            'quantity' => $batch->quantity,
                         ],
                     ]);
                 }
@@ -501,28 +528,29 @@ class NotificationService
             $batch->update(['status' => 'expired']);
 
             $notifKey = "expiry_expired_{$batch->id}";
-            $exists   = ErpNotification::where('tenant_id', $tenantId)
+            $exists = ErpNotification::where('tenant_id', $tenantId)
                 ->where('type', $notifKey)
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists)
+                continue;
 
             foreach ($recipients as $userId) {
                 if ($this->shouldNotify($userId, 'product_expiry', 'in_app')) {
                     ErpNotification::create([
                         'tenant_id' => $tenantId,
-                        'user_id'   => $userId,
-                        'type'      => $notifKey,
-                        'module'    => 'inventory',
-                        'title'     => '🔴 Produk Expired',
-                        'body'      => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
+                        'user_id' => $userId,
+                        'type' => $notifKey,
+                        'module' => 'inventory',
+                        'title' => '🔴 Produk Expired',
+                        'body' => "Batch **{$batch->batch_number}** produk **{$batch->product->name}** " .
                             "({$batch->quantity} {$batch->product->unit}) di gudang **{$batch->warehouse->name}** " .
                             "sudah EXPIRED sejak {$batch->expiry_date->format('d/m/Y')}. Segera lakukan tindakan.",
-                        'data'      => [
-                            'batch_id'    => $batch->id,
-                            'product_id'  => $batch->product_id,
+                        'data' => [
+                            'batch_id' => $batch->id,
+                            'product_id' => $batch->product_id,
                             'expiry_date' => $batch->expiry_date->toDateString(),
-                            'quantity'    => $batch->quantity,
+                            'quantity' => $batch->quantity,
                         ],
                     ]);
                 }

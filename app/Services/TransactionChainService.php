@@ -26,17 +26,17 @@ class TransactionChainService
      */
     public function buildChain(string $modelClass, int $modelId): TransactionChainDTO
     {
-        $model      = $modelClass::findOrFail($modelId);
-        $type       = $this->getTypeKey($modelClass);
-        $current    = $this->toNode($model, $type);
-        $upstream   = $this->resolveUpstream($type, $model);
+        $model = $modelClass::findOrFail($modelId);
+        $type = $this->getTypeKey($modelClass);
+        $current = $this->toNode($model, $type);
+        $upstream = $this->resolveUpstream($type, $model);
         $downstream = $this->resolveDownstream($type, $model);
 
         return new TransactionChainDTO(
-            current:    $current,
-            upstream:   $upstream,
+            current: $current,
+            upstream: $upstream,
             downstream: $downstream,
-            all:        array_merge($upstream, [$current], $downstream),
+            all: array_merge($upstream, [$current], $downstream),
         );
     }
 
@@ -111,7 +111,7 @@ class TransactionChainService
             case 'quotation':
                 foreach ($model->salesOrders as $so) {
                     $nodes[] = $this->toNode($so, 'sales_order');
-                    $nodes   = array_merge($nodes, $this->resolveDownstream('sales_order', $so));
+                    $nodes = array_merge($nodes, $this->resolveDownstream('sales_order', $so));
                 }
                 break;
 
@@ -119,16 +119,16 @@ class TransactionChainService
                 foreach ($model->deliveryOrders as $do) {
                     $nodes[] = $this->toNode($do, 'delivery_order');
                 }
-                foreach ($model->invoice as $inv) {
+                foreach ($model->invoices as $inv) {
                     $nodes[] = $this->toNode($inv, 'invoice');
-                    $nodes   = array_merge($nodes, $this->resolveDownstream('invoice', $inv));
+                    $nodes = array_merge($nodes, $this->resolveDownstream('invoice', $inv));
                 }
                 break;
 
             case 'invoice':
                 foreach ($model->payments as $payment) {
                     $nodes[] = $this->toNode($payment, 'payment');
-                    $nodes   = array_merge($nodes, $this->resolveDownstream('payment', $payment));
+                    $nodes = array_merge($nodes, $this->resolveDownstream('payment', $payment));
                 }
                 // GL Posting langsung dari invoice
                 $jes = JournalEntry::where('reference_type', 'invoice')
@@ -154,14 +154,14 @@ class TransactionChainService
                 }
                 foreach ($model->payable as $payable) {
                     $nodes[] = $this->toNode($payable, 'payable');
-                    $nodes   = array_merge($nodes, $this->resolveDownstream('payable', $payable));
+                    $nodes = array_merge($nodes, $this->resolveDownstream('payable', $payable));
                 }
                 break;
 
             case 'payable':
                 foreach ($model->payments as $payment) {
                     $nodes[] = $this->toNode($payment, 'payment');
-                    $nodes   = array_merge($nodes, $this->resolveDownstream('payment', $payment));
+                    $nodes = array_merge($nodes, $this->resolveDownstream('payment', $payment));
                 }
                 break;
         }
@@ -182,13 +182,13 @@ class TransactionChainService
             ?? $model->created_at;
 
         return new ChainNodeDTO(
-            type:   $type,
-            id:     $model->id,
+            type: $type,
+            id: $model->id,
             number: $model->number ?? ('#' . $model->id),
-            date:   $date?->toDateString() ?? now()->toDateString(),
+            date: $date?->toDateString() ?? now()->toDateString(),
             status: $model->status ?? $model->posting_status ?? 'unknown',
             amount: (float) ($model->total ?? $model->total_amount ?? $model->amount ?? 0),
-            url:    $this->resolveUrl($type, $model->id),
+            url: $this->resolveUrl($type, $model->id),
         );
     }
 
@@ -198,16 +198,16 @@ class TransactionChainService
     private function resolveUrl(string $type, int $id): string
     {
         return match ($type) {
-            'quotation'      => route('quotations.show', $id),
-            'sales_order'    => route('sales.show', $id),
+            'quotation' => route('quotations.show', $id),
+            'sales_order' => route('sales.show', $id),
             'delivery_order' => route('delivery-orders.index'),
-            'invoice'        => route('invoices.show', $id),
-            'payment'        => route('invoices.index'),
-            'journal_entry'  => route('journals.show', $id),
+            'invoice' => route('invoices.show', $id),
+            'payment' => route('invoices.index'),
+            'journal_entry' => route('journals.show', $id),
             'purchase_order' => route('purchasing.orders'),
-            'goods_receipt'  => route('purchasing.goods-receipts'),
-            'payable'        => route('payables.index'),
-            default          => '#',
+            'goods_receipt' => route('purchasing.goods-receipts'),
+            'payable' => route('payables.index'),
+            default => '#',
         };
     }
 
@@ -217,16 +217,16 @@ class TransactionChainService
     private function getTypeKey(string $modelClass): string
     {
         return match ($modelClass) {
-            Quotation::class     => 'quotation',
-            SalesOrder::class    => 'sales_order',
+            Quotation::class => 'quotation',
+            SalesOrder::class => 'sales_order',
             DeliveryOrder::class => 'delivery_order',
-            Invoice::class       => 'invoice',
-            Payment::class       => 'payment',
-            JournalEntry::class  => 'journal_entry',
+            Invoice::class => 'invoice',
+            Payment::class => 'payment',
+            JournalEntry::class => 'journal_entry',
             PurchaseOrder::class => 'purchase_order',
-            GoodsReceipt::class  => 'goods_receipt',
-            Payable::class       => 'payable',
-            default              => class_basename($modelClass),
+            GoodsReceipt::class => 'goods_receipt',
+            Payable::class => 'payable',
+            default => class_basename($modelClass),
         };
     }
 
@@ -236,13 +236,13 @@ class TransactionChainService
     private function resolveReferenceClass(string $referenceType): ?string
     {
         return match ($referenceType) {
-            'invoice'        => Invoice::class,
-            'payment'        => Payment::class,
-            'payable'        => Payable::class,
-            'sales_order'    => SalesOrder::class,
+            'invoice' => Invoice::class,
+            'payment' => Payment::class,
+            'payable' => Payable::class,
+            'sales_order' => SalesOrder::class,
             'purchase_order' => PurchaseOrder::class,
-            'goods_receipt'  => GoodsReceipt::class,
-            default          => null,
+            'goods_receipt' => GoodsReceipt::class,
+            default => null,
         };
     }
 }

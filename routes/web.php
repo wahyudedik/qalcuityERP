@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
         Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware(['ai.rate', 'ai.quota']);
+        Route::post('/stream', [ChatController::class, 'stream'])->name('stream')->middleware(['ai.rate', 'ai.quota']);
         Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media')->middleware(['ai.rate', 'ai.quota']);
         Route::get('/{session}/messages', [ChatController::class, 'messages'])->name('messages')->middleware('tenant.isolation');
         Route::patch('/{session}/rename', [ChatController::class, 'rename'])->name('rename')->middleware('tenant.isolation');

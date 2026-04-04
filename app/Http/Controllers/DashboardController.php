@@ -135,6 +135,25 @@ class DashboardController extends Controller
             $dataGroups['custom'] = $customData;
         }
 
+        // ── Allowed partial views (allowlist for security) ──────────
+        // Built-in widget keys map to dashboard.widgets.{key-with-dashes}
+        // Custom widgets always use dashboard.widgets.custom-metric
+        $allowedPartials = [
+            'pos_today' => 'dashboard.widgets.pos-today',
+            'kpi_revenue' => 'dashboard.widgets.kpi-revenue',
+            'kpi_orders' => 'dashboard.widgets.kpi-orders',
+            'ecommerce_orders' => 'dashboard.widgets.ecommerce-orders',
+            'kpi_low_stock' => 'dashboard.widgets.kpi-low-stock',
+            'kpi_attendance' => 'dashboard.widgets.kpi-attendance',
+            'chart_sales' => 'dashboard.widgets.chart-sales',
+            'chart_finance' => 'dashboard.widgets.chart-finance',
+            'low_stock_list' => 'dashboard.widgets.low-stock-list',
+            'quick_stats' => 'dashboard.widgets.quick-stats',
+            'ai_insights' => 'dashboard.widgets.ai-insights',
+            'anomaly_alerts' => 'dashboard.widgets.anomaly-alerts',
+            'gamification' => 'dashboard.widgets.gamification',
+        ];
+
         // ── Map data to each widget ─────────────────────────────────
         $widgetData = [];
         foreach ($userWidgets as $w) {
@@ -151,6 +170,29 @@ class DashboardController extends Controller
             } else {
                 $widgetData[$key] = $dataGroups[$group] ?? [];
             }
+
+            // Register custom widget partials dynamically into the allowlist
+            if (str_starts_with($key, 'custom_')) {
+                $allowedPartials[$key] = 'dashboard.widgets.custom-metric';
+            }
+        }
+
+        try {
+            $customWidgets = CustomDashboardWidget::where('tenant_id', $tenantId)->get();
+        } catch (\Throwable $e) {
+            \Log::error("Dashboard widget load failed: " . $e->getMessage());
+            $customWidgets = collect();
+        }
+
+        try {
+            $popupAd = PopupAd::where('is_active', true)
+                ->where(fn($q) => $q->whereNull('starts_at')->orWhereDate('starts_at', '<=', today()))
+                ->where(fn($q) => $q->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
+                ->get()
+                ->first(fn($ad) => $ad->shouldShowTo($user));
+        } catch (\Throwable $e) {
+            \Log::error("Dashboard popup ad load failed: " . $e->getMessage());
+            $popupAd = null;
         }
 
         return view('dashboard.tenant', [
@@ -158,12 +200,9 @@ class DashboardController extends Controller
             'widgetData' => $widgetData,
             'registry' => $registry,
             'availableKeys' => $availableKeys,
-            'customWidgets' => CustomDashboardWidget::where('tenant_id', $tenantId)->get(),
-            'popupAd' => PopupAd::where('is_active', true)
-                ->where(fn($q) => $q->whereNull('starts_at')->orWhereDate('starts_at', '<=', today()))
-                ->where(fn($q) => $q->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
-                ->get()
-                ->first(fn($ad) => $ad->shouldShowTo($user)),
+            'allowedPartials' => $allowedPartials,
+            'customWidgets' => $customWidgets,
+            'popupAd' => $popupAd,
         ]);
     }
 

@@ -196,10 +196,8 @@
                         4 => 'col-span-2 lg:col-span-4',
                         default => 'col-span-1',
                     };
-                    // Custom widgets use the generic custom-metric partial
-                    $partial = str_starts_with($w['key'], 'custom_')
-                        ? 'dashboard.widgets.custom-metric'
-                        : 'dashboard.widgets.' . str_replace('_', '-', $w['key']);
+                    // Resolve partial from controller-provided allowlist (security: prevents arbitrary view inclusion)
+                    $partial = $allowedPartials[$w['key']] ?? null;
                 @endphp
                 <div class="widget-item {{ $colClass }} relative group" data-key="{{ $w['key'] }}">
                     {{-- Drag handle --}}
@@ -218,7 +216,9 @@
                             </svg>
                         </div>
                     </div>
-                    @include($partial, ['data' => $widgetData[$w['key']] ?? []])
+                    @if ($partial)
+                        @include($partial, ['data' => $widgetData[$w['key']] ?? []])
+                    @endif
                 </div>
             @endif
         @endforeach

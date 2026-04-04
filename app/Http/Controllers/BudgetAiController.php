@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Services\BudgetAiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BudgetAiController extends Controller
 {
-    public function __construct(private BudgetAiService $ai) {}
+    public function __construct(private BudgetAiService $ai)
+    {
+    }
 
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     /**
      * GET /budget/ai/overrun-prediction?period=YYYY-MM
@@ -25,9 +31,13 @@ class BudgetAiController extends Controller
             ->where('status', 'active')
             ->get();
 
-        $predictions = $this->ai->predictOverrun($this->tid(), $period, $budgets);
-
-        return response()->json(['predictions' => $predictions]);
+        try {
+            $predictions = $this->ai->predictOverrun($this->tid(), $period, $budgets);
+            return response()->json(['predictions' => $predictions]);
+        } catch (\Throwable $e) {
+            Log::error("Budget AI error: " . $e->getMessage());
+            return response()->json(['error' => 'AI analysis temporarily unavailable. Please try again later.'], 500);
+        }
     }
 
     /**
@@ -38,8 +48,12 @@ class BudgetAiController extends Controller
     {
         $period = $request->input('period', now()->format('Y-m'));
 
-        $suggestions = $this->ai->suggestAllocation($this->tid(), $period);
-
-        return response()->json(['suggestions' => $suggestions]);
+        try {
+            $suggestions = $this->ai->suggestAllocation($this->tid(), $period);
+            return response()->json(['suggestions' => $suggestions]);
+        } catch (\Throwable $e) {
+            Log::error("Budget AI error: " . $e->getMessage());
+            return response()->json(['error' => 'AI analysis temporarily unavailable. Please try again later.'], 500);
+        }
     }
 }

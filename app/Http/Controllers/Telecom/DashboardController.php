@@ -21,16 +21,26 @@ class DashboardController extends Controller
     {
         $tenantId = auth()->user()->tenant_id;
 
-        // Overall Stats
-        $stats = [
-            'total_devices' => NetworkDevice::where('tenant_id', $tenantId)->count(),
-            'online_devices' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'online')->count(),
-            'offline_devices' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'offline')->count(),
-            'maintenance_devices' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'maintenance')->count(),
+        // Overall Stats — grouped queries to reduce round-trips
+        $deviceCounts = NetworkDevice::where('tenant_id', $tenantId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
 
-            'total_subscriptions' => TelecomSubscription::where('tenant_id', $tenantId)->count(),
-            'active_subscriptions' => TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'active')->count(),
-            'suspended_subscriptions' => TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'suspended')->count(),
+        $subscriptionCounts = TelecomSubscription::where('tenant_id', $tenantId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $stats = [
+            'total_devices' => $deviceCounts->sum(),
+            'online_devices' => $deviceCounts->get('online', 0),
+            'offline_devices' => $deviceCounts->get('offline', 0),
+            'maintenance_devices' => $deviceCounts->get('maintenance', 0),
+
+            'total_subscriptions' => $subscriptionCounts->sum(),
+            'active_subscriptions' => $subscriptionCounts->get('active', 0),
+            'suspended_subscriptions' => $subscriptionCounts->get('suspended', 0),
 
             'total_hotspot_users' => HotspotUser::where('tenant_id', $tenantId)->count(),
             'online_hotspot_users' => HotspotUser::where('tenant_id', $tenantId)->where('is_online', true)->count(),
@@ -45,25 +55,25 @@ class DashboardController extends Controller
         // Bandwidth Usage Chart Data (last 24 hours)
         $bandwidthData = $this->getBandwidthChartData($tenantId);
 
-        // Device Status Distribution
+        // Device Status Distribution — reuse $deviceCounts already fetched above
         $deviceStatusData = [
             'labels' => ['Online', 'Offline', 'Maintenance', 'Pending'],
             'data' => [
-                NetworkDevice::where('tenant_id', $tenantId)->where('status', 'online')->count(),
-                NetworkDevice::where('tenant_id', $tenantId)->where('status', 'offline')->count(),
-                NetworkDevice::where('tenant_id', $tenantId)->where('status', 'maintenance')->count(),
-                NetworkDevice::where('tenant_id', $tenantId)->where('status', 'pending')->count(),
+                $deviceCounts->get('online', 0),
+                $deviceCounts->get('offline', 0),
+                $deviceCounts->get('maintenance', 0),
+                $deviceCounts->get('pending', 0),
             ]
         ];
 
-        // Subscription Status Distribution
+        // Subscription Status Distribution — reuse $subscriptionCounts already fetched above
         $subscriptionStatusData = [
             'labels' => ['Active', 'Suspended', 'Cancelled', 'Expired'],
             'data' => [
-                TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'active')->count(),
-                TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'suspended')->count(),
-                TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'cancelled')->count(),
-                TelecomSubscription::where('tenant_id', $tenantId)->where('status', 'expired')->count(),
+                $subscriptionCounts->get('active', 0),
+                $subscriptionCounts->get('suspended', 0),
+                $subscriptionCounts->get('cancelled', 0),
+                $subscriptionCounts->get('expired', 0),
             ]
         ];
 

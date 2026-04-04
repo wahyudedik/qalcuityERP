@@ -6,24 +6,32 @@ use App\Models\AiUsageLog;
 use App\Models\ChatSession;
 use App\Services\AiMemoryService;
 use App\Services\AiQuotaService;
+use App\Services\AiResponseCacheService;
+use App\Services\AiStreamingService;
 use App\Services\ChatSessionManager;
 use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
+use App\Services\RuleBasedResponseHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChatController extends Controller
 {
     public function __construct(
-        protected GeminiService        $gemini,
-        protected ChatSessionManager   $sessionManager,
+        protected GeminiService $gemini,
+        protected ChatSessionManager $sessionManager,
         protected GeminiWriteValidator $validator,
-        protected AiMemoryService      $memoryService,
-        protected AiQuotaService       $quota,
-    ) {}
+        protected AiMemoryService $memoryService,
+        protected AiQuotaService $quota,
+        protected AiResponseCacheService $cacheService,
+        protected RuleBasedResponseHandler $ruleHandler,
+        protected AiStreamingService $streamingService,
+    ) {
+    }
 
     /**
      * Tampilkan halaman chat.
@@ -41,20 +49,37 @@ class ChatController extends Controller
     public function send(Request $request): JsonResponse
     {
         $request->validate([
-            'message'    => 'required|string|max:4000',
+            'message' => 'required|string|max:4000',
             'session_id' => 'nullable|integer',
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
 
         // Super admin tanpa tenant aktif tidak bisa pakai ERP tools
         // Tetap bisa chat biasa dengan Gemini
-        $session  = $this->sessionManager->getOrCreateSession($user, $request->session_id);
-        $history  = $this->sessionManager->getHistory($session);
+        $session = $this->sessionManager->getOrCreateSession($user, $request->session_id);
+        $history = $this->sessionManager->getHistory($session);
 
         // Simpan pesan user
         $this->sessionManager->saveUserMessage($session, $request->message);
+
+        // OPTIMIZATION 1: Rule-based handler untuk pertanyaan sederhana
+        if ($this->ruleHandler->canHandle($request->message)) {
+            $response = $this->ruleHandler->handle($request->message, $user->name);
+            
+            $this->sessionManager->saveModelMessage($session, $response['text'], $response['model']);
+            
+            return response()->json([
+                'session_id' => $session->id,
+                'session_title' => $session->fresh()->title,
+                'message' => $response['text'],
+                'model' => $response['model'],
+                'actions' => [],
+                'cached' => false,
+                'optimized' => true,
+            ]);
+        }
 
         // Jika tidak ada tenant, fallback ke chat biasa tanpa tools
         if (!$tenantId) {
@@ -63,16 +88,34 @@ class ChatController extends Controller
                 $text = $response['text'] ?: 'Maaf, tidak ada respons.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
                 return response()->json([
-                    'session_id'    => $session->id,
+                    'session_id' => $session->id,
                     'session_title' => $session->fresh()->title,
-                    'message'       => $text,
-                    'model'         => $response['model'],
-                    'actions'       => [],
+                    'message' => $text,
+                    'model' => $response['model'],
+                    'actions' => [],
                 ]);
             } catch (\Throwable $e) {
                 Log::error('ChatController (no-tenant) error: ' . $e->getMessage());
                 return response()->json(['session_id' => $session->id, 'message' => 'Terjadi kesalahan pada sistem AI.'], 500);
             }
+        }
+
+        // OPTIMIZATION 2: Check cache untuk query repetitif
+        $cacheKey = $this->cacheService->generateCacheKey($tenantId, $user->id, $request->message);
+        $cachedResponse = $this->cacheService->get($cacheKey);
+        
+        if ($cachedResponse !== null) {
+            $this->sessionManager->saveModelMessage($session, $cachedResponse['text'], $cachedResponse['model']);
+            
+            return response()->json([
+                'session_id' => $session->id,
+                'session_title' => $session->title,
+                'message' => $cachedResponse['text'],
+                'model' => $cachedResponse['model'],
+                'actions' => $cachedResponse['actions'] ?? [],
+                'cached' => true,
+                'quota' => $tenantId ? $this->quota->status($tenantId) : null,
+            ]);
         }
 
         $registry = new ToolRegistry($tenantId, $user->id);
@@ -116,114 +159,134 @@ class ChatController extends Controller
                     // Jika retry menghasilkan function calls, lanjutkan ke Step 3
                     if (!empty($functionCalls)) {
                         $response = $retryResponse;
-                        goto execute_functions;
+                        return $this->executeFunctionCalls(
+                            $functionCalls,
+                            $registry,
+                            $session,
+                            $response,
+                            $history,
+                            $toolDeclarations,
+                            $request->message,
+                            $tenantId,
+                            $user
+                        );
                     }
                 }
 
                 $text = $text ?: 'Maaf, saya tidak dapat memproses permintaan tersebut. Coba ulangi dengan kalimat yang lebih spesifik.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
-                if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($text));
+                
+                // Cache the response
+                $this->cacheService->put($cacheKey, [
+                    'text' => $text,
+                    'model' => $response['model'],
+                    'actions' => [],
+                ]);
+                
+                if ($tenantId)
+                    $this->quota->track($tenantId, $user->id, strlen($text));
 
                 return response()->json([
-                    'session_id'    => $session->id,
+                    'session_id' => $session->id,
                     'session_title' => $session->title,
-                    'message'       => $text,
-                    'model'         => $response['model'],
-                    'actions'       => [],
-                    'quota'         => $tenantId ? $this->quota->status($tenantId) : null,
+                    'message' => $text,
+                    'model' => $response['model'],
+                    'actions' => [],
+                    'cached' => false,
+                    'quota' => $tenantId ? $this->quota->status($tenantId) : null,
                 ]);
             }
 
-            execute_functions:
-
-            // Step 3: Validasi dan eksekusi setiap function call
-            $functionResults = [];
-            $executedActions = [];
-            $validationErrors = [];
-
-            foreach ($functionCalls as $call) {
-                $toolName = $call['name'];
-                $args     = $call['args'];
-
-                // Validasi write operations sebelum eksekusi
-                if ($registry->isWriteOperation($toolName)) {
-                    if (!$this->validator->validate($toolName, $args)) {
-                        $validationErrors[] = [
-                            'tool'   => $toolName,
-                            'errors' => $this->validator->getErrors(),
-                        ];
-                        continue;
-                    }
-                }
-
-                // Eksekusi tool
-                $result = $registry->execute($toolName, $args);
-                Log::info("ChatController: executed tool [{$toolName}]", ['result' => $result]);
-
-                // Jika tool result punya field 'actions', inject ke message agar Gemini render actions block
-                if (!empty($result['actions']) && is_array($result['actions'])) {
-                    $actionsJson = json_encode($result['actions'], JSON_UNESCAPED_UNICODE);
-                    $result['message'] = ($result['message'] ?? '') . "\n\n```actions\n{$actionsJson}\n```";
-                    unset($result['actions']); // hindari duplikasi
-                }
-
-                // Simpan args di _args agar bisa dipakai untuk reconstruct model turn di sendFunctionResults
-                $result['_args'] = $args;
-                $functionResults[] = ['name' => $toolName, 'data' => $result];
-                $executedActions[] = ['tool' => $toolName, 'args' => $args, 'result' => $result];
-            }
-
-            // Jika ada validation error, kembalikan pesan error tanpa eksekusi
-            if (!empty($validationErrors)) {
-                $errorMsg = $this->buildValidationErrorMessage($validationErrors);
-                $this->sessionManager->saveModelMessage($session, $errorMsg, $response['model']);
-                if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($errorMsg));
-
-                return response()->json([
-                    'session_id'        => $session->id,
-                    'message'           => $errorMsg,
-                    'model'             => $response['model'],
-                    'validation_errors' => $validationErrors,
-                    'actions'           => [],
-                ]);
-            }
-
-            // Step 4: Kirim hasil function kembali ke Gemini untuk dirangkai jadi jawaban natural
-            $finalResponse = $this->gemini->sendFunctionResults(
-                originalMessage: $request->message,
-                history: $history,
-                toolDeclarations: $toolDeclarations, // reuse, tidak build ulang
-                functionResults: $functionResults,
-            );
-
-            $finalText = $finalResponse['text'] ?: $this->buildFallbackText($functionResults);
-
-            $this->sessionManager->saveModelMessage(
+            return $this->executeFunctionCalls(
+                $functionCalls,
+                $registry,
                 $session,
-                $finalText,
-                $finalResponse['model'],
-                $executedActions
+                $response,
+                $history,
+                $toolDeclarations,
+                $request->message,
+                $tenantId,
+                $user
             );
-            if ($tenantId) $this->quota->track($tenantId, $user->id, strlen($finalText));
-
-            return response()->json([
-                'session_id'    => $session->id,
-                'session_title' => $session->title,
-                'message'       => $finalText,
-                'model'         => $finalResponse['model'],
-                'actions'       => $executedActions,
-                'quota'         => $tenantId ? $this->quota->status($tenantId) : null,
-            ]);
 
         } catch (\Throwable $e) {
             Log::error('ChatController error: ' . $e->getMessage());
 
             return response()->json([
                 'session_id' => $session->id,
-                'message'    => 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
-                'error'      => app()->isLocal() ? $e->getMessage() : null,
+                'message' => 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
+                'error' => app()->isLocal() ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * Stream AI response dengan Server-Sent Events (SSE).
+     * POST /chat/stream
+     */
+    public function stream(Request $request): StreamedResponse
+    {
+        $request->validate([
+            'message' => 'required|string|max:4000',
+            'session_id' => 'nullable|integer',
+        ]);
+
+        $user = $request->user();
+        $tenantId = $user->tenant_id;
+        $session = $this->sessionManager->getOrCreateSession($user, $request->session_id);
+        $history = $this->sessionManager->getHistory($session);
+
+        // Simpan pesan user
+        $this->sessionManager->saveUserMessage($session, $request->message);
+
+        // Untuk rule-based, tetap gunakan JSON response (tidak perlu streaming)
+        if ($this->ruleHandler->canHandle($request->message)) {
+            $response = $this->ruleHandler->handle($request->message, $user->name);
+            $this->sessionManager->saveModelMessage($session, $response['text'], $response['model']);
+            
+            // Return sebagai SSE untuk konsistensi
+            return response()->stream(function () use ($response) {
+                echo "event: start\ndata: " . json_encode(['message' => 'Processing...']) . "\n\n";
+                echo "event: chunk\ndata: " . json_encode(['text' => $response['text'], 'progress' => 100, 'is_final' => true]) . "\n\n";
+                echo "event: complete\ndata: " . json_encode(['full_text' => $response['text'], 'model' => $response['model']]) . "\n\n";
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+            }, 200, [
+                'Content-Type' => 'text/event-stream',
+                'Cache-Control' => 'no-cache',
+                'X-Accel-Buffering' => 'no',
+                'Connection' => 'keep-alive',
+            ]);
+        }
+
+        // Setup tool registry jika ada tenant
+        $registry = null;
+        $toolDeclarations = [];
+        
+        if ($tenantId) {
+            $registry = new ToolRegistry($tenantId, $user->id);
+            $allowedTools = $user->allowedAiTools();
+            $toolDeclarations = $registry->getDeclarations($allowedTools);
+
+            $tenant = $user->tenant;
+            if ($tenant && $tenant->business_type) {
+                $this->gemini->withTenantContext($tenant->aiBusinessContext());
+            }
+        }
+
+        // Gunakan streaming service
+        return $this->streamingService->streamResponse(
+            message: $this->buildSystemPrompt($request->message, $user),
+            history: $history,
+            toolDeclarations: $toolDeclarations,
+            onChunk: function ($chunk, $index, $total) use ($session, $tenantId, $user) {
+                // Optional: Log progress atau update session
+                if ($index === $total - 1) {
+                    // Final chunk - save to session
+                    // Note: Full text should be saved by the streaming service caller
+                }
+            }
+        );
     }
 
     /**
@@ -233,17 +296,17 @@ class ChatController extends Controller
     public function sendMedia(Request $request): JsonResponse
     {
         $request->validate([
-            'message'    => 'nullable|string|max:4000',
+            'message' => 'nullable|string|max:4000',
             'session_id' => 'nullable|integer',
-            'files'      => 'required|array|min:1|max:5',
-            'files.*'    => 'required|file|max:20480', // 20MB per file
+            'files' => 'required|array|min:1|max:5',
+            'files.*' => 'required|file|max:20480', // 20MB per file
         ]);
 
-        $user     = $request->user();
+        $user = $request->user();
         $tenantId = $user->tenant_id;
-        $session  = $this->sessionManager->getOrCreateSession($user, $request->session_id);
-        $history  = $this->sessionManager->getHistory($session);
-        $message  = $request->message ?? 'Tolong analisis file/gambar ini.';
+        $session = $this->sessionManager->getOrCreateSession($user, $request->session_id);
+        $history = $this->sessionManager->getHistory($session);
+        $message = $request->message ?? 'Tolong analisis file/gambar ini.';
 
         // Encode files to base64 for Gemini, and save images to storage for tool use
         $files = [];
@@ -252,8 +315,8 @@ class ChatController extends Controller
 
         foreach ($request->file('files') as $file) {
             $mimeType = $file->getMimeType();
-            $data     = base64_encode(file_get_contents($file->getRealPath()));
-            $files[]  = ['mime_type' => $mimeType, 'data' => $data];
+            $data = base64_encode(file_get_contents($file->getRealPath()));
+            $files[] = ['mime_type' => $mimeType, 'data' => $data];
             $fileLabels[] = $file->getClientOriginalName() . ' (' . $this->humanFileSize($file->getSize()) . ')';
 
             // Simpan gambar ke storage agar bisa dipakai oleh update_product_image tool
@@ -331,19 +394,19 @@ class ChatController extends Controller
             }
 
             return response()->json([
-                'session_id'    => $session->id,
+                'session_id' => $session->id,
                 'session_title' => $session->fresh()->title,
-                'message'       => $text,
-                'model'         => $response['model'],
-                'actions'       => [],
+                'message' => $text,
+                'model' => $response['model'],
+                'actions' => [],
             ]);
 
         } catch (\Throwable $e) {
             Log::error('ChatController sendMedia error: ' . $e->getMessage());
             return response()->json([
                 'session_id' => $session->id,
-                'message'    => 'Gagal memproses file. Pastikan format file didukung (JPG, PNG, PDF, TXT).',
-                'error'      => app()->isLocal() ? $e->getMessage() : null,
+                'message' => 'Gagal memproses file. Pastikan format file didukung (JPG, PNG, PDF, TXT).',
+                'error' => app()->isLocal() ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -384,6 +447,103 @@ class ChatController extends Controller
     // ─── Helpers ──────────────────────────────────────────────────
 
     /**
+     * Step 3 & 4: Validate, execute function calls and send results back to Gemini.
+     * Extracted to eliminate the goto anti-pattern.
+     */
+    protected function executeFunctionCalls(
+        array $functionCalls,
+        ToolRegistry $registry,
+        \App\Models\ChatSession $session,
+        array $response,
+        array $history,
+        array $toolDeclarations,
+        string $originalMessage,
+        ?int $tenantId,
+        \App\Models\User $user
+    ): JsonResponse {
+        // Step 3: Validasi dan eksekusi setiap function call
+        $functionResults = [];
+        $executedActions = [];
+        $validationErrors = [];
+
+        foreach ($functionCalls as $call) {
+            $toolName = $call['name'];
+            $args = $call['args'];
+
+            // Validasi write operations sebelum eksekusi
+            if ($registry->isWriteOperation($toolName)) {
+                if (!$this->validator->validate($toolName, $args)) {
+                    $validationErrors[] = [
+                        'tool' => $toolName,
+                        'errors' => $this->validator->getErrors(),
+                    ];
+                    continue;
+                }
+            }
+
+            // Eksekusi tool
+            $result = $registry->execute($toolName, $args);
+            Log::info("ChatController: executed tool [{$toolName}]", ['result' => $result]);
+
+            // Jika tool result punya field 'actions', inject ke message agar Gemini render actions block
+            if (!empty($result['actions']) && is_array($result['actions'])) {
+                $actionsJson = json_encode($result['actions'], JSON_UNESCAPED_UNICODE);
+                $result['message'] = ($result['message'] ?? '') . "\n\n```actions\n{$actionsJson}\n```";
+                unset($result['actions']); // hindari duplikasi
+            }
+
+            // Simpan args di _args agar bisa dipakai untuk reconstruct model turn di sendFunctionResults
+            $result['_args'] = $args;
+            $functionResults[] = ['name' => $toolName, 'data' => $result];
+            $executedActions[] = ['tool' => $toolName, 'args' => $args, 'result' => $result];
+        }
+
+        // Jika ada validation error, kembalikan pesan error tanpa eksekusi
+        if (!empty($validationErrors)) {
+            $errorMsg = $this->buildValidationErrorMessage($validationErrors);
+            $this->sessionManager->saveModelMessage($session, $errorMsg, $response['model']);
+            if ($tenantId)
+                $this->quota->track($tenantId, $user->id, strlen($errorMsg));
+
+            return response()->json([
+                'session_id' => $session->id,
+                'message' => $errorMsg,
+                'model' => $response['model'],
+                'validation_errors' => $validationErrors,
+                'actions' => [],
+            ]);
+        }
+
+        // Step 4: Kirim hasil function kembali ke Gemini untuk dirangkai jadi jawaban natural
+        $finalResponse = $this->gemini->sendFunctionResults(
+            originalMessage: $originalMessage,
+            history: $history,
+            toolDeclarations: $toolDeclarations, // reuse, tidak build ulang
+            functionResults: $functionResults,
+        );
+
+        $finalText = $finalResponse['text'] ?: $this->buildFallbackText($functionResults);
+
+        $this->sessionManager->saveModelMessage(
+            $session,
+            $finalText,
+            $finalResponse['model'],
+            $executedActions
+        );
+        if ($tenantId)
+            $this->quota->track($tenantId, $user->id, strlen($finalText));
+
+        return response()->json([
+            'session_id' => $session->id,
+            'session_title' => $session->title,
+            'message' => $finalText,
+            'model' => $finalResponse['model'],
+            'actions' => $executedActions,
+            'quota' => $tenantId ? $this->quota->status($tenantId) : null,
+        ]);
+    }
+
+    /**
      * Inject tenant & user context ke pesan agar Gemini tahu konteks bisnis.
      * Data ini tidak bocor ke tenant lain karena setiap request baru ToolRegistry
      * dibuat dengan tenantId spesifik, dan history diambil dari session milik user tsb.
@@ -391,7 +551,8 @@ class ChatController extends Controller
     protected function buildSystemPrompt(string $message, \App\Models\User $user): string
     {
         $tenant = $user->tenant;
-        if (!$tenant) return $message;
+        if (!$tenant)
+            return $message;
 
         $lang = $this->detectLanguage($message);
         $this->gemini->withLanguage($lang);
@@ -418,93 +579,319 @@ class ChatController extends Controller
     {
         $text = mb_strtolower(trim($text));
 
-        if (empty($text)) return 'id';
+        if (empty($text))
+            return 'id';
 
         // Script-based detection (fast, no external dependency)
-        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text))  return 'zh'; // Chinese
-        if (preg_match('/[\x{3040}-\x{30ff}]/u', $text))  return 'ja'; // Japanese
-        if (preg_match('/[\x{ac00}-\x{d7af}]/u', $text))  return 'ko'; // Korean
-        if (preg_match('/[\x{0600}-\x{06ff}]/u', $text))  return 'ar'; // Arabic
-        if (preg_match('/[\x{0900}-\x{097f}]/u', $text))  return 'hi'; // Hindi/Devanagari
-        if (preg_match('/[\x{0e00}-\x{0e7f}]/u', $text))  return 'th'; // Thai
-        if (preg_match('/[\x{1e00}-\x{1eff}]/u', $text))  return 'vi'; // Vietnamese extended
+        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text))
+            return 'zh'; // Chinese
+        if (preg_match('/[\x{3040}-\x{30ff}]/u', $text))
+            return 'ja'; // Japanese
+        if (preg_match('/[\x{ac00}-\x{d7af}]/u', $text))
+            return 'ko'; // Korean
+        if (preg_match('/[\x{0600}-\x{06ff}]/u', $text))
+            return 'ar'; // Arabic
+        if (preg_match('/[\x{0900}-\x{097f}]/u', $text))
+            return 'hi'; // Hindi/Devanagari
+        if (preg_match('/[\x{0e00}-\x{0e7f}]/u', $text))
+            return 'th'; // Thai
+        if (preg_match('/[\x{1e00}-\x{1eff}]/u', $text))
+            return 'vi'; // Vietnamese extended
 
         // Latin-script languages — keyword-based
         $words = preg_split('/\s+/', $text);
         $wordCount = count($words);
 
         // Indonesian/Malay markers
-        $idWords = ['yang', 'dan', 'di', 'ke', 'dari', 'untuk', 'dengan', 'ini', 'itu',
-                    'ada', 'tidak', 'bisa', 'saya', 'kami', 'kita', 'anda', 'jual',
-                    'beli', 'stok', 'produk', 'harga', 'laporan', 'catat', 'tambah',
-                    'berapa', 'tolong', 'mohon', 'gimana', 'bagaimana', 'kenapa',
-                    // kata bisnis & percakapan sehari-hari
-                    'grafik', 'omzet', 'hari', 'minggu', 'bulan', 'tahun',
-                    'kamu', 'lakukan', 'saja', 'apa', 'siapa', 'kapan', 'dimana',
-                    'mana', 'buat', 'lihat', 'cek', 'cari', 'hapus', 'ubah', 'ganti',
-                    'kirim', 'bayar', 'terima', 'proses', 'jalankan', 'hitung',
-                    'penjualan', 'pembelian', 'keuangan', 'karyawan', 'pelanggan',
-                    'supplier', 'gudang', 'aset', 'proyek', 'anggaran', 'gaji',
-                    'absensi', 'invoice', 'tagihan', 'piutang', 'hutang', 'laba',
-                    'rugi', 'biaya', 'pendapatan', 'transaksi', 'pembayaran',
-                    'tren', 'ringkasan', 'rekap', 'summary', 'kondisi', 'bisnis',
-                    'fitur', 'menu', 'cara', 'panduan', 'tutorial', 'bantuan',
-                    'bisa', 'boleh', 'mau', 'ingin', 'perlu', 'harus', 'sudah',
-                    'belum', 'sedang', 'akan', 'punya', 'ada', 'tidak', 'jangan',
-                    'semua', 'beberapa', 'banyak', 'sedikit', 'total', 'jumlah'];
-        $msWords = ['saya', 'anda', 'dengan', 'untuk', 'kepada', 'daripada', 'boleh',
-                    'hendak', 'mahu', 'sudah', 'belum', 'juga', 'pula', 'sahaja'];
+        $idWords = [
+            'yang',
+            'dan',
+            'di',
+            'ke',
+            'dari',
+            'untuk',
+            'dengan',
+            'ini',
+            'itu',
+            'ada',
+            'tidak',
+            'bisa',
+            'saya',
+            'kami',
+            'kita',
+            'anda',
+            'jual',
+            'beli',
+            'stok',
+            'produk',
+            'harga',
+            'laporan',
+            'catat',
+            'tambah',
+            'berapa',
+            'tolong',
+            'mohon',
+            'gimana',
+            'bagaimana',
+            'kenapa',
+            // kata bisnis & percakapan sehari-hari
+            'grafik',
+            'omzet',
+            'hari',
+            'minggu',
+            'bulan',
+            'tahun',
+            'kamu',
+            'lakukan',
+            'saja',
+            'apa',
+            'siapa',
+            'kapan',
+            'dimana',
+            'mana',
+            'buat',
+            'lihat',
+            'cek',
+            'cari',
+            'hapus',
+            'ubah',
+            'ganti',
+            'kirim',
+            'bayar',
+            'terima',
+            'proses',
+            'jalankan',
+            'hitung',
+            'penjualan',
+            'pembelian',
+            'keuangan',
+            'karyawan',
+            'pelanggan',
+            'supplier',
+            'gudang',
+            'aset',
+            'proyek',
+            'anggaran',
+            'gaji',
+            'absensi',
+            'invoice',
+            'tagihan',
+            'piutang',
+            'hutang',
+            'laba',
+            'rugi',
+            'biaya',
+            'pendapatan',
+            'transaksi',
+            'pembayaran',
+            'tren',
+            'ringkasan',
+            'rekap',
+            'summary',
+            'kondisi',
+            'bisnis',
+            'fitur',
+            'menu',
+            'cara',
+            'panduan',
+            'tutorial',
+            'bantuan',
+            'bisa',
+            'boleh',
+            'mau',
+            'ingin',
+            'perlu',
+            'harus',
+            'sudah',
+            'belum',
+            'sedang',
+            'akan',
+            'punya',
+            'ada',
+            'tidak',
+            'jangan',
+            'semua',
+            'beberapa',
+            'banyak',
+            'sedikit',
+            'total',
+            'jumlah'
+        ];
+        $msWords = [
+            'saya',
+            'anda',
+            'dengan',
+            'untuk',
+            'kepada',
+            'daripada',
+            'boleh',
+            'hendak',
+            'mahu',
+            'sudah',
+            'belum',
+            'juga',
+            'pula',
+            'sahaja'
+        ];
 
         // English markers
-        $enWords = ['the', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'will',
-                    'would', 'can', 'could', 'should', 'what', 'how', 'show', 'list',
-                    'get', 'create', 'update', 'delete', 'please', 'help', 'report'];
+        $enWords = [
+            'the',
+            'is',
+            'are',
+            'was',
+            'were',
+            'have',
+            'has',
+            'had',
+            'will',
+            'would',
+            'can',
+            'could',
+            'should',
+            'what',
+            'how',
+            'show',
+            'list',
+            'get',
+            'create',
+            'update',
+            'delete',
+            'please',
+            'help',
+            'report'
+        ];
 
         // French markers
-        $frWords = ['le', 'la', 'les', 'de', 'du', 'des', 'est', 'sont', 'avec',
-                    'pour', 'dans', 'sur', 'par', 'que', 'qui', 'une', 'un'];
+        $frWords = [
+            'le',
+            'la',
+            'les',
+            'de',
+            'du',
+            'des',
+            'est',
+            'sont',
+            'avec',
+            'pour',
+            'dans',
+            'sur',
+            'par',
+            'que',
+            'qui',
+            'une',
+            'un'
+        ];
 
         // Spanish markers
-        $esWords = ['el', 'la', 'los', 'las', 'de', 'del', 'es', 'son', 'con',
-                    'para', 'en', 'por', 'que', 'una', 'un', 'como', 'pero'];
+        $esWords = [
+            'el',
+            'la',
+            'los',
+            'las',
+            'de',
+            'del',
+            'es',
+            'son',
+            'con',
+            'para',
+            'en',
+            'por',
+            'que',
+            'una',
+            'un',
+            'como',
+            'pero'
+        ];
 
         // Portuguese markers
-        $ptWords = ['o', 'a', 'os', 'as', 'de', 'do', 'da', 'dos', 'das', 'é',
-                    'são', 'com', 'para', 'em', 'por', 'que', 'uma', 'um'];
+        $ptWords = [
+            'o',
+            'a',
+            'os',
+            'as',
+            'de',
+            'do',
+            'da',
+            'dos',
+            'das',
+            'é',
+            'são',
+            'com',
+            'para',
+            'em',
+            'por',
+            'que',
+            'uma',
+            'um'
+        ];
 
         // German markers
-        $deWords = ['der', 'die', 'das', 'den', 'dem', 'des', 'ist', 'sind', 'mit',
-                    'für', 'in', 'auf', 'von', 'zu', 'und', 'oder', 'nicht', 'auch'];
+        $deWords = [
+            'der',
+            'die',
+            'das',
+            'den',
+            'dem',
+            'des',
+            'ist',
+            'sind',
+            'mit',
+            'für',
+            'in',
+            'auf',
+            'von',
+            'zu',
+            'und',
+            'oder',
+            'nicht',
+            'auch'
+        ];
 
         $scores = [
-            'id' => 0, 'ms' => 0, 'en' => 0,
-            'fr' => 0, 'es' => 0, 'pt' => 0, 'de' => 0,
+            'id' => 0,
+            'ms' => 0,
+            'en' => 0,
+            'fr' => 0,
+            'es' => 0,
+            'pt' => 0,
+            'de' => 0,
         ];
 
         foreach ($words as $word) {
             $word = preg_replace('/[^a-z]/', '', $word);
-            if (!$word) continue;
-            if (in_array($word, $idWords)) $scores['id']++;
-            if (in_array($word, $msWords)) $scores['ms']++;
-            if (in_array($word, $enWords)) $scores['en']++;
-            if (in_array($word, $frWords)) $scores['fr']++;
-            if (in_array($word, $esWords)) $scores['es']++;
-            if (in_array($word, $ptWords)) $scores['pt']++;
-            if (in_array($word, $deWords)) $scores['de']++;
+            if (!$word)
+                continue;
+            if (in_array($word, $idWords))
+                $scores['id']++;
+            if (in_array($word, $msWords))
+                $scores['ms']++;
+            if (in_array($word, $enWords))
+                $scores['en']++;
+            if (in_array($word, $frWords))
+                $scores['fr']++;
+            if (in_array($word, $esWords))
+                $scores['es']++;
+            if (in_array($word, $ptWords))
+                $scores['pt']++;
+            if (in_array($word, $deWords))
+                $scores['de']++;
         }
 
         // Normalize by word count to avoid bias on long messages
         $threshold = max(1, $wordCount * 0.1); // at least 10% of words must match
 
         arsort($scores);
-        $topLang  = array_key_first($scores);
+        $topLang = array_key_first($scores);
         $topScore = $scores[$topLang];
 
         // If no clear winner, default to Indonesian (primary app language)
-        if ($topScore < 1) return 'id';
+        if ($topScore < 1)
+            return 'id';
 
         // Disambiguate ID vs MS (very similar) — prefer ID as app default
-        if ($topLang === 'ms' && $scores['id'] >= $scores['ms'] * 0.8) return 'id';
+        if ($topLang === 'ms' && $scores['id'] >= $scores['ms'] * 0.8)
+            return 'id';
 
         return $topLang;
     }
@@ -536,8 +923,10 @@ class ChatController extends Controller
 
     protected function humanFileSize(int $bytes): string
     {
-        if ($bytes < 1024) return $bytes . ' B';
-        if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024)
+            return $bytes . ' B';
+        if ($bytes < 1048576)
+            return round($bytes / 1024, 1) . ' KB';
         return round($bytes / 1048576, 1) . ' MB';
     }
 }

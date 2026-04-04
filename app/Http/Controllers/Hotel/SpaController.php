@@ -262,7 +262,8 @@ class SpaController extends Controller
             abort(403);
         }
 
-        $date = request()->input('date', today()->format('Y-m-d'));
+        $validated = request()->validate(['date' => 'nullable|date']);
+        $date = $validated['date'] ?? today()->format('Y-m-d');
 
         $schedule = TherapistSchedule::where('therapist_id', $therapist->id)
             ->where('schedule_date', $date)

@@ -44,8 +44,8 @@ return new class extends Migration {
             $table->index(['tenant_id', 'supply_id', 'transaction_date']);
         });
 
-        // Recipe Ingredients (Link menu items to supplies)
-        Schema::create('recipe_ingredients', function (Blueprint $table) {
+        // Recipe Ingredients for F&B (Link menu items to supplies)
+        Schema::create('fb_recipe_ingredients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('menu_item_id')->constrained('menu_items')->cascadeOnDelete();
@@ -61,7 +61,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('recipe_ingredients');
+        Schema::dropIfExists('fb_recipe_ingredients');
         Schema::dropIfExists('fb_supply_transactions');
         Schema::dropIfExists('fb_supplies');
     }

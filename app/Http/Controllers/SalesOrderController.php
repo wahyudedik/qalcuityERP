@@ -51,11 +51,11 @@ class SalesOrderController extends Controller
         $orders = $query->latest('date')->paginate(20)->withQueryString();
 
         $stats = [
-            'pending'   => SalesOrder::where('tenant_id', $this->tid())->where('status', 'pending')->count(),
+            'pending' => SalesOrder::where('tenant_id', $this->tid())->where('status', 'pending')->count(),
             'confirmed' => SalesOrder::where('tenant_id', $this->tid())->where('status', 'confirmed')->count(),
-            'shipped'   => SalesOrder::where('tenant_id', $this->tid())->where('status', 'shipped')->count(),
+            'shipped' => SalesOrder::where('tenant_id', $this->tid())->where('status', 'shipped')->count(),
             'completed' => SalesOrder::where('tenant_id', $this->tid())->where('status', 'completed')->count(),
-            'this_month'=> SalesOrder::where('tenant_id', $this->tid())
+            'this_month' => SalesOrder::where('tenant_id', $this->tid())
                 ->whereNotIn('status', ['cancelled'])
                 ->whereMonth('date', now()->month)->whereYear('date', now()->year)
                 ->sum('total'),
@@ -66,11 +66,11 @@ class SalesOrderController extends Controller
 
     public function create()
     {
-        $tid        = $this->tid();
-        $customers  = Customer::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
-        $products   = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $tid = $this->tid();
+        $customers = Customer::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
-        $taxRates   = TaxRate::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $taxRates = TaxRate::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $currencies = (new \App\Services\CurrencyService())->activeCurrencies($tid);
 
         return view('sales.create', compact('customers', 'products', 'warehouses', 'taxRates', 'currencies'));
@@ -79,22 +79,22 @@ class SalesOrderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'customer_id'    => 'required|exists:customers,id',
-            'date'           => 'required|date',
-            'delivery_date'  => 'nullable|date|after_or_equal:date',
-            'payment_type'   => 'required|in:cash,credit',
-            'due_date'       => 'nullable|date|required_if:payment_type,credit',
-            'warehouse_id'   => 'required|exists:warehouses,id',
-            'tax_rate_id'    => 'nullable|exists:tax_rates,id',
-            'discount'       => 'nullable|numeric|min:0',
+            'customer_id' => 'required|exists:customers,id',
+            'date' => 'required|date',
+            'delivery_date' => 'nullable|date|after_or_equal:date',
+            'payment_type' => 'required|in:cash,credit',
+            'due_date' => 'nullable|date|required_if:payment_type,credit',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'tax_rate_id' => 'nullable|exists:tax_rates,id',
+            'discount' => 'nullable|numeric|min:0',
             'shipping_address' => 'nullable|string|max:500',
-            'notes'          => 'nullable|string|max:1000',
-            'currency_code'  => 'nullable|string|max:10',
-            'items'          => 'required|array|min:1',
+            'notes' => 'nullable|string|max:1000',
+            'currency_code' => 'nullable|string|max:10',
+            'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|numeric|min:0.001',
-            'items.*.price'      => 'required|numeric|min:0',
-            'items.*.discount'   => 'nullable|numeric|min:0',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
         ]);
 
         $tid = $this->tid();
@@ -129,23 +129,23 @@ class SalesOrderController extends Controller
         }
 
         DB::transaction(function () use ($data, $tid, $request) {
-            $subtotal  = 0;
+            $subtotal = 0;
             $itemsData = [];
 
             foreach ($data['items'] as $item) {
                 $itemDiscount = $item['discount'] ?? 0;
-                $total        = ($item['quantity'] * $item['price']) - $itemDiscount;
-                $subtotal    += $total;
-                $itemsData[]  = [
+                $total = ($item['quantity'] * $item['price']) - $itemDiscount;
+                $subtotal += $total;
+                $itemsData[] = [
                     'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'price'      => $item['price'],
-                    'discount'   => $itemDiscount,
-                    'total'      => $total,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'discount' => $itemDiscount,
+                    'total' => $total,
                 ];
             }
 
-            $discount  = $data['discount'] ?? 0;
+            $discount = $data['discount'] ?? 0;
             $taxAmount = 0;
             if (!empty($data['tax_rate_id'])) {
                 $taxAmount = (new TaxService())->calculate($subtotal - $discount, (int) $data['tax_rate_id']);
@@ -157,26 +157,26 @@ class SalesOrderController extends Controller
             $currRate = (new \App\Services\CurrencyService())->getRate($currCode);
 
             $so = SalesOrder::create([
-                'tenant_id'       => $tid,
-                'customer_id'     => $data['customer_id'],
-                'user_id'         => auth()->id(),
-                'number'          => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
-                'status'          => 'confirmed',
-                'date'            => $data['date'],
-                'delivery_date'   => $data['delivery_date'] ?? null,
-                'subtotal'        => $subtotal,
-                'discount'        => $discount,
-                'tax_rate_id'     => $data['tax_rate_id'] ?? null,
-                'tax_amount'      => $taxAmount,
-                'tax'             => $taxAmount,
-                'total'           => $total,
-                'payment_type'    => $data['payment_type'],
-                'due_date'        => $data['due_date'] ?? null,
-                'shipping_address'=> $data['shipping_address'] ?? null,
-                'notes'           => $data['notes'] ?? null,
-                'currency_code'   => $currCode,
-                'currency_rate'   => $currRate,
-                'source'          => 'order',
+                'tenant_id' => $tid,
+                'customer_id' => $data['customer_id'],
+                'user_id' => auth()->id(),
+                'number' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+                'status' => 'confirmed',
+                'date' => $data['date'],
+                'delivery_date' => $data['delivery_date'] ?? null,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'tax_rate_id' => $data['tax_rate_id'] ?? null,
+                'tax_amount' => $taxAmount,
+                'tax' => $taxAmount,
+                'total' => $total,
+                'payment_type' => $data['payment_type'],
+                'due_date' => $data['due_date'] ?? null,
+                'shipping_address' => $data['shipping_address'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'currency_code' => $currCode,
+                'currency_rate' => $currRate,
+                'source' => 'order',
             ]);
 
             $so->items()->createMany($itemsData);
@@ -191,36 +191,36 @@ class SalesOrderController extends Controller
                 $stock->decrement('quantity', $item['quantity']);
 
                 StockMovement::create([
-                    'tenant_id'       => $tid,
-                    'product_id'      => $item['product_id'],
-                    'warehouse_id'    => $data['warehouse_id'],
-                    'user_id'         => auth()->id(),
-                    'type'            => 'out',
-                    'quantity'        => $item['quantity'],
+                    'tenant_id' => $tid,
+                    'product_id' => $item['product_id'],
+                    'warehouse_id' => $data['warehouse_id'],
+                    'user_id' => auth()->id(),
+                    'type' => 'out',
+                    'quantity' => $item['quantity'],
                     'quantity_before' => $before,
-                    'quantity_after'  => $before - $item['quantity'],
-                    'reference'       => $so->number,
-                    'notes'           => "Sales Order {$so->number}",
+                    'quantity_after' => $before - $item['quantity'],
+                    'reference' => $so->number,
+                    'notes' => "Sales Order {$so->number}",
                 ]);
             }
 
             ActivityLog::record('sales_order_created', "SO dibuat: {$so->number} ({$currCode} " . number_format($total, 0, ',', '.') . ")", $so);
 
             // GL Auto-Posting — always in IDR (convert if foreign currency)
-            $glSubtotal  = ($subtotal - $discount) * $currRate;
+            $glSubtotal = ($subtotal - $discount) * $currRate;
             $glTaxAmount = $taxAmount * $currRate;
-            $glTotal     = $total * $currRate;
+            $glTotal = $total * $currRate;
 
             $glResult = app(GlPostingService::class)->postSalesOrder(
-                tenantId:    $tid,
-                userId:      auth()->id(),
-                soNumber:    $so->number,
-                soId:        $so->id,
-                subtotal:    $glSubtotal,
-                taxAmount:   $glTaxAmount,
-                total:       $glTotal,
+                tenantId: $tid,
+                userId: auth()->id(),
+                soNumber: $so->number,
+                soId: $so->id,
+                subtotal: $glSubtotal,
+                taxAmount: $glTaxAmount,
+                total: $glTotal,
                 paymentType: $data['payment_type'],
-                date:        $data['date'],
+                date: $data['date'],
             );
 
             // Store GL result for flash message after transaction commits
@@ -260,18 +260,21 @@ class SalesOrderController extends Controller
         $old = $salesOrder->status;
         $salesOrder->update(['status' => $data['status']]);
 
-        ActivityLog::record('sales_order_status_changed',
-            "Status SO {$salesOrder->number}: {$old} → {$data['status']}", $salesOrder);
+        ActivityLog::record(
+            'sales_order_status_changed',
+            "Status SO {$salesOrder->number}: {$old} → {$data['status']}",
+            $salesOrder
+        );
 
         // Notifikasi jika completed
         if ($data['status'] === 'completed') {
             ErpNotification::create([
                 'tenant_id' => $this->tid(),
-                'user_id'   => auth()->id(),
-                'type'      => 'so_completed',
-                'title'     => '✅ Sales Order Selesai',
-                'body'      => "SO {$salesOrder->number} telah selesai. Total: Rp " . number_format($salesOrder->total, 0, ',', '.'),
-                'data'      => ['so_id' => $salesOrder->id],
+                'user_id' => auth()->id(),
+                'type' => 'so_completed',
+                'title' => '✅ Sales Order Selesai',
+                'body' => "SO {$salesOrder->number} telah selesai. Total: Rp " . number_format($salesOrder->total, 0, ',', '.'),
+                'data' => ['so_id' => $salesOrder->id],
             ]);
         }
 
@@ -282,31 +285,33 @@ class SalesOrderController extends Controller
     {
         abort_if($salesOrder->tenant_id !== $this->tid(), 403);
 
-        if ($salesOrder->invoice()->where('status', '!=', 'cancelled')->exists()) {
+        if ($salesOrder->invoices()->where('status', '!=', 'cancelled')->exists()) {
             return back()->with('error', 'Invoice untuk SO ini sudah ada.');
         }
 
         $number = 'INV-' . date('Ymd') . '-' . str_pad(
             Invoice::where('tenant_id', $this->tid())->whereDate('created_at', today())->count() + 1,
-            3, '0', STR_PAD_LEFT
+            3,
+            '0',
+            STR_PAD_LEFT
         );
 
         $invoice = Invoice::create([
-            'tenant_id'        => $this->tid(),
-            'number'           => $number,
-            'customer_id'      => $salesOrder->customer_id,
-            'sales_order_id'   => $salesOrder->id,
-            'subtotal_amount'  => $salesOrder->subtotal,
-            'tax_rate_id'      => $salesOrder->tax_rate_id,
-            'tax_amount'       => $salesOrder->tax_amount,
-            'total_amount'     => $salesOrder->total,
-            'paid_amount'      => 0,
+            'tenant_id' => $this->tid(),
+            'number' => $number,
+            'customer_id' => $salesOrder->customer_id,
+            'sales_order_id' => $salesOrder->id,
+            'subtotal_amount' => $salesOrder->subtotal,
+            'tax_rate_id' => $salesOrder->tax_rate_id,
+            'tax_amount' => $salesOrder->tax_amount,
+            'total_amount' => $salesOrder->total,
+            'paid_amount' => 0,
             'remaining_amount' => $salesOrder->total,
-            'status'           => 'unpaid',
-            'due_date'         => $salesOrder->due_date ?? today()->addDays(30),
-            'currency_code'    => $salesOrder->currency_code ?? 'IDR',
-            'currency_rate'    => $salesOrder->currency_rate ?? 1,
-            'notes'            => "Invoice untuk SO {$salesOrder->number}",
+            'status' => 'unpaid',
+            'due_date' => $salesOrder->due_date ?? today()->addDays(30),
+            'currency_code' => $salesOrder->currency_code ?? 'IDR',
+            'currency_rate' => $salesOrder->currency_rate ?? 1,
+            'notes' => "Invoice untuk SO {$salesOrder->number}",
         ]);
 
         ActivityLog::record('invoice_from_so', "Invoice {$number} dibuat dari SO {$salesOrder->number}", $invoice);
