@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\ErpNotification;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\GamificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -63,8 +65,8 @@ class GoogleController extends Controller
             if ($user) {
                 // Link Google account to existing user
                 $user->update([
-                    'google_id'         => $googleUser->getId(),
-                    'avatar_url'        => $googleUser->getAvatar(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar_url' => $googleUser->getAvatar(),
                     'email_verified_at' => $user->email_verified_at ?? now(),
                 ]);
             }
@@ -88,6 +90,10 @@ class GoogleController extends Controller
         Auth::login($user, true);
         session()->regenerate();
 
+        // Record login activity
+        ActivityLog::record('login', 'User ' . $user->name . ' login via Google');
+        GamificationService::onLogin($user);
+
         // Redirect: new user → onboarding, existing → dashboard
         if ($user->wasRecentlyCreated || ($user->tenant && !$user->tenant->onboarding_completed)) {
             return redirect()->route('onboarding.show');
@@ -102,7 +108,7 @@ class GoogleController extends Controller
     private function createNewUser($googleUser): User
     {
         return DB::transaction(function () use ($googleUser) {
-            $name  = $googleUser->getName() ?: $googleUser->getNickname() ?: 'User';
+            $name = $googleUser->getName() ?: $googleUser->getNickname() ?: 'User';
             $email = $googleUser->getEmail();
 
             // Generate unique slug
@@ -114,23 +120,23 @@ class GoogleController extends Controller
             }
 
             $tenant = Tenant::create([
-                'name'          => "Bisnis {$name}",
-                'slug'          => $slug,
-                'email'         => $email,
-                'plan'          => 'trial',
-                'is_active'     => true,
+                'name' => "Bisnis {$name}",
+                'slug' => $slug,
+                'email' => $email,
+                'plan' => 'trial',
+                'is_active' => true,
                 'trial_ends_at' => now()->addDays(14),
             ]);
 
             $user = User::create([
-                'tenant_id'         => $tenant->id,
-                'name'              => $name,
-                'email'             => $email,
-                'google_id'         => $googleUser->getId(),
-                'avatar_url'        => $googleUser->getAvatar(),
-                'password'          => bcrypt(Str::random(32)), // random password (user uses Google)
-                'role'              => 'admin',
-                'is_active'         => true,
+                'tenant_id' => $tenant->id,
+                'name' => $name,
+                'email' => $email,
+                'google_id' => $googleUser->getId(),
+                'avatar_url' => $googleUser->getAvatar(),
+                'password' => bcrypt(Str::random(32)), // random password (user uses Google)
+                'role' => 'admin',
+                'is_active' => true,
                 'email_verified_at' => now(), // Google email is verified
             ]);
 
@@ -138,13 +144,14 @@ class GoogleController extends Controller
             try {
                 ErpNotification::create([
                     'tenant_id' => $tenant->id,
-                    'user_id'   => $user->id,
-                    'type'      => 'welcome',
-                    'title'     => '🎉 Selamat datang di Qalcuity ERP!',
-                    'body'      => "Akun trial 14 hari Anda aktif via Google. Mulai dengan mengatur profil perusahaan.",
-                    'data'      => ['tenant_id' => $tenant->id, 'source' => 'google'],
+                    'user_id' => $user->id,
+                    'type' => 'welcome',
+                    'title' => '🎉 Selamat datang di Qalcuity ERP!',
+                    'body' => "Akun trial 14 hari Anda aktif via Google. Mulai dengan mengatur profil perusahaan.",
+                    'data' => ['tenant_id' => $tenant->id, 'source' => 'google'],
                 ]);
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
 
             return $user;
         });

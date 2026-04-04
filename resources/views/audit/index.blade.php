@@ -24,6 +24,16 @@
                     </svg>
                     Export CSV
                 </a>
+                @if (in_array(auth()->user()->role, ['admin', 'manager', 'super_admin']))
+                    <button onclick="openComplianceModal()"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Compliance Report
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -59,7 +69,8 @@
                     <option value="">Semua User</option>
                     @foreach ($users as $u)
                         <option value="{{ $u->id }}" @selected(request('user_id') == $u->id)>{{ $u->name }}
-                            ({{ $u->role }})</option>
+                            ({{ $u->role }})
+                        </option>
                     @endforeach
                 </select>
                 <select name="module"
@@ -229,6 +240,112 @@
         </div>
     </div>
 
+    {{-- ═══════════ Compliance Report Modal ═══════════ --}}
+    <div id="modal-compliance"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                <div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Compliance Report (SOX)</h3>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Export audit trail untuk keperluan
+                        kepatuhan / auditor eksternal</p>
+                </div>
+                <button onclick="closeComplianceModal()"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="form-compliance" action="{{ route('audit.compliance-report') }}" method="GET"
+                class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Dari
+                            Tanggal</label>
+                        <input type="date" name="date_from" id="compliance-date-from" required
+                            value="{{ request('date_from', now()->startOfMonth()->format('Y-m-d')) }}"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Sampai
+                            Tanggal</label>
+                        <input type="date" name="date_to" id="compliance-date-to" required
+                            value="{{ request('date_to', now()->format('Y-m-d')) }}"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div
+                    class="bg-indigo-50 dark:bg-indigo-500/10 rounded-xl p-3 text-xs text-indigo-700 dark:text-indigo-300 space-y-1">
+                    <p class="font-semibold">Format laporan mencakup:</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-indigo-600 dark:text-indigo-400">
+                        <li>Semua event dengan timestamp ISO 8601</li>
+                        <li>Nama user, role, dan IP address</li>
+                        <li>Field yang berubah + nilai before/after (JSON)</li>
+                        <li>Flag AI-generated action</li>
+                        <li>Rollback history</li>
+                        <li>Integrity hash (SHA-256) per baris</li>
+                    </ul>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-1">
+                    <button type="button" onclick="closeComplianceModal()"
+                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ═══════════ Rollback Conflict Modal ═══════════ --}}
+    <div id="modal-conflict"
+        class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-amber-300 dark:border-amber-500/40 w-full max-w-lg shadow-xl">
+            <div class="px-6 py-4 border-b border-amber-100 dark:border-amber-500/20 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-amber-700 dark:text-amber-300 text-sm">Konflik Terdeteksi</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Field berikut telah diubah setelah log
+                        ini
+                        dicatat. Rollback akan menimpa perubahan terbaru.</p>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="conflict-table" class="overflow-x-auto mb-5"></div>
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="closeConflictModal()"
+                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        Batal
+                    </button>
+                    <button onclick="forceRollback()"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-medium transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Tetap Rollback
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @php
         $diffData = $logs->mapWithKeys(
             fn($log) => [
@@ -255,6 +372,18 @@
             document.getElementById('modal-detail').classList.add('hidden');
             currentLogId = null;
             currentLogData = null;
+        }
+
+        function openComplianceModal() {
+            document.getElementById('modal-compliance').classList.remove('hidden');
+        }
+
+        function closeComplianceModal() {
+            document.getElementById('modal-compliance').classList.add('hidden');
+        }
+
+        function closeConflictModal() {
+            document.getElementById('modal-conflict').classList.add('hidden');
         }
 
         function showTab(tab) {
@@ -390,6 +519,74 @@
                     if (row) row.classList.add('opacity-60');
                     // Refresh after short delay
                     setTimeout(() => window.location.reload(), 1500);
+                } else if (data.conflict) {
+                    // Show conflict modal instead of plain alert
+                    btn.disabled = false;
+                    btn.textContent = '↩ Rollback Perubahan Ini';
+                    showConflictModal(data.conflicts);
+                } else {
+                    alert(data.message || 'Rollback gagal.');
+                    btn.disabled = false;
+                    btn.textContent = '↩ Rollback Perubahan Ini';
+                }
+            } catch (e) {
+                alert('Rollback gagal. Coba lagi.');
+                btn.disabled = false;
+                btn.textContent = '↩ Rollback Perubahan Ini';
+            }
+        }
+
+        function showConflictModal(conflicts) {
+            let html = `<table class="w-full text-xs border-collapse">
+                <thead>
+                    <tr class="text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-white/5">
+                        <th class="text-left py-2 px-3 font-semibold rounded-tl-lg">Field</th>
+                        <th class="text-left py-2 px-3 font-semibold">Dicatat (saat perubahan)</th>
+                        <th class="text-left py-2 px-3 font-semibold rounded-tr-lg">Nilai Saat Ini</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            for (const [field, vals] of Object.entries(conflicts)) {
+                html += `<tr class="border-b border-gray-50 dark:border-white/5">
+                    <td class="py-2 px-3 font-medium text-gray-700 dark:text-slate-300">${field}</td>
+                    <td class="py-2 px-3 text-red-500 line-through break-all">${vals.recorded_at_time_of_change ?? '—'}</td>
+                    <td class="py-2 px-3 text-amber-500 font-medium break-all">${vals.current_value ?? '—'}</td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+
+            document.getElementById('conflict-table').innerHTML = html;
+            document.getElementById('modal-conflict').classList.remove('hidden');
+        }
+
+        async function forceRollback() {
+            closeConflictModal();
+            const btn = document.getElementById('btn-rollback');
+            btn.disabled = true;
+            btn.textContent = 'Rolling back...';
+
+            try {
+                const res = await fetch(`/audit/${currentLogId}/rollback`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        force: 1
+                    }),
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    btn.style.display = 'none';
+                    document.getElementById('rollback-status').innerHTML =
+                        '<span class="text-green-400">✓ Rollback berhasil (force)!</span>';
+                    const row = document.getElementById('row-' + currentLogId);
+                    if (row) row.classList.add('opacity-60');
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
                     alert(data.message || 'Rollback gagal.');
                     btn.disabled = false;
@@ -500,7 +697,7 @@
 
         function renderTimelineTab(data) {
             if (!data?.timeline?.length)
-            return '<p class="text-sm text-gray-400 text-center py-8">Tidak ada timeline untuk entry ini.</p>';
+                return '<p class="text-sm text-gray-400 text-center py-8">Tidak ada timeline untuk entry ini.</p>';
 
             let html = '<div class="relative pl-6">';
             html += '<div class="absolute left-2 top-0 bottom-0 w-px bg-gray-200 dark:bg-white/10"></div>';

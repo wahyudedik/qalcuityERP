@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\ActivityLog;
+use App\Services\GamificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +41,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Record login activity
+        ActivityLog::record('login', 'User ' . $user->name . ' login');
+        GamificationService::onLogin($user);
+
         // Admin wajib 2FA — paksa setup sebelum bisa akses apapun
         if ($user->isAdmin() && !$user->two_factor_enabled) {
             return redirect()->route('two-factor.setup')
@@ -58,6 +64,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Record logout before session is destroyed
+        if ($logoutUser = auth()->user()) {
+            ActivityLog::record('logout', 'User ' . $logoutUser->name . ' logout');
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

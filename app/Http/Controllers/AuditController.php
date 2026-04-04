@@ -45,8 +45,8 @@ class AuditController extends Controller
             ->count();
 
         $retentionDays = config('audit.retention_days', 365);
-        $totalLogs     = ActivityLog::where('tenant_id', $tenantId)->count();
-        $oldestLog     = ActivityLog::where('tenant_id', $tenantId)->oldest()->first()?->created_at;
+        $totalLogs = ActivityLog::where('tenant_id', $tenantId)->count();
+        $oldestLog = ActivityLog::where('tenant_id', $tenantId)->oldest()->first()?->created_at;
 
         return view('audit.index', compact(
             'logs',
@@ -84,31 +84,31 @@ class AuditController extends Controller
 
         return response()->json([
             'log' => [
-                'id'             => $activityLog->id,
-                'action'         => $activityLog->action,
-                'description'    => $activityLog->description,
-                'model_type'     => $activityLog->model_type ? class_basename($activityLog->model_type) : null,
-                'model_id'       => $activityLog->model_id,
-                'user_name'      => $activityLog->user?->name ?? 'System',
-                'user_role'      => $activityLog->user?->role,
-                'ip_address'     => $activityLog->ip_address,
-                'user_agent'     => $activityLog->user_agent,
-                'is_ai_action'   => $activityLog->is_ai_action,
-                'ai_tool_name'   => $activityLog->ai_tool_name,
-                'old_values'     => $activityLog->old_values,
-                'new_values'     => $activityLog->new_values,
+                'id' => $activityLog->id,
+                'action' => $activityLog->action,
+                'description' => $activityLog->description,
+                'model_type' => $activityLog->model_type ? class_basename($activityLog->model_type) : null,
+                'model_id' => $activityLog->model_id,
+                'user_name' => $activityLog->user?->name ?? 'System',
+                'user_role' => $activityLog->user?->role,
+                'ip_address' => $activityLog->ip_address,
+                'user_agent' => $activityLog->user_agent,
+                'is_ai_action' => $activityLog->is_ai_action,
+                'ai_tool_name' => $activityLog->ai_tool_name,
+                'old_values' => $activityLog->old_values,
+                'new_values' => $activityLog->new_values,
                 'is_rollbackable' => $activityLog->isRollbackable(),
                 'rolled_back_at' => $activityLog->rolled_back_at?->format('d/m/Y H:i'),
                 'rolled_back_by' => $activityLog->rolledBackByUser?->name,
-                'created_at'     => $activityLog->created_at->format('d/m/Y H:i:s'),
-                'ago'            => $activityLog->created_at->diffForHumans(),
+                'created_at' => $activityLog->created_at->format('d/m/Y H:i:s'),
+                'ago' => $activityLog->created_at->diffForHumans(),
             ],
             'timeline' => $timeline->map(fn($t) => [
-                'id'        => $t->id,
-                'action'    => $t->action,
+                'id' => $t->id,
+                'action' => $t->action,
                 'user_name' => $t->user?->name ?? 'System',
                 'created_at' => $t->created_at->format('d/m H:i'),
-                'has_diff'  => !empty($t->old_values) || !empty($t->new_values),
+                'has_diff' => !empty($t->old_values) || !empty($t->new_values),
                 'is_current' => $t->id === $activityLog->id,
             ]),
         ]);
@@ -119,8 +119,13 @@ class AuditController extends Controller
      */
     public function rollback(Request $request, ActivityLog $activityLog)
     {
-        $tenantId = auth()->user()->tenant_id;
-        abort_if($activityLog->tenant_id !== $tenantId, 403);
+        $user = auth()->user();
+        abort_if($activityLog->tenant_id !== $user->tenant_id, 403);
+
+        // Only admins and managers may roll back
+        if (!in_array($user->role, ['admin', 'manager', 'super_admin'])) {
+            return response()->json(['ok' => false, 'message' => 'Anda tidak memiliki izin untuk melakukan rollback.'], 403);
+        }
 
         if (!config('audit.rollback_enabled', true)) {
             return response()->json(['ok' => false, 'message' => 'Rollback dinonaktifkan oleh administrator.'], 403);
@@ -130,15 +135,29 @@ class AuditController extends Controller
             return response()->json(['ok' => false, 'message' => 'Entry ini tidak dapat di-rollback.'], 422);
         }
 
-        $success = $activityLog->rollback(auth()->id());
+        // Pass force=1 to skip conflict warning
+        $force = (bool) $request->input('force', false);
+        $result = $activityLog->rollback($user->id);
 
-        if (!$success) {
-            return response()->json(['ok' => false, 'message' => 'Rollback gagal. Model mungkin sudah dihapus.'], 422);
+        if (!$result['ok']) {
+            return response()->json(['ok' => false, 'message' => $result['message']], 422);
+        }
+
+        // If there were conflicts and caller didn't force, return a warning first
+        if (!empty($result['conflicts']) && !$force) {
+            return response()->json([
+                'ok' => false,
+                'conflict' => true,
+                'message' => 'Perhatian: field berikut telah diubah setelah log ini dicatat. Rollback tetap berhasil, tetapi perubahan terbaru telah ditimpa.',
+                'conflicts' => $result['conflicts'],
+                // Re-confirm token: client should call again with force=1
+            ], 409);
         }
 
         return response()->json([
-            'ok'      => true,
+            'ok' => true,
             'message' => 'Rollback berhasil. Perubahan telah dikembalikan.',
+            'conflicts' => $result['conflicts'],
         ]);
     }
 
@@ -175,6 +194,144 @@ class AuditController extends Controller
                         $log->ip_address ?? '-',
                         $log->is_ai_action ? 'Ya' : 'Tidak',
                         $log->rolled_back_at ? 'Ya (' . $log->rolled_back_at->format('d/m/Y') . ')' : 'Tidak',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    /**
+     * GET: Export compliance report as a SOX-style CSV.
+     *
+     * Covers the full audit trail for a given date range, grouped by user and module.
+     * Suitable for hand-off to an external auditor or compliance officer.
+     */
+    public function complianceReport(Request $request)
+    {
+        $request->validate([
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from',
+        ]);
+
+        $user = auth()->user();
+        $tenantId = $user->tenant_id;
+
+        // Only admins / managers may generate compliance reports
+        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+
+        $query = ActivityLog::where('tenant_id', $tenantId)
+            ->with(['user', 'rolledBackByUser'])
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo)
+            ->orderBy('created_at');
+
+        // Stats for report header
+        $totalCount = (clone $query)->count();
+        $aiCount = (clone $query)->where('is_ai_action', true)->count();
+        $rbCount = (clone $query)->whereNotNull('rolled_back_at')->count();
+        $uniqueUsers = (clone $query)->distinct()->pluck('user_id')->count();
+
+        $filename = 'compliance_report_' . $dateFrom . '_to_' . $dateTo . '_' . now()->format('His') . '.csv';
+
+        return response()->streamDownload(function () use ($query, $dateFrom, $dateTo, $totalCount, $aiCount, $rbCount, $uniqueUsers) {
+            $handle = fopen('php://output', 'w');
+
+            // ── Report header ──────────────────────────────────────────────
+            fputcsv($handle, ['QALCUITY ERP - AUDIT COMPLIANCE REPORT']);
+            fputcsv($handle, ['Generated', now()->format('Y-m-d H:i:s')]);
+            fputcsv($handle, ['Period', $dateFrom . ' to ' . $dateTo]);
+            fputcsv($handle, ['Total Events', $totalCount]);
+            fputcsv($handle, ['Unique Users', $uniqueUsers]);
+            fputcsv($handle, ['AI-Generated Actions', $aiCount]);
+            fputcsv($handle, ['Rolled-Back Events', $rbCount]);
+            fputcsv($handle, ['Standard', 'SOX / COSO Internal Control Framework']);
+            fputcsv($handle, []);
+
+            // ── Column headers ─────────────────────────────────────────────
+            fputcsv($handle, [
+                'Event #',
+                'Timestamp (UTC)',
+                'Date',
+                'Time',
+                'User ID',
+                'User Name',
+                'User Role',
+                'IP Address',
+                'Action Type',
+                'Module',
+                'Record ID',
+                'Description',
+                'Fields Changed',
+                'Old Values (JSON)',
+                'New Values (JSON)',
+                'AI Generated?',
+                'AI Tool',
+                'Rolled Back?',
+                'Rolled Back At',
+                'Rolled Back By',
+                'Integrity Hash',
+            ]);
+
+            $seq = 0;
+            $query->chunk(500, function ($logs) use ($handle, &$seq) {
+                foreach ($logs as $log) {
+                    $seq++;
+
+                    $oldJson = $log->old_values ? json_encode($log->old_values, JSON_UNESCAPED_UNICODE) : '';
+                    $newJson = $log->new_values ? json_encode($log->new_values, JSON_UNESCAPED_UNICODE) : '';
+
+                    // List changed field names
+                    $fieldsChanged = '';
+                    if ($log->old_values && $log->new_values) {
+                        $allKeys = array_unique(array_merge(array_keys($log->old_values), array_keys($log->new_values)));
+                        $changed = array_filter(
+                            $allKeys,
+                            fn($k) => (string) ($log->old_values[$k] ?? '') !== (string) ($log->new_values[$k] ?? '')
+                        );
+                        $fieldsChanged = implode(', ', $changed);
+                    }
+
+                    // Integrity hash: deterministic fingerprint for tamper detection
+                    $integrityHash = hash(
+                        'sha256',
+                        $log->id . '|' .
+                        $log->tenant_id . '|' .
+                        $log->user_id . '|' .
+                        $log->action . '|' .
+                        $log->created_at->toIso8601String() . '|' .
+                        $oldJson . '|' .
+                        $newJson
+                    );
+
+                    fputcsv($handle, [
+                        $seq,
+                        $log->created_at->toIso8601String(),
+                        $log->created_at->format('Y-m-d'),
+                        $log->created_at->format('H:i:s'),
+                        $log->user_id ?? 'system',
+                        $log->user?->name ?? 'System',
+                        $log->user?->role ?? '-',
+                        $log->ip_address ?? '-',
+                        $log->action,
+                        $log->model_type ? class_basename($log->model_type) : '-',
+                        $log->model_id ?? '-',
+                        $log->description,
+                        $fieldsChanged,
+                        $oldJson,
+                        $newJson,
+                        $log->is_ai_action ? 'YES' : 'NO',
+                        $log->ai_tool_name ?? '-',
+                        $log->rolled_back_at ? 'YES' : 'NO',
+                        $log->rolled_back_at?->format('Y-m-d H:i:s') ?? '-',
+                        $log->rolledBackByUser?->name ?? '-',
+                        $integrityHash,
                     ]);
                 }
             });

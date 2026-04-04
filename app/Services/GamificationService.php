@@ -14,20 +14,25 @@ use Illuminate\Support\Facades\Log;
 class GamificationService
 {
     /**
-     * Evaluate all achievements for a user after an activity
+     * Evaluate all achievements for a user after an activity.
+     * Uses two bulk queries instead of one query per achievement (N+1 fix).
      */
     public static function evaluateAchievements(User $user, string $modelType, string $action): void
     {
         try {
             $achievements = Achievement::all();
 
-            foreach ($achievements as $achievement) {
-                // Skip if already earned
-                $existing = UserAchievement::where('user_id', $user->id)
-                    ->where('achievement_id', $achievement->id)
-                    ->first();
+            // One query to load all existing progress rows for this user
+            $existingMap = UserAchievement::where('user_id', $user->id)
+                ->get()
+                ->keyBy('achievement_id');
 
-                if ($existing && $existing->isEarned()) continue;
+            foreach ($achievements as $achievement) {
+                $existing = $existingMap->get($achievement->id);
+
+                // Skip if already earned
+                if ($existing && $existing->isEarned())
+                    continue;
 
                 $progress = self::calculateProgress($user, $achievement, $modelType, $action);
 
@@ -47,9 +52,9 @@ class GamificationService
     private static function calculateProgress(User $user, Achievement $achievement, string $modelType, string $action): int
     {
         return match ($achievement->requirement_type) {
-            'count'  => self::checkCountProgress($user, $achievement, $modelType),
+            'count' => self::checkCountProgress($user, $achievement, $modelType),
             'streak' => self::checkStreakProgress($user, $achievement),
-            default  => 0,
+            default => 0,
         };
     }
 
@@ -69,7 +74,8 @@ class GamificationService
         // For model-based achievements
         if ($achievement->requirement_model) {
             $modelClass = $achievement->requirement_model;
-            if (!class_exists($modelClass)) return 0;
+            if (!class_exists($modelClass))
+                return 0;
 
             $query = $modelClass::query();
 
@@ -105,30 +111,31 @@ class GamificationService
     }
 
     /**
-     * Calculate consecutive login days
+     * Calculate consecutive login days.
+     * One grouped-by-date query instead of up to 60 individual EXISTS queries.
      */
     private static function calculateLoginStreak(User $user): int
     {
-        $streak = 0;
-        $date   = now()->startOfDay();
-
-        // Check if user had activity today
-        $hasToday = ActivityLog::where('user_id', $user->id)
+        // Fetch distinct activity dates for the last 60 days in a single query
+        $dates = ActivityLog::where('user_id', $user->id)
             ->where('tenant_id', $user->tenant_id)
-            ->whereDate('created_at', $date)
-            ->exists();
+            ->where('created_at', '>=', now()->subDays(60)->startOfDay())
+            ->selectRaw('DATE(created_at) as activity_date')
+            ->distinct()
+            ->orderByDesc('activity_date')
+            ->pluck('activity_date')
+            ->map(fn($d) => \Carbon\Carbon::parse($d)->startOfDay())
+            ->values()
+            ->all();
 
-        if (!$hasToday) return 0;
+        if (empty($dates) || !\Carbon\Carbon::instance($dates[0])->isToday()) {
+            return 0;
+        }
 
-        // Count backwards (max 60 days)
-        for ($i = 0; $i < 60; $i++) {
-            $checkDate   = $date->copy()->subDays($i);
-            $hasActivity = ActivityLog::where('user_id', $user->id)
-                ->where('tenant_id', $user->tenant_id)
-                ->whereDate('created_at', $checkDate)
-                ->exists();
-
-            if ($hasActivity) {
+        $streak = 1;
+        for ($i = 1; $i < count($dates); $i++) {
+            $expected = \Carbon\Carbon::instance($dates[$i - 1])->subDay()->startOfDay();
+            if (\Carbon\Carbon::instance($dates[$i])->equalTo($expected)) {
                 $streak++;
             } else {
                 break;
@@ -162,9 +169,9 @@ class GamificationService
     private static function updateProgress(User $user, Achievement $achievement, int $progress, ?UserAchievement $existing): void
     {
         $userAchievement = $existing ?? UserAchievement::create([
-            'tenant_id'        => $user->tenant_id,
-            'user_id'          => $user->id,
-            'achievement_id'   => $achievement->id,
+            'tenant_id' => $user->tenant_id,
+            'user_id' => $user->id,
+            'achievement_id' => $achievement->id,
             'current_progress' => 0,
         ]);
 
@@ -191,11 +198,11 @@ class GamificationService
         try {
             ErpNotification::create([
                 'tenant_id' => $user->tenant_id,
-                'user_id'   => $user->id,
-                'type'      => 'achievement_unlocked',
-                'module'    => 'gamification',
-                'title'     => "Achievement Unlocked: {$achievement->icon} {$achievement->name}",
-                'body'      => $achievement->description . " (+{$achievement->points} poin)",
+                'user_id' => $user->id,
+                'type' => 'achievement_unlocked',
+                'module' => 'gamification',
+                'title' => "Achievement Unlocked: {$achievement->icon} {$achievement->name}",
+                'body' => $achievement->description . " (+{$achievement->points} poin)",
             ]);
         } catch (\Throwable $e) {
             // Notification failure should not break the flow
@@ -210,9 +217,9 @@ class GamificationService
         DB::transaction(function () use ($user, $points, $reason) {
             UserPointsLog::create([
                 'tenant_id' => $user->tenant_id,
-                'user_id'   => $user->id,
-                'points'    => $points,
-                'reason'    => $reason,
+                'user_id' => $user->id,
+                'points' => $points,
+                'reason' => $reason,
             ]);
 
             $user->increment('gamification_points', $points);
@@ -243,6 +250,48 @@ class GamificationService
     }
 
     /**
+     * Get recent points log for a user (for points history page)
+     */
+    public static function getPointsHistory(User $user, int $limit = 30): \Illuminate\Support\Collection
+    {
+        return UserPointsLog::where('user_id', $user->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Trigger streak-based achievement check on login event.
+     * Called from auth controllers after a successful login.
+     */
+    public static function onLogin(User $user): void
+    {
+        try {
+            $existingMap = UserAchievement::where('user_id', $user->id)
+                ->get()
+                ->keyBy('achievement_id');
+
+            $streakAchievements = Achievement::where('requirement_type', 'streak')
+                ->where('requirement_action', 'daily_login')
+                ->get();
+
+            $streak = self::calculateLoginStreak($user);
+
+            foreach ($streakAchievements as $achievement) {
+                $existing = $existingMap->get($achievement->id);
+                if ($existing && $existing->isEarned())
+                    continue;
+                if ($streak > 0) {
+                    self::updateProgress($user, $achievement, $streak, $existing);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Gamification onLogin failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get user gamification stats
      */
     public static function getUserStats(User $user): array
@@ -263,22 +312,22 @@ class GamificationService
             ->where('gamification_points', '>', 0)
             ->count();
 
-        $currentLevel         = self::calculateLevel($user->gamification_points);
+        $currentLevel = self::calculateLevel($user->gamification_points);
         $pointsForCurrentLevel = ($currentLevel - 1) * 100;
-        $progressToNext       = $user->gamification_points - $pointsForCurrentLevel;
-        $pointsNeeded         = 100; // always 100 per level
+        $progressToNext = $user->gamification_points - $pointsForCurrentLevel;
+        $pointsNeeded = 100; // always 100 per level
 
         return [
-            'total_points'            => $user->gamification_points,
-            'level'                   => $currentLevel,
-            'rank'                    => $rank,
-            'total_users'             => max(1, $totalUsers),
-            'earned_achievements'     => $earnedAchievements,
-            'total_achievements'      => $totalAchievements,
-            'progress_to_next_level'  => $progressToNext,
-            'points_needed_for_next'  => $pointsNeeded,
-            'progress_percent'        => min(100, (int) round(($progressToNext / $pointsNeeded) * 100)),
-            'recent_achievements'     => UserAchievement::where('user_id', $user->id)
+            'total_points' => $user->gamification_points,
+            'level' => $currentLevel,
+            'rank' => $rank,
+            'total_users' => max(1, $totalUsers),
+            'earned_achievements' => $earnedAchievements,
+            'total_achievements' => $totalAchievements,
+            'progress_to_next_level' => $progressToNext,
+            'points_needed_for_next' => $pointsNeeded,
+            'progress_percent' => min(100, (int) round(($progressToNext / $pointsNeeded) * 100)),
+            'recent_achievements' => UserAchievement::where('user_id', $user->id)
                 ->whereNotNull('earned_at')
                 ->with('achievement')
                 ->latest('earned_at')

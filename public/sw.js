@@ -6,7 +6,7 @@
 //   Module data (JSON reads)     → Stale-while-revalidate
 //   Offline mutations            → Queue in IndexedDB, sync when online
 
-const SW_VERSION = 'qalcuity-v4';
+const SW_VERSION = 'qalcuity-v5';
 const STATIC_CACHE = SW_VERSION + '-static';
 const PAGE_CACHE = SW_VERSION + '-pages';
 const DATA_CACHE = SW_VERSION + '-data';
@@ -17,6 +17,14 @@ const PRECACHE_STATIC = [
     '/offline',
     '/favicon.png',
     '/logo.png',
+];
+
+// ─── Mobile/Field-mode pages that get extra aggressive caching ─────────────────
+const MOBILE_PAGES = [
+    '/mobile',
+    '/mobile/picking',
+    '/mobile/opname',
+    '/mobile/farm-activity',
 ];
 
 self.addEventListener('install', event => {
@@ -49,6 +57,7 @@ const MODULE_PAGES = [
     '/budget', '/accounting', '/bank-accounts', '/receivables',
     '/projects', '/contracts', '/crm', '/helpdesk', '/pos',
     '/reports', '/fleet', '/manufacturing', '/production',
+    '/mobile',
 ];
 
 // ─── Fetch handler ────────────────────────────────────────────────────────────
@@ -87,6 +96,11 @@ self.addEventListener('fetch', event => {
     }
 
     // HTML pages → Network-first with module-aware caching
+    // Mobile pages use stale-while-revalidate for resilient offline access
+    if (MOBILE_PAGES.some(p => url.pathname === p || url.pathname.startsWith(p + '/'))) {
+        event.respondWith(networkFirstPage(request, true));
+        return;
+    }
     event.respondWith(networkFirstPage(request));
 });
 
@@ -140,8 +154,26 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 // ─── Network-first (HTML pages) ──────────────────────────────────────────────
-async function networkFirstPage(request) {
+async function networkFirstPage(request, mobilePriority = false) {
     const cache = await caches.open(PAGE_CACHE);
+
+    // Mobile-priority: race network vs cache — return whichever wins first
+    if (mobilePriority) {
+        const cached = await cache.match(request);
+        try {
+            const response = await fetch(request);
+            if (response.ok && response.headers.get('Content-Type')?.includes('text/html')) {
+                cache.put(request, response.clone()); // update cache in background
+            }
+            return response;
+        } catch {
+            if (cached) return cached;
+            const offlinePage = await caches.match(OFFLINE_URL);
+            return offlinePage || new Response('<h1>Offline — Mode Lapangan</h1><p>Buka halaman ini saat online untuk menyimpan ke cache.</p>', {
+                headers: { 'Content-Type': 'text/html' },
+            });
+        }
+    }
 
     try {
         const response = await fetch(request);

@@ -21,42 +21,43 @@ class ProcessChatMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 2;
+    public int $tries = 2;
     public int $timeout = 60;
 
     public function __construct(
-        public readonly int    $userId,
-        public readonly int    $sessionId,
+        public readonly int $userId,
+        public readonly int $sessionId,
         public readonly string $message,
         public readonly string $cacheKey,  // untuk push hasil ke polling
-    ) {}
+    ) {
+    }
 
     public function handle(
-        GeminiService      $gemini,
+        GeminiService $gemini,
         ChatSessionManager $sessionManager,
-        GeminiWriteValidator $validator,
     ): void {
-        $user    = User::find($this->userId);
+        $user = User::find($this->userId);
         $session = ChatSession::find($this->sessionId);
 
-        if (!$user || !$session) return;
+        if (!$user || !$session)
+            return;
 
         $tenantId = $user->tenant_id;
-        $history  = $sessionManager->getHistory($session);
+        $history = $sessionManager->getHistory($session);
 
         try {
             if (!$tenantId) {
                 $response = $gemini->chat($this->message, $history);
-                $text     = $response['text'] ?: 'Maaf, tidak ada respons.';
+                $text = $response['text'] ?: 'Maaf, tidak ada respons.';
                 $sessionManager->saveModelMessage($session, $text, $response['model']);
                 $this->pushResult($text, $response['model'], [], $session);
                 return;
             }
 
             $registry = new ToolRegistry($tenantId, $user->id);
-            $context  = $this->buildContext($user);
+            $context = $this->buildContext($user);
 
-            $response      = $gemini->chatWithTools($context, $history, $registry->getDeclarations());
+            $response = $gemini->chatWithTools($context, $history, $registry->getDeclarations());
             $functionCalls = $response['function_calls'] ?? [];
 
             if (empty($functionCalls)) {
@@ -71,16 +72,23 @@ class ProcessChatMessage implements ShouldQueue
             $executedActions = [];
 
             foreach ($functionCalls as $call) {
-                if ($registry->isWriteOperation($call['name'])) {
-                    if (!$validator->validate($call['name'], $call['args'])) continue;
+                // Validation is now handled inside ToolRegistry::execute()
+                $result = $registry->execute($call['name'], $call['args']);
+
+                // Skip failed validations
+                if (($result['status'] ?? '') === 'error') {
+                    continue;
                 }
-                $result            = $registry->execute($call['name'], $call['args']);
+
                 $functionResults[] = ['name' => $call['name'], 'data' => $result];
                 $executedActions[] = ['tool' => $call['name'], 'args' => $call['args'], 'result' => $result];
             }
 
             $finalResponse = $gemini->sendFunctionResults(
-                $this->message, $history, $registry->getDeclarations(), $functionResults
+                $this->message,
+                $history,
+                $registry->getDeclarations(),
+                $functionResults
             );
 
             $finalText = $finalResponse['text'] ?: 'Permintaan telah diproses.';
@@ -97,17 +105,17 @@ class ProcessChatMessage implements ShouldQueue
     private function buildContext(User $user): string
     {
         $tenant = $user->tenant;
-        $ctx    = "[KONTEKS: Pengguna \"{$user->name}\" (role: {$user->role}), perusahaan \"{$tenant?->name}\"]\n\n";
+        $ctx = "[KONTEKS: Pengguna \"{$user->name}\" (role: {$user->role}), perusahaan \"{$tenant?->name}\"]\n\n";
         return $ctx . $this->message;
     }
 
     private function pushResult(string $text, string $model, array $actions, ChatSession $session): void
     {
         Cache::put($this->cacheKey, [
-            'message'       => $text,
-            'model'         => $model,
-            'actions'       => $actions,
-            'session_id'    => $session->id,
+            'message' => $text,
+            'model' => $model,
+            'actions' => $actions,
+            'session_id' => $session->id,
             'session_title' => $session->fresh()->title,
         ], 120); // TTL 2 menit
     }

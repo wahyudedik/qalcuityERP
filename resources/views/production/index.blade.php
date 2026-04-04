@@ -132,6 +132,15 @@
                                         <button onclick="openOutputModal('{{ $wo->id }}','{{ $wo->number }}')"
                                             class="text-xs px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700">Output</button>
                                         @if ($wo->bom_id && !$wo->materials_consumed)
+                                            <a href="{{ route('manufacturing.work-orders.scan-materials', $wo) }}"
+                                                class="text-xs px-2 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-flex items-center gap-1 mb-1">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                Scan & Consume
+                                            </a>
                                             <form method="POST"
                                                 action="{{ url('manufacturing') }}/{{ $wo->id }}/consume"
                                                 class="inline"
@@ -171,7 +180,8 @@
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Produk *</label>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Produk
+                            *</label>
                         <select name="product_id" required
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Produk --</option>

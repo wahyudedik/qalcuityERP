@@ -85,4 +85,19 @@ class GamificationController extends Controller
             ->with('earnedIds', [])
             ->with('showLeaderboardOnly', true);
     }
+
+    public function pointsHistory(Request $request)
+    {
+        $user = $request->user();
+        $stats = GamificationService::getUserStats($user);
+        $points = GamificationService::getPointsHistory($user, 50);
+
+        return view('gamification.index', compact('stats', 'user', 'points'))
+            ->with('leaderboard', collect())
+            ->with('achievements', collect())
+            ->with('grouped', collect())
+            ->with('userAchievements', [])
+            ->with('earnedIds', [])
+            ->with('showPointsHistory', true);
+    }
 }

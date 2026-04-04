@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\AiUsageLog;
 use App\Models\AnomalyAlert;
 use App\Models\Customer;
+use App\Models\CustomDashboardWidget;
+use App\Models\EcommerceOrder;
 use App\Models\Employee;
+use App\Models\PopupAd;
 use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
@@ -24,7 +27,12 @@ class DashboardController extends Controller
         $user = $request->user();
 
         if ($user->isSuperAdmin()) {
-            return view('dashboard.super_admin', $this->superAdminStats());
+            try {
+                return view('dashboard.super_admin', $this->superAdminStats());
+            } catch (\Throwable $e) {
+                \Log::error("Super admin dashboard failed: " . $e->getMessage());
+                return view('dashboard.super_admin', []);
+            }
         }
 
         $tenantId = $user->tenant_id;
@@ -38,61 +46,124 @@ class DashboardController extends Controller
         $config = UserDashboardConfig::where('user_id', $user->id)->first();
         $userWidgets = $config?->widgets ?? DashboardWidgetService::defaultsForRole($user->role);
 
-        $registry       = DashboardWidgetService::registry();
-        $availableKeys  = array_keys(DashboardWidgetService::availableForRole($user->role));
+        $registry = DashboardWidgetService::registryForTenant($tenantId, $user->role);
+        $availableKeys = array_keys(DashboardWidgetService::availableForRoleAndTenant($tenantId, $user->role));
         $requiredGroups = DashboardWidgetService::requiredDataGroups($userWidgets);
 
         // ── Load only required data groups ──────────────────────────
         $dataGroups = [];
-        if (in_array('sales', $requiredGroups))     $dataGroups['sales']     = $this->salesStats($tenantId);
-        if (in_array('inventory', $requiredGroups))  $dataGroups['inventory'] = $this->inventoryStats($tenantId);
-        if (in_array('finance', $requiredGroups))    $dataGroups['finance']   = $this->financeStats($tenantId);
-        if (in_array('hrm', $requiredGroups))        $dataGroups['hrm']       = $this->hrmStats($tenantId);
-        if (in_array('pos', $requiredGroups))        $dataGroups['pos']       = $this->posStats($tenantId);
+        if (in_array('sales', $requiredGroups))
+            $dataGroups['sales'] = $this->salesStats($tenantId);
+        if (in_array('inventory', $requiredGroups))
+            $dataGroups['inventory'] = $this->inventoryStats($tenantId);
+        if (in_array('finance', $requiredGroups))
+            $dataGroups['finance'] = $this->financeStats($tenantId);
+        if (in_array('hrm', $requiredGroups))
+            $dataGroups['hrm'] = $this->hrmStats($tenantId);
+        if (in_array('pos', $requiredGroups))
+            $dataGroups['pos'] = $this->posStats($tenantId);
 
         if (in_array('insights', $requiredGroups)) {
             $dataGroups['insights'] = [
                 'insights' => cache()->remember("ai_insights_{$tenantId}", now()->addHour(), function () use ($tenantId) {
-                    return app(AiInsightService::class)->analyze($tenantId);
+                    try {
+                        return app(AiInsightService::class)->analyze($tenantId);
+                    } catch (\Throwable $e) {
+                        \Log::warning("Dashboard insights failed: " . $e->getMessage());
+                        return [];
+                    }
                 }),
             ];
         }
 
         if (in_array('anomalies', $requiredGroups)) {
-            $dataGroups['anomalies'] = [
-                'openAnomalies' => AnomalyAlert::where('tenant_id', $tenantId)
-                    ->where('status', 'open')
-                    ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
-                    ->latest()
-                    ->limit(5)
-                    ->get(),
-            ];
+            try {
+                $dataGroups['anomalies'] = [
+                    'openAnomalies' => AnomalyAlert::where('tenant_id', $tenantId)
+                        ->where('status', 'open')
+                        ->orderByRaw("FIELD(severity, 'critical', 'warning', 'info')")
+                        ->latest()
+                        ->limit(5)
+                        ->get(),
+                ];
+            } catch (\Throwable $e) {
+                \Log::warning("Dashboard anomalies failed: " . $e->getMessage());
+                $dataGroups['anomalies'] = ['openAnomalies' => collect()];
+            }
+        }
+
+        if (in_array('ecommerce', $requiredGroups)) {
+            try {
+                $dataGroups['ecommerce'] = $this->ecommerceStats($tenantId);
+            } catch (\Throwable $e) {
+                \Log::warning("Dashboard ecommerce stats failed: " . $e->getMessage());
+                $dataGroups['ecommerce'] = [];
+            }
         }
 
         if (in_array('gamification', $requiredGroups)) {
-            $dataGroups['gamification'] = \App\Services\GamificationService::getUserStats($user);
+            try {
+                $dataGroups['gamification'] = \App\Services\GamificationService::getUserStats($user);
+            } catch (\Throwable $e) {
+                \Log::warning("Dashboard gamification stats failed: " . $e->getMessage());
+                $dataGroups['gamification'] = [];
+            }
+        }
+
+        if (in_array('custom', $requiredGroups)) {
+            // Evaluate each visible custom widget individually
+            $customData = [];
+            foreach ($userWidgets as $w) {
+                if (!($w['visible'] ?? false))
+                    continue;
+                $key = $w['key'];
+                if (!str_starts_with($key, 'custom_'))
+                    continue;
+                $id = (int) substr($key, 7);
+                $cw = CustomDashboardWidget::find($id);
+                if ($cw && $cw->tenant_id === $tenantId) {
+                    $value = $cw->evaluate($tenantId);
+                    $customData[$key] = [
+                        'value' => $value,
+                        'display' => $cw->formatValue($value),
+                        'title' => $cw->title,
+                        'subtitle' => $cw->subtitle,
+                        'custom_id' => $id,
+                    ];
+                }
+            }
+            $dataGroups['custom'] = $customData;
         }
 
         // ── Map data to each widget ─────────────────────────────────
         $widgetData = [];
         foreach ($userWidgets as $w) {
-            $key   = $w['key'];
-            $meta  = $registry[$key] ?? null;
-            if (!$meta) continue;
+            $key = $w['key'];
+            $meta = $registry[$key] ?? null;
+            if (!$meta)
+                continue;
 
             $group = $meta['data_group'];
             if ($group === 'all') {
                 $widgetData[$key] = $dataGroups;
+            } elseif ($group === 'custom') {
+                $widgetData[$key] = $dataGroups['custom'][$key] ?? [];
             } else {
                 $widgetData[$key] = $dataGroups[$group] ?? [];
             }
         }
 
         return view('dashboard.tenant', [
-            'userWidgets'   => $userWidgets,
-            'widgetData'    => $widgetData,
-            'registry'      => $registry,
+            'userWidgets' => $userWidgets,
+            'widgetData' => $widgetData,
+            'registry' => $registry,
             'availableKeys' => $availableKeys,
+            'customWidgets' => CustomDashboardWidget::where('tenant_id', $tenantId)->get(),
+            'popupAd' => PopupAd::where('is_active', true)
+                ->where(fn($q) => $q->whereNull('starts_at')->orWhereDate('starts_at', '<=', today()))
+                ->where(fn($q) => $q->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
+                ->get()
+                ->first(fn($ad) => $ad->shouldShowTo($user)),
         ]);
     }
 
@@ -118,15 +189,15 @@ class DashboardController extends Controller
             ->limit(5)
             ->get(['id', 'type', 'severity', 'title', 'description', 'created_at'])
             ->map(fn($a) => [
-                'id'          => $a->id,
-                'severity'    => $a->severity,
-                'title'       => $a->title,
+                'id' => $a->id,
+                'severity' => $a->severity,
+                'title' => $a->title,
                 'description' => $a->description,
-                'age'         => $a->created_at->diffForHumans(),
+                'age' => $a->created_at->diffForHumans(),
             ]);
 
         return response()->json([
-            'insights'  => array_slice($insights, 0, 6),
+            'insights' => array_slice($insights, 0, 6),
             'anomalies' => $anomalies,
             'updated_at' => now()->format('H:i'),
         ]);
@@ -140,7 +211,7 @@ class DashboardController extends Controller
         abort_if($anomaly->tenant_id !== $request->user()->tenant_id, 403);
 
         $anomaly->update([
-            'status'          => 'acknowledged',
+            'status' => 'acknowledged',
             'acknowledged_by' => auth()->id(),
             'acknowledged_at' => now(),
         ]);
@@ -152,9 +223,9 @@ class DashboardController extends Controller
 
     private function superAdminStats(): array
     {
-        $totalTenants  = Tenant::count();
+        $totalTenants = Tenant::count();
         $activeTenants = Tenant::where('is_active', true)->get();
-        $trialTenants  = Tenant::where('plan', 'trial')->count();
+        $trialTenants = Tenant::where('plan', 'trial')->count();
         $expiredTenants = Tenant::where('is_active', true)
             ->where(
                 fn($q) => $q
@@ -179,7 +250,7 @@ class DashboardController extends Controller
             ->sum('subscription_plans.price_monthly');
 
         // Tenants expiring in 7 / 14 / 30 days (trial or paid)
-        $expiringIn7  = Tenant::where('is_active', true)->where(
+        $expiringIn7 = Tenant::where('is_active', true)->where(
             fn($q) => $q
                 ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(7)]))
                 ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(7)]))
@@ -275,17 +346,17 @@ class DashboardController extends Controller
             $d = now()->subDays($i);
             $key = $d->format('Y-m-d');
             $chartData[] = [
-                'date'  => $d->format('d M'),
+                'date' => $d->format('d M'),
                 'total' => (float) ($dailySales[$key] ?? 0),
             ];
         }
 
         return [
             'this_month_revenue' => $thisRevenue,
-            'this_month_orders'  => $thisMonth->count(),
-            'growth_percent'     => round($growth, 1),
-            'pending_orders'     => SalesOrder::where('tenant_id', $tenantId)->whereIn('status', ['pending', 'confirmed'])->count(),
-            'chart'              => $chartData,
+            'this_month_orders' => $thisMonth->count(),
+            'growth_percent' => round($growth, 1),
+            'pending_orders' => SalesOrder::where('tenant_id', $tenantId)->whereIn('status', ['pending', 'confirmed'])->count(),
+            'chart' => $chartData,
         ];
     }
 
@@ -310,17 +381,17 @@ class DashboardController extends Controller
             ->count();
 
         return [
-            'total_products'   => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
+            'total_products' => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
             'total_warehouses' => \App\Models\Warehouse::where('tenant_id', $tenantId)->count(),
-            'low_stock_count'  => $lowStock->count(),
-            'low_stock_items'  => $lowStock,
-            'expiring_soon'    => $expiringCount,
+            'low_stock_count' => $lowStock->count(),
+            'low_stock_items' => $lowStock,
+            'expiring_soon' => $expiringCount,
         ];
     }
 
     private function financeStats(int $tenantId): array
     {
-        $income  = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
+        $income = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
             ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
         $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
             ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
@@ -336,12 +407,12 @@ class DashboardController extends Controller
 
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
-            $d  = now()->subMonths($i);
+            $d = now()->subMonths($i);
             $ym = $d->format('Y-m');
             $group = $monthlyTx[$ym] ?? collect();
             $chartData[] = [
-                'month'   => $d->format('M Y'),
-                'income'  => (float) $group->where('type', 'income')->sum('total'),
+                'month' => $d->format('M Y'),
+                'income' => (float) $group->where('type', 'income')->sum('total'),
                 'expense' => (float) $group->where('type', 'expense')->sum('total'),
             ];
         }
@@ -363,13 +434,13 @@ class DashboardController extends Controller
             ->count();
 
         return [
-            'income'           => $income,
-            'expense'          => $expense,
-            'profit'           => $income - $expense,
-            'pending_po'       => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
+            'income' => $income,
+            'expense' => $expense,
+            'profit' => $income - $expense,
+            'pending_po' => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
             'overdue_invoices' => $overdueInvoices,
-            'top_expenses'     => $topExpenses,
-            'chart'            => $chartData,
+            'top_expenses' => $topExpenses,
+            'chart' => $chartData,
         ];
     }
 
@@ -377,11 +448,42 @@ class DashboardController extends Controller
     {
         return [
             'total_employees' => Employee::where('tenant_id', $tenantId)->where('status', 'active')->count(),
-            'present_today'   => \App\Models\Attendance::where('tenant_id', $tenantId)
+            'present_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
                 ->whereDate('date', today())->where('status', 'present')->count(),
-            'absent_today'    => \App\Models\Attendance::where('tenant_id', $tenantId)
+            'absent_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
                 ->whereDate('date', today())->where('status', 'absent')->count(),
             'total_customers' => Customer::where('tenant_id', $tenantId)->where('is_active', true)->count(),
+        ];
+    }
+
+    private function ecommerceStats(int $tenantId): array
+    {
+        $thisMonth = EcommerceOrder::where('tenant_id', $tenantId)
+            ->whereNotIn('status', ['cancelled'])
+            ->whereMonth('ordered_at', now()->month)
+            ->whereYear('ordered_at', now()->year);
+
+        $lastMonth = EcommerceOrder::where('tenant_id', $tenantId)
+            ->whereNotIn('status', ['cancelled'])
+            ->whereMonth('ordered_at', now()->subMonth()->month)
+            ->whereYear('ordered_at', now()->subMonth()->year);
+
+        $thisCount = $thisMonth->count();
+        $lastCount = $lastMonth->count();
+        $thisRevenue = $thisMonth->sum('total');
+        $pending = EcommerceOrder::where('tenant_id', $tenantId)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->count();
+
+        $growth = $lastCount > 0
+            ? round((($thisCount - $lastCount) / $lastCount) * 100, 1)
+            : ($thisCount > 0 ? 100 : 0);
+
+        return [
+            'this_month_orders' => $thisCount,
+            'this_month_revenue' => $thisRevenue,
+            'pending_orders' => $pending,
+            'growth_percent' => $growth,
         ];
     }
 
@@ -395,11 +497,11 @@ class DashboardController extends Controller
             ->first();
 
         $revenue = (float) $stats->revenue;
-        $count   = (int) $stats->cnt;
+        $count = (int) $stats->cnt;
 
         return [
-            'revenue'    => $revenue,
-            'count'      => $count,
+            'revenue' => $revenue,
+            'count' => $count,
             'avg_ticket' => $count > 0 ? round($revenue / $count) : 0,
         ];
     }
@@ -409,13 +511,13 @@ class DashboardController extends Controller
     public function saveWidgets(Request $request)
     {
         $request->validate([
-            'widgets'          => 'required|array',
-            'widgets.*.key'    => 'required|string',
-            'widgets.*.order'  => 'required|integer|min:0',
+            'widgets' => 'required|array',
+            'widgets.*.key' => 'required|string',
+            'widgets.*.order' => 'required|integer|min:0',
             'widgets.*.visible' => 'required|boolean',
         ]);
 
-        $user      = $request->user();
+        $user = $request->user();
         $available = array_keys(DashboardWidgetService::availableForRole($user->role));
 
         // Only keep widgets the user's role can see
@@ -440,8 +542,194 @@ class DashboardController extends Controller
         UserDashboardConfig::where('user_id', $user->id)->delete();
 
         return response()->json([
-            'ok'      => true,
+            'ok' => true,
             'widgets' => DashboardWidgetService::defaultsForRole($user->role),
+        ]);
+    }
+
+    // ─── Custom Widget Builder ────────────────────────────────────
+
+    /**
+     * GET: List all custom widgets for the current tenant.
+     */
+    public function customWidgetsList(Request $request)
+    {
+        $tenantId = $request->user()->tenant_id;
+        $widgets = CustomDashboardWidget::where('tenant_id', $tenantId)
+            ->with('creator')
+            ->latest()
+            ->get()
+            ->map(fn($w) => [
+                'id' => $w->id,
+                'key' => $w->registryKey(),
+                'title' => $w->title,
+                'subtitle' => $w->subtitle,
+                'metric_type' => $w->metric_type,
+                'model_class' => $w->model_class,
+                'cols' => $w->cols,
+                'icon_bg' => $w->icon_bg,
+                'icon_color' => $w->icon_color,
+                'created_by' => $w->creator?->name,
+            ]);
+
+        return response()->json(['ok' => true, 'widgets' => $widgets]);
+    }
+
+    /**
+     * GET: Return a single custom widget as JSON (used by builder edit form).
+     */
+    public function customWidgetShow(Request $request, CustomDashboardWidget $customWidget)
+    {
+        abort_if($customWidget->tenant_id !== $request->user()->tenant_id, 403);
+
+        return response()->json([
+            'id' => $customWidget->id,
+            'title' => $customWidget->title,
+            'subtitle' => $customWidget->subtitle,
+            'metric_type' => $customWidget->metric_type,
+            'model_class' => $customWidget->model_class,
+            'metric_column' => $customWidget->metric_type !== 'static' ? $customWidget->metric_column : null,
+            'static_value' => $customWidget->metric_type === 'static' ? $customWidget->metric_column : null,
+            'date_scope' => $customWidget->date_scope,
+            'value_format' => $customWidget->value_format,
+            'cols' => $customWidget->cols,
+            'icon_bg' => $customWidget->icon_bg,
+            'icon_color' => $customWidget->icon_color,
+        ]);
+    }
+
+    /**
+     * POST: Create a new custom widget.
+     */
+    public function customWidgetStore(Request $request)
+    {
+        $user = $request->user();
+        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:60',
+            'subtitle' => 'nullable|string|max:100',
+            'icon_bg' => 'nullable|string|max:50',
+            'icon_color' => 'nullable|string|max:50',
+            'cols' => 'nullable|integer|in:1,2,4',
+            'metric_type' => 'required|in:count,sum,avg,static',
+            'model_class' => 'nullable|string|max:50',
+            'metric_column' => 'nullable|string|max:50',
+            'static_value' => 'nullable|numeric',
+            'where_conditions' => 'nullable|array',
+            'date_scope' => 'nullable|in:today,this_month,this_year,all_time',
+            'date_column' => 'nullable|string|max:50',
+            'value_prefix' => 'nullable|string|max:20',
+            'value_suffix' => 'nullable|string|max:20',
+            'value_format' => 'nullable|in:number,currency,percent',
+            'visible_to_roles' => 'nullable|array',
+        ]);
+
+        // For static widgets, store the static value in metric_column
+        if (($data['metric_type'] ?? '') === 'static' && isset($data['static_value'])) {
+            $data['metric_column'] = (string) $data['static_value'];
+        }
+        unset($data['static_value']);
+
+        $widget = CustomDashboardWidget::create(array_merge($data, [
+            'tenant_id' => $user->tenant_id,
+            'created_by' => $user->id,
+        ]));
+
+        return response()->json([
+            'ok' => true,
+            'key' => $widget->registryKey(),
+            'id' => $widget->id,
+        ]);
+    }
+
+    /**
+     * PUT: Update an existing custom widget.
+     */
+    public function customWidgetUpdate(Request $request, CustomDashboardWidget $customWidget)
+    {
+        $user = $request->user();
+        abort_if($customWidget->tenant_id !== $user->tenant_id, 403);
+        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:60',
+            'subtitle' => 'nullable|string|max:100',
+            'icon_bg' => 'nullable|string|max:50',
+            'icon_color' => 'nullable|string|max:50',
+            'cols' => 'nullable|integer|in:1,2,4',
+            'metric_type' => 'required|in:count,sum,avg,static',
+            'model_class' => 'nullable|string|max:50',
+            'metric_column' => 'nullable|string|max:50',
+            'static_value' => 'nullable|numeric',
+            'where_conditions' => 'nullable|array',
+            'date_scope' => 'nullable|in:today,this_month,this_year,all_time',
+            'date_column' => 'nullable|string|max:50',
+            'value_prefix' => 'nullable|string|max:20',
+            'value_suffix' => 'nullable|string|max:20',
+            'value_format' => 'nullable|in:number,currency,percent',
+            'visible_to_roles' => 'nullable|array',
+        ]);
+
+        // For static widgets, store the static value in metric_column
+        if (($data['metric_type'] ?? '') === 'static' && isset($data['static_value'])) {
+            $data['metric_column'] = (string) $data['static_value'];
+        }
+        unset($data['static_value']);
+
+        $customWidget->update($data);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * DELETE: Remove a custom widget.
+     */
+    public function customWidgetDelete(Request $request, CustomDashboardWidget $customWidget)
+    {
+        $user = $request->user();
+        abort_if($customWidget->tenant_id !== $user->tenant_id, 403);
+        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+
+        $customWidget->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * POST: Preview a custom widget value without saving.
+     */
+    public function customWidgetPreview(Request $request)
+    {
+        $user = $request->user();
+        abort_if(!in_array($user->role, ['admin', 'manager', 'super_admin']), 403);
+
+        $data = $request->validate([
+            'metric_type' => 'required|in:count,sum,avg,static',
+            'model_class' => 'nullable|string|max:50',
+            'metric_column' => 'nullable|string|max:20',
+            'static_value' => 'nullable|numeric',
+            'where_conditions' => 'nullable|array',
+            'date_scope' => 'nullable|in:today,this_month,this_year,all_time',
+            'date_column' => 'nullable|string|max:50',
+            'value_format' => 'nullable|in:number,currency,percent',
+            'value_prefix' => 'nullable|string|max:20',
+            'value_suffix' => 'nullable|string|max:20',
+        ]);
+
+        // For static type, static_value is stored in metric_column
+        if (($data['metric_type'] ?? '') === 'static' && isset($data['static_value'])) {
+            $data['metric_column'] = (string) $data['static_value'];
+        }
+        unset($data['static_value']);
+
+        $mock = new CustomDashboardWidget($data);
+        $value = $mock->evaluate($user->tenant_id);
+
+        return response()->json([
+            'ok' => true,
+            'value' => $value,
+            'display' => $mock->formatValue($value),
         ]);
     }
 }

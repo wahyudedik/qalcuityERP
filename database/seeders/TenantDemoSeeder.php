@@ -82,13 +82,13 @@ class TenantDemoSeeder extends Seeder
             $this->seedConsignment();
             $this->seedCommission();
             $this->seedHelpdesk();
-            $this->seedSubscriptionBilling(); 
+            $this->seedSubscriptionBilling();
         });
 
         $this->command->info('TenantDemoSeeder selesai!');
         $this->command->table(['Item', 'Value'], [
             ['Tenant',        'PT Maju Bersama Indonesia'],
-            ['Admin Email',   'admin@majubersama.com'], 
+            ['Admin Email',   'admin@majubersama.com'],
             ['Manager Email', 'manager@majubersama.com'],
             ['Staff Email',   'staff@majubersama.com'],
             ['Password',      'password'],
@@ -198,14 +198,22 @@ class TenantDemoSeeder extends Seeder
         $wh = DB::table('warehouses')->where('tenant_id', $this->tenantId)->first();
         if (!$wh) {
             $this->warehouseId = DB::table('warehouses')->insertGetId([
-                'tenant_id' => $this->tenantId, 'name' => 'Gudang Utama Jakarta',
-                'code' => 'GDG-JKT', 'address' => 'Jl. Raya Bekasi KM 18, Jakarta Timur',
-                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'name' => 'Gudang Utama Jakarta',
+                'code' => 'GDG-JKT',
+                'address' => 'Jl. Raya Bekasi KM 18, Jakarta Timur',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
             DB::table('warehouses')->insert([
-                'tenant_id' => $this->tenantId, 'name' => 'Gudang Cabang Surabaya',
-                'code' => 'GDG-SBY', 'address' => 'Jl. Rungkut Industri No. 5, Surabaya',
-                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'name' => 'Gudang Cabang Surabaya',
+                'code' => 'GDG-SBY',
+                'address' => 'Jl. Rungkut Industri No. 5, Surabaya',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         } else {
             $this->warehouseId = $wh->id;
@@ -252,7 +260,7 @@ class TenantDemoSeeder extends Seeder
             ['key' => 'max_discount_pct',     'label' => 'Diskon maksimum (%)',            'value_type' => 'percentage', 'value' => '20'],
             ['key' => 'min_cash_balance',     'label' => 'Saldo kas minimum (Rp)',         'value_type' => 'amount',     'value' => '5000000'],
             ['key' => 'confirm_above_amount', 'label' => 'Konfirmasi order di atas (Rp)', 'value_type' => 'amount',     'value' => '50000000'],
-            ['key' => 'auto_approve_po',      'label' => 'Auto-approve PO di bawah (Rp)','value_type' => 'amount',     'value' => '10000000'],
+            ['key' => 'auto_approve_po',      'label' => 'Auto-approve PO di bawah (Rp)', 'value_type' => 'amount',     'value' => '10000000'],
         ];
         foreach ($rows as $r) {
             DB::table('business_constraints')->updateOrInsert(
@@ -270,9 +278,9 @@ class TenantDemoSeeder extends Seeder
             ['name' => 'Gaji & Tunjangan',  'code' => 'SALARY',   'type' => 'expense', 'coa_code' => '5201'],
             ['name' => 'Sewa Kantor',       'code' => 'RENT',     'type' => 'expense', 'coa_code' => '5202'],
             ['name' => 'Listrik & Air',     'code' => 'UTILITY',  'type' => 'expense', 'coa_code' => '5203'],
-            ['name' => 'Pemasaran & Iklan', 'code' => 'MARKETING','type' => 'expense', 'coa_code' => '5205'],
+            ['name' => 'Pemasaran & Iklan', 'code' => 'MARKETING', 'type' => 'expense', 'coa_code' => '5205'],
             ['name' => 'Administrasi',      'code' => 'ADMIN',    'type' => 'expense', 'coa_code' => '5206'],
-            ['name' => 'Transportasi',      'code' => 'TRANSPORT','type' => 'expense', 'coa_code' => '5208'],
+            ['name' => 'Transportasi',      'code' => 'TRANSPORT', 'type' => 'expense', 'coa_code' => '5208'],
         ];
         foreach ($cats as $c) {
             DB::table('expense_categories')->updateOrInsert(
@@ -298,7 +306,7 @@ class TenantDemoSeeder extends Seeder
             ['name' => 'Laptop Lenovo IdeaPad 3',     'sku' => 'LPT-LNV-001',  'category' => 'Elektronik', 'unit' => 'unit', 'price_buy' => 6800000,  'price_sell' => 8800000,  'stock_min' => 5],
             ['name' => 'Monitor LG 24 inch FHD',      'sku' => 'MON-LG-001',   'category' => 'Elektronik', 'unit' => 'unit', 'price_buy' => 1800000,  'price_sell' => 2500000,  'stock_min' => 10],
             ['name' => 'Keyboard Mechanical Rexus',   'sku' => 'KBD-REX-001',  'category' => 'Aksesoris',  'unit' => 'unit', 'price_buy' => 350000,   'price_sell' => 550000,   'stock_min' => 20],
-            ['name' => 'Mouse Wireless Logitech M235','sku' => 'MSE-LOG-001',   'category' => 'Aksesoris',  'unit' => 'unit', 'price_buy' => 180000,   'price_sell' => 280000,   'stock_min' => 30],
+            ['name' => 'Mouse Wireless Logitech M235', 'sku' => 'MSE-LOG-001',   'category' => 'Aksesoris',  'unit' => 'unit', 'price_buy' => 180000,   'price_sell' => 280000,   'stock_min' => 30],
             ['name' => 'Printer Canon PIXMA G2020',   'sku' => 'PRN-CAN-001',  'category' => 'Elektronik', 'unit' => 'unit', 'price_buy' => 1200000,  'price_sell' => 1650000,  'stock_min' => 8],
             ['name' => 'UPS APC 650VA',               'sku' => 'UPS-APC-001',  'category' => 'Elektronik', 'unit' => 'unit', 'price_buy' => 650000,   'price_sell' => 950000,   'stock_min' => 10],
             ['name' => 'Headset Gaming Rexus HX20',   'sku' => 'HST-REX-001',  'category' => 'Aksesoris',  'unit' => 'unit', 'price_buy' => 250000,   'price_sell' => 420000,   'stock_min' => 15],
@@ -310,18 +318,31 @@ class TenantDemoSeeder extends Seeder
             if (!$row) {
                 $qty = rand(20, 100);
                 $id = DB::table('products')->insertGetId(array_merge($p, [
-                    'tenant_id' => $this->tenantId, 'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+                    'tenant_id' => $this->tenantId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]));
                 DB::table('product_stocks')->insertOrIgnore([
-                    'product_id' => $id, 'warehouse_id' => $this->warehouseId,
-                    'quantity' => $qty, 'created_at' => now(), 'updated_at' => now(),
+                    'product_id' => $id,
+                    'warehouse_id' => $this->warehouseId,
+                    'quantity' => $qty,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
                 DB::table('stock_movements')->insert([
-                    'tenant_id' => $this->tenantId, 'product_id' => $id,
-                    'warehouse_id' => $this->warehouseId, 'user_id' => $this->adminId,
-                    'type' => 'in', 'quantity' => $qty, 'quantity_before' => 0, 'quantity_after' => $qty,
-                    'reference' => 'OPENING-STOCK', 'notes' => 'Stok awal',
-                    'created_at' => Carbon::now()->subDays(30), 'updated_at' => Carbon::now()->subDays(30),
+                    'tenant_id' => $this->tenantId,
+                    'product_id' => $id,
+                    'warehouse_id' => $this->warehouseId,
+                    'user_id' => $this->adminId,
+                    'type' => 'in',
+                    'quantity' => $qty,
+                    'quantity_before' => 0,
+                    'quantity_after' => $qty,
+                    'reference' => 'OPENING-STOCK',
+                    'notes' => 'Stok awal',
+                    'created_at' => Carbon::now()->subDays(30),
+                    'updated_at' => Carbon::now()->subDays(30),
                 ]);
             } else {
                 $id = $row->id;
@@ -336,15 +357,18 @@ class TenantDemoSeeder extends Seeder
             ['name' => 'PT Teknologi Nusantara',  'email' => 'procurement@teknologi-nusantara.co.id', 'phone' => '021-7654321', 'company' => 'PT Teknologi Nusantara',  'credit_limit' => 100000000],
             ['name' => 'CV Mitra Komputer',        'email' => 'order@mitrakomputer.com',               'phone' => '022-8765432', 'company' => 'CV Mitra Komputer',        'credit_limit' => 50000000],
             ['name' => 'Toko Elektronik Jaya',     'email' => 'toko@elektronikjaya.com',               'phone' => '031-9876543', 'company' => 'Toko Elektronik Jaya',     'credit_limit' => 30000000],
-            ['name' => 'Budi Prasetyo',            'email' => 'budi.prasetyo@gmail.com',               'phone' => '0812-3456789','company' => null,                        'credit_limit' => 5000000],
+            ['name' => 'Budi Prasetyo',            'email' => 'budi.prasetyo@gmail.com',               'phone' => '0812-3456789', 'company' => null,                        'credit_limit' => 5000000],
             ['name' => 'PT Solusi Digital Prima',  'email' => 'finance@solusidigital.id',              'phone' => '021-5544332', 'company' => 'PT Solusi Digital Prima',  'credit_limit' => 200000000],
         ];
         foreach ($customers as $c) {
             $row = DB::table('customers')->where('tenant_id', $this->tenantId)->where('email', $c['email'])->first();
             if (!$row) {
                 $id = DB::table('customers')->insertGetId(array_merge($c, [
-                    'tenant_id' => $this->tenantId, 'address' => 'Jakarta', 'is_active' => true,
-                    'created_at' => now(), 'updated_at' => now(),
+                    'tenant_id' => $this->tenantId,
+                    'address' => 'Jakarta',
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]));
             } else {
                 $id = $row->id;
@@ -365,8 +389,11 @@ class TenantDemoSeeder extends Seeder
             $row = DB::table('suppliers')->where('tenant_id', $this->tenantId)->where('email', $s['email'])->first();
             if (!$row) {
                 $id = DB::table('suppliers')->insertGetId(array_merge($s, [
-                    'tenant_id' => $this->tenantId, 'bank_holder' => $s['company'],
-                    'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+                    'tenant_id' => $this->tenantId,
+                    'bank_holder' => $s['company'],
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]));
             } else {
                 $id = $row->id;
@@ -379,23 +406,36 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('price_lists')->where('tenant_id', $this->tenantId)->exists()) return;
         $plId = DB::table('price_lists')->insertGetId([
-            'tenant_id' => $this->tenantId, 'name' => 'Harga Reseller', 'code' => 'PL-RESELLER',
-            'type' => 'tier', 'description' => 'Harga khusus reseller terdaftar',
-            'valid_from' => '2026-01-01', 'valid_until' => '2026-12-31',
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Harga Reseller',
+            'code' => 'PL-RESELLER',
+            'type' => 'tier',
+            'description' => 'Harga khusus reseller terdaftar',
+            'valid_from' => '2026-01-01',
+            'valid_until' => '2026-12-31',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         foreach (array_slice($this->productIds, 0, 3) as $pid) {
             $product = DB::table('products')->find($pid);
             DB::table('price_list_items')->insertOrIgnore([
-                'price_list_id' => $plId, 'product_id' => $pid,
-                'price' => $product->price_sell * 0.9, 'discount_percent' => 10, 'min_qty' => 5,
-                'created_at' => now(), 'updated_at' => now(),
+                'price_list_id' => $plId,
+                'product_id' => $pid,
+                'price' => $product->price_sell * 0.9,
+                'discount_percent' => 10,
+                'min_qty' => 5,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         if (!empty($this->customerIds)) {
             DB::table('customer_price_lists')->insertOrIgnore([
-                'customer_id' => $this->customerIds[0], 'price_list_id' => $plId,
-                'priority' => 1, 'created_at' => now(), 'updated_at' => now(),
+                'customer_id' => $this->customerIds[0],
+                'price_list_id' => $plId,
+                'priority' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -404,27 +444,41 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('loyalty_programs')->where('tenant_id', $this->tenantId)->exists()) return;
         $progId = DB::table('loyalty_programs')->insertGetId([
-            'tenant_id' => $this->tenantId, 'name' => 'Program Poin MBI',
-            'points_per_idr' => 0.01, 'idr_per_point' => 100,
-            'min_redeem_points' => 500, 'expiry_days' => 365,
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Program Poin MBI',
+            'points_per_idr' => 0.01,
+            'idr_per_point' => 100,
+            'min_redeem_points' => 500,
+            'expiry_days' => 365,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
-        foreach ([
-            ['name' => 'Bronze',   'min_points' => 0,     'multiplier' => 1.0, 'color' => '#cd7f32'],
-            ['name' => 'Silver',   'min_points' => 1000,  'multiplier' => 1.5, 'color' => '#c0c0c0'],
-            ['name' => 'Gold',     'min_points' => 5000,  'multiplier' => 2.0, 'color' => '#ffd700'],
-            ['name' => 'Platinum', 'min_points' => 15000, 'multiplier' => 3.0, 'color' => '#e5e4e2'],
-        ] as $t) {
+        foreach (
+            [
+                ['name' => 'Bronze',   'min_points' => 0,     'multiplier' => 1.0, 'color' => '#cd7f32'],
+                ['name' => 'Silver',   'min_points' => 1000,  'multiplier' => 1.5, 'color' => '#c0c0c0'],
+                ['name' => 'Gold',     'min_points' => 5000,  'multiplier' => 2.0, 'color' => '#ffd700'],
+                ['name' => 'Platinum', 'min_points' => 15000, 'multiplier' => 3.0, 'color' => '#e5e4e2'],
+            ] as $t
+        ) {
             DB::table('loyalty_tiers')->insert(array_merge($t, [
-                'tenant_id' => $this->tenantId, 'program_id' => $progId,
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'program_id' => $progId,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
         }
         foreach (array_slice($this->customerIds, 0, 2) as $cid) {
             DB::table('loyalty_points')->insertOrIgnore([
-                'tenant_id' => $this->tenantId, 'customer_id' => $cid, 'program_id' => $progId,
-                'total_points' => rand(500, 8000), 'lifetime_points' => rand(1000, 20000),
-                'tier' => 'Silver', 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'customer_id' => $cid,
+                'program_id' => $progId,
+                'total_points' => rand(500, 8000),
+                'lifetime_points' => rand(1000, 20000),
+                'tier' => 'Silver',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -433,7 +487,7 @@ class TenantDemoSeeder extends Seeder
     {
         $employees = [
             ['name' => 'Budi Santoso',  'eid' => 'EMP-001', 'position' => 'Direktur',            'dept' => 'Manajemen',  'salary' => 25000000, 'uid' => $this->adminId],
-            ['name' => 'Siti Rahayu',   'eid' => 'EMP-002', 'position' => 'Manajer Operasional',  'dept' => 'Operasional','salary' => 15000000, 'uid' => $this->managerId],
+            ['name' => 'Siti Rahayu',   'eid' => 'EMP-002', 'position' => 'Manajer Operasional',  'dept' => 'Operasional', 'salary' => 15000000, 'uid' => $this->managerId],
             ['name' => 'Andi Wijaya',   'eid' => 'EMP-003', 'position' => 'Staff Penjualan',      'dept' => 'Penjualan',  'salary' => 6000000,  'uid' => $this->staffId],
             ['name' => 'Dewi Lestari',  'eid' => 'EMP-004', 'position' => 'Kasir',                'dept' => 'Keuangan',   'salary' => 5000000,  'uid' => null],
             ['name' => 'Rudi Hartono',  'eid' => 'EMP-005', 'position' => 'Staff Gudang',         'dept' => 'Logistik',   'salary' => 5500000,  'uid' => null],
@@ -459,7 +513,7 @@ class TenantDemoSeeder extends Seeder
                     'status'      => 'active',
                     'salary'      => $e['salary'],
                     'bank_name'   => 'BCA',
-                    'bank_account'=> '1' . rand(100000000, 999999999),
+                    'bank_account' => '1' . rand(100000000, 999999999),
                     'address'     => 'Jakarta',
                     'created_at'  => now(),
                     'updated_at'  => now(),
@@ -582,11 +636,13 @@ class TenantDemoSeeder extends Seeder
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
-        foreach ([
-            ['name' => 'Fajar Nugroho', 'email' => 'fajar@gmail.com', 'stage' => 'interview'],
-            ['name' => 'Lina Marlina',  'email' => 'lina@gmail.com',  'stage' => 'screening'],
-            ['name' => 'Doni Setiawan', 'email' => 'doni@gmail.com',  'stage' => 'applied'],
-        ] as $a) {
+        foreach (
+            [
+                ['name' => 'Fajar Nugroho', 'email' => 'fajar@gmail.com', 'stage' => 'interview'],
+                ['name' => 'Lina Marlina',  'email' => 'lina@gmail.com',  'stage' => 'screening'],
+                ['name' => 'Doni Setiawan', 'email' => 'doni@gmail.com',  'stage' => 'applied'],
+            ] as $a
+        ) {
             DB::table('job_applications')->insert([
                 'tenant_id'       => $this->tenantId,
                 'job_posting_id'  => $jobId,
@@ -631,9 +687,12 @@ class TenantDemoSeeder extends Seeder
         ]);
         foreach (array_slice($this->employeeIds, 2, 2) as $empId) {
             DB::table('training_participants')->insertOrIgnore([
-                'tenant_id' => $this->tenantId, 'training_session_id' => $sessionId,
-                'employee_id' => $empId, 'status' => 'registered',
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'training_session_id' => $sessionId,
+                'employee_id' => $empId,
+                'status' => 'registered',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         if (!empty($this->employeeIds)) {
@@ -698,12 +757,19 @@ class TenantDemoSeeder extends Seeder
         if (empty($this->employeeIds)) return;
         if (DB::table('payroll_runs')->where('tenant_id', $this->tenantId)->where('period', '2026-02')->exists()) return;
         $runId = DB::table('payroll_runs')->insertGetId([
-            'tenant_id' => $this->tenantId, 'period' => '2026-02', 'status' => 'paid',
-            'total_gross' => 0, 'total_deductions' => 0, 'total_net' => 0,
-            'processed_by' => $this->adminId, 'processed_at' => Carbon::parse('2026-02-28'),
-            'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'period' => '2026-02',
+            'status' => 'paid',
+            'total_gross' => 0,
+            'total_deductions' => 0,
+            'total_net' => 0,
+            'processed_by' => $this->adminId,
+            'processed_at' => Carbon::parse('2026-02-28'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
-        $totalGross = 0; $totalNet = 0;
+        $totalGross = 0;
+        $totalNet = 0;
         foreach (array_slice($this->employeeIds, 0, 5) as $empId) {
             $emp = DB::table('employees')->find($empId);
             $base = $emp->salary;
@@ -713,19 +779,34 @@ class TenantDemoSeeder extends Seeder
             $pph21 = round($gross * 0.05);
             $net = $gross - $bpjs - $pph21;
             DB::table('payroll_items')->insert([
-                'tenant_id' => $this->tenantId, 'payroll_run_id' => $runId, 'employee_id' => $empId,
-                'base_salary' => $base, 'working_days' => 22, 'present_days' => 21,
-                'absent_days' => 1, 'late_days' => 0, 'allowances' => $allowances,
-                'overtime_pay' => 0, 'deduction_absent' => round($base / 22),
-                'deduction_late' => 0, 'deduction_other' => 0,
-                'gross_salary' => $gross, 'tax_pph21' => $pph21, 'bpjs_employee' => $bpjs,
-                'net_salary' => $net, 'status' => 'paid',
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'payroll_run_id' => $runId,
+                'employee_id' => $empId,
+                'base_salary' => $base,
+                'working_days' => 22,
+                'present_days' => 21,
+                'absent_days' => 1,
+                'late_days' => 0,
+                'allowances' => $allowances,
+                'overtime_pay' => 0,
+                'deduction_absent' => round($base / 22),
+                'deduction_late' => 0,
+                'deduction_other' => 0,
+                'gross_salary' => $gross,
+                'tax_pph21' => $pph21,
+                'bpjs_employee' => $bpjs,
+                'net_salary' => $net,
+                'status' => 'paid',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
-            $totalGross += $gross; $totalNet += $net;
+            $totalGross += $gross;
+            $totalNet += $net;
         }
         DB::table('payroll_runs')->where('id', $runId)->update([
-            'total_gross' => $totalGross, 'total_deductions' => $totalGross - $totalNet, 'total_net' => $totalNet,
+            'total_gross' => $totalGross,
+            'total_deductions' => $totalGross - $totalNet,
+            'total_net' => $totalNet,
         ]);
     }
 
@@ -782,7 +863,7 @@ class TenantDemoSeeder extends Seeder
             if ($po['status'] === 'received') {
                 DB::table('payables')->insertOrIgnore([
                     'tenant_id'        => $this->tenantId,
-                    'purchase_order_id'=> $poId,
+                    'purchase_order_id' => $poId,
                     'supplier_id'      => $po['supplier_id'],
                     'number'           => 'AP/' . $po['number'],
                     'total_amount'     => $subtotal + $tax,
@@ -803,7 +884,7 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('sales_orders')->where('tenant_id', $this->tenantId)->exists()) return;
         $orders = [
             ['customer_id' => $this->customerIds[0], 'number' => 'SO/MBI/2026/001', 'status' => 'delivered', 'date' => '2026-02-15', 'items' => [0, 2, 4]],
-            ['customer_id' => $this->customerIds[1], 'number' => 'SO/MBI/2026/002', 'status' => 'processing','date' => '2026-03-01', 'items' => [1, 3]],
+            ['customer_id' => $this->customerIds[1], 'number' => 'SO/MBI/2026/002', 'status' => 'processing', 'date' => '2026-03-01', 'items' => [1, 3]],
             ['customer_id' => $this->customerIds[2], 'number' => 'SO/MBI/2026/003', 'status' => 'confirmed', 'date' => '2026-03-10', 'items' => [5, 6]],
             ['customer_id' => $this->customerIds[4], 'number' => 'SO/MBI/2026/004', 'status' => 'pending',   'date' => '2026-03-20', 'items' => [0, 1, 9]],
         ];
@@ -831,7 +912,7 @@ class TenantDemoSeeder extends Seeder
                 'discount'        => 0,
                 'tax'             => $tax,
                 'total'           => $subtotal + $tax,
-                'shipping_address'=> 'Jakarta',
+                'shipping_address' => 'Jakarta',
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);
@@ -866,7 +947,7 @@ class TenantDemoSeeder extends Seeder
                 'number'          => 'INV/' . str_replace('SO/', '', $so->number),
                 'total_amount'    => $so->total,
                 'paid_amount'     => $so->total,
-                'remaining_amount'=> 0,
+                'remaining_amount' => 0,
                 'status'          => 'paid',
                 'due_date'        => Carbon::parse($so->date)->addDays(30)->format('Y-m-d'),
                 'created_at'      => now(),
@@ -900,7 +981,7 @@ class TenantDemoSeeder extends Seeder
                 'number'          => 'INV/' . str_replace('SO/', '', $so->number),
                 'total_amount'    => $so->total,
                 'paid_amount'     => 0,
-                'remaining_amount'=> $so->total,
+                'remaining_amount' => $so->total,
                 'status'          => 'unpaid',
                 'due_date'        => Carbon::parse($so->date)->addDays(30)->format('Y-m-d'),
                 'created_at'      => now(),
@@ -926,7 +1007,7 @@ class TenantDemoSeeder extends Seeder
         $statements = [
             ['date' => '2026-03-01', 'desc' => 'Pembayaran Invoice SO/MBI/2026/001', 'type' => 'credit', 'amount' => 45000000, 'status' => 'matched'],
             ['date' => '2026-03-05', 'desc' => 'Pembayaran Gaji Februari 2026',       'type' => 'debit',  'amount' => 35000000, 'status' => 'matched'],
-            ['date' => '2026-03-10', 'desc' => 'Transfer Masuk - PT Solusi Digital',  'type' => 'credit', 'amount' => 120000000,'status' => 'unmatched'],
+            ['date' => '2026-03-10', 'desc' => 'Transfer Masuk - PT Solusi Digital',  'type' => 'credit', 'amount' => 120000000, 'status' => 'unmatched'],
             ['date' => '2026-03-15', 'desc' => 'Pembayaran Sewa Kantor Maret',        'type' => 'debit',  'amount' => 15000000, 'status' => 'unmatched'],
             ['date' => '2026-03-20', 'desc' => 'Pembayaran ke PT Asus Indonesia',     'type' => 'debit',  'amount' => 85000000, 'status' => 'unmatched'],
         ];
@@ -952,19 +1033,40 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('journal_entries')->where('tenant_id', $this->tenantId)->exists()) return;
         $journals = [
-            ['number' => 'JE/MBI/2026/001', 'date' => '2026-03-01', 'description' => 'Penerimaan pembayaran piutang dari PT Teknologi Nusantara',
-             'lines' => [['code' => '1102', 'debit' => 45000000, 'credit' => 0], ['code' => '1103', 'debit' => 0, 'credit' => 45000000]]],
-            ['number' => 'JE/MBI/2026/002', 'date' => '2026-03-05', 'description' => 'Pembayaran gaji karyawan Februari 2026',
-             'lines' => [['code' => '5201', 'debit' => 35000000, 'credit' => 0], ['code' => '1102', 'debit' => 0, 'credit' => 35000000]]],
-            ['number' => 'JE/MBI/2026/003', 'date' => '2026-03-10', 'description' => 'Penjualan barang ke CV Mitra Komputer',
-             'lines' => [['code' => '1103', 'debit' => 55000000, 'credit' => 0], ['code' => '4101', 'debit' => 0, 'credit' => 49549550], ['code' => '2103', 'debit' => 0, 'credit' => 5450450]]],
+            [
+                'number' => 'JE/MBI/2026/001',
+                'date' => '2026-03-01',
+                'description' => 'Penerimaan pembayaran piutang dari PT Teknologi Nusantara',
+                'lines' => [['code' => '1102', 'debit' => 45000000, 'credit' => 0], ['code' => '1103', 'debit' => 0, 'credit' => 45000000]]
+            ],
+            [
+                'number' => 'JE/MBI/2026/002',
+                'date' => '2026-03-05',
+                'description' => 'Pembayaran gaji karyawan Februari 2026',
+                'lines' => [['code' => '5201', 'debit' => 35000000, 'credit' => 0], ['code' => '1102', 'debit' => 0, 'credit' => 35000000]]
+            ],
+            [
+                'number' => 'JE/MBI/2026/003',
+                'date' => '2026-03-10',
+                'description' => 'Penjualan barang ke CV Mitra Komputer',
+                'lines' => [['code' => '1103', 'debit' => 55000000, 'credit' => 0], ['code' => '4101', 'debit' => 0, 'credit' => 49549550], ['code' => '2103', 'debit' => 0, 'credit' => 5450450]]
+            ],
         ];
         foreach ($journals as $j) {
             $jeId = DB::table('journal_entries')->insertGetId([
-                'tenant_id' => $this->tenantId, 'period_id' => $this->periodId, 'user_id' => $this->adminId,
-                'number' => $j['number'], 'date' => $j['date'], 'description' => $j['description'],
-                'currency_code' => 'IDR', 'currency_rate' => 1, 'status' => 'posted',
-                'posted_by' => $this->adminId, 'posted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'period_id' => $this->periodId,
+                'user_id' => $this->adminId,
+                'number' => $j['number'],
+                'date' => $j['date'],
+                'description' => $j['description'],
+                'currency_code' => 'IDR',
+                'currency_rate' => 1,
+                'status' => 'posted',
+                'posted_by' => $this->adminId,
+                'posted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
             foreach ($j['lines'] as $line) {
                 DB::table('journal_entry_lines')->insert([
@@ -1000,20 +1102,28 @@ class TenantDemoSeeder extends Seeder
             ]));
             $monthlyDep = ($a['purchase_price'] - $a['purchase_price'] * 0.1) / ($a['useful_life_years'] * 12);
             DB::table('asset_depreciations')->insert([
-                'tenant_id' => $this->tenantId, 'asset_id' => $assetId, 'period' => '2026-03',
+                'tenant_id' => $this->tenantId,
+                'asset_id' => $assetId,
+                'period' => '2026-03',
                 'depreciation_amount' => round($monthlyDep),
                 'book_value_after' => $a['current_value'] - round($monthlyDep),
-                'created_at' => now(), 'updated_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         $firstAsset = DB::table('assets')->where('tenant_id', $this->tenantId)->first();
         if ($firstAsset) {
             DB::table('asset_maintenances')->insert([
-                'tenant_id' => $this->tenantId, 'asset_id' => $firstAsset->id,
-                'type' => 'scheduled', 'description' => 'Service rutin 10.000 km',
+                'tenant_id' => $this->tenantId,
+                'asset_id' => $firstAsset->id,
+                'type' => 'scheduled',
+                'description' => 'Service rutin 10.000 km',
                 'scheduled_date' => Carbon::now()->addDays(15)->format('Y-m-d'),
-                'cost' => 1500000, 'vendor' => 'Bengkel Resmi Toyota', 'status' => 'pending',
-                'created_at' => now(), 'updated_at' => now(),
+                'cost' => 1500000,
+                'vendor' => 'Bengkel Resmi Toyota',
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1023,16 +1133,23 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('budgets')->where('tenant_id', $this->tenantId)->exists()) return;
         $budgets = [
             ['name' => 'Anggaran Penjualan Maret',  'dept' => 'Penjualan',  'amount' => 500000000, 'realized' => 420000000, 'cat' => 'SALES'],
-            ['name' => 'Anggaran Operasional Maret', 'dept' => 'Operasional','amount' => 80000000,  'realized' => 65000000,  'cat' => 'ADMIN'],
+            ['name' => 'Anggaran Operasional Maret', 'dept' => 'Operasional', 'amount' => 80000000,  'realized' => 65000000,  'cat' => 'ADMIN'],
             ['name' => 'Anggaran Pemasaran Maret',   'dept' => 'Penjualan',  'amount' => 30000000,  'realized' => 18000000,  'cat' => 'MARKETING'],
             ['name' => 'Anggaran SDM Maret',         'dept' => 'SDM',        'amount' => 120000000, 'realized' => 115000000, 'cat' => 'SALARY'],
         ];
         foreach ($budgets as $b) {
             DB::table('budgets')->insert([
-                'tenant_id' => $this->tenantId, 'name' => $b['name'], 'department' => $b['dept'],
-                'period' => '2026-03', 'period_type' => 'monthly',
-                'amount' => $b['amount'], 'realized' => $b['realized'], 'category' => $b['cat'],
-                'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'name' => $b['name'],
+                'department' => $b['dept'],
+                'period' => '2026-03',
+                'period_type' => 'monthly',
+                'amount' => $b['amount'],
+                'realized' => $b['realized'],
+                'category' => $b['cat'],
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1066,21 +1183,32 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($leads as $l) {
             $leadId = DB::table('crm_leads')->insertGetId([
-                'tenant_id' => $this->tenantId, 'assigned_to' => $this->staffId,
-                'name' => $l['name'], 'company' => $l['name'],
+                'tenant_id' => $this->tenantId,
+                'assigned_to' => $this->staffId,
+                'name' => $l['name'],
+                'company' => $l['name'],
                 'phone' => '0812-' . rand(10000000, 99999999),
                 'email' => strtolower(str_replace([' ', '.'], '', $l['name'])) . '@example.com',
-                'stage' => $l['stage'], 'estimated_value' => $l['value'], 'probability' => $l['prob'],
-                'source' => $l['source'], 'product_interest' => 'Laptop & Monitor',
+                'stage' => $l['stage'],
+                'estimated_value' => $l['value'],
+                'probability' => $l['prob'],
+                'source' => $l['source'],
+                'product_interest' => 'Laptop & Monitor',
                 'expected_close_date' => Carbon::now()->addDays(rand(7, 60))->format('Y-m-d'),
                 'last_contact_at' => Carbon::now()->subDays(rand(1, 10)),
-                'created_at' => now(), 'updated_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
             DB::table('crm_activities')->insert([
-                'tenant_id' => $this->tenantId, 'lead_id' => $leadId, 'user_id' => $this->staffId,
-                'type' => 'call', 'description' => 'Follow up kebutuhan produk dan penawaran harga',
-                'outcome' => 'interested', 'next_follow_up' => Carbon::now()->addDays(3)->format('Y-m-d'),
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'lead_id' => $leadId,
+                'user_id' => $this->staffId,
+                'type' => 'call',
+                'description' => 'Follow up kebutuhan produk dan penawaran harga',
+                'outcome' => 'interested',
+                'next_follow_up' => Carbon::now()->addDays(3)->format('Y-m-d'),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1089,19 +1217,28 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('approval_workflows')->where('tenant_id', $this->tenantId)->exists()) return;
         $wfId = DB::table('approval_workflows')->insertGetId([
-            'tenant_id' => $this->tenantId, 'name' => 'Persetujuan PO > 50 Juta',
-            'model_type' => 'App\\Models\\PurchaseOrder', 'min_amount' => 50000000,
-            'approver_roles' => json_encode(['manager', 'admin']), 'is_active' => true,
-            'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Persetujuan PO > 50 Juta',
+            'model_type' => 'App\\Models\\PurchaseOrder',
+            'min_amount' => 50000000,
+            'approver_roles' => json_encode(['manager', 'admin']),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         $po = DB::table('purchase_orders')->where('tenant_id', $this->tenantId)->where('status', 'draft')->first();
         if ($po) {
             DB::table('approval_requests')->insertOrIgnore([
-                'tenant_id' => $this->tenantId, 'workflow_id' => $wfId,
-                'requested_by' => $this->staffId, 'model_type' => 'App\\Models\\PurchaseOrder',
-                'model_id' => $po->id, 'status' => 'pending', 'amount' => $po->total,
+                'tenant_id' => $this->tenantId,
+                'workflow_id' => $wfId,
+                'requested_by' => $this->staffId,
+                'model_type' => 'App\\Models\\PurchaseOrder',
+                'model_id' => $po->id,
+                'status' => 'pending',
+                'amount' => $po->total,
                 'notes' => 'Mohon persetujuan PO untuk pembelian stok bulan Maret',
-                'created_at' => now(), 'updated_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1120,12 +1257,18 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($txns as $i => $t) {
             DB::table('transactions')->insert([
-                'tenant_id' => $this->tenantId, 'user_id' => $this->adminId,
+                'tenant_id' => $this->tenantId,
+                'user_id' => $this->adminId,
                 'expense_category_id' => $t['cat'],
                 'number' => 'TRX/MBI/2026/' . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
-                'type' => $t['type'], 'date' => $t['date'], 'amount' => $t['amount'],
-                'payment_method' => 'transfer', 'account' => 'Bank BCA', 'description' => $t['desc'],
-                'created_at' => now(), 'updated_at' => now(),
+                'type' => $t['type'],
+                'date' => $t['date'],
+                'amount' => $t['amount'],
+                'payment_method' => 'transfer',
+                'account' => 'Bank BCA',
+                'description' => $t['desc'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1134,12 +1277,16 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('simulations')->where('tenant_id', $this->tenantId)->exists()) return;
         DB::table('simulations')->insert([
-            'tenant_id' => $this->tenantId, 'user_id' => $this->adminId,
-            'name' => 'Simulasi Kenaikan Harga Laptop 10%', 'scenario_type' => 'price_increase',
+            'tenant_id' => $this->tenantId,
+            'user_id' => $this->adminId,
+            'name' => 'Simulasi Kenaikan Harga Laptop 10%',
+            'scenario_type' => 'price_increase',
             'parameters' => json_encode(['product_category' => 'Elektronik', 'increase_pct' => 10, 'period' => '2026-Q2']),
             'results' => json_encode(['projected_revenue' => 550000000, 'projected_margin' => 27.5, 'demand_impact' => -5]),
             'ai_narrative' => 'Kenaikan harga 10% pada kategori Elektronik diproyeksikan meningkatkan pendapatan 10% namun berpotensi menurunkan volume penjualan 5%. Margin bersih meningkat dari 22% ke 27.5%.',
-            'status' => 'calculated', 'created_at' => now(), 'updated_at' => now(),
+            'status' => 'calculated',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -1149,21 +1296,34 @@ class TenantDemoSeeder extends Seeder
         $deferredAccId    = $this->coaMap['1106'] ?? array_values($this->coaMap)[0];
         $recognitionAccId = $this->coaMap['5202'] ?? array_values($this->coaMap)[0];
         $defId = DB::table('deferred_items')->insertGetId([
-            'tenant_id' => $this->tenantId, 'user_id' => $this->adminId,
-            'type' => 'prepaid_expense', 'number' => 'DEF/MBI/2026/001',
+            'tenant_id' => $this->tenantId,
+            'user_id' => $this->adminId,
+            'type' => 'prepaid_expense',
+            'number' => 'DEF/MBI/2026/001',
             'description' => 'Sewa kantor dibayar di muka Jan-Des 2026',
-            'total_amount' => 180000000, 'recognized_amount' => 45000000, 'remaining_amount' => 135000000,
-            'start_date' => '2026-01-01', 'end_date' => '2026-12-31',
-            'total_periods' => 12, 'recognized_periods' => 3, 'status' => 'active',
-            'deferred_account_id' => $deferredAccId, 'recognition_account_id' => $recognitionAccId,
-            'reference_number' => 'SEWA-2026', 'created_at' => now(), 'updated_at' => now(),
+            'total_amount' => 180000000,
+            'recognized_amount' => 45000000,
+            'remaining_amount' => 135000000,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+            'total_periods' => 12,
+            'recognized_periods' => 3,
+            'status' => 'active',
+            'deferred_account_id' => $deferredAccId,
+            'recognition_account_id' => $recognitionAccId,
+            'reference_number' => 'SEWA-2026',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         for ($m = 1; $m <= 12; $m++) {
             DB::table('deferred_item_schedules')->insert([
-                'deferred_item_id' => $defId, 'period_number' => $m,
+                'deferred_item_id' => $defId,
+                'period_number' => $m,
                 'recognition_date' => Carbon::parse('2026-01-01')->addMonths($m - 1)->format('Y-m-d'),
-                'amount' => 15000000, 'status' => $m <= 3 ? 'posted' : 'pending',
-                'created_at' => now(), 'updated_at' => now(),
+                'amount' => 15000000,
+                'status' => $m <= 3 ? 'posted' : 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1174,13 +1334,19 @@ class TenantDemoSeeder extends Seeder
         $invoice = DB::table('invoices')->where('tenant_id', $this->tenantId)->where('status', 'unpaid')->first();
         if (!$invoice) return;
         DB::table('writeoffs')->insert([
-            'tenant_id' => $this->tenantId, 'requested_by' => $this->adminId,
-            'number' => 'WO/MBI/2026/001', 'type' => 'receivable',
-            'reference_type' => 'App\\Models\\Invoice', 'reference_id' => $invoice->id,
-            'reference_number' => $invoice->number, 'original_amount' => $invoice->total_amount,
+            'tenant_id' => $this->tenantId,
+            'requested_by' => $this->adminId,
+            'number' => 'WO/MBI/2026/001',
+            'type' => 'receivable',
+            'reference_type' => 'App\\Models\\Invoice',
+            'reference_id' => $invoice->id,
+            'reference_number' => $invoice->number,
+            'original_amount' => $invoice->total_amount,
             'writeoff_amount' => $invoice->total_amount,
             'reason' => 'Pelanggan tidak dapat dihubungi dan tidak ada aset yang dapat disita',
-            'status' => 'pending', 'created_at' => now(), 'updated_at' => now(),
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -1244,9 +1410,14 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($notifs as $n) {
             DB::table('erp_notifications')->insert([
-                'tenant_id' => $this->tenantId, 'user_id' => $this->adminId,
-                'title' => $n['title'], 'body' => $n['body'], 'type' => $n['type'],
-                'read_at' => null, 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'user_id' => $this->adminId,
+                'title' => $n['title'],
+                'body' => $n['body'],
+                'type' => $n['type'],
+                'read_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1298,11 +1469,13 @@ class TenantDemoSeeder extends Seeder
     private function seedDocumentTemplate(): void
     {
         if (DB::table('document_templates')->where('tenant_id', $this->tenantId)->exists()) return;
-        foreach ([
-            ['name' => 'Template Invoice Standar',   'doc_type' => 'invoice'],
-            ['name' => 'Template Quotation Standar', 'doc_type' => 'quotation'],
-            ['name' => 'Template Purchase Order',    'doc_type' => 'po'],
-        ] as $t) {
+        foreach (
+            [
+                ['name' => 'Template Invoice Standar',   'doc_type' => 'invoice'],
+                ['name' => 'Template Quotation Standar', 'doc_type' => 'quotation'],
+                ['name' => 'Template Purchase Order',    'doc_type' => 'po'],
+            ] as $t
+        ) {
             DB::table('document_templates')->insert([
                 'tenant_id'    => $this->tenantId,
                 'name'         => $t['name'],
@@ -1322,14 +1495,18 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('work_centers')->where('tenant_id', $this->tenantId)->exists()) return;
 
         // Work Centers
-        foreach ([
-            ['code' => 'WC-01', 'name' => 'Mesin CNC Utama',     'cost_per_hour' => 150000, 'capacity_per_day' => 8],
-            ['code' => 'WC-02', 'name' => 'Stasiun Assembly',     'cost_per_hour' => 75000,  'capacity_per_day' => 8],
-            ['code' => 'WC-03', 'name' => 'Quality Control',      'cost_per_hour' => 50000,  'capacity_per_day' => 8],
-        ] as $wc) {
+        foreach (
+            [
+                ['code' => 'WC-01', 'name' => 'Mesin CNC Utama',     'cost_per_hour' => 150000, 'capacity_per_day' => 8],
+                ['code' => 'WC-02', 'name' => 'Stasiun Assembly',     'cost_per_hour' => 75000,  'capacity_per_day' => 8],
+                ['code' => 'WC-03', 'name' => 'Quality Control',      'cost_per_hour' => 50000,  'capacity_per_day' => 8],
+            ] as $wc
+        ) {
             DB::table('work_centers')->insert(array_merge($wc, [
-                'tenant_id' => $this->tenantId, 'is_active' => true,
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
         }
 
@@ -1337,17 +1514,26 @@ class TenantDemoSeeder extends Seeder
         $product = DB::table('products')->where('tenant_id', $this->tenantId)->first();
         if ($product) {
             $bomId = DB::table('boms')->insertGetId([
-                'tenant_id' => $this->tenantId, 'product_id' => $product->id,
-                'name' => 'BOM ' . $product->name, 'batch_size' => 10, 'batch_unit' => 'pcs',
-                'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'product_id' => $product->id,
+                'name' => 'BOM ' . $product->name,
+                'batch_size' => 10,
+                'batch_unit' => 'pcs',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
             $materials = DB::table('products')->where('tenant_id', $this->tenantId)
                 ->where('id', '!=', $product->id)->limit(2)->get();
             foreach ($materials as $i => $mat) {
                 DB::table('bom_lines')->insert([
-                    'bom_id' => $bomId, 'product_id' => $mat->id,
-                    'quantity_per_batch' => ($i + 1) * 5, 'unit' => 'pcs', 'sort_order' => $i,
-                    'created_at' => now(), 'updated_at' => now(),
+                    'bom_id' => $bomId,
+                    'product_id' => $mat->id,
+                    'quantity_per_batch' => ($i + 1) * 5,
+                    'unit' => 'pcs',
+                    'sort_order' => $i,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
@@ -1364,9 +1550,13 @@ class TenantDemoSeeder extends Seeder
         ];
         foreach ($vehicles as $v) {
             DB::table('fleet_vehicles')->insert(array_merge($v, [
-                'tenant_id' => $this->tenantId, 'status' => 'available', 'is_active' => true,
-                'registration_expiry' => now()->addYear(), 'insurance_expiry' => now()->addMonths(8),
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'status' => 'available',
+                'is_active' => true,
+                'registration_expiry' => now()->addYear(),
+                'insurance_expiry' => now()->addMonths(8),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
         }
 
@@ -1374,11 +1564,17 @@ class TenantDemoSeeder extends Seeder
         $employees = DB::table('employees')->where('tenant_id', $this->tenantId)->limit(2)->get();
         foreach ($employees as $i => $emp) {
             DB::table('fleet_drivers')->insert([
-                'tenant_id' => $this->tenantId, 'employee_id' => $emp->id,
-                'name' => $emp->name, 'license_number' => 'SIM-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
-                'license_type' => $i === 0 ? 'A' : 'C', 'license_expiry' => now()->addYears(2),
-                'phone' => $emp->phone, 'status' => 'active', 'is_active' => true,
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'employee_id' => $emp->id,
+                'name' => $emp->name,
+                'license_number' => 'SIM-' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
+                'license_type' => $i === 0 ? 'A' : 'C',
+                'license_expiry' => now()->addYears(2),
+                'phone' => $emp->phone,
+                'status' => 'active',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -1389,9 +1585,13 @@ class TenantDemoSeeder extends Seeder
 
         // Template
         $tplId = DB::table('contract_templates')->insertGetId([
-            'tenant_id' => $this->tenantId, 'name' => 'Kontrak Jasa Standar',
-            'category' => 'service', 'default_terms' => 'Pembayaran 30 hari setelah invoice.',
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Kontrak Jasa Standar',
+            'category' => 'service',
+            'default_terms' => 'Pembayaran 30 hari setelah invoice.',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $customer = DB::table('customers')->where('tenant_id', $this->tenantId)->first();
@@ -1399,15 +1599,28 @@ class TenantDemoSeeder extends Seeder
         if (!$customer || !$userId) return;
 
         DB::table('contracts')->insert([
-            'tenant_id' => $this->tenantId, 'contract_number' => 'CTR-202603-0001',
-            'title' => 'Kontrak Maintenance IT Tahunan', 'template_id' => $tplId,
-            'customer_id' => $customer->id, 'party_type' => 'customer', 'category' => 'maintenance',
-            'start_date' => now()->startOfYear(), 'end_date' => now()->endOfYear(),
-            'value' => 60000000, 'billing_cycle' => 'monthly', 'billing_amount' => 5000000,
-            'next_billing_date' => now()->startOfMonth()->addMonth(), 'auto_renew' => true,
-            'renewal_days_before' => 30, 'status' => 'active',
-            'sla_response_hours' => 4, 'sla_resolution_hours' => 24, 'sla_uptime_pct' => 99.50,
-            'user_id' => $userId, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'contract_number' => 'CTR-202603-0001',
+            'title' => 'Kontrak Maintenance IT Tahunan',
+            'template_id' => $tplId,
+            'customer_id' => $customer->id,
+            'party_type' => 'customer',
+            'category' => 'maintenance',
+            'start_date' => now()->startOfYear(),
+            'end_date' => now()->endOfYear(),
+            'value' => 60000000,
+            'billing_cycle' => 'monthly',
+            'billing_amount' => 5000000,
+            'next_billing_date' => now()->startOfMonth()->addMonth(),
+            'auto_renew' => true,
+            'renewal_days_before' => 30,
+            'status' => 'active',
+            'sla_response_hours' => 4,
+            'sla_resolution_hours' => 24,
+            'sla_uptime_pct' => 99.50,
+            'user_id' => $userId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -1416,16 +1629,26 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('consignment_partners')->where('tenant_id', $this->tenantId)->exists()) return;
 
         DB::table('consignment_partners')->insert([
-            'tenant_id' => $this->tenantId, 'name' => 'Toko Elektronik Jaya',
-            'contact_person' => 'Pak Budi', 'phone' => '08123456789',
-            'address' => 'Jl. Pasar Baru No. 15, Jakarta', 'commission_pct' => 10,
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Toko Elektronik Jaya',
+            'contact_person' => 'Pak Budi',
+            'phone' => '08123456789',
+            'address' => 'Jl. Pasar Baru No. 15, Jakarta',
+            'commission_pct' => 10,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('consignment_partners')->insert([
-            'tenant_id' => $this->tenantId, 'name' => 'Outlet Gadget Corner',
-            'contact_person' => 'Ibu Sari', 'phone' => '08198765432',
-            'address' => 'Mall Taman Anggrek Lt. 2, Jakarta', 'commission_pct' => 15,
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Outlet Gadget Corner',
+            'contact_person' => 'Ibu Sari',
+            'phone' => '08198765432',
+            'address' => 'Mall Taman Anggrek Lt. 2, Jakarta',
+            'commission_pct' => 15,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -1434,19 +1657,29 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('commission_rules')->where('tenant_id', $this->tenantId)->exists()) return;
 
         DB::table('commission_rules')->insert([
-            'tenant_id' => $this->tenantId, 'name' => 'Komisi Sales Standard',
-            'type' => 'flat_pct', 'rate' => 2.5, 'basis' => 'revenue',
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'tenant_id' => $this->tenantId,
+            'name' => 'Komisi Sales Standard',
+            'type' => 'flat_pct',
+            'rate' => 2.5,
+            'basis' => 'revenue',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('commission_rules')->insert([
-            'tenant_id' => $this->tenantId, 'name' => 'Komisi Tiered',
-            'type' => 'tiered', 'rate' => 0, 'basis' => 'revenue',
+            'tenant_id' => $this->tenantId,
+            'name' => 'Komisi Tiered',
+            'type' => 'tiered',
+            'rate' => 0,
+            'basis' => 'revenue',
             'tiers' => json_encode([
                 ['min' => 0, 'max' => 10000000, 'rate' => 2],
                 ['min' => 10000000, 'max' => 50000000, 'rate' => 3],
                 ['min' => 50000000, 'max' => null, 'rate' => 5],
             ]),
-            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -1458,15 +1691,21 @@ class TenantDemoSeeder extends Seeder
         if (!$userId) return;
 
         // Knowledge Base
-        foreach ([
-            ['title' => 'Cara Melakukan Retur Barang', 'category' => 'product', 'body' => 'Untuk melakukan retur barang, silakan hubungi customer service kami dengan menyertakan nomor invoice dan foto barang yang ingin diretur.'],
-            ['title' => 'Metode Pembayaran yang Tersedia', 'category' => 'billing', 'body' => 'Kami menerima pembayaran via transfer bank (BCA, Mandiri, BNI), e-wallet (GoPay, OVO), dan kartu kredit.'],
-            ['title' => 'Estimasi Waktu Pengiriman', 'category' => 'delivery', 'body' => 'Pengiriman dalam kota: 1-2 hari kerja. Luar kota Jawa: 2-4 hari kerja. Luar Jawa: 4-7 hari kerja.'],
-        ] as $kb) {
+        foreach (
+            [
+                ['title' => 'Cara Melakukan Retur Barang', 'category' => 'product', 'body' => 'Untuk melakukan retur barang, silakan hubungi customer service kami dengan menyertakan nomor invoice dan foto barang yang ingin diretur.'],
+                ['title' => 'Metode Pembayaran yang Tersedia', 'category' => 'billing', 'body' => 'Kami menerima pembayaran via transfer bank (BCA, Mandiri, BNI), e-wallet (GoPay, OVO), dan kartu kredit.'],
+                ['title' => 'Estimasi Waktu Pengiriman', 'category' => 'delivery', 'body' => 'Pengiriman dalam kota: 1-2 hari kerja. Luar kota Jawa: 2-4 hari kerja. Luar Jawa: 4-7 hari kerja.'],
+            ] as $kb
+        ) {
             DB::table('kb_articles')->insert(array_merge($kb, [
-                'tenant_id' => $this->tenantId, 'slug' => \Illuminate\Support\Str::slug($kb['title']),
-                'is_published' => true, 'views' => rand(10, 100), 'user_id' => $userId,
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'slug' => \Illuminate\Support\Str::slug($kb['title']),
+                'is_published' => true,
+                'views' => rand(10, 100),
+                'user_id' => $userId,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
         }
     }
@@ -1475,14 +1714,18 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('customer_subscription_plans')->where('tenant_id', $this->tenantId)->exists()) return;
 
-        foreach ([
-            ['name' => 'Basic Support', 'code' => 'BASIC', 'price' => 500000, 'billing_cycle' => 'monthly', 'trial_days' => 14, 'features' => json_encode(['Email support', 'Knowledge base', 'Response 24 jam'])],
-            ['name' => 'Premium Support', 'code' => 'PREM', 'price' => 1500000, 'billing_cycle' => 'monthly', 'trial_days' => 7, 'features' => json_encode(['Priority support', 'Phone & WhatsApp', 'Response 4 jam', 'Dedicated account manager'])],
-            ['name' => 'Enterprise Annual', 'code' => 'ENT', 'price' => 15000000, 'billing_cycle' => 'annual', 'trial_days' => 30, 'features' => json_encode(['24/7 support', 'SLA 99.9%', 'Custom integration', 'On-site visit'])],
-        ] as $plan) {
+        foreach (
+            [
+                ['name' => 'Basic Support', 'code' => 'BASIC', 'price' => 500000, 'billing_cycle' => 'monthly', 'trial_days' => 14, 'features' => json_encode(['Email support', 'Knowledge base', 'Response 24 jam'])],
+                ['name' => 'Premium Support', 'code' => 'PREM', 'price' => 1500000, 'billing_cycle' => 'monthly', 'trial_days' => 7, 'features' => json_encode(['Priority support', 'Phone & WhatsApp', 'Response 4 jam', 'Dedicated account manager'])],
+                ['name' => 'Enterprise Annual', 'code' => 'ENT', 'price' => 15000000, 'billing_cycle' => 'annual', 'trial_days' => 30, 'features' => json_encode(['24/7 support', 'SLA 99.9%', 'Custom integration', 'On-site visit'])],
+            ] as $plan
+        ) {
             DB::table('customer_subscription_plans')->insert(array_merge($plan, [
-                'tenant_id' => $this->tenantId, 'is_active' => true,
-                'created_at' => now(), 'updated_at' => now(),
+                'tenant_id' => $this->tenantId,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]));
         }
     }

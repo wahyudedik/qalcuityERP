@@ -26,6 +26,8 @@
             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>',
         'ecommerce' =>
             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>',
+        'hotel' =>
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 9l9-7 9 7"/>',
     ];
 
     // Per-group color palette
@@ -44,6 +46,7 @@
         'profile' => ['color' => '#60a5fa', 'rgb' => '96,165,250'],
         'field' => ['color' => '#34d399', 'rgb' => '52,211,153'],
         'ecommerce' => ['color' => '#f97316', 'rgb' => '249,115,22'],
+        'hotel' => ['color' => '#818cf8', 'rgb' => '129,140,248'],
     ];
 
     $isActive = ($activeGroup ?? '') === $group;

@@ -13,6 +13,9 @@ use App\Jobs\RetryFailedMarketplaceSyncs;
 use App\Jobs\SyncMarketplacePrices;
 use App\Jobs\SyncMarketplaceStock;
 use App\Jobs\UpdateCurrencyRates;
+use App\Jobs\Telecom\PollRouterUsageJob;
+use App\Jobs\Telecom\CheckQuotaExpiryJob;
+use App\Jobs\Telecom\SyncHotspotUsersJob;
 use App\Models\AiUsageLog;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
@@ -276,3 +279,26 @@ Schedule::job(new AnalyzeUserPatterns())
     ->withoutOverlapping()
     ->onOneServer()
     ->name('analyze-user-patterns');
+
+// ─── Telecom Module ──────────────────────────────────────────────────────
+
+// Poll router usage data — setiap 10 menit
+Schedule::job(new PollRouterUsageJob())
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('telecom-poll-router-usage');
+
+// Sync hotspot users online status — setiap jam
+Schedule::job(new SyncHotspotUsersJob())
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('telecom-sync-hotspot-users');
+
+// Check quota expiry & reset quotas — setiap hari jam 00:30
+Schedule::job(new CheckQuotaExpiryJob())
+    ->dailyAt('00:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('telecom-check-quota-expiry');

@@ -14,12 +14,32 @@ use Illuminate\Support\Facades\DB;
 class MrpService
 {
     /**
+     * Per-request BOM explosion cache.
+     * Key: "{bom_id}:{quantity}" — Value: exploded flat array.
+     * Prevents re-exploding the same BOM tree multiple times in one request.
+     */
+    private array $bomCache = [];
+
+    /**
+     * Explode a BOM with in-memory caching.
+     * The Bom model now pre-loads the full relation tree on first call.
+     */
+    private function explodeCached(Bom $bom, float $quantity): array
+    {
+        $key = $bom->id . ':' . $quantity;
+        if (!isset($this->bomCache[$key])) {
+            $this->bomCache[$key] = $bom->explode($quantity);
+        }
+        return $this->bomCache[$key];
+    }
+
+    /**
      * Run MRP calculation for a single BOM + quantity.
      * Returns array of material requirements with stock status.
      */
     public function calculate(Bom $bom, float $quantity, int $tenantId): array
     {
-        $exploded = $bom->explode($quantity);
+        $exploded = $this->explodeCached($bom, $quantity);
 
         // Aggregate same product_id
         $aggregated = [];
@@ -86,7 +106,7 @@ class MrpService
      */
     public function runFullMrp(int $tenantId): array
     {
-        $workOrders = WorkOrder::with('bom')
+        $workOrders = WorkOrder::with(['bom' => fn($q) => $q->with(Bom::buildNestedWith())])
             ->where('tenant_id', $tenantId)
             ->whereIn('status', ['pending', 'in_progress'])
             ->where('materials_consumed', false)
@@ -97,7 +117,7 @@ class MrpService
 
         foreach ($workOrders as $wo) {
             if (!$wo->bom) continue;
-            $exploded = $wo->bom->explode($wo->target_quantity);
+            $exploded = $this->explodeCached($wo->bom, $wo->target_quantity);
             foreach ($exploded as $item) {
                 $pid = $item['product_id'];
                 if (isset($allRequirements[$pid])) {
@@ -173,7 +193,7 @@ class MrpService
         }
 
         $tenantId = $wo->tenant_id;
-        $exploded = $bom->explode($wo->target_quantity);
+        $exploded = $this->explodeCached($bom, $wo->target_quantity);
 
         // Aggregate
         $aggregated = [];
@@ -191,20 +211,24 @@ class MrpService
             return ['success' => false, 'message' => 'Tidak ada gudang aktif.'];
         }
 
+        // Pre-load all product data in one query to avoid N+1 inside the transaction
+        $allProductIds = array_keys($aggregated);
+        $productMap    = Product::whereIn('id', $allProductIds)->get()->keyBy('id');
+        $stockMap      = ProductStock::where('warehouse_id', $warehouse->id)
+            ->whereIn('product_id', $allProductIds)
+            ->get()->keyBy('product_id');
+
         $totalMaterialCost = 0;
         $consumed = [];
         $shortages = [];
 
-        DB::transaction(function () use ($aggregated, $warehouse, $wo, $tenantId, &$totalMaterialCost, &$consumed, &$shortages) {
+        DB::transaction(function () use ($aggregated, $warehouse, $wo, $tenantId, $productMap, $stockMap, &$totalMaterialCost, &$consumed, &$shortages) {
             foreach ($aggregated as $pid => $item) {
-                $stock = ProductStock::where('product_id', $pid)
-                    ->where('warehouse_id', $warehouse->id)
-                    ->first();
-
+                $stock      = $stockMap[$pid] ?? null;
                 $currentQty = $stock ? (float) $stock->quantity : 0;
+                $product    = $productMap[$pid] ?? null;
 
                 if ($currentQty < $item['quantity']) {
-                    $product = Product::find($pid);
                     $shortages[] = ($product->name ?? "#{$pid}") . " (butuh {$item['quantity']}, stok {$currentQty})";
                     // Still consume what's available
                 }
@@ -230,8 +254,7 @@ class MrpService
                     'notes'           => "Konsumsi material produksi {$wo->number}",
                 ]);
 
-                $product = Product::find($pid);
-                $unitCost = $product->price_buy ?? 0;
+                $unitCost           = $product->price_buy ?? 0;
                 $totalMaterialCost += $unitCost * $consumeQty;
 
                 $consumed[] = [
@@ -258,23 +281,26 @@ class MrpService
 
     /**
      * Get pending WO demand for given product IDs.
+     *
+     * Uses explodeCached() so each BOM tree is only exploded once per request,
+     * and pre-loads the full relation tree via Bom::buildNestedWith().
      */
     private function getPendingWoDemand(int $tenantId, array $productIds): array
     {
-        // This is a simplified version — in production you'd cache BOM explosions
         $demand = [];
+        $productSet = array_flip($productIds); // O(1) lookup
+
         $wos = WorkOrder::where('tenant_id', $tenantId)
             ->whereIn('status', ['pending', 'in_progress'])
             ->where('materials_consumed', false)
             ->whereNotNull('bom_id')
-            ->with('bom')
+            ->with(['bom' => fn($q) => $q->with(Bom::buildNestedWith())])
             ->get();
 
         foreach ($wos as $wo) {
             if (!$wo->bom) continue;
-            $exploded = $wo->bom->explode($wo->target_quantity);
-            foreach ($exploded as $item) {
-                if (in_array($item['product_id'], $productIds)) {
+            foreach ($this->explodeCached($wo->bom, $wo->target_quantity) as $item) {
+                if (isset($productSet[$item['product_id']])) {
                     $demand[$item['product_id']] = ($demand[$item['product_id']] ?? 0) + $item['quantity'];
                 }
             }

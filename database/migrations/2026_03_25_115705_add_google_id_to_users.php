@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('google_id')->nullable()->unique()->after('email');
-            $table->string('avatar_url')->nullable()->after('avatar');
+            $table->string('avatar_url', 1000)->nullable()->after('avatar');
         });
     }
 

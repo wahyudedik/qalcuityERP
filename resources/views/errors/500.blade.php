@@ -1,19 +1,113 @@
-@extends('errors.layout')
+<!DOCTYPE html>
+<html lang="en">
 
-@section('title', 'Kesalahan Server')
-@section('code', '500')
-@section('icon', '🔧')
-@section('icon-bg', 'bg-red-500/10')
-@section('heading', 'Terjadi Kesalahan')
-@section('message', 'Maaf, terjadi kesalahan pada server kami. Tim teknis sudah diberitahu dan sedang menangani masalah ini.')
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 500 - Internal Server Error | {{ config('app.name') }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
 
-@section('extra')
-<div class="mt-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4 text-left space-y-2">
-    <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase">Yang bisa Anda lakukan:</p>
-    <ul class="text-sm text-gray-600 dark:text-slate-400 space-y-1.5">
-        <li class="flex items-start gap-2"><span class="text-blue-500 shrink-0">→</span> Muat ulang halaman</li>
-        <li class="flex items-start gap-2"><span class="text-blue-500 shrink-0">→</span> Coba beberapa menit lagi</li>
-        <li class="flex items-start gap-2"><span class="text-blue-500 shrink-0">→</span> Hubungi admin jika masalah berlanjut</li>
-    </ul>
-</div>
-@endsection
+<body
+    class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-red-900 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Error Icon -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-32 h-32 bg-red-100 dark:bg-red-900/30 rounded-full mb-6">
+                <svg class="w-20 h-20 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+
+            <h1 class="text-6xl font-bold text-red-600 dark:text-red-400 mb-4">500</h1>
+            <h2 class="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+                Internal Server Error
+            </h2>
+            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                {{ $message ?? 'An unexpected error occurred. Please try again later.' }}
+            </p>
+        </div>
+
+        <!-- Error ID (for support) -->
+        @if (isset($error_id))
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-blue-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Error Reference</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            If you need assistance, please provide this error ID to support:
+                        </p>
+                        <code
+                            class="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-md font-mono text-sm text-gray-800 dark:text-gray-200">
+                            {{ $error_id }}
+                        </code>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ url('/') }}"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors min-h-[44px] min-w-[44px]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Back to Home
+            </a>
+
+            <button onclick="window.location.reload()"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition-colors min-h-[44px] min-w-[44px]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.058h5V4.058A1.992 1.992 0 008 4H4a1 1 0 00-1 1v5a1 1 0 001 1h5a1 1 0 001-1V5a1 1 0 00-1-1H4zM4 20v-5h.058h5V20H4a1 1 0 01-1-1v-5a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H4z" />
+                </svg>
+                Try Again
+            </button>
+
+            <a href="{{ route('contact') ?? '#' }}"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors min-h-[44px] min-w-[44px]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Contact Support
+            </a>
+        </div>
+
+        <!-- Technical Details (Development Only) -->
+        @if (config('app.debug'))
+            <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    Debug Information
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Exception:</span>
+                        <code
+                            class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $exception->getMessage() }}</code>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                        <code
+                            class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $exception->getFile() }}:{{ $exception->getLine() }}</code>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+</body>
+
+</html>

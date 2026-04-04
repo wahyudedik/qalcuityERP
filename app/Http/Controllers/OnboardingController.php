@@ -17,7 +17,7 @@ class OnboardingController extends Controller
 {
     public function show()
     {
-        $user   = auth()->user();
+        $user = auth()->user();
         $tenant = $user->tenant;
 
         // Sudah onboarding atau bukan admin → skip
@@ -30,32 +30,32 @@ class OnboardingController extends Controller
 
     public function complete(Request $request)
     {
-        $user   = auth()->user();
+        $user = auth()->user();
         $tenant = $user->tenant;
 
         abort_if(!$tenant || !$user->isAdmin(), 403);
 
         $data = $request->validate([
-            'business_name'       => 'required|string|max:255',
-            'business_type'       => 'nullable|string|max:50',
-            'business_description'=> 'nullable|string|max:500',
-            'phone'               => 'nullable|string|max:20',
-            'address'             => 'nullable|string|max:500',
-            'warehouse_name'      => 'required|string|max:255',
-            'products'            => 'nullable|array|max:10',
-            'products.*.name'     => 'required_with:products|string|max:255',
-            'products.*.price'    => 'nullable|numeric|min:0',
-            'products.*.unit'     => 'nullable|string|max:20',
-            'expense_categories'  => 'nullable|string',
+            'business_name' => 'required|string|max:255',
+            'business_type' => 'nullable|string|max:50',
+            'business_description' => 'nullable|string|max:500',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'warehouse_name' => 'required|string|max:255',
+            'products' => 'nullable|array|max:10',
+            'products.*.name' => 'required_with:products|string|max:255',
+            'products.*.price' => 'nullable|numeric|min:0',
+            'products.*.unit' => 'nullable|string|max:20',
+            'expense_categories' => 'nullable|string',
         ]);
 
         // Update tenant info
         $tenant->update([
-            'name'                 => $data['business_name'],
-            'business_type'        => $data['business_type'] ?? $tenant->business_type,
+            'name' => $data['business_name'],
+            'business_type' => $data['business_type'] ?? $tenant->business_type,
             'business_description' => $data['business_description'] ?? null,
-            'phone'                => $data['phone'] ?? null,
-            'address'              => $data['address'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
             'onboarding_completed' => true,
         ]);
 
@@ -63,7 +63,7 @@ class OnboardingController extends Controller
         $warehouse = Warehouse::firstOrCreate(
             ['tenant_id' => $tenant->id, 'name' => $data['warehouse_name']],
             [
-                'code'      => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['warehouse_name']), 0, 4)) . '-01',
+                'code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['warehouse_name']), 0, 4)) . '-01',
                 'is_active' => true,
             ]
         );
@@ -71,17 +71,18 @@ class OnboardingController extends Controller
         // Buat produk awal
         foreach ($data['products'] ?? [] as $item) {
             $name = trim($item['name'] ?? '');
-            if (!$name) continue;
+            if (!$name)
+                continue;
 
             $product = Product::firstOrCreate(
                 ['tenant_id' => $tenant->id, 'name' => $name],
                 [
-                    'sku'        => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)) . '-' . rand(100, 999),
+                    'sku' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)) . '-' . rand(100, 999),
                     'price_sell' => $item['price'] ?? 0,
-                    'price_buy'  => 0,
-                    'unit'       => $item['unit'] ?? 'pcs',
-                    'stock_min'  => 5,
-                    'is_active'  => true,
+                    'price_buy' => 0,
+                    'unit' => $item['unit'] ?? 'pcs',
+                    'stock_min' => 5,
+                    'is_active' => true,
                 ]
             );
 
@@ -97,12 +98,13 @@ class OnboardingController extends Controller
             $categories = ['Bahan Baku', 'Operasional', 'Gaji Karyawan'];
         }
         foreach ($categories as $catName) {
-            if (!$catName) continue;
+            if (!$catName)
+                continue;
             ExpenseCategory::firstOrCreate(
                 ['tenant_id' => $tenant->id, 'name' => $catName],
                 [
-                    'code'      => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $catName), 0, 5)) . '-' . rand(10, 99),
-                    'type'      => 'expense',
+                    'code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $catName), 0, 5)) . '-' . rand(10, 99),
+                    'type' => 'expense',
                     'is_active' => true,
                 ]
             );
@@ -134,7 +136,7 @@ class OnboardingController extends Controller
             'history' => 'nullable|array',
         ]);
 
-        $user   = auth()->user();
+        $user = auth()->user();
         $tenant = $user->tenant;
 
         abort_if(!$tenant || !$user->isAdmin(), 403);
@@ -192,32 +194,55 @@ PROMPT;
                 }
 
                 return response()->json([
-                    'message'        => trim($text),
+                    'message' => trim($text),
                     'setup_complete' => $setupComplete,
                 ]);
             }
 
-            // Eksekusi tool calls
+            // Eksekusi tool calls dengan validasi
             $tools = new OnboardingTools($tenant->id, $user->id);
+            $validator = new \App\Services\AiCommandValidator();
             $functionResults = [];
 
             foreach ($functionCalls as $call) {
                 $toolName = $call['name'];
-                $args     = $call['args'];
+                $args = $call['args'];
 
-                $result = match ($toolName) {
-                    'setup_business'          => $tools->setupBusiness($args),
-                    'apply_industry_template' => $tools->applyIndustryTemplate($args),
-                    'get_industry_shortcuts'  => $tools->getIndustryShortcuts($args),
-                    default                   => ['status' => 'error', 'message' => "Tool {$toolName} tidak dikenal."],
-                };
+                // VALIDATION: Validate command before execution
+                $validationResult = $validator->validate($toolName, $args);
+
+                if (!$validationResult['valid']) {
+                    \Illuminate\Support\Facades\Log::warning('OnboardingController: Blocked invalid AI command', [
+                        'tool' => $toolName,
+                        'user_id' => $user->id,
+                        'tenant_id' => $tenant->id,
+                        'errors' => $validationResult['errors'],
+                    ]);
+
+                    $result = [
+                        'status' => 'error',
+                        'message' => 'Validasi gagal: ' . implode(', ', $validationResult['errors']),
+                    ];
+                } else {
+                    // Use sanitized arguments
+                    $args = $validationResult['sanitized'];
+
+                    $result = match ($toolName) {
+                        'setup_business' => $tools->setupBusiness($args),
+                        'apply_industry_template' => $tools->applyIndustryTemplate($args),
+                        'get_industry_shortcuts' => $tools->getIndustryShortcuts($args),
+                        default => ['status' => 'error', 'message' => "Tool {$toolName} tidak dikenal."],
+                    };
+                }
 
                 $result['_args'] = $args;
                 $functionResults[] = ['name' => $toolName, 'data' => $result];
 
                 // Jika setup_business atau apply_industry_template berhasil → tandai complete
-                if (in_array($toolName, ['setup_business', 'apply_industry_template'])
-                    && ($result['status'] ?? '') === 'success') {
+                if (
+                    in_array($toolName, ['setup_business', 'apply_industry_template'])
+                    && ($result['status'] ?? '') === 'success'
+                ) {
                     $setupComplete = true;
                 }
             }
@@ -243,7 +268,7 @@ PROMPT;
             }
 
             return response()->json([
-                'message'        => trim($finalText) ?: 'Setup berhasil!',
+                'message' => trim($finalText) ?: 'Setup berhasil!',
                 'setup_complete' => $setupComplete,
             ]);
 
@@ -251,7 +276,7 @@ PROMPT;
             Log::error('OnboardingController aiChat error: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Terjadi kesalahan. Silakan coba lagi atau gunakan setup manual.',
-                'error'   => app()->isLocal() ? $e->getMessage() : null,
+                'error' => app()->isLocal() ? $e->getMessage() : null,
             ], 500);
         }
     }

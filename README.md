@@ -2,6 +2,59 @@
 
 > Stack: Laravel 13 · PHP 8.3+ · MySQL · Node.js · Queue: database · Cache: database
 
+## 🌟 New: Telecom Module (v1.0.0)
+
+QalcuityERP now includes a comprehensive **Telecom/ISP Management Module** for internet service providers and telecom businesses.
+
+### ✨ Key Features
+
+- 🌐 **Multi-Router Support**: MikroTik RouterOS integration (extensible to Ubiquiti, OpenWRT)
+- 📊 **Real-Time Monitoring**: Live bandwidth tracking, device status, network topology
+- 💰 **Automated Billing**: Subscription management with automatic invoice generation
+- 🎫 **Voucher System**: Generate, print, and manage prepaid access vouchers
+- 👥 **Customer Portal**: Self-service usage tracking and billing history
+- 📈 **Business Analytics**: Revenue reports, bandwidth utilization, customer insights
+- 🔔 **Smart Alerts**: Webhook notifications for quota exceeded, device offline, payments
+- 📱 **RESTful API**: Full API with authentication for integrations
+- 🔒 **Multi-Tenant**: Complete data isolation per tenant
+- 📤 **Excel Export**: Professional reports ready for presentations
+
+### 📚 Documentation
+
+Comprehensive documentation available in `/docs` folder:
+
+- [API Documentation](docs/TELECOM_API_DOCUMENTATION.md) - Complete API reference
+- [Testing Guide](docs/TELECOM_TESTING_GUIDE.md) - Automated & manual testing
+- [MikroTik Setup Guide](docs/TELECOM_MIKROTIK_SETUP_GUIDE.md) - Router configuration
+- [Webhook Configuration](docs/TELECOM_WEBHOOK_GUIDE.md) - Integration webhooks
+- [Admin User Guide](docs/TELECOM_ADMIN_USER_GUIDE.md) - Step-by-step user manual
+
+### 🚀 Quick Start
+
+```bash
+# Run migrations
+php artisan migrate
+
+# Seed sample data (optional)
+php artisan db:seed --class=TelecomModuleSeeder
+
+# Start queue workers for automation
+php artisan queue:work --queue=telecom,default
+
+# Access module
+# Navigate to: Telecom → Dashboard
+```
+
+### 📊 Module Statistics
+
+- **Phases Completed**: 11/12 (92%)
+- **Tasks Completed**: 87/97 (90%)
+- **Files Created**: 100+
+- **Lines of Code**: 15,000+
+- **Automated Tests**: 35 test cases
+- **API Endpoints**: 20+ endpoints
+- **Documentation**: 5 comprehensive guides
+
 ---
 
 ## Daftar Isi

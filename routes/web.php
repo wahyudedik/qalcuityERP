@@ -11,6 +11,7 @@ use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantControll
 use App\Http\Controllers\SuperAdmin\PlanController as SuperAdminPlanController;
 use App\Http\Controllers\SuperAdmin\MonitoringController as SuperAdminMonitoringController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\Pos\PaymentUIController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BankReconciliationController;
@@ -57,6 +58,8 @@ use App\Http\Controllers\JournalController;
 use App\Http\Controllers\PeriodLockController;
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\GamificationController;
+use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\StockMovementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -106,6 +109,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.widgets.save');
     Route::post('/dashboard/widgets/reset', [DashboardController::class, 'resetWidgets'])
         ->name('dashboard.widgets.reset');
+
+    // Custom widget builder (admin/manager only)
+    Route::get('/dashboard/custom-widgets', [DashboardController::class, 'customWidgetsList'])->name('dashboard.custom-widgets.list');
+    Route::post('/dashboard/custom-widgets', [DashboardController::class, 'customWidgetStore'])->name('dashboard.custom-widgets.store');
+    Route::post('/dashboard/custom-widgets/preview', [DashboardController::class, 'customWidgetPreview'])->name('dashboard.custom-widgets.preview');
+    Route::get('/dashboard/custom-widgets/{customWidget}', [DashboardController::class, 'customWidgetShow'])->name('dashboard.custom-widgets.show');
+    Route::put('/dashboard/custom-widgets/{customWidget}', [DashboardController::class, 'customWidgetUpdate'])->name('dashboard.custom-widgets.update');
+    Route::delete('/dashboard/custom-widgets/{customWidget}', [DashboardController::class, 'customWidgetDelete'])->name('dashboard.custom-widgets.delete');
 });
 
 // Onboarding wizard
@@ -113,7 +124,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::post('/onboarding', [OnboardingController::class, 'complete'])->name('onboarding.complete');
     Route::get('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
-    Route::post('/onboarding/ai-chat', [OnboardingController::class, 'aiChat'])->name('onboarding.ai-chat');
+    Route::post('/onboarding/ai-chat', [OnboardingController::class, 'aiChat'])->name('onboarding.ai-chat')->middleware(['ai.rate', 'ai.quota']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -126,8 +137,8 @@ Route::middleware('auth')->group(function () {
     // Chat / AI ERP
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
-        Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware(['throttle:ai-chat', 'ai.quota']);
-        Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media')->middleware(['throttle:ai-media', 'ai.quota']);
+        Route::post('/send', [ChatController::class, 'send'])->name('send')->middleware(['ai.rate', 'ai.quota']);
+        Route::post('/send-media', [ChatController::class, 'sendMedia'])->name('send-media')->middleware(['ai.rate', 'ai.quota']);
         Route::get('/{session}/messages', [ChatController::class, 'messages'])->name('messages')->middleware('tenant.isolation');
         Route::patch('/{session}/rename', [ChatController::class, 'rename'])->name('rename')->middleware('tenant.isolation');
         Route::delete('/{session}', [ChatController::class, 'destroy'])->name('destroy')->middleware('tenant.isolation');
@@ -146,11 +157,43 @@ Route::middleware('auth')->group(function () {
     Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
+    // Popup Ad dismiss (record view)
+    Route::post('/popup-ads/{ad}/dismiss', [\App\Http\Controllers\PopupAdDismissController::class, 'store'])->name('popup-ads.dismiss');
+
     // Gamification
     Route::prefix('gamification')->name('gamification.')->group(function () {
         Route::get('/', [GamificationController::class, 'index'])->name('index');
         Route::get('/achievements', [GamificationController::class, 'achievements'])->name('achievements');
         Route::get('/leaderboard', [GamificationController::class, 'leaderboard'])->name('leaderboard');
+        Route::get('/points', [GamificationController::class, 'pointsHistory'])->name('points');
+    });
+
+    // ============================================
+    // BARCODE PRINTING & SCANNING ROUTES
+    // ============================================
+
+    // Barcode Printing (Products)
+    Route::prefix('barcode')->name('barcode.')->group(function () {
+        // Print labels for products
+        Route::post('/print', [BarcodeController::class, 'print'])->name('print');
+        // Auto-generate missing barcodes
+        Route::post('/auto-generate', [BarcodeController::class, 'autoGenerate'])->name('auto-generate');
+        // Preview single product barcode
+        Route::get('/products/{product}', [BarcodeController::class, 'show'])->name('products.show');
+    });
+
+    // Stock Movements with Barcode Scanning
+    Route::prefix('inventory/movements')->name('inventory.movements.')->group(function () {
+        // Create movement with scanner
+        Route::get('/create', [StockMovementController::class, 'create'])->name('create');
+        // Store movement
+        Route::post('/', [StockMovementController::class, 'store'])->name('store');
+        // List all movements
+        Route::get('/', [StockMovementController::class, 'index'])->name('index');
+        // API: Lookup product by barcode
+        Route::get('/lookup-barcode', [StockMovementController::class, 'lookupByBarcode'])->name('lookup-barcode');
+        // API: Get product stock at warehouse
+        Route::get('/stock', [StockMovementController::class, 'getProductStock'])->name('stock');
     });
 
     // Tenant User Management (admin only)
@@ -194,6 +237,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/monitoring/errors/clear', [SuperAdminMonitoringController::class, 'clearErrors'])->name('monitoring.clear-errors');
         Route::get('/monitoring/health.json', [SuperAdminMonitoringController::class, 'healthJson'])->name('monitoring.health-json');
 
+        // Error Logs Management (Enhanced)
+        Route::prefix('error-logs')->name('error-logs.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ErrorLogController::class, 'index'])->name('index');
+            Route::get('/{errorLog}', [\App\Http\Controllers\Admin\ErrorLogController::class, 'show'])->name('show');
+            Route::post('/{errorLog}/resolve', [\App\Http\Controllers\Admin\ErrorLogController::class, 'resolve'])->name('resolve');
+            Route::post('/bulk-resolve', [\App\Http\Controllers\Admin\ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
+            Route::post('/test-alert', [\App\Http\Controllers\Admin\ErrorLogController::class, 'testAlert'])->name('test-alert');
+        });
+
         // Affiliate Management
         Route::get('/affiliates', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'index'])->name('affiliates.index');
         Route::post('/affiliates', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'store'])->name('affiliates.store');
@@ -205,6 +257,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/affiliates/payouts/{affiliatePayout}/approve', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'approvePayout'])->name('affiliates.payouts.approve');
         Route::patch('/affiliates/payouts/{affiliatePayout}/reject', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'rejectPayout'])->name('affiliates.payouts.reject');
         Route::get('/affiliates/audit-logs', [\App\Http\Controllers\SuperAdmin\AffiliateManagementController::class, 'auditLogs'])->name('affiliates.audit-logs');
+
+        // Popup Ads
+        Route::prefix('popup-ads')->name('popup-ads.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'store'])->name('store');
+            Route::get('/{ad}/edit', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'edit'])->name('edit');
+            Route::put('/{ad}', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'update'])->name('update');
+            Route::patch('/{ad}/toggle', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'toggle'])->name('toggle');
+            Route::delete('/{ad}', [\App\Http\Controllers\SuperAdmin\PopupAdController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Subscription info (tenant only)
@@ -225,14 +288,14 @@ Route::middleware('auth')->group(function () {
     // Reports & Export (admin + manager only)
     Route::prefix('reports')->name('reports.')->middleware(['role:admin,manager', 'throttle:export'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
-        Route::get('/sales/excel',     [ReportController::class, 'exportSalesExcel'])->name('sales.excel');
-        Route::get('/sales/pdf',       [ReportController::class, 'exportSalesPdf'])->name('sales.pdf');
-        Route::get('/finance/excel',   [ReportController::class, 'exportFinanceExcel'])->name('finance.excel');
-        Route::get('/finance/pdf',     [ReportController::class, 'exportFinancePdf'])->name('finance.pdf');
+        Route::get('/sales/excel', [ReportController::class, 'exportSalesExcel'])->name('sales.excel');
+        Route::get('/sales/pdf', [ReportController::class, 'exportSalesPdf'])->name('sales.pdf');
+        Route::get('/finance/excel', [ReportController::class, 'exportFinanceExcel'])->name('finance.excel');
+        Route::get('/finance/pdf', [ReportController::class, 'exportFinancePdf'])->name('finance.pdf');
         Route::get('/inventory/excel', [ReportController::class, 'exportInventoryExcel'])->name('inventory.excel');
-        Route::get('/inventory/pdf',   [ReportController::class, 'exportInventoryPdf'])->name('inventory.pdf');
-        Route::get('/hrm/excel',       [ReportController::class, 'exportHrmExcel'])->name('hrm.excel');
-        Route::get('/hrm/pdf',         [ReportController::class, 'exportHrmPdf'])->name('hrm.pdf');
+        Route::get('/inventory/pdf', [ReportController::class, 'exportInventoryPdf'])->name('inventory.pdf');
+        Route::get('/hrm/excel', [ReportController::class, 'exportHrmExcel'])->name('hrm.excel');
+        Route::get('/hrm/pdf', [ReportController::class, 'exportHrmPdf'])->name('hrm.pdf');
         Route::get('/receivables/excel', [ReportController::class, 'exportReceivablesExcel'])->name('receivables.excel');
         Route::get('/receivables/pdf', [ReportController::class, 'exportReceivablesPdf'])->name('receivables.pdf');
         Route::get('/profit-loss/pdf', [ReportController::class, 'exportProfitLossPdf'])->name('profit-loss.pdf');
@@ -242,18 +305,18 @@ Route::middleware('auth')->group(function () {
 
         // Balance Sheet (Neraca)
         Route::get('/balance-sheet/excel', [ReportController::class, 'exportBalanceSheetExcel'])->name('balance-sheet.excel');
-        Route::get('/balance-sheet/pdf',   [ReportController::class, 'exportBalanceSheetPdf'])->name('balance-sheet.pdf');
+        Route::get('/balance-sheet/pdf', [ReportController::class, 'exportBalanceSheetPdf'])->name('balance-sheet.pdf');
 
         // Cash Flow Statement (Arus Kas)
         Route::get('/cash-flow/excel', [ReportController::class, 'exportCashFlowExcel'])->name('cash-flow.excel');
-        Route::get('/cash-flow/pdf',   [ReportController::class, 'exportCashFlowPdf'])->name('cash-flow.pdf');
+        Route::get('/cash-flow/pdf', [ReportController::class, 'exportCashFlowPdf'])->name('cash-flow.pdf');
 
         // Budget vs Actual
         Route::get('/budget/excel', [ReportController::class, 'exportBudgetExcel'])->name('budget.excel');
-        Route::get('/budget/pdf',   [ReportController::class, 'exportBudgetPdf'])->name('budget.pdf');
+        Route::get('/budget/pdf', [ReportController::class, 'exportBudgetPdf'])->name('budget.pdf');
 
         // Cash Flow Projection
-        Route::get('/cash-flow-projection',      [ReportController::class, 'cashFlowProjection'])->name('cash-flow-projection');
+        Route::get('/cash-flow-projection', [ReportController::class, 'cashFlowProjection'])->name('cash-flow-projection');
         Route::get('/cash-flow-projection/data', [ReportController::class, 'cashFlowProjectionData'])->name('cash-flow-projection.data');
     });
 
@@ -301,8 +364,17 @@ Route::middleware('auth')->group(function () {
     Route::prefix('pos')->name('pos.')->middleware('permission:pos,view')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
         Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout')->middleware(['permission:pos,create', 'throttle:pos-checkout']);
+        Route::post('/initiate-payment', [PosController::class, 'initiatePayment'])->name('initiate-payment');
+        Route::post('/complete-payment/{order}', [PosController::class, 'completePayment'])->name('complete-payment');
         Route::get('/barcode', [PosController::class, 'findByBarcode'])->name('barcode');
+
+        // Payment UI Routes
+        Route::get('/payment/qris/{transactionNumber}', [PaymentUIController::class, 'showQrisPayment'])->name('payment.qris');
+        Route::get('/payment/history', [PaymentUIController::class, 'paymentHistory'])->name('payment.history');
     });
+
+    // Payment Gateway Settings (Tenant self-configuration)
+    Route::get('/settings/payment-gateways', [PaymentUIController::class, 'gatewaySettings'])->name('settings.payment-gateways');
 
     // Approval Workflow
     Route::prefix('approvals')->name('approvals.')->middleware('role:admin,manager')->group(function () {
@@ -323,6 +395,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/audit/{activityLog}', [AuditController::class, 'show'])->name('audit.show');
         Route::post('/audit/{activityLog}/rollback', [AuditController::class, 'rollback'])->name('audit.rollback');
         Route::get('/audit-export', [AuditController::class, 'export'])->name('audit.export');
+        Route::get('/audit-compliance-report', [AuditController::class, 'complianceReport'])->name('audit.compliance-report');
     });
 
     // Bank Reconciliation (admin + manager only)
@@ -338,11 +411,11 @@ Route::middleware('auth')->group(function () {
 
     // Bank Accounts (master data)
     Route::prefix('bank-accounts')->name('bank-accounts.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/',                  [\App\Http\Controllers\BankAccountController::class, 'index'])->name('index');
-        Route::post('/',                 [\App\Http\Controllers\BankAccountController::class, 'store'])->name('store');
-        Route::put('/{bankAccount}',     [\App\Http\Controllers\BankAccountController::class, 'update'])->name('update');
+        Route::get('/', [\App\Http\Controllers\BankAccountController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\BankAccountController::class, 'store'])->name('store');
+        Route::put('/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'update'])->name('update');
         Route::patch('/{bankAccount}/toggle', [\App\Http\Controllers\BankAccountController::class, 'toggleActive'])->name('toggle');
-        Route::delete('/{bankAccount}',  [\App\Http\Controllers\BankAccountController::class, 'destroy'])->name('destroy');
+        Route::delete('/{bankAccount}', [\App\Http\Controllers\BankAccountController::class, 'destroy'])->name('destroy');
     });
 
     // Digital Signature
@@ -399,15 +472,15 @@ Route::middleware('auth')->group(function () {
 
     // Sales AI — contextual suggestions (AJAX)
     Route::prefix('sales/ai')->name('sales.ai.')->middleware(['role:admin,manager', 'ai.quota'])->group(function () {
-        Route::get('/price-suggest',     [\App\Http\Controllers\SalesAiController::class, 'priceSuggest'])->name('price-suggest');
+        Route::get('/price-suggest', [\App\Http\Controllers\SalesAiController::class, 'priceSuggest'])->name('price-suggest');
         Route::get('/late-payment-risk', [\App\Http\Controllers\SalesAiController::class, 'latePaymentRisk'])->name('late-payment-risk');
-        Route::get('/item-description',  [\App\Http\Controllers\SalesAiController::class, 'itemDescription'])->name('item-description');
+        Route::get('/item-description', [\App\Http\Controllers\SalesAiController::class, 'itemDescription'])->name('item-description');
     });
 
     // Accounting AI — contextual suggestions (AJAX)
     Route::prefix('accounting/ai')->name('accounting.ai.')->middleware(['role:admin,manager', 'ai.quota'])->group(function () {
-        Route::get('/suggest-accounts',    [\App\Http\Controllers\AccountingAiController::class, 'suggestAccounts'])->name('suggest-accounts');
-        Route::post('/check-journal',      [\App\Http\Controllers\AccountingAiController::class, 'checkJournal'])->name('check-journal');
+        Route::get('/suggest-accounts', [\App\Http\Controllers\AccountingAiController::class, 'suggestAccounts'])->name('suggest-accounts');
+        Route::post('/check-journal', [\App\Http\Controllers\AccountingAiController::class, 'checkJournal'])->name('check-journal');
         Route::get('/categorize-statement', [\App\Http\Controllers\AccountingAiController::class, 'categorizeStatement'])->name('categorize-statement');
     });
 
@@ -462,6 +535,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/picking', [\App\Http\Controllers\WmsController::class, 'pickingLists'])->name('picking')->middleware('permission:wms,view');
         Route::post('/picking', [\App\Http\Controllers\WmsController::class, 'createPickingList'])->name('picking.store')->middleware('permission:wms,create');
         Route::patch('/picking/items/{pickingListItem}', [\App\Http\Controllers\WmsController::class, 'confirmPick'])->name('picking.confirm')->middleware('permission:wms,edit');
+        Route::get('/picking/{pickingList}/scan', [\App\Http\Controllers\WmsController::class, 'scanPicking'])->name('picking.scan')->middleware('permission:wms,view');
+        Route::get('/bins/{bin}/label', [\App\Http\Controllers\WmsController::class, 'printBinLabel'])->name('bins.label')->middleware('permission:wms,view');
+        Route::post('/bins/labels/batch', [\App\Http\Controllers\WmsController::class, 'printBinLabelsBatch'])->name('bins.labels.batch')->middleware('permission:wms,view');
         Route::get('/opname', [\App\Http\Controllers\WmsController::class, 'opnameSessions'])->name('opname')->middleware('permission:wms,view');
         Route::post('/opname', [\App\Http\Controllers\WmsController::class, 'createOpname'])->name('opname.store')->middleware('permission:wms,create');
         Route::get('/opname/{stockOpnameSession}', [\App\Http\Controllers\WmsController::class, 'showOpname'])->name('opname.show')->middleware('permission:wms,view');
@@ -486,14 +562,14 @@ Route::middleware('auth')->group(function () {
             Route::patch('/batches/{batch}/status', [InventoryController::class, 'updateBatchStatus'])->name('batches.status');
             Route::post('/warehouses', [InventoryController::class, 'storeWarehouse'])->name('warehouses.store');
             // Inventory AI — contextual (AJAX)
-            Route::get('/ai/analyze-all',          [\App\Http\Controllers\InventoryAiController::class, 'analyzeAll'])->name('ai.analyze-all')->middleware('ai.quota');
-            Route::get('/ai/stockout/{product}',   [\App\Http\Controllers\InventoryAiController::class, 'stockoutPrediction'])->name('ai.stockout')->middleware('ai.quota');
-            Route::get('/ai/reorder/{product}',    [\App\Http\Controllers\InventoryAiController::class, 'reorderSuggest'])->name('ai.reorder')->middleware('ai.quota');
+            Route::get('/ai/analyze-all', [\App\Http\Controllers\InventoryAiController::class, 'analyzeAll'])->name('ai.analyze-all')->middleware('ai.quota');
+            Route::get('/ai/stockout/{product}', [\App\Http\Controllers\InventoryAiController::class, 'stockoutPrediction'])->name('ai.stockout')->middleware('ai.quota');
+            Route::get('/ai/reorder/{product}', [\App\Http\Controllers\InventoryAiController::class, 'reorderSuggest'])->name('ai.reorder')->middleware('ai.quota');
             // Inventory Costing
-            Route::get('/costing/valuation',       [\App\Http\Controllers\InventoryCostingController::class, 'valuation'])->name('costing.valuation');
-            Route::get('/costing/cogs',            [\App\Http\Controllers\InventoryCostingController::class, 'cogs'])->name('costing.cogs');
-            Route::post('/costing/method',         [\App\Http\Controllers\InventoryCostingController::class, 'updateMethod'])->name('costing.method');
-            Route::get('/costing/current-cost',    [\App\Http\Controllers\InventoryCostingController::class, 'currentCost'])->name('costing.current-cost');
+            Route::get('/costing/valuation', [\App\Http\Controllers\InventoryCostingController::class, 'valuation'])->name('costing.valuation');
+            Route::get('/costing/cogs', [\App\Http\Controllers\InventoryCostingController::class, 'cogs'])->name('costing.cogs');
+            Route::post('/costing/method', [\App\Http\Controllers\InventoryCostingController::class, 'updateMethod'])->name('costing.method');
+            Route::get('/costing/current-cost', [\App\Http\Controllers\InventoryCostingController::class, 'currentCost'])->name('costing.current-cost');
         });
     });
 
@@ -550,6 +626,28 @@ Route::middleware('auth')->group(function () {
             Route::get('/schedule-data', [\App\Http\Controllers\ShiftController::class, 'scheduleData'])->name('schedule-data');
             Route::get('/today', [\App\Http\Controllers\ShiftController::class, 'todaySchedule'])->name('today');
             Route::get('/conflicts', [\App\Http\Controllers\ShiftController::class, 'conflictDetect'])->name('conflicts');
+        });
+        // Fingerprint Device Management
+        Route::prefix('fingerprint')->name('fingerprint.')->group(function () {
+            // Device management
+            Route::prefix('devices')->name('devices.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\FingerprintDeviceController::class, 'index'])->name('index');
+                Route::get('/create', [\App\Http\Controllers\FingerprintDeviceController::class, 'create'])->name('create');
+                Route::post('/', [\App\Http\Controllers\FingerprintDeviceController::class, 'store'])->name('store');
+                Route::get('/{device}', [\App\Http\Controllers\FingerprintDeviceController::class, 'show'])->name('show');
+                Route::get('/{device}/edit', [\App\Http\Controllers\FingerprintDeviceController::class, 'edit'])->name('edit');
+                Route::put('/{device}', [\App\Http\Controllers\FingerprintDeviceController::class, 'update'])->name('update');
+                Route::delete('/{device}', [\App\Http\Controllers\FingerprintDeviceController::class, 'destroy'])->name('destroy');
+                Route::post('/{device}/test-connection', [\App\Http\Controllers\FingerprintDeviceController::class, 'testConnection'])->name('test-connection');
+                Route::post('/{device}/sync-attendance', [\App\Http\Controllers\FingerprintDeviceController::class, 'syncAttendance'])->name('sync-attendance');
+            });
+            // Employee fingerprint registration
+            Route::prefix('employees')->name('employees.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\FingerprintDeviceController::class, 'employeeList'])->name('index');
+                Route::get('/{employee}/register', [\App\Http\Controllers\FingerprintDeviceController::class, 'registerEmployee'])->name('register');
+                Route::post('/{employee}/register', [\App\Http\Controllers\FingerprintDeviceController::class, 'storeEmployeeRegistration'])->name('register.store');
+                Route::delete('/{employee}/remove-registration', [\App\Http\Controllers\FingerprintDeviceController::class, 'removeEmployeeRegistration'])->name('register.remove');
+            });
         });
         // Overtime / Lembur
         Route::prefix('overtime')->name('overtime.')->group(function () {
@@ -624,17 +722,17 @@ Route::middleware('auth')->group(function () {
 
     // Suppliers (master data)
     Route::prefix('suppliers')->name('suppliers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/',              [\App\Http\Controllers\SupplierController::class, 'index'])->name('index');
-        Route::post('/',             [\App\Http\Controllers\SupplierController::class, 'store'])->name('store');
-        Route::put('/{supplier}',    [\App\Http\Controllers\SupplierController::class, 'update'])->name('update');
+        Route::get('/', [\App\Http\Controllers\SupplierController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\SupplierController::class, 'store'])->name('store');
+        Route::put('/{supplier}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('update');
         Route::patch('/{supplier}/toggle', [\App\Http\Controllers\SupplierController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{supplier}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('destroy');
     });
 
     // Customers (master data)
     Route::prefix('customers')->name('customers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/',           [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
-        Route::post('/',          [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
+        Route::get('/', [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
         Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
         Route::patch('/{customer}/toggle', [\App\Http\Controllers\CustomerController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
@@ -642,18 +740,18 @@ Route::middleware('auth')->group(function () {
 
     // Products (master data)
     Route::prefix('products')->name('products.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/',            [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
-        Route::post('/',           [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
-        Route::put('/{product}',   [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
+        Route::get('/', [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
+        Route::put('/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
         Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
     });
 
     // Warehouses (master data)
     Route::prefix('warehouses')->name('warehouses.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/',               [\App\Http\Controllers\WarehouseController::class, 'index'])->name('index');
-        Route::post('/',              [\App\Http\Controllers\WarehouseController::class, 'store'])->name('store');
-        Route::put('/{warehouse}',    [\App\Http\Controllers\WarehouseController::class, 'update'])->name('update');
+        Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('store');
+        Route::put('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('update');
         Route::patch('/{warehouse}/toggle', [\App\Http\Controllers\WarehouseController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('destroy');
     });
@@ -704,8 +802,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
         Route::delete('/{budget}', [BudgetController::class, 'destroy'])->name('destroy');
         // Budget AI — contextual (AJAX)
-        Route::get('/ai/overrun-prediction',  [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun')->middleware('ai.quota');
-        Route::get('/ai/suggest-allocation',  [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest')->middleware('ai.quota');
+        Route::get('/ai/overrun-prediction', [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun')->middleware('ai.quota');
+        Route::get('/ai/suggest-allocation', [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest')->middleware('ai.quota');
     });
 
     // Loyalty Program (admin + manager only)
@@ -767,6 +865,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('maintenance');
         Route::post('/maintenance', [AssetController::class, 'storeMaintenance'])->name('maintenance.store');
         Route::patch('/maintenance/{maintenance}/status', [AssetController::class, 'updateMaintenanceStatus'])->name('maintenance.status');
+
+        // Asset Barcode & Scanning
+        Route::get('/scan-maintenance', [AssetController::class, 'scanForMaintenance'])->name('scan-maintenance')->middleware('permission:assets,create');
+        Route::post('/lookup-by-barcode', [AssetController::class, 'lookupByBarcode'])->name('lookup-barcode')->middleware('permission:assets,view');
+        Route::get('/{asset}/barcode', [AssetController::class, 'showBarcode'])->name('barcode.show')->middleware('permission:assets,view');
+        Route::post('/barcode/print', [AssetController::class, 'printBarcodes'])->name('barcode.print')->middleware('permission:assets,view');
     });
 
     // Import CSV (admin + manager only)
@@ -850,6 +954,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/work-centers/{workCenter}', [ManufacturingController::class, 'destroyWorkCenter'])->name('work-centers.destroy')->middleware('permission:manufacturing,delete');
         Route::get('/mrp', [ManufacturingController::class, 'mrp'])->name('mrp')->middleware('permission:manufacturing,view');
         Route::post('/{workOrder}/consume', [ManufacturingController::class, 'consumeMaterials'])->name('consume')->middleware('permission:manufacturing,create');
+
+        // Work Order Material Scanning
+        Route::get('/work-orders/{workOrder}/scan-materials', [ManufacturingController::class, 'scanMaterials'])->name('work-orders.scan-materials')->middleware('permission:manufacturing,create');
+        Route::post('/work-orders/{workOrder}/consume-scanned', [ManufacturingController::class, 'consumeScannedMaterials'])->name('work-orders.consume-scanned')->middleware('permission:manufacturing,create');
 
         // Mix Design (Mutu Beton)
         Route::get('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'index'])->name('mix-design')->middleware('permission:manufacturing,view');
@@ -1308,24 +1416,333 @@ Route::middleware('auth')->group(function () {
         Route::get('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'ownerships'])->name('ownerships');
         Route::post('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'storeOwnership'])->name('ownerships.store');
     });
+
+    // =============================================
+    // HOTEL PMS MODULE
+    // =============================================
+    Route::prefix('hotel')->name('hotel.')->group(function () {
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\Hotel\HotelDashboardController::class, 'index'])->name('dashboard');
+
+        // Settings
+        Route::get('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'edit'])->name('settings.edit');
+        Route::put('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'update'])->name('settings.update');
+
+        // Room Types
+        Route::resource('room-types', App\Http\Controllers\Hotel\RoomTypeController::class)->except(['show', 'edit', 'create'])->names('room-types');
+
+        // Rooms
+        Route::get('rooms/availability', [App\Http\Controllers\Hotel\RoomController::class, 'availability'])->name('rooms.availability');
+        Route::patch('rooms/{room}/status', [App\Http\Controllers\Hotel\RoomController::class, 'updateStatus'])->name('rooms.status');
+        Route::resource('rooms', App\Http\Controllers\Hotel\RoomController::class)->except(['show', 'edit', 'create'])->names('rooms');
+
+        // Reservations
+        Route::get('reservations/calendar', [App\Http\Controllers\Hotel\ReservationController::class, 'calendar'])->name('reservations.calendar');
+        Route::post('reservations/calculate-rate', [App\Http\Controllers\Hotel\ReservationController::class, 'calculateRate'])->name('reservations.calculate-rate');
+        Route::patch('reservations/{reservation}/confirm', [App\Http\Controllers\Hotel\ReservationController::class, 'confirm'])->name('reservations.confirm');
+        Route::patch('reservations/{reservation}/cancel', [App\Http\Controllers\Hotel\ReservationController::class, 'cancel'])->name('reservations.cancel');
+
+        // Reservation room changes and early/late requests
+        Route::get('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'showRoomChange'])->name('reservations.room-change');
+        Route::post('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'processRoomChange'])->name('reservations.process-room-change');
+        Route::post('reservations/{reservation}/early-late-request', [App\Http\Controllers\Hotel\ReservationController::class, 'requestEarlyLate'])->name('reservations.request-early-late');
+        Route::post('reservations/early-late/{request}/approve', [App\Http\Controllers\Hotel\ReservationController::class, 'approveEarlyLate'])->name('reservations.approve-early-late');
+        Route::post('reservations/early-late/{request}/reject', [App\Http\Controllers\Hotel\ReservationController::class, 'rejectEarlyLate'])->name('reservations.reject-early-late');
+        Route::get('reservations/early-late/pending', [App\Http\Controllers\Hotel\ReservationController::class, 'getPendingRequests'])->name('reservations.pending-early-late');
+        Route::post('reservations/{reservation}/record-check-in', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckIn'])->name('reservations.record-check-in');
+        Route::post('reservations/{reservation}/record-check-out', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckOut'])->name('reservations.record-check-out');
+        Route::get('reservations/{reservation}/room-changes', [App\Http\Controllers\Hotel\ReservationController::class, 'getRoomChanges'])->name('reservations.room-changes');
+
+        Route::resource('reservations', App\Http\Controllers\Hotel\ReservationController::class)->names('reservations');
+
+        // Guests
+        Route::get('guests/search', [App\Http\Controllers\Hotel\GuestController::class, 'search'])->name('guests.search');
+        Route::get('guests/{guest}/history', [App\Http\Controllers\Hotel\GuestController::class, 'history'])->name('guests.history');
+        Route::get('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'preferences'])->name('guests.preferences');
+        Route::post('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'storePreference'])->name('guests.store-preference');
+        Route::patch('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'updatePreference'])->name('guests.update-preference');
+        Route::delete('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'destroyPreference'])->name('guests.destroy-preference');
+        Route::post('guests/{guest}/award-points', [App\Http\Controllers\Hotel\GuestController::class, 'awardPoints'])->name('guests.award-points');
+        Route::patch('guests/{guest}/vip-level', [App\Http\Controllers\Hotel\GuestController::class, 'updateVipLevel'])->name('guests.update-vip-level');
+        Route::resource('guests', App\Http\Controllers\Hotel\GuestController::class)->names('guests');
+
+        // Group Bookings
+        Route::get('group-bookings/search', [App\Http\Controllers\Hotel\GroupBookingController::class, 'search'])->name('group-bookings.search');
+        Route::post('group-bookings/{groupBooking}/add-reservation', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addReservation'])->name('group-bookings.add-reservation');
+        Route::post('group-bookings/{groupBooking}/confirm', [App\Http\Controllers\Hotel\GroupBookingController::class, 'confirm'])->name('group-bookings.confirm');
+        Route::post('group-bookings/{groupBooking}/cancel', [App\Http\Controllers\Hotel\GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
+        Route::post('group-bookings/{groupBooking}/payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'processPayment'])->name('group-bookings.payment');
+        Route::post('group-bookings/{groupBooking}/add-benefit', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addBenefit'])->name('group-bookings.add-benefit');
+        Route::delete('reservations/{reservation}/remove-from-group', [App\Http\Controllers\Hotel\GroupBookingController::class, 'removeReservation'])->name('group-bookings.remove-reservation');
+        Route::resource('group-bookings', App\Http\Controllers\Hotel\GroupBookingController::class)->names('group-bookings');
+
+        // Walk-in Reservations
+        Route::get('walk-ins/statistics', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'statistics'])->name('walk-ins.statistics');
+        Route::post('walk-ins/quick-check-in', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'quickCheckIn'])->name('walk-ins.quick-check-in');
+        Route::resource('walk-ins', App\Http\Controllers\Hotel\WalkInReservationController::class)->except(['create', 'store'])->names('walk-ins');
+
+        // Check-in / Check-out
+        Route::get('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkInForm'])->name('checkin.form');
+        Route::post('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckIn'])->name('checkin.process');
+        Route::get('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkOutForm'])->name('checkout.form');
+        Route::post('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckOut'])->name('checkout.process');
+
+        // Housekeeping Module
+        Route::prefix('housekeeping')->name('housekeeping.')->group(function () {
+            // Dashboard & Room Board
+            Route::get('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'index'])->name('index');
+            Route::get('room-board', [App\Http\Controllers\Hotel\HousekeepingController::class, 'roomBoard'])->name('room-board');
+            Route::post('rooms/{roomId}/status', [App\Http\Controllers\Hotel\HousekeepingController::class, 'updateRoomStatus'])->name('rooms.status');
+
+            // Tasks Management
+            Route::get('tasks', [App\Http\Controllers\Hotel\HousekeepingController::class, 'tasks'])->name('tasks.index');
+            Route::post('tasks/{taskId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignTask'])->name('tasks.assign');
+            Route::post('tasks/{taskId}/start', [App\Http\Controllers\Hotel\HousekeepingController::class, 'startTask'])->name('tasks.start');
+            Route::post('tasks/{taskId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeTask'])->name('tasks.complete');
+
+            // Maintenance Requests
+            Route::get('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'maintenance'])->name('maintenance.index');
+            Route::post('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'createMaintenanceRequest'])->name('maintenance.store');
+            Route::post('maintenance/{requestId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignMaintenanceRequest'])->name('maintenance.assign');
+            Route::post('maintenance/{requestId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeMaintenanceRequest'])->name('maintenance.complete');
+
+            // Linen Inventory
+            Route::get('linen', [App\Http\Controllers\Hotel\HousekeepingController::class, 'linenInventory'])->name('linen.index');
+            Route::post('linen/movement', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordLinenMovement'])->name('linen.movement');
+
+            // Supplies Inventory
+            Route::get('supplies', [App\Http\Controllers\Hotel\HousekeepingController::class, 'supplies'])->name('supplies.index');
+            Route::post('supplies/usage', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordSupplyUsage'])->name('supplies.usage');
+
+            // Reports
+            Route::get('daily-report', [App\Http\Controllers\Hotel\HousekeepingController::class, 'dailyReport'])->name('daily-report');
+        });
+
+        // Rate Management
+        Route::get('rates/calendar', [App\Http\Controllers\Hotel\RateController::class, 'calendar'])->name('rates.calendar');
+        Route::post('rates/bulk-update', [App\Http\Controllers\Hotel\RateController::class, 'bulkUpdate'])->name('rates.bulk-update');
+        Route::resource('rates', App\Http\Controllers\Hotel\RateController::class)->except(['show', 'edit', 'create'])->names('rates');
+
+        // Revenue Management
+        Route::prefix('revenue')->name('revenue.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'dashboard'])->name('dashboard');
+
+            // Rate Plans
+            Route::get('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'ratePlans'])->name('rate-plans');
+            Route::post('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeRatePlan'])->name('rate-plans.store');
+            Route::put('rate-plans/{ratePlan}', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'updateRatePlan'])->name('rate-plans.update');
+
+            // Pricing Rules
+            Route::get('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'pricingRules'])->name('pricing-rules');
+            Route::post('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storePricingRule'])->name('pricing-rules.store');
+
+            // Forecasts
+            Route::get('forecasts', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'forecasts'])->name('forecasts');
+            Route::post('forecasts/generate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'generateForecasts'])->name('forecasts.generate');
+
+            // Competitor Rates
+            Route::get('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'competitorRates'])->name('competitor-rates');
+            Route::post('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeCompetitorRate'])->name('competitor-rates.store');
+
+            // Special Events
+            Route::get('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'specialEvents'])->name('special-events');
+            Route::post('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeSpecialEvent'])->name('special-events.store');
+
+            // Recommendations
+            Route::get('recommendations', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'recommendations'])->name('recommendations');
+            Route::post('recommendations/{recommendation}/apply', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'applyRecommendation'])->name('recommendations.apply');
+            Route::post('recommendations/{recommendation}/reject', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rejectRecommendation'])->name('recommendations.reject');
+
+            // Rate Calendar
+            Route::get('rate-calendar', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rateCalendar'])->name('rate-calendar');
+
+            // Yield Optimization
+            Route::get('yield-optimization', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'yieldOptimization'])->name('yield-optimization');
+
+            // Reports
+            Route::get('reports', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'reports'])->name('reports');
+
+            // Bulk Updates
+            Route::post('bulk-rate-update', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'bulkRateUpdate'])->name('bulk-rate-update');
+
+            // API Endpoints
+            Route::get('api/optimal-rate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getOptimalRate'])->name('api.optimal-rate');
+            Route::get('api/rate-range', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getRateRange'])->name('api.rate-range');
+        });
+
+        // Food & Beverage Module
+        Route::prefix('fb')->name('fb.')->group(function () {
+            // Restaurant POS
+            Route::get('restaurant', [App\Http\Controllers\Hotel\RestaurantController::class, 'index'])->name('restaurant.index');
+            Route::post('restaurant/orders', [App\Http\Controllers\Hotel\RestaurantController::class, 'createOrder'])->name('restaurant.orders.store');
+            Route::get('restaurant/orders/{id}', [App\Http\Controllers\Hotel\RestaurantController::class, 'showOrder'])->name('restaurant.orders.show');
+            Route::patch('restaurant/orders/{id}/status', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateOrderStatus'])->name('restaurant.orders.status');
+
+            // Menus Management
+            Route::get('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'menus'])->name('menus.index');
+            Route::post('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenu'])->name('menus.store');
+            Route::put('menus/{menu}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenu'])->name('menus.update');
+            Route::get('menus/{menu}/items', [App\Http\Controllers\Hotel\RestaurantController::class, 'menuItems'])->name('menus.items');
+            Route::post('menu-items', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenuItem'])->name('menu-items.store');
+            Route::put('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenuItem'])->name('menu-items.update');
+            Route::delete('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'destroyMenuItem'])->name('menu-items.destroy');
+
+            // Room Service
+            Route::get('roomservice', [App\Http\Controllers\Hotel\RoomServiceController::class, 'index'])->name('roomservice.index');
+            Route::post('roomservice/orders', [App\Http\Controllers\Hotel\RoomServiceController::class, 'createOrder'])->name('roomservice.orders.store');
+            Route::get('roomservice/orders/{id}', [App\Http\Controllers\Hotel\RoomServiceController::class, 'showOrder'])->name('roomservice.orders.show');
+            Route::post('roomservice/orders/{id}/deliver', [App\Http\Controllers\Hotel\RoomServiceController::class, 'deliverOrder'])->name('roomservice.orders.deliver');
+            Route::post('roomservice/orders/{id}/charge', [App\Http\Controllers\Hotel\RoomServiceController::class, 'chargeToRoom'])->name('roomservice.orders.charge');
+            Route::get('roomservice/menu-items', [App\Http\Controllers\Hotel\RoomServiceController::class, 'availableMenuItems'])->name('roomservice.menu-items');
+
+            // Mini-bar
+            Route::get('minibar', [App\Http\Controllers\Hotel\MinibarController::class, 'index'])->name('minibar.index');
+            Route::get('minibar/room/{roomNumber}', [App\Http\Controllers\Hotel\MinibarController::class, 'roomStock'])->name('minibar.room-stock');
+            Route::post('minibar/consumption', [App\Http\Controllers\Hotel\MinibarController::class, 'recordConsumption'])->name('minibar.consumption');
+            Route::post('minibar/restock', [App\Http\Controllers\Hotel\MinibarController::class, 'restock'])->name('minibar.restock');
+            Route::get('minibar/reservation/{reservationId}/charges', [App\Http\Controllers\Hotel\MinibarController::class, 'reservationCharges'])->name('minibar.charges');
+            Route::post('minibar/reservation/{reservationId}/bill-all', [App\Http\Controllers\Hotel\MinibarController::class, 'billAllCharges'])->name('minibar.bill-all');
+
+            // Banquet & Events
+            Route::get('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'index'])->name('banquet.index');
+            Route::get('banquet/create', [App\Http\Controllers\Hotel\BanquetController::class, 'create'])->name('banquet.create');
+            Route::post('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'store'])->name('banquet.store');
+            Route::get('banquet/{id}', [App\Http\Controllers\Hotel\BanquetController::class, 'show'])->name('banquet.show');
+            Route::post('banquet/{id}/confirm', [App\Http\Controllers\Hotel\BanquetController::class, 'confirmEvent'])->name('banquet.confirm');
+            Route::post('banquet/{id}/complete', [App\Http\Controllers\Hotel\BanquetController::class, 'completeEvent'])->name('banquet.complete');
+            Route::post('banquet/{id}/cancel', [App\Http\Controllers\Hotel\BanquetController::class, 'cancelEvent'])->name('banquet.cancel');
+            Route::patch('banquet/{id}/guest-count', [App\Http\Controllers\Hotel\BanquetController::class, 'updateGuestCount'])->name('banquet.guest-count');
+
+            // F&B Inventory/Supplies
+            Route::get('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'index'])->name('supplies.index');
+            Route::post('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'store'])->name('supplies.store');
+            Route::put('supplies/{supply}', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'update'])->name('supplies.update');
+            Route::post('supplies/{supply}/add-stock', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'addStock'])->name('supplies.add-stock');
+            Route::post('supplies/{supply}/usage', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'recordUsage'])->name('supplies.usage');
+            Route::get('supplies/{supply}/transactions', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'transactions'])->name('supplies.transactions');
+
+            // F&B Reports
+            Route::get('reports', [App\Http\Controllers\Hotel\FbReportsController::class, 'index'])->name('reports.index');
+            Route::get('reports/export', [App\Http\Controllers\Hotel\FbReportsController::class, 'export'])->name('reports.export');
+        });
+
+        // Spa & Recreation Module
+        Route::prefix('spa')->name('spa.')->group(function () {
+            // Dashboard
+            Route::get('/', [App\Http\Controllers\Hotel\SpaController::class, 'dashboard'])->name('dashboard');
+
+            // Treatments
+            Route::get('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'treatments'])->name('treatments.index');
+            Route::post('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'storeTreatment'])->name('treatments.store');
+            Route::put('treatments/{treatment}', [App\Http\Controllers\Hotel\SpaController::class, 'updateTreatment'])->name('treatments.update');
+
+            // Packages
+            Route::get('packages', [App\Http\Controllers\Hotel\SpaController::class, 'packages'])->name('packages.index');
+            Route::get('packages/create', [App\Http\Controllers\Hotel\SpaController::class, 'createPackage'])->name('packages.create');
+            Route::post('packages', [App\Http\Controllers\Hotel\SpaController::class, 'storePackage'])->name('packages.store');
+            Route::get('packages/{package}', [App\Http\Controllers\Hotel\SpaController::class, 'showPackage'])->name('packages.show');
+
+            // Therapists
+            Route::get('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'therapists'])->name('therapists.index');
+            Route::post('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'storeTherapist'])->name('therapists.store');
+            Route::get('therapists/{therapist}/schedule', [App\Http\Controllers\Hotel\SpaController::class, 'therapistSchedule'])->name('therapists.schedule');
+
+            // Bookings
+            Route::get('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'bookings'])->name('bookings.index');
+            Route::get('bookings/create', [App\Http\Controllers\Hotel\SpaController::class, 'createBooking'])->name('bookings.create');
+            Route::post('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'storeBooking'])->name('bookings.store');
+            Route::post('bookings/{booking}/confirm', [App\Http\Controllers\Hotel\SpaController::class, 'confirmBooking'])->name('bookings.confirm');
+            Route::post('bookings/{booking}/complete', [App\Http\Controllers\Hotel\SpaController::class, 'completeBooking'])->name('bookings.complete');
+            Route::post('bookings/{booking}/cancel', [App\Http\Controllers\Hotel\SpaController::class, 'cancelBooking'])->name('bookings.cancel');
+
+            // Product Sales
+            Route::get('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'productSales'])->name('product-sales.index');
+            Route::post('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'recordProductSale'])->name('product-sales.store');
+
+            // Reports
+            Route::get('reports', [App\Http\Controllers\Hotel\SpaController::class, 'reports'])->name('reports.index');
+        });
+
+        // Hotel Reports & Analytics Module
+        Route::prefix('reports')->name('reports.')->group(function () {
+            // Dashboard
+            Route::get('/', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dashboard'])->name('dashboard');
+
+            // Daily Operations Report
+            Route::get('daily-operations', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dailyOperations'])->name('daily-operations');
+
+            // Revenue Report
+            Route::get('revenue', [App\Http\Controllers\Hotel\HotelReportsController::class, 'revenue'])->name('revenue');
+
+            // Occupancy Analytics
+            Route::get('occupancy', [App\Http\Controllers\Hotel\HotelReportsController::class, 'occupancy'])->name('occupancy');
+
+            // Guest Analytics
+            Route::get('guest-analytics', [App\Http\Controllers\Hotel\HotelReportsController::class, 'guestAnalytics'])->name('guest-analytics');
+
+            // Staff Performance
+            Route::get('staff-performance', [App\Http\Controllers\Hotel\HotelReportsController::class, 'staffPerformance'])->name('staff-performance');
+        });
+
+        // Night Audit Module
+        Route::prefix('night-audit')->name('night-audit.')->group(function () {
+            // Dashboard
+            Route::get('/', [App\Http\Controllers\Hotel\NightAuditController::class, 'index'])->name('index');
+
+            // Audit Batch Processing
+            Route::post('start', [App\Http\Controllers\Hotel\NightAuditController::class, 'startAudit'])->name('start');
+            Route::get('batch/{id}', [App\Http\Controllers\Hotel\NightAuditController::class, 'showBatch'])->name('batch');
+            Route::post('batch/{id}/post-room-charges', [App\Http\Controllers\Hotel\NightAuditController::class, 'postRoomCharges'])->name('post-room-charges');
+            Route::post('batch/{id}/post-fb-revenue', [App\Http\Controllers\Hotel\NightAuditController::class, 'postFBRevenue'])->name('post-fb-revenue');
+            Route::post('batch/{id}/post-minibar', [App\Http\Controllers\Hotel\NightAuditController::class, 'postMinibarCharges'])->name('post-minibar');
+            Route::post('batch/{id}/calculate-occupancy', [App\Http\Controllers\Hotel\NightAuditController::class, 'calculateOccupancy'])->name('calculate-occupancy');
+            Route::post('batch/{id}/complete', [App\Http\Controllers\Hotel\NightAuditController::class, 'completeAudit'])->name('complete');
+
+            // Revenue Postings
+            Route::get('revenue-postings', [App\Http\Controllers\Hotel\NightAuditController::class, 'revenuePostings'])->name('revenue-postings');
+            Route::post('revenue-postings/{id}/void', [App\Http\Controllers\Hotel\NightAuditController::class, 'voidPosting'])->name('void-posting');
+
+            // Statistics & Reports
+            Route::get('statistics', [App\Http\Controllers\Hotel\NightAuditController::class, 'statistics'])->name('statistics');
+            Route::post('recalculate-rates', [App\Http\Controllers\Hotel\NightAuditController::class, 'recalculateRates'])->name('recalculate-rates');
+        });
+
+        // Channel Manager
+        Route::get('channels', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'index'])->name('channels.index');
+        Route::get('channels/logs', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'logs'])->name('channels.logs');
+        Route::get('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'configure'])->name('channels.configure');
+        Route::put('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'updateConfig'])->name('channels.update-config');
+        Route::post('channels/{channel}/sync', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'sync'])->name('channels.sync');
+    });
 });
 
 require __DIR__ . '/auth.php';
 
 // ── Mobile (Mode Lapangan) ─────────────────────────────────────────────────
 use App\Http\Controllers\MobileController;
+use App\Http\Controllers\Telecom\DeviceController as TelecomDeviceController;
+use App\Http\Controllers\Telecom\PackageController as TelecomPackageController;
+use App\Http\Controllers\Telecom\SubscriptionController as TelecomSubscriptionController;
+use App\Http\Controllers\Telecom\DashboardController as TelecomDashboardController;
+use App\Http\Controllers\Telecom\CustomerController as TelecomCustomerController;
+use App\Http\Controllers\Telecom\VoucherController as TelecomVoucherController;
+use App\Http\Controllers\Telecom\ReportsController as TelecomReportsController;
 
 Route::prefix('mobile')->name('mobile.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [MobileController::class, 'hub'])->name('hub');
     Route::get('/picking', [MobileController::class, 'picking'])->name('picking');
     Route::get('/picking/{id}', [MobileController::class, 'pickingShow'])->name('picking.show');
     Route::post('/picking/{id}/confirm', [MobileController::class, 'pickingConfirm'])->name('picking.confirm');
+    Route::post('/picking/{id}/batch-confirm', [MobileController::class, 'pickingBatchConfirm'])->name('picking.batch-confirm');
     Route::get('/opname', [MobileController::class, 'opname'])->name('opname');
     Route::get('/opname/{id}', [MobileController::class, 'opnameShow'])->name('opname.show');
     Route::post('/opname/{id}/update', [MobileController::class, 'opnameUpdate'])->name('opname.update');
+    Route::post('/opname/{id}/batch-update', [MobileController::class, 'opnameBatchUpdate'])->name('opname.batch-update');
     Route::patch('/opname/{id}/complete', [MobileController::class, 'opnameComplete'])->name('opname.complete');
     Route::get('/farm-activity', [MobileController::class, 'farmActivity'])->name('farm-activity');
     Route::post('/farm-activity', [MobileController::class, 'farmActivityStore'])->name('farm-activity.store');
+    Route::get('/transfer', [MobileController::class, 'transfer'])->name('transfer');
+    Route::post('/transfer', [MobileController::class, 'transferStore'])->name('transfer.store');
 });
 
 // Bot Webhooks (no auth, verified by platform token)
@@ -1340,3 +1757,55 @@ Route::post('/webhook/midtrans', [\App\Http\Controllers\PaymentGatewayController
 Route::post('/webhook/xendit', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditWebhook'])
     ->name('webhook.xendit')
     ->middleware(['webhook.verify:xendit', 'throttle:webhook-inbound']);
+
+// ── Telecom Module - Device Management ──────────────────────────────────────
+Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [TelecomDashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/device-status', [TelecomDashboardController::class, 'getDeviceStatus'])->name('dashboard.device-status');
+    Route::get('dashboard/bandwidth-data', [TelecomDashboardController::class, 'getBandwidthData'])->name('dashboard.bandwidth-data');
+
+    // Customer Portal
+    Route::get('customers/usage', [TelecomCustomerController::class, 'usage'])->name('customers.usage');
+    Route::get('customers/{customer}/usage', [TelecomCustomerController::class, 'showUsage'])->name('customers.show-usage');
+    Route::post('customers/{customer}/reset-quota', [TelecomCustomerController::class, 'resetQuota'])->name('customers.reset-quota');
+    Route::post('customers/{customer}/suspend', [TelecomCustomerController::class, 'suspendSubscription'])->name('customers.suspend');
+    Route::post('customers/{customer}/reactivate', [TelecomCustomerController::class, 'reactivateSubscription'])->name('customers.reactivate');
+
+    // Vouchers
+    Route::get('vouchers', [TelecomVoucherController::class, 'index'])->name('vouchers.index');
+    Route::get('vouchers/create', [TelecomVoucherController::class, 'create'])->name('vouchers.create');
+    Route::post('vouchers', [TelecomVoucherController::class, 'store'])->name('vouchers.store');
+    Route::get('vouchers/print', [TelecomVoucherController::class, 'print'])->name('vouchers.print');
+    Route::get('vouchers/stats', [TelecomVoucherController::class, 'stats'])->name('vouchers.stats');
+    Route::post('vouchers/{voucher}/revoke', [TelecomVoucherController::class, 'revoke'])->name('vouchers.revoke');
+    Route::post('vouchers/{voucher}/extend', [TelecomVoucherController::class, 'extendValidity'])->name('vouchers.extend');
+
+    // Reports & Analytics
+    Route::get('reports', [TelecomReportsController::class, 'index'])->name('reports.index');
+    Route::get('reports/revenue-by-package', [TelecomReportsController::class, 'revenueByPackage'])->name('reports.revenue-by-package');
+    Route::get('reports/bandwidth-utilization', [TelecomReportsController::class, 'bandwidthUtilization'])->name('reports.bandwidth-utilization');
+    Route::get('reports/customer-usage-analytics', [TelecomReportsController::class, 'customerUsageAnalytics'])->name('reports.customer-usage-analytics');
+    Route::get('reports/top-consumers', [TelecomReportsController::class, 'topConsumers'])->name('reports.top-consumers');
+
+    // Devices
+    Route::resource('devices', TelecomDeviceController::class)->except(['create', 'edit']);
+    Route::get('devices/create', [TelecomDeviceController::class, 'create'])->name('devices.create');
+    Route::get('devices/{device}/edit', [TelecomDeviceController::class, 'edit'])->name('devices.edit');
+    Route::post('devices/{device}/test-connection', [TelecomDeviceController::class, 'testConnection'])->name('devices.test-connection');
+    Route::post('devices/{device}/toggle-maintenance', [TelecomDeviceController::class, 'toggleMaintenance'])->name('devices.toggle-maintenance');
+
+    // Packages
+    Route::resource('packages', TelecomPackageController::class)->except(['create', 'edit']);
+    Route::get('packages/create', [TelecomPackageController::class, 'create'])->name('packages.create');
+    Route::get('packages/{package}/edit', [TelecomPackageController::class, 'edit'])->name('packages.edit');
+    Route::post('packages/{package}/toggle-status', [TelecomPackageController::class, 'toggleStatus'])->name('packages.toggle-status');
+
+    // Subscriptions
+    Route::resource('subscriptions', TelecomSubscriptionController::class)->except(['create', 'edit']);
+    Route::get('subscriptions/create', [TelecomSubscriptionController::class, 'create'])->name('subscriptions.create');
+    Route::get('subscriptions/{subscription}/edit', [TelecomSubscriptionController::class, 'edit'])->name('subscriptions.edit');
+    Route::post('subscriptions/{subscription}/suspend', [TelecomSubscriptionController::class, 'suspend'])->name('subscriptions.suspend');
+    Route::post('subscriptions/{subscription}/reactivate', [TelecomSubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
+    Route::post('subscriptions/{subscription}/reset-quota', [TelecomSubscriptionController::class, 'resetQuota'])->name('subscriptions.reset-quota');
+});

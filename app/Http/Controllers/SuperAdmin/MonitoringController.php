@@ -32,10 +32,10 @@ class MonitoringController extends Controller
         $errors = $errorQuery->paginate(30, ['*'], 'error_page')->withQueryString();
 
         $errorStats = [
-            'total'      => ErrorLog::count(),
+            'total' => ErrorLog::count(),
             'unresolved' => ErrorLog::where('is_resolved', false)->count(),
-            'today'      => ErrorLog::whereDate('created_at', today())->count(),
-            'critical'   => ErrorLog::where('level', 'critical')->where('is_resolved', false)->count(),
+            'today' => ErrorLog::whereDate('created_at', today())->count(),
+            'critical' => ErrorLog::where('level', 'critical')->where('is_resolved', false)->count(),
         ];
 
         // ── AI Usage ──────────────────────────────────────────────
@@ -55,8 +55,8 @@ class MonitoringController extends Controller
 
         $aiStats = [
             'total_this_month' => AiUsageLog::where('month', $currentMonth)->sum('message_count'),
-            'total_tokens'     => AiUsageLog::where('month', $currentMonth)->sum('token_count'),
-            'active_tenants'   => AiUsageLog::where('month', $currentMonth)->distinct('tenant_id')->count('tenant_id'),
+            'total_tokens' => AiUsageLog::where('month', $currentMonth)->sum('token_count'),
+            'active_tenants' => AiUsageLog::where('month', $currentMonth)->distinct('tenant_id')->count('tenant_id'),
         ];
 
         // ── Activity Log ──────────────────────────────────────────
@@ -81,21 +81,33 @@ class MonitoringController extends Controller
             ->get();
 
         $anomalyStats = [
-            'open'     => AnomalyAlert::where('status', 'open')->count(),
+            'open' => AnomalyAlert::where('status', 'open')->count(),
             'critical' => AnomalyAlert::where('status', 'open')->where('severity', 'critical')->count(),
-            'warning'  => AnomalyAlert::where('status', 'open')->where('severity', 'warning')->count(),
+            'warning' => AnomalyAlert::where('status', 'open')->where('severity', 'warning')->count(),
         ];
 
         $tenants = Tenant::orderBy('name')->get(['id', 'name']);
 
         // ── Module Health (cross-module metrics) ──────────────────
-        $moduleHealth = $this->getModuleHealth();
+        try {
+            $moduleHealth = $this->getModuleHealth();
+        } catch (\Throwable) {
+            $moduleHealth = ['modules' => [], 'total_alerts' => 0, 'critical_alerts' => 0];
+        }
 
         return view('super-admin.monitoring.index', compact(
-            'tab', 'errors', 'errorStats',
-            'aiUsage', 'aiMonthly', 'aiStats',
-            'activities', 'anomalies', 'anomalyStats',
-            'health', 'tenants', 'moduleHealth'
+            'tab',
+            'errors',
+            'errorStats',
+            'aiUsage',
+            'aiMonthly',
+            'aiStats',
+            'activities',
+            'anomalies',
+            'anomalyStats',
+            'health',
+            'tenants',
+            'moduleHealth'
         ));
     }
 
@@ -141,28 +153,28 @@ class MonitoringController extends Controller
         }
 
         $diskTotal = disk_total_space(base_path());
-        $diskFree  = disk_free_space(base_path());
-        $diskUsed  = $diskTotal - $diskFree;
-        $diskPct   = $diskTotal > 0 ? round($diskUsed / $diskTotal * 100, 1) : 0;
+        $diskFree = disk_free_space(base_path());
+        $diskUsed = $diskTotal - $diskFree;
+        $diskPct = $diskTotal > 0 ? round($diskUsed / $diskTotal * 100, 1) : 0;
 
-        $logPath  = storage_path('logs/laravel.log');
-        $logSize  = file_exists($logPath) ? filesize($logPath) : 0;
+        $logPath = storage_path('logs/laravel.log');
+        $logSize = file_exists($logPath) ? filesize($logPath) : 0;
 
         return [
-            'db_ok'          => $dbOk,
-            'db_latency_ms'  => $dbLatency,
-            'disk_total_gb'  => round($diskTotal / 1073741824, 1),
-            'disk_free_gb'   => round($diskFree / 1073741824, 1),
-            'disk_used_pct'  => $diskPct,
-            'log_size_mb'    => round($logSize / 1048576, 2),
-            'php_version'    => PHP_VERSION,
-            'laravel_version'=> app()->version(),
-            'total_tenants'  => Tenant::count(),
+            'db_ok' => $dbOk,
+            'db_latency_ms' => $dbLatency,
+            'disk_total_gb' => round($diskTotal / 1073741824, 1),
+            'disk_free_gb' => round($diskFree / 1073741824, 1),
+            'disk_used_pct' => $diskPct,
+            'log_size_mb' => round($logSize / 1048576, 2),
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'total_tenants' => Tenant::count(),
             'active_tenants' => Tenant::where('is_active', true)->count(),
-            'total_users'    => User::count(),
-            'errors_today'   => ErrorLog::whereDate('created_at', today())->count(),
-            'queue_failed'   => $this->getFailedJobsCount(),
-            'uptime'         => $this->getUptime(),
+            'total_users' => User::count(),
+            'errors_today' => ErrorLog::whereDate('created_at', today())->count(),
+            'queue_failed' => $this->getFailedJobsCount(),
+            'uptime' => $this->getUptime(),
         ];
     }
 
@@ -177,187 +189,218 @@ class MonitoringController extends Controller
 
     /**
      * Module-level health metrics across all tenants.
-     * Covers all 35+ modules with actionable alerts.
+     *
+     * All counts are fetched in TWO consolidated UNION ALL queries (core + optional tables)
+     * instead of 30+ sequential round-trips, eliminating the 30-second timeout.
      */
     private function getModuleHealth(): array
     {
-        $modules = [];
-
-        // Sales & Invoicing
-        $modules['sales'] = [
-            'label' => 'Penjualan',
-            'total' => DB::table('sales_orders')->count(),
-            'today' => DB::table('sales_orders')->whereDate('created_at', today())->count(),
-            'alerts' => [],
-        ];
-
-        $overdueInvoices = DB::table('invoices')->whereIn('status', ['unpaid', 'partial'])->where('due_date', '<', today())->count();
-        $modules['invoices'] = [
-            'label' => 'Invoice',
-            'total' => DB::table('invoices')->count(),
-            'alerts' => $overdueInvoices > 0 ? [['type' => 'warning', 'msg' => "{$overdueInvoices} invoice jatuh tempo"]] : [],
-        ];
-
-        // Inventory
-        $lowStock = DB::table('products')
-            ->join('product_stocks', 'products.id', '=', 'product_stocks.product_id')
-            ->whereRaw('product_stocks.quantity <= products.stock_min')
-            ->where('products.is_active', true)
-            ->count();
-        $modules['inventory'] = [
-            'label' => 'Inventori',
-            'total' => DB::table('products')->where('is_active', true)->count(),
-            'alerts' => $lowStock > 0 ? [['type' => 'warning', 'msg' => "{$lowStock} produk stok rendah"]] : [],
-        ];
-
-        // Purchasing
-        $modules['purchasing'] = [
-            'label' => 'Pembelian',
-            'total' => DB::table('purchase_orders')->count(),
-            'alerts' => [],
-        ];
-
-        // GL Posting failures (check journal entries with issues)
-        $glOrphans = DB::table('journal_entries')->where('status', 'draft')->where('created_at', '<', now()->subDays(7))->count();
-        $modules['accounting'] = [
-            'label' => 'Akuntansi / GL',
-            'total' => DB::table('journal_entries')->count(),
-            'alerts' => $glOrphans > 0 ? [['type' => 'warning', 'msg' => "{$glOrphans} jurnal draft > 7 hari"]] : [],
-        ];
-
-        // HRM & Payroll
-        $modules['hrm'] = [
-            'label' => 'SDM & Payroll',
-            'total' => DB::table('employees')->where('status', 'active')->count(),
-            'alerts' => [],
-        ];
-
-        // Manufacturing
-        $stuckWo = DB::table('work_orders')->where('status', 'in_progress')->where('started_at', '<', now()->subDays(30))->count();
-        $modules['manufacturing'] = [
-            'label' => 'Manufaktur',
-            'total' => DB::table('work_orders')->count(),
-            'alerts' => $stuckWo > 0 ? [['type' => 'warning', 'msg' => "{$stuckWo} WO in-progress > 30 hari"]] : [],
-        ];
-
-        // Fleet
+        // ── Step 1: Core tables – all guaranteed to exist ─────────────────────
+        $c = [];
         try {
-            $expVehicles = DB::table('fleet_vehicles')
-                ->where('is_active', true)
-                ->where(function ($q) {
-                    $q->whereBetween('registration_expiry', [now(), now()->addDays(30)])
-                      ->orWhereBetween('insurance_expiry', [now(), now()->addDays(30)]);
-                })->count();
-            $maintDue = DB::table('fleet_maintenances')->where('status', 'scheduled')->where('scheduled_date', '<=', now()->addDays(7))->count();
-            $modules['fleet'] = [
+            $rows = DB::select("
+                SELECT 'sales_total'               AS k, COUNT(*)  AS v FROM sales_orders
+                UNION ALL
+                SELECT 'sales_today',                  COUNT(*)        FROM sales_orders       WHERE DATE(created_at) = CURDATE()
+                UNION ALL
+                SELECT 'invoices_total',               COUNT(*)        FROM invoices
+                UNION ALL
+                SELECT 'invoices_overdue',             COUNT(*)        FROM invoices            WHERE status IN ('unpaid','partial') AND due_date < CURDATE()
+                UNION ALL
+                SELECT 'products_active',              COUNT(*)        FROM products            WHERE is_active = 1
+                UNION ALL
+                SELECT 'products_low_stock',           COUNT(*)        FROM products p
+                    JOIN product_stocks ps ON p.id = ps.product_id
+                    WHERE ps.quantity <= p.stock_min AND p.is_active = 1
+                UNION ALL
+                SELECT 'purchase_orders_total',        COUNT(*)        FROM purchase_orders
+                UNION ALL
+                SELECT 'journal_entries_total',        COUNT(*)        FROM journal_entries
+                UNION ALL
+                SELECT 'journal_entries_old_draft',    COUNT(*)        FROM journal_entries     WHERE status = 'draft' AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)
+                UNION ALL
+                SELECT 'employees_active',             COUNT(*)        FROM employees           WHERE status = 'active'
+                UNION ALL
+                SELECT 'work_orders_total',            COUNT(*)        FROM work_orders
+                UNION ALL
+                SELECT 'work_orders_stuck',            COUNT(*)        FROM work_orders         WHERE status = 'in_progress' AND started_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
+                UNION ALL
+                SELECT 'crm_leads_open',               COUNT(*)        FROM crm_leads           WHERE stage NOT IN ('won','lost')
+                UNION ALL
+                SELECT 'projects_active',              COUNT(*)        FROM projects            WHERE status IN ('active','planning')
+                UNION ALL
+                SELECT 'assets_active',                COUNT(*)        FROM assets              WHERE status = 'active'
+            ");
+            foreach ($rows as $row) {
+                $c[$row->k] = (int) $row->v;
+            }
+        } catch (\Throwable) { /* leave $c empty; all values will default to 0 */
+        }
+
+        // ── Step 2: Optional / newer-module tables – each wrapped independently
+        $o = [];
+        $optSql = [
+            'fleet_active' => "SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1",
+            'fleet_exp' => "SELECT COUNT(*) AS v FROM fleet_vehicles WHERE is_active = 1 AND (registration_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY) OR insurance_expiry BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY))",
+            'fleet_maint_due' => "SELECT COUNT(*) AS v FROM fleet_maintenances WHERE status = 'scheduled' AND scheduled_date <= DATE_ADD(NOW(),INTERVAL 7 DAY)",
+            'contracts_active' => "SELECT COUNT(*) AS v FROM contracts WHERE status = 'active'",
+            'contracts_exp' => "SELECT COUNT(*) AS v FROM contracts WHERE status = 'active' AND end_date BETWEEN NOW() AND DATE_ADD(NOW(),INTERVAL 30 DAY)",
+            'contract_billing' => "SELECT COUNT(*) AS v FROM contract_billings WHERE status = 'pending'",
+            'consign_ship' => "SELECT COUNT(*) AS v FROM consignment_shipments WHERE status IN ('shipped','partial_sold')",
+            'consign_settle' => "SELECT COUNT(*) AS v FROM consignment_sales_reports WHERE status IN ('draft','confirmed')",
+            'commission_total' => "SELECT COUNT(*) AS v FROM commission_calculations",
+            'commission_unpaid' => "SELECT COUNT(*) AS v FROM commission_calculations WHERE status = 'approved'",
+            'helpdesk_open' => "SELECT COUNT(*) AS v FROM helpdesk_tickets WHERE status NOT IN ('resolved','closed')",
+            'helpdesk_overdue' => "SELECT COUNT(*) AS v FROM helpdesk_tickets WHERE status NOT IN ('resolved','closed') AND sla_resolve_due IS NOT NULL AND sla_resolve_due < NOW()",
+            'subscr_active' => "SELECT COUNT(*) AS v FROM customer_subscriptions WHERE status = 'active'",
+            'subscr_due' => "SELECT COUNT(*) AS v FROM customer_subscriptions WHERE status = 'active' AND next_billing_date < CURDATE()",
+            'landed_total' => "SELECT COUNT(*) AS v FROM landed_costs",
+            'landed_draft' => "SELECT COUNT(*) AS v FROM landed_costs WHERE status = 'draft'",
+        ];
+
+        // Try one consolidated query; fall back to per-table on failure
+        try {
+            $unionParts = [];
+            foreach ($optSql as $key => $subSql) {
+                $unionParts[] = "SELECT '{$key}' AS k, ({$subSql}) AS v";
+            }
+            foreach (DB::select(implode(' UNION ALL ', $unionParts)) as $row) {
+                $o[$row->k] = (int) $row->v;
+            }
+        } catch (\Throwable) {
+            foreach ($optSql as $key => $subSql) {
+                try {
+                    $o[$key] = (int) (DB::selectOne($subSql)?->v ?? 0);
+                } catch (\Throwable) {
+                    $o[$key] = 0;
+                }
+            }
+        }
+
+        $g = fn(string $key): int => $c[$key] ?? 0;
+        $f = fn(string $key): int => $o[$key] ?? 0;
+
+        // ── Step 3: Assemble module array ─────────────────────────────────────
+        $modules = [
+            'sales' => [
+                'label' => 'Penjualan',
+                'total' => $g('sales_total'),
+                'today' => $g('sales_today'),
+                'alerts' => [],
+            ],
+            'invoices' => [
+                'label' => 'Invoice',
+                'total' => $g('invoices_total'),
+                'alerts' => $g('invoices_overdue') > 0
+                    ? [['type' => 'warning', 'msg' => $g('invoices_overdue') . ' invoice jatuh tempo']]
+                    : [],
+            ],
+            'inventory' => [
+                'label' => 'Inventori',
+                'total' => $g('products_active'),
+                'alerts' => $g('products_low_stock') > 0
+                    ? [['type' => 'warning', 'msg' => $g('products_low_stock') . ' produk stok rendah']]
+                    : [],
+            ],
+            'purchasing' => [
+                'label' => 'Pembelian',
+                'total' => $g('purchase_orders_total'),
+                'alerts' => [],
+            ],
+            'accounting' => [
+                'label' => 'Akuntansi / GL',
+                'total' => $g('journal_entries_total'),
+                'alerts' => $g('journal_entries_old_draft') > 0
+                    ? [['type' => 'warning', 'msg' => $g('journal_entries_old_draft') . ' jurnal draft > 7 hari']]
+                    : [],
+            ],
+            'hrm' => [
+                'label' => 'SDM & Payroll',
+                'total' => $g('employees_active'),
+                'alerts' => [],
+            ],
+            'manufacturing' => [
+                'label' => 'Manufaktur',
+                'total' => $g('work_orders_total'),
+                'alerts' => $g('work_orders_stuck') > 0
+                    ? [['type' => 'warning', 'msg' => $g('work_orders_stuck') . ' WO in-progress > 30 hari']]
+                    : [],
+            ],
+            'fleet' => [
                 'label' => 'Fleet',
-                'total' => DB::table('fleet_vehicles')->where('is_active', true)->count(),
-                'alerts' => array_filter([
-                    $expVehicles > 0 ? ['type' => 'warning', 'msg' => "{$expVehicles} kendaraan STNK/asuransi segera expired"] : null,
-                    $maintDue > 0 ? ['type' => 'info', 'msg' => "{$maintDue} maintenance terjadwal minggu ini"] : null,
-                ]),
-            ];
-        } catch (\Throwable) { $modules['fleet'] = ['label' => 'Fleet', 'total' => 0, 'alerts' => []]; }
-
-        // Contracts
-        try {
-            $expiringContracts = DB::table('contracts')->where('status', 'active')
-                ->whereBetween('end_date', [now(), now()->addDays(30)])->count();
-            $pendingBilling = DB::table('contract_billings')->where('status', 'pending')->count();
-            $modules['contracts'] = [
+                'total' => $f('fleet_active'),
+                'alerts' => array_values(array_filter([
+                    $f('fleet_exp') > 0 ? ['type' => 'warning', 'msg' => $f('fleet_exp') . ' kendaraan STNK/asuransi segera expired'] : null,
+                    $f('fleet_maint_due') > 0 ? ['type' => 'info', 'msg' => $f('fleet_maint_due') . ' maintenance terjadwal minggu ini'] : null,
+                ])),
+            ],
+            'contracts' => [
                 'label' => 'Kontrak',
-                'total' => DB::table('contracts')->where('status', 'active')->count(),
-                'alerts' => array_filter([
-                    $expiringContracts > 0 ? ['type' => 'warning', 'msg' => "{$expiringContracts} kontrak segera expired"] : null,
-                    $pendingBilling > 0 ? ['type' => 'info', 'msg' => "{$pendingBilling} billing pending"] : null,
-                ]),
-            ];
-        } catch (\Throwable) { $modules['contracts'] = ['label' => 'Kontrak', 'total' => 0, 'alerts' => []]; }
-
-        // Consignment
-        try {
-            $pendingSettle = DB::table('consignment_sales_reports')->whereIn('status', ['draft', 'confirmed'])->count();
-            $modules['consignment'] = [
+                'total' => $f('contracts_active'),
+                'alerts' => array_values(array_filter([
+                    $f('contracts_exp') > 0 ? ['type' => 'warning', 'msg' => $f('contracts_exp') . ' kontrak segera expired'] : null,
+                    $f('contract_billing') > 0 ? ['type' => 'info', 'msg' => $f('contract_billing') . ' billing pending'] : null,
+                ])),
+            ],
+            'consignment' => [
                 'label' => 'Konsinyasi',
-                'total' => DB::table('consignment_shipments')->whereIn('status', ['shipped', 'partial_sold'])->count(),
-                'alerts' => $pendingSettle > 0 ? [['type' => 'info', 'msg' => "{$pendingSettle} settlement pending"]] : [],
-            ];
-        } catch (\Throwable) { $modules['consignment'] = ['label' => 'Konsinyasi', 'total' => 0, 'alerts' => []]; }
-
-        // Commission
-        try {
-            $unpaidComm = DB::table('commission_calculations')->where('status', 'approved')->count();
-            $modules['commission'] = [
+                'total' => $f('consign_ship'),
+                'alerts' => $f('consign_settle') > 0
+                    ? [['type' => 'info', 'msg' => $f('consign_settle') . ' settlement pending']]
+                    : [],
+            ],
+            'commission' => [
                 'label' => 'Komisi Sales',
-                'total' => DB::table('commission_calculations')->count(),
-                'alerts' => $unpaidComm > 0 ? [['type' => 'info', 'msg' => "{$unpaidComm} komisi approved belum dibayar"]] : [],
-            ];
-        } catch (\Throwable) { $modules['commission'] = ['label' => 'Komisi', 'total' => 0, 'alerts' => []]; }
-
-        // Helpdesk
-        try {
-            $openTickets = DB::table('helpdesk_tickets')->whereNotIn('status', ['resolved', 'closed'])->count();
-            $overdueTickets = DB::table('helpdesk_tickets')
-                ->whereNotIn('status', ['resolved', 'closed'])
-                ->whereNotNull('sla_resolve_due')
-                ->where('sla_resolve_due', '<', now())->count();
-            $modules['helpdesk'] = [
+                'total' => $f('commission_total'),
+                'alerts' => $f('commission_unpaid') > 0
+                    ? [['type' => 'info', 'msg' => $f('commission_unpaid') . ' komisi approved belum dibayar']]
+                    : [],
+            ],
+            'helpdesk' => [
                 'label' => 'Helpdesk',
-                'total' => $openTickets,
-                'alerts' => $overdueTickets > 0 ? [['type' => 'critical', 'msg' => "{$overdueTickets} tiket SLA overdue"]] : [],
-            ];
-        } catch (\Throwable) { $modules['helpdesk'] = ['label' => 'Helpdesk', 'total' => 0, 'alerts' => []]; }
-
-        // Subscription Billing
-        try {
-            $pastDue = DB::table('customer_subscriptions')->where('status', 'active')
-                ->where('next_billing_date', '<', today())->count();
-            $modules['subscription_billing'] = [
+                'total' => $f('helpdesk_open'),
+                'alerts' => $f('helpdesk_overdue') > 0
+                    ? [['type' => 'critical', 'msg' => $f('helpdesk_overdue') . ' tiket SLA overdue']]
+                    : [],
+            ],
+            'subscription_billing' => [
                 'label' => 'Subscription Billing',
-                'total' => DB::table('customer_subscriptions')->where('status', 'active')->count(),
-                'alerts' => $pastDue > 0 ? [['type' => 'warning', 'msg' => "{$pastDue} subscription jatuh tempo"]] : [],
-            ];
-        } catch (\Throwable) { $modules['subscription_billing'] = ['label' => 'Subscription', 'total' => 0, 'alerts' => []]; }
-
-        // Landed Cost
-        try {
-            $draftLc = DB::table('landed_costs')->where('status', 'draft')->count();
-            $modules['landed_cost'] = [
+                'total' => $f('subscr_active'),
+                'alerts' => $f('subscr_due') > 0
+                    ? [['type' => 'warning', 'msg' => $f('subscr_due') . ' subscription jatuh tempo']]
+                    : [],
+            ],
+            'landed_cost' => [
                 'label' => 'Landed Cost',
-                'total' => DB::table('landed_costs')->count(),
-                'alerts' => $draftLc > 0 ? [['type' => 'info', 'msg' => "{$draftLc} landed cost masih draft"]] : [],
-            ];
-        } catch (\Throwable) { $modules['landed_cost'] = ['label' => 'Landed Cost', 'total' => 0, 'alerts' => []]; }
-
-        // CRM
-        $modules['crm'] = [
-            'label' => 'CRM',
-            'total' => DB::table('crm_leads')->whereNotIn('stage', ['won', 'lost'])->count(),
-            'alerts' => [],
+                'total' => $f('landed_total'),
+                'alerts' => $f('landed_draft') > 0
+                    ? [['type' => 'info', 'msg' => $f('landed_draft') . ' landed cost masih draft']]
+                    : [],
+            ],
+            'crm' => [
+                'label' => 'CRM',
+                'total' => $g('crm_leads_open'),
+                'alerts' => [],
+            ],
+            'projects' => [
+                'label' => 'Proyek',
+                'total' => $g('projects_active'),
+                'alerts' => [],
+            ],
+            'assets' => [
+                'label' => 'Aset',
+                'total' => $g('assets_active'),
+                'alerts' => [],
+            ],
         ];
 
-        // Projects
-        $modules['projects'] = [
-            'label' => 'Proyek',
-            'total' => DB::table('projects')->whereIn('status', ['active', 'planning'])->count(),
-            'alerts' => [],
-        ];
-
-        // Assets
-        $modules['assets'] = [
-            'label' => 'Aset',
-            'total' => DB::table('assets')->where('status', 'active')->count(),
-            'alerts' => [],
-        ];
-
-        // Count total alerts
         $totalAlerts = collect($modules)->sum(fn($m) => count($m['alerts']));
         $criticalAlerts = collect($modules)->sum(fn($m) => collect($m['alerts'])->where('type', 'critical')->count());
 
         return [
-            'modules'        => $modules,
-            'total_alerts'   => $totalAlerts,
-            'critical_alerts'=> $criticalAlerts,
+            'modules' => $modules,
+            'total_alerts' => $totalAlerts,
+            'critical_alerts' => $criticalAlerts,
         ];
     }
 
@@ -367,9 +410,9 @@ class MonitoringController extends Controller
             $uptime = @file_get_contents('/proc/uptime');
             if ($uptime) {
                 $seconds = (int) explode(' ', $uptime)[0];
-                $days    = floor($seconds / 86400);
-                $hours   = floor(($seconds % 86400) / 3600);
-                $mins    = floor(($seconds % 3600) / 60);
+                $days = floor($seconds / 86400);
+                $hours = floor(($seconds % 86400) / 3600);
+                $mins = floor(($seconds % 3600) / 60);
                 return "{$days}d {$hours}h {$mins}m";
             }
         }

@@ -89,7 +89,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],
@@ -125,6 +125,31 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+
+        // Database channel for error tracking
+        'database' => [
+            'driver' => 'monolog',
+            'handler' => Monolog\Handler\RotatingFileHandler::class,
+            'handler_with' => [
+                'filename' => storage_path('logs/error.log'),
+                'maxFiles' => 30,
+            ],
+            'level' => env('LOG_DB_LEVEL', 'error'),
+        ],
+
+        // Alert channel for critical errors
+        'alert' => [
+            'driver' => 'monolog',
+            'handler' => Monolog\Handler\SlackWebhookHandler::class,
+            'handler_with' => [
+                'url' => config('services.slack.error_webhook'),
+                'channel' => '#alerts',
+                'username' => 'Error Alerts',
+                'icon_emoji' => ':boom:',
+                'level' => 'critical',
+            ],
+            'level' => env('LOG_ALERT_LEVEL', 'critical'),
         ],
 
     ],

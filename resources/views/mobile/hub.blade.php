@@ -254,6 +254,16 @@
 
     <div class="mobile-hub-page">
 
+        {{-- Offline status banner --}}
+        <div id="offline-banner" style="display:none;" class="px-4 py-2 bg-amber-500/20 border-b border-amber-500/30">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-medium text-amber-300">⚠️ Mode Offline — Perubahan akan disinkronisasi saat
+                    online</span>
+                <button onclick="forceSync()"
+                    class="text-xs px-2 py-1 rounded bg-amber-500/30 hover:bg-amber-500/40 text-amber-200 transition">Sinkronkan</button>
+            </div>
+        </div>
+
         {{-- ── Header ── --}}
         <div class="mob-header">
             <div class="mob-header-top">
@@ -340,5 +350,78 @@
         </div>
 
     </div>
+
+    @push('scripts')
+        <script>
+            // ── Offline detection & banner ───────────────────────────────────────
+            const offlineBanner = document.getElementById('offline-banner');
+
+            function updateOfflineBanner() {
+                if (offlineBanner) {
+                    offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+                }
+            }
+
+            window.addEventListener('online', () => {
+                updateOfflineBanner();
+                if (window.ErpOffline) {
+                    window.ErpOffline.flush().then(synced => {
+                        if (synced > 0) {
+                            showToast(`${synced} perubahan berhasil disinkronisasi`, 'success');
+                        }
+                    });
+                }
+            });
+
+            window.addEventListener('offline', () => {
+                updateOfflineBanner();
+                showToast('Anda offline. Perubahan akan disimpan sementara.', 'warning');
+            });
+
+            // Force sync button handler
+            window.forceSync = async function() {
+                if (!window.ErpOffline) return;
+                const pending = await window.ErpOffline.pendingCount();
+                if (pending === 0) {
+                    showToast('Tidak ada data tertunda', 'info');
+                    return;
+                }
+                showToast(`Menyinkronkan ${pending} perubahan...`, 'info');
+                const synced = await window.ErpOffline.flush();
+                if (synced > 0) {
+                    showToast(`${synced} berhasil disinkronisasi`, 'success');
+                } else {
+                    showToast('Gagal sinkronisasi. Periksa koneksi.', 'error');
+                }
+            };
+
+            // Simple toast
+            function showToast(msg, type) {
+                const colors = {
+                    success: '#059669',
+                    warning: '#d97706',
+                    error: '#dc2626',
+                    info: '#2563eb'
+                };
+                const t = document.createElement('div');
+                t.style.cssText = `position:fixed;top:1rem;left:1rem;right:1rem;z-index:9999;
+                    padding:0.875rem 1rem;border-radius:1rem;color:#fff;font-size:0.875rem;font-weight:500;
+                    background:${colors[type]||colors.info};box-shadow:0 4px 20px rgba(0,0,0,0.4);
+                    opacity:0;transition:opacity 0.25s;text-align:center;`;
+                t.textContent = msg;
+                document.body.appendChild(t);
+                requestAnimationFrame(() => {
+                    t.style.opacity = '1';
+                });
+                setTimeout(() => {
+                    t.style.opacity = '0';
+                    setTimeout(() => t.remove(), 300);
+                }, 3500);
+            }
+
+            // Init
+            updateOfflineBanner();
+        </script>
+    @endpush
 
 </x-app-layout>

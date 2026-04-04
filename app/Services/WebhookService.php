@@ -64,6 +64,18 @@ class WebhookService
             'project.updated',
             'task.completed',
         ],
+        'Telecom' => [
+            'telecom.subscription.created',
+            'telecom.subscription.renewed',
+            'telecom.subscription.suspended',
+            'telecom.subscription.cancelled',
+            'telecom.quota_exceeded',
+            'telecom.quota_warning',
+            'telecom.device_offline',
+            'telecom.device_online',
+            'telecom.payment_received',
+            'telecom.voucher.redeemed',
+        ],
         'System' => [
             'test.ping',
             '*',
@@ -92,7 +104,7 @@ class WebhookService
         $subscriptions = WebhookSubscription::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->get()
-            ->filter(fn ($s) => $s->listensTo($event));
+            ->filter(fn($s) => $s->listensTo($event));
 
         foreach ($subscriptions as $subscription) {
             DispatchWebhookJob::dispatch($subscription, $event, $payload);
@@ -105,18 +117,18 @@ class WebhookService
     public function deliver(WebhookSubscription $subscription, string $event, array $payload, int $attempt = 1): WebhookDelivery
     {
         $body = json_encode([
-            'id'         => \Illuminate\Support\Str::uuid()->toString(),
-            'event'      => $event,
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'event' => $event,
             'created_at' => now()->toIso8601String(),
-            'tenant_id'  => $subscription->tenant_id,
-            'data'       => $payload,
+            'tenant_id' => $subscription->tenant_id,
+            'data' => $payload,
         ], JSON_UNESCAPED_UNICODE);
 
         $headers = [
-            'Content-Type'        => 'application/json',
-            'User-Agent'          => 'QalcuityERP-Webhook/1.0',
-            'X-Qalcuity-Event'    => $event,
-            'X-Qalcuity-Attempt'  => (string) $attempt,
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'QalcuityERP-Webhook/1.0',
+            'X-Qalcuity-Event' => $event,
+            'X-Qalcuity-Attempt' => (string) $attempt,
         ];
 
         if ($subscription->secret) {
@@ -125,10 +137,10 @@ class WebhookService
 
         $delivery = WebhookDelivery::create([
             'webhook_subscription_id' => $subscription->id,
-            'event'                   => $event,
-            'payload'                 => $payload,
-            'status'                  => 'pending',
-            'attempt'                 => $attempt,
+            'event' => $event,
+            'payload' => $payload,
+            'status' => 'pending',
+            'attempt' => $attempt,
         ]);
 
         $startTime = microtime(true);
@@ -144,8 +156,8 @@ class WebhookService
             $delivery->update([
                 'response_code' => $response->status(),
                 'response_body' => substr($response->body(), 0, 2000),
-                'status'        => $response->successful() ? 'success' : 'failed',
-                'duration_ms'   => $durationMs,
+                'status' => $response->successful() ? 'success' : 'failed',
+                'duration_ms' => $durationMs,
             ]);
 
             $subscription->update(['last_triggered_at' => now()]);
@@ -155,8 +167,8 @@ class WebhookService
 
             $delivery->update([
                 'response_body' => substr($e->getMessage(), 0, 2000),
-                'status'        => 'failed',
-                'duration_ms'   => $durationMs,
+                'status' => 'failed',
+                'duration_ms' => $durationMs,
             ]);
 
             Log::warning("Webhook delivery failed [{$event}] to {$subscription->url}: " . $e->getMessage());

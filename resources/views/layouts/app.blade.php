@@ -452,6 +452,7 @@
                         => 'finance',
                     request()->routeIs('reports*', 'kpi*', 'anomalies*', 'zero-input*', 'simulations*', 'forecast*')
                         => 'analytics',
+                    request()->routeIs('hotel*') => 'hotel',
                     request()->routeIs(
                         'company-profile*',
                         'settings*',
@@ -536,6 +537,13 @@
                         'icon' => 'chart',
                         'label' => 'Analitik',
                     ])
+                    @if ($navTenant?->isModuleEnabled('hotel') ?? true)
+                        @include('layouts._rail_btn', [
+                            'group' => 'hotel',
+                            'icon' => 'hotel',
+                            'label' => 'Hotel PMS',
+                        ])
+                    @endif
                     @include('layouts._rail_btn', [
                         'group' => 'settings',
                         'icon' => 'gear',
@@ -844,6 +852,14 @@
                             active: {{ request()->routeIs('super-admin.monitoring*') ? 'true' : 'false' }},
                             badge: {{ \App\Models\ErrorLog::where('is_resolved', false)->count() ?: 'null' }},
                             badgeClass: 'badge-red'
+                        },
+                        {
+                            section: 'Konten'
+                        },
+                        {
+                            label: 'Popup Iklan',
+                            href: '{{ route('super-admin.popup-ads.index') }}',
+                            active: {{ request()->routeIs('super-admin.popup-ads*') ? 'true' : 'false' }},
                         },
                         {
                             section: 'Afiliasi'
@@ -1558,6 +1574,66 @@
                             @endif
                         ]
                     },
+                    @if (($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang())
+                        hotel: {
+                            title: 'Hotel PMS',
+                            items: [{
+                                label: 'Dashboard',
+                                href: '{{ route('hotel.dashboard') }}',
+                                active: {{ request()->routeIs('hotel.dashboard') ? 'true' : 'false' }}
+                            }, {
+                                section: 'Kamar'
+                            }, {
+                                label: 'Tipe Kamar',
+                                href: '{{ route('hotel.room-types.index') }}',
+                                active: {{ request()->routeIs('hotel.room-types*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Kamar',
+                                href: '{{ route('hotel.rooms.index') }}',
+                                active: {{ request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Ketersediaan Kamar',
+                                href: '{{ route('hotel.rooms.availability') }}',
+                                active: {{ request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false' }}
+                            }, {
+                                section: 'Reservasi & Tamu'
+                            }, {
+                                label: 'Reservasi',
+                                href: '{{ route('hotel.reservations.index') }}',
+                                active: {{ request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Tamu',
+                                href: '{{ route('hotel.guests.index') }}',
+                                active: {{ request()->routeIs('hotel.guests*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Check-in / Check-out',
+                                href: '{{ route('hotel.reservations.index', ['filter' => 'today']) }}',
+                                active: {{ request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false' }}
+                            }, {
+                                section: 'Operasional'
+                            }, {
+                                label: 'Housekeeping',
+                                href: '{{ route('hotel.housekeeping.board') }}',
+                                active: {{ request()->routeIs('hotel.housekeeping*') ? 'true' : 'false' }}
+                            }, {
+                                section: 'Tarif & Distribusi'
+                            }, {
+                                label: 'Tarif Kamar',
+                                href: '{{ route('hotel.rates.index') }}',
+                                active: {{ request()->routeIs('hotel.rates*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Channel Distribution',
+                                href: '{{ route('hotel.channels.index') }}',
+                                active: {{ request()->routeIs('hotel.channels*') ? 'true' : 'false' }}
+                            }, {
+                                section: 'Pengaturan'
+                            }, {
+                                label: 'Pengaturan Hotel',
+                                href: '{{ route('hotel.settings.edit') }}',
+                                active: {{ request()->routeIs('hotel.settings*') ? 'true' : 'false' }}
+                            }, ]
+                        },
+                    @endif
                     settings: {
                         title: 'Pengaturan',
                         items: [
@@ -1866,13 +1942,15 @@
         // PWA + Push Notifications
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
-                try {
-                    const reg = await navigator.serviceWorker.register('/sw.js');
+                    try {
+                        const reg = await navigator.serviceWorker.register('/sw.js');
 
-                    // Auto-subscribe to push if permission already granted
-                    if (Notification.permission === 'granted') {
-                        subscribePush(reg);
-                    }
+                        // Auto-subscribe to push only when user is authenticated
+                        @auth
+                        if (Notification.permission === 'granted') {
+                            subscribePush(reg);
+                        }
+                    @endauth
                 } catch (e) {}
             });
         }

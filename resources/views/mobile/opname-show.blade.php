@@ -127,15 +127,15 @@
                         {{-- Status badge --}}
                         @if ($isMatch)
                             <span
-                                class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">✓
+                                class="status-badge-text flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">✓
                                 Sesuai</span>
                         @elseif($isMismatch)
                             <span
-                                class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">≠
+                                class="status-badge-text flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">≠
                                 Selisih</span>
                         @else
                             <span
-                                class="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-400">Belum</span>
+                                class="status-badge-text flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-500/20 text-gray-400">Belum</span>
                         @endif
                     </div>
 
@@ -153,7 +153,8 @@
 
                     @if (!$isCompleted)
                         {{-- ── Quantity stepper ──────────────────────────────────── --}}
-                        <form method="POST" action="{{ route('mobile.opname.update', $item) }}" class="space-y-2">
+                        <form method="POST" action="{{ route('mobile.opname.update', $item) }}"
+                            class="space-y-2 opname-item-form">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="actual_qty" :value="qty">
@@ -346,7 +347,165 @@
                     card.style.display = show ? '' : 'none';
                 });
             }
+
+            // ── Offline-aware opname item submit ──────────────────────────────────
+            // Intercepts the per-item form submit. When offline: queues to IndexedDB
+            // and optimistically updates the card UI without a page reload.
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.opname-item-form').forEach(form => {
+                    form.addEventListener('submit', async function(e) {
+                        if (navigator.onLine) return; // let it submit normally when online
+
+                        e.preventDefault();
+
+                        const hiddenQty = this.querySelector('input[name="actual_qty"]');
+                        const qty = hiddenQty ? parseFloat(hiddenQty.value) : 0;
+                        const url = this.action;
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ||
+                            '';
+                        const card = this.closest('.item-card');
+                        const itemId = url.split('/').slice(-2)[0]; // /mobile/opname/{id}/update
+
+                        // Queue in IndexedDB via ErpOffline
+                        if (window.ErpOffline) {
+                            await window.ErpOffline.queue(
+                                'opname',
+                                url,
+                                'POST', {
+                                    actual_qty: qty,
+                                    _method: 'PATCH'
+                                }
+                            );
+                        }
+
+                        // Optimistic UI update
+                        if (card) {
+                            card.dataset.counted = 'true';
+                            const badge = card.querySelector('.status-badge-text');
+                            if (badge) {
+                                badge.textContent = '✏ Antri';
+                                badge.className = badge.className
+                                    .replace(/bg-\w+-\d+\/20 text-\w+-\d+/g, '')
+                                    .trim() + ' bg-amber-500/20 text-amber-400';
+                            }
+                            const submitBtn = this.querySelector('button[type="submit"]');
+                            if (submitBtn) {
+                                submitBtn.textContent = '✓ Tersimpan (offline)';
+                                submitBtn.classList.replace('bg-blue-600', 'bg-amber-600');
+                                submitBtn.disabled = true;
+                            }
+                        }
+
+                        showMobileToast('Disimpan offline. Akan dikirim saat online.', 'warning');
+                    });
+                });
+            });
+
+            // ── Background sync on reconnect ──────────────────────────────────────
+            window.addEventListener('online', async () => {
+                if (!window.ErpOffline) return;
+                const pending = await window.ErpOffline.pendingCount('opname');
+                if (pending > 0) {
+                    showMobileToast(`Menyinkronkan ${pending} perubahan opname...`, 'info');
+                    const synced = await window.ErpOffline.flush();
+                    if (synced > 0) {
+                        showMobileToast(`${synced} perubahan berhasil disinkronisasi. Memuat ulang...`, 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    }
+                }
+            });
+
+            // ── Simple mobile toast ───────────────────────────────────────────────
+            function showMobileToast(msg, type) {
+                const colors = {
+                    success: '#059669',
+                    warning: '#d97706',
+                    error: '#dc2626',
+                    info: '#2563eb'
+                };
+                const t = document.createElement('div');
+                t.style.cssText = `position:fixed;bottom:5.5rem;left:1rem;right:1rem;z-index:9999;
+                    padding:0.875rem 1rem;border-radius:1rem;color:#fff;font-size:0.875rem;font-weight:500;
+                    background:${colors[type]||colors.info};box-shadow:0 4px 20px rgba(0,0,0,0.4);
+                    opacity:0;transition:opacity 0.25s;text-align:center;`;
+                t.textContent = msg;
+                document.body.appendChild(t);
+                requestAnimationFrame(() => {
+                    t.style.opacity = '1';
+                });
+                setTimeout(() => {
+                    t.style.opacity = '0';
+                    setTimeout(() => t.remove(), 300);
+                }, 3500);
+            }
+
+            // ── Batch mode toggle & logic ─────────────────────────────────────────
+            let batchMode = false;
+            const selectedItems = new Set();
+
+            window.toggleBatchMode = function(enable) {
+                batchMode = enable;
+                const bar = document.getElementById('batch-action-bar');
+                const btn = document.getElementById('btn-toggle-batch');
+                if (!bar || !btn) return;
+
+                if (enable) {
+                    bar.style.display = 'block';
+                    btn.style.display = 'none';
+                    addCheckboxesToCards();
+                } else {
+                    bar.style.display = 'none';
+                    btn.style.display = 'block';
+                    removeCheckboxesFromCards();
+                    selectedItems.clear();
+                    updateBatchCount();
+                }
+            };
+
+            function addCheckboxesToCards() {
+                document.querySelectorAll('.item-card').forEach(card => {
+                    if (card.querySelector('.batch-checkbox')) return;
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className =
+                        'batch-checkbox absolute top-3 left-3 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500';
+                    cb.dataset.itemId = card.dataset.sku; // using SKU as identifier
+                    cb.addEventListener('change', () => {
+                        if (cb.checked) selectedItems.add(cb.dataset.itemId);
+                        else selectedItems.delete(cb.dataset.itemId);
+                        updateBatchCount();
+                    });
+                    card.appendChild(cb);
+                });
+            }
+
+            function removeCheckboxesFromCards() {
+                document.querySelectorAll('.batch-checkbox').forEach(cb => cb.remove());
+            }
+
+            function updateBatchCount() {
+                document.getElementById('batch-count-label').textContent = selectedItems.size;
+                document.getElementById('batch-btn-count').textContent = selectedItems.size;
+            }
+
+            // Prepare batch form data before submit
+            document.getElementById('batch-form')?.addEventListener('submit', function(e) {
+                if (selectedItems.size === 0) {
+                    e.preventDefault();
+                    showMobileToast('Pilih minimal 1 item untuk update batch', 'warning');
+                    return false;
+                }
+                // Encode selected SKUs into JSON for batch processing
+                const jsonInput = document.getElementById('batch-items-json');
+                if (jsonInput) {
+                    jsonInput.innerHTML =
+                        `<input type="hidden" name="selected_skus" value="${JSON.stringify(Array.from(selectedItems))}">`;
+                }
+            });
         </script>
     @endpush
+
+    {{-- Include batch mode UI --}}
+    @include('mobile.partials.opname-batch-ui')
 
 </x-app-layout>

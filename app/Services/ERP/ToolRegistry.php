@@ -3,6 +3,8 @@
 namespace App\Services\ERP;
 
 use App\Models\ActivityLog;
+use App\Services\AiCommandValidator;
+use Illuminate\Support\Facades\Log;
 
 class ToolRegistry
 {
@@ -10,11 +12,14 @@ class ToolRegistry
     protected int $userId;
     protected array $tools = [];
     protected array $executors = [];
+    protected AiCommandValidator $validator;
 
     public function __construct(int $tenantId, int $userId)
     {
         $this->tenantId = $tenantId;
-        $this->userId   = $userId;
+        $this->userId = $userId;
+        $this->validator = new AiCommandValidator();
+
         $instances = [
             new InventoryTools($tenantId, $userId),
             new SalesTools($tenantId, $userId),
@@ -88,6 +93,27 @@ class ToolRegistry
             return ['status' => 'error', 'message' => "Tool '{$toolName}' tidak dikenali."];
         }
 
+        // VALIDATION: Validate and sanitize command before execution
+        $validationResult = $this->validator->validate($toolName, $args);
+
+        if (!$validationResult['valid']) {
+            Log::warning('ToolRegistry: Blocked invalid AI command', [
+                'tool' => $toolName,
+                'user_id' => $this->userId,
+                'tenant_id' => $this->tenantId,
+                'errors' => $validationResult['errors'],
+                'original_args' => $args,
+            ]);
+
+            return [
+                'status' => 'error',
+                'message' => 'Validasi perintah gagal: ' . implode(', ', $validationResult['errors']),
+            ];
+        }
+
+        // Use sanitized arguments
+        $args = $validationResult['sanitized'];
+
         // Map tool name ke method name (snake_case -> camelCase)
         $method = lcfirst(str_replace('_', '', ucwords($toolName, '_')));
         $executor = $this->executors[$toolName];
@@ -103,12 +129,12 @@ class ToolRegistry
             try {
                 $description = $this->buildAuditDescription($toolName, $args, $result);
                 ActivityLog::recordAi(
-                    tenantId:    $this->tenantId,
-                    userId:      $this->userId,
-                    toolName:    $toolName,
+                    tenantId: $this->tenantId,
+                    userId: $this->userId,
+                    toolName: $toolName,
                     description: $description,
-                    args:        $args,
-                    result:      $result,
+                    args: $args,
+                    result: $result,
                 );
             } catch (\Throwable $e) {
                 // Jangan sampai audit log failure mengganggu tool execution
@@ -136,8 +162,8 @@ class ToolRegistry
 
         // Fallback: bangun dari tool name + args
         $label = str_replace('_', ' ', $toolName);
-        $key   = array_key_first($args);
-        $val   = is_string($args[$key] ?? null) ? $args[$key] : '';
+        $key = array_key_first($args);
+        $val = is_string($args[$key] ?? null) ? $args[$key] : '';
         return ucfirst($label) . ($val ? ": {$val}" : '');
     }
 
@@ -147,36 +173,76 @@ class ToolRegistry
     public function isWriteOperation(string $toolName): bool
     {
         $writeTools = [
-            'add_stock', 'create_purchase_order', 'auto_reorder',
-            'add_transaction', 'create_quick_sale',
-            'create_product', 'update_product', 'delete_product',
-            'create_customer', 'update_customer',
-            'create_supplier', 'update_supplier',
-            'create_employee', 'record_attendance', 'record_attendance_bulk',
-            'create_warehouse', 'create_expense_category', 'setup_business',
-            'update_order_status', 'create_quotation',
+            'add_stock',
+            'create_purchase_order',
+            'auto_reorder',
+            'add_transaction',
+            'create_quick_sale',
+            'create_product',
+            'update_product',
+            'delete_product',
+            'create_customer',
+            'update_customer',
+            'create_supplier',
+            'update_supplier',
+            'create_employee',
+            'record_attendance',
+            'record_attendance_bulk',
+            'create_warehouse',
+            'create_expense_category',
+            'setup_business',
+            'update_order_status',
+            'create_quotation',
             'create_sales_order',
             'record_payment',
-            'create_recipe', 'produce_with_recipe',
-            'create_work_order', 'update_work_order_status', 'record_production_output',
-            'create_project', 'update_project_progress', 'add_project_expense',
-            'log_timesheet', 'add_project_task',
-            'add_rab_item', 'record_rab_actual', 'record_volume_progress',
-            'setup_concrete_standards', 'create_mix_design',
-            'create_farm_plot', 'update_plot_status', 'record_farm_activity',
-            'start_crop_cycle', 'advance_crop_phase', 'log_harvest',
-            'add_livestock', 'record_livestock_movement', 'record_livestock_health', 'record_feed',
-            'transfer_stock', 'receive_transfer', 'adjust_stock',
+            'create_recipe',
+            'produce_with_recipe',
+            'create_work_order',
+            'update_work_order_status',
+            'record_production_output',
+            'create_project',
+            'update_project_progress',
+            'add_project_expense',
+            'log_timesheet',
+            'add_project_task',
+            'add_rab_item',
+            'record_rab_actual',
+            'record_volume_progress',
+            'setup_concrete_standards',
+            'create_mix_design',
+            'create_farm_plot',
+            'update_plot_status',
+            'record_farm_activity',
+            'start_crop_cycle',
+            'advance_crop_phase',
+            'log_harvest',
+            'add_livestock',
+            'record_livestock_movement',
+            'record_livestock_health',
+            'record_feed',
+            'transfer_stock',
+            'receive_transfer',
+            'adjust_stock',
             'apply_industry_template',
             // New modules
-            'create_asset', 'schedule_maintenance', 'update_asset_status', 'calculate_depreciation',
-            'run_payroll', 'mark_payroll_paid',
-            'create_lead', 'update_lead_stage', 'log_crm_activity',
-            'create_budget', 'update_budget_realized',
+            'create_asset',
+            'schedule_maintenance',
+            'update_asset_status',
+            'calculate_depreciation',
+            'run_payroll',
+            'mark_payroll_paid',
+            'create_lead',
+            'update_lead_stage',
+            'log_crm_activity',
+            'create_budget',
+            'update_budget_realized',
             'delete_document',
             'set_currency_rate',
-            'setup_tax_rates', 'record_tax',
-            'setup_loyalty_program', 'add_loyalty_points', 'redeem_loyalty_points',
+            'setup_tax_rates',
+            'record_tax',
+            'setup_loyalty_program',
+            'add_loyalty_points',
+            'redeem_loyalty_points',
             // Advanced features
             'send_bot_notification',
             'send_email_summary',

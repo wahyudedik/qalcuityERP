@@ -16,6 +16,8 @@ class Employee extends Model
         'tenant_id',
         'user_id',
         'employee_id',
+        'fingerprint_uid',
+        'fingerprint_registered',
         'name',
         'email',
         'phone',
@@ -33,9 +35,10 @@ class Employee extends Model
     protected function casts(): array
     {
         return [
-            'join_date'   => 'date',
+            'join_date' => 'date',
             'resign_date' => 'date',
-            'salary'      => 'decimal:2',
+            'salary' => 'decimal:2',
+            'fingerprint_registered' => 'boolean',
         ];
     }
 
@@ -58,6 +61,10 @@ class Employee extends Model
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+    public function fingerprintLogs(): HasMany
+    {
+        return $this->hasMany(FingerprintAttendanceLog::class);
     }
     public function reports(): HasMany
     {

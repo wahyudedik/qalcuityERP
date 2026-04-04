@@ -7,6 +7,8 @@
             'sales' => 'Penjualan',
             'finance' => 'Keuangan',
             'inventory' => 'Inventori',
+            'hrm' => 'SDM',
+            'production' => 'Produksi',
             'general' => 'Umum',
         ];
         $categoryColors = [
@@ -28,6 +30,18 @@
                 'border' => 'border-amber-500/30',
                 'badge' => 'bg-amber-600',
             ],
+            'hrm' => [
+                'bg' => 'bg-pink-500/20',
+                'text' => 'text-pink-400',
+                'border' => 'border-pink-500/30',
+                'badge' => 'bg-pink-600',
+            ],
+            'production' => [
+                'bg' => 'bg-cyan-500/20',
+                'text' => 'text-cyan-400',
+                'border' => 'border-cyan-500/30',
+                'badge' => 'bg-cyan-600',
+            ],
             'general' => [
                 'bg' => 'bg-purple-500/20',
                 'text' => 'text-purple-400',
@@ -39,7 +53,9 @@
             ? 'achievements'
             : (request()->routeIs('gamification.leaderboard')
                 ? 'leaderboard'
-                : 'all');
+                : (request()->routeIs('gamification.points')
+                    ? 'points'
+                    : 'all'));
     @endphp
 
     {{-- Stats Cards --}}
@@ -138,6 +154,11 @@
                       {{ $activeTab === 'leaderboard' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
                 📊 Leaderboard
             </a>
+            <a href="{{ route('gamification.points') }}"
+                class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
+                      {{ $activeTab === 'points' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                💰 Riwayat Poin
+            </a>
         </div>
     </div>
 
@@ -228,7 +249,8 @@ $cat = $ua->achievement->category ?? 'general';
                                             <span class="text-xs text-indigo-400">(Kamu)</span>
                                         @endif
                                     </p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500 capitalize">{{ $member->role }}
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 capitalize">
+                                        {{ $member->role }}
                                     </p>
                                 </div>
                             </div>
@@ -320,7 +342,7 @@ $cat = $ua->achievement->category ?? 'general';
                                     <div class="flex items-center justify-between">
                                         <span
                                             class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold {{ $colors['bg'] }} {{ $colors['text'] }}">
-                                            ⭐ {{ $achievement->points_reward ?? 0 }} poin
+                                            ⭐ {{ $achievement->points }} poin
                                         </span>
 
                                         @if ($earned)
@@ -364,6 +386,42 @@ $cat = $ua->achievement->category ?? 'general';
                     <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Belum ada achievement</p>
                     <p class="text-xs text-gray-400 dark:text-slate-500">Achievement akan muncul setelah dikonfigurasi
                         oleh admin.</p>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    {{-- Points History --}}
+    @if (!empty($showPointsHistory))
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Riwayat Poin</h3>
+            @if (isset($points) && $points->isNotEmpty())
+                <div class="space-y-2">
+                    @foreach ($points as $log)
+                        <div
+                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full {{ $log->points > 0 ? 'bg-emerald-500/20' : 'bg-red-500/20' }} flex items-center justify-center shrink-0">
+                                    <span class="text-sm">{{ $log->points > 0 ? '⬆' : '⬇' }}</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-900 dark:text-white">{{ $log->reason }}</p>
+                                    <p class="text-xs text-gray-400 dark:text-slate-500">
+                                        {{ $log->created_at->diffForHumans() }}</p>
+                                </div>
+                            </div>
+                            <span
+                                class="text-sm font-bold {{ $log->points > 0 ? 'text-emerald-400' : 'text-red-400' }} shrink-0">
+                                {{ $log->points > 0 ? '+' : '' }}{{ number_format($log->points) }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-10">
+                    <div class="text-4xl mb-3">💰</div>
+                    <p class="text-sm text-gray-400 dark:text-slate-500">Belum ada riwayat poin.</p>
                 </div>
             @endif
         </div>
