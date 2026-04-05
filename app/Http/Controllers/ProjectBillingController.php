@@ -14,7 +14,22 @@ use Illuminate\Support\Facades\DB;
 
 class ProjectBillingController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
+
+    // ── Billing Dashboard Index ───────────────────────────────────
+
+    public function index(Request $request)
+    {
+        $projects = Project::where('tenant_id', $this->tid())
+            ->with(['customer', 'billingConfig'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('project-billing.index', compact('projects'));
+    }
 
     // ── Billing Dashboard per Project ─────────────────────────────
 
@@ -34,8 +49,12 @@ class ProjectBillingController extends Controller
         $totalPaid = $project->projectInvoices->where('status', 'paid')->sum('total_amount');
 
         return view('project-billing.show', compact(
-            'project', 'unbilledTimesheets', 'unbilledHours', 'unbilledAmount',
-            'totalBilled', 'totalPaid'
+            'project',
+            'unbilledTimesheets',
+            'unbilledHours',
+            'unbilledAmount',
+            'totalBilled',
+            'totalPaid'
         ));
     }
 
@@ -46,16 +65,16 @@ class ProjectBillingController extends Controller
         abort_if($project->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'billing_type'          => 'required|in:time_material,milestone,retainer,fixed_price,termin',
-            'hourly_rate'           => 'nullable|numeric|min:0',
-            'retainer_amount'       => 'nullable|numeric|min:0',
-            'retainer_cycle'        => 'nullable|in:monthly,quarterly',
-            'fixed_price'           => 'nullable|numeric|min:0',
-            'retention_pct'         => 'nullable|numeric|min:0|max:100',
-            'contract_value'        => 'nullable|numeric|min:0',
-            'retention_release_days'=> 'nullable|integer|min:0',
-            'next_billing_date'     => 'nullable|date',
-            'notes'                 => 'nullable|string|max:1000',
+            'billing_type' => 'required|in:time_material,milestone,retainer,fixed_price,termin',
+            'hourly_rate' => 'nullable|numeric|min:0',
+            'retainer_amount' => 'nullable|numeric|min:0',
+            'retainer_cycle' => 'nullable|in:monthly,quarterly',
+            'fixed_price' => 'nullable|numeric|min:0',
+            'retention_pct' => 'nullable|numeric|min:0|max:100',
+            'contract_value' => 'nullable|numeric|min:0',
+            'retention_release_days' => 'nullable|integer|min:0',
+            'next_billing_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         ProjectBillingConfig::updateOrCreate(
@@ -73,19 +92,19 @@ class ProjectBillingController extends Controller
         abort_if($project->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'name'       => 'required|string|max:255',
-            'amount'     => 'required|numeric|min:0',
+            'name' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
             'percentage' => 'nullable|numeric|min:0|max:100',
-            'due_date'   => 'nullable|date',
-            'description'=> 'nullable|string|max:1000',
+            'due_date' => 'nullable|date',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $maxSort = ProjectMilestone::where('project_id', $project->id)->max('sort_order') ?? 0;
 
         ProjectMilestone::create(array_merge($data, [
             'project_id' => $project->id,
-            'tenant_id'  => $this->tid(),
-            'status'     => 'pending',
+            'tenant_id' => $this->tid(),
+            'status' => 'pending',
             'sort_order' => $maxSort + 1,
         ]));
 
@@ -95,10 +114,11 @@ class ProjectBillingController extends Controller
     public function completeMilestone(ProjectMilestone $projectMilestone)
     {
         abort_if($projectMilestone->tenant_id !== $this->tid(), 403);
-        if ($projectMilestone->status !== 'pending') return back()->with('error', 'Milestone sudah selesai/invoiced.');
+        if ($projectMilestone->status !== 'pending')
+            return back()->with('error', 'Milestone sudah selesai/invoiced.');
 
         $projectMilestone->update([
-            'status'       => 'completed',
+            'status' => 'completed',
             'completed_by' => auth()->id(),
             'completed_at' => now(),
         ]);
@@ -114,7 +134,7 @@ class ProjectBillingController extends Controller
 
         $data = $request->validate([
             'period_start' => 'required|date',
-            'period_end'   => 'required|date|after_or_equal:period_start',
+            'period_end' => 'required|date|after_or_equal:period_start',
         ]);
 
         $config = $project->billingConfig;
@@ -125,7 +145,8 @@ class ProjectBillingController extends Controller
             ->whereBetween('date', [$data['period_start'], $data['period_end']])
             ->get();
 
-        if ($timesheets->isEmpty()) return back()->with('error', 'Tidak ada timesheet unbilled di periode ini.');
+        if ($timesheets->isEmpty())
+            return back()->with('error', 'Tidak ada timesheet unbilled di periode ini.');
 
         $totalHours = $timesheets->sum('hours');
         $laborAmount = $timesheets->sum(fn($t) => (float) $t->hours * ($t->hourly_rate > 0 ? (float) $t->hourly_rate : $rate));
@@ -141,34 +162,34 @@ class ProjectBillingController extends Controller
             // Create Invoice
             $invNumber = 'INV-PRJ-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
             $invoice = Invoice::create([
-                'tenant_id'        => $this->tid(),
-                'customer_id'      => $project->customer_id,
-                'number'           => $invNumber,
-                'subtotal_amount'  => $totalAmount,
-                'tax_amount'       => 0,
-                'total_amount'     => $totalAmount,
-                'paid_amount'      => 0,
+                'tenant_id' => $this->tid(),
+                'customer_id' => $project->customer_id,
+                'number' => $invNumber,
+                'subtotal_amount' => $totalAmount,
+                'tax_amount' => 0,
+                'total_amount' => $totalAmount,
+                'paid_amount' => 0,
                 'remaining_amount' => $totalAmount,
-                'status'           => 'unpaid',
-                'due_date'         => now()->addDays(30),
-                'notes'            => "Project billing: {$project->name} ({$data['period_start']} - {$data['period_end']})",
+                'status' => 'unpaid',
+                'due_date' => now()->addDays(30),
+                'notes' => "Project billing: {$project->name} ({$data['period_start']} - {$data['period_end']})",
             ]);
 
             // Create ProjectInvoice record
             $pi = ProjectInvoice::create([
-                'project_id'     => $project->id,
-                'tenant_id'      => $this->tid(),
-                'invoice_id'     => $invoice->id,
-                'billing_type'   => 'time_material',
-                'period_start'   => $data['period_start'],
-                'period_end'     => $data['period_end'],
-                'hours'          => $totalHours,
-                'hourly_rate'    => $rate,
-                'labor_amount'   => $laborAmount,
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'invoice_id' => $invoice->id,
+                'billing_type' => 'time_material',
+                'period_start' => $data['period_start'],
+                'period_end' => $data['period_end'],
+                'hours' => $totalHours,
+                'hourly_rate' => $rate,
+                'labor_amount' => $laborAmount,
                 'expense_amount' => $expenseAmount,
-                'total_amount'   => $totalAmount,
-                'status'         => 'invoiced',
-                'user_id'        => auth()->id(),
+                'total_amount' => $totalAmount,
+                'status' => 'invoiced',
+                'user_id' => auth()->id(),
             ]);
 
             // Mark timesheets as billed
@@ -177,10 +198,16 @@ class ProjectBillingController extends Controller
 
             // GL posting
             $glResult = $glService->postInvoiceCreated(
-                $this->tid(), auth()->id(), $invNumber, $invoice->id,
-                $totalAmount, 0, $totalAmount
+                $this->tid(),
+                auth()->id(),
+                $invNumber,
+                $invoice->id,
+                $totalAmount,
+                0,
+                $totalAmount
             );
-            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+            if ($glResult->isFailed())
+                session()->flash('gl_warning', $glResult->warningMessage());
         });
 
         return back()->with('success', "Invoice T&M berhasil dibuat. {$totalHours}h × Rp " . number_format($rate, 0, ',', '.'));
@@ -189,7 +216,8 @@ class ProjectBillingController extends Controller
     public function generateMilestone(ProjectMilestone $projectMilestone, GlPostingService $glService)
     {
         abort_if($projectMilestone->tenant_id !== $this->tid(), 403);
-        if ($projectMilestone->status !== 'completed') return back()->with('error', 'Milestone harus completed dulu.');
+        if ($projectMilestone->status !== 'completed')
+            return back()->with('error', 'Milestone harus completed dulu.');
 
         $project = $projectMilestone->project;
         $amount = (float) $projectMilestone->amount;
@@ -197,36 +225,43 @@ class ProjectBillingController extends Controller
         DB::transaction(function () use ($project, $projectMilestone, $amount, $glService) {
             $invNumber = 'INV-MS-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
             $invoice = Invoice::create([
-                'tenant_id'        => $this->tid(),
-                'customer_id'      => $project->customer_id,
-                'number'           => $invNumber,
-                'subtotal_amount'  => $amount,
-                'tax_amount'       => 0,
-                'total_amount'     => $amount,
-                'paid_amount'      => 0,
+                'tenant_id' => $this->tid(),
+                'customer_id' => $project->customer_id,
+                'number' => $invNumber,
+                'subtotal_amount' => $amount,
+                'tax_amount' => 0,
+                'total_amount' => $amount,
+                'paid_amount' => 0,
                 'remaining_amount' => $amount,
-                'status'           => 'unpaid',
-                'due_date'         => now()->addDays(30),
-                'notes'            => "Milestone: {$projectMilestone->name} — {$project->name}",
+                'status' => 'unpaid',
+                'due_date' => now()->addDays(30),
+                'notes' => "Milestone: {$projectMilestone->name} — {$project->name}",
             ]);
 
             ProjectInvoice::create([
-                'project_id'   => $project->id,
-                'tenant_id'    => $this->tid(),
-                'invoice_id'   => $invoice->id,
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'invoice_id' => $invoice->id,
                 'billing_type' => 'milestone',
                 'total_amount' => $amount,
                 'milestone_id' => $projectMilestone->id,
-                'status'       => 'invoiced',
-                'user_id'      => auth()->id(),
+                'status' => 'invoiced',
+                'user_id' => auth()->id(),
             ]);
 
             $projectMilestone->update(['status' => 'invoiced']);
 
             $glResult = $glService->postInvoiceCreated(
-                $this->tid(), auth()->id(), $invNumber, $invoice->id, $amount, 0, $amount
+                $this->tid(),
+                auth()->id(),
+                $invNumber,
+                $invoice->id,
+                $amount,
+                0,
+                $amount
             );
-            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+            if ($glResult->isFailed())
+                session()->flash('gl_warning', $glResult->warningMessage());
         });
 
         return back()->with('success', 'Invoice milestone berhasil dibuat.');
@@ -236,10 +271,12 @@ class ProjectBillingController extends Controller
     {
         abort_if($project->tenant_id !== $this->tid(), 403);
         $config = $project->billingConfig;
-        if (!$config || $config->billing_type !== 'retainer') return back()->with('error', 'Project bukan tipe retainer.');
+        if (!$config || $config->billing_type !== 'retainer')
+            return back()->with('error', 'Project bukan tipe retainer.');
 
         $amount = (float) $config->retainer_amount;
-        if ($amount <= 0) return back()->with('error', 'Retainer amount = 0.');
+        if ($amount <= 0)
+            return back()->with('error', 'Retainer amount = 0.');
 
         DB::transaction(function () use ($project, $config, $amount, $glService) {
             $invNumber = 'INV-RTN-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
@@ -249,29 +286,29 @@ class ProjectBillingController extends Controller
                 : $periodStart->copy()->addMonth()->subDay();
 
             $invoice = Invoice::create([
-                'tenant_id'        => $this->tid(),
-                'customer_id'      => $project->customer_id,
-                'number'           => $invNumber,
-                'subtotal_amount'  => $amount,
-                'tax_amount'       => 0,
-                'total_amount'     => $amount,
-                'paid_amount'      => 0,
+                'tenant_id' => $this->tid(),
+                'customer_id' => $project->customer_id,
+                'number' => $invNumber,
+                'subtotal_amount' => $amount,
+                'tax_amount' => 0,
+                'total_amount' => $amount,
+                'paid_amount' => 0,
                 'remaining_amount' => $amount,
-                'status'           => 'unpaid',
-                'due_date'         => now()->addDays(14),
-                'notes'            => "Retainer: {$project->name} ({$periodStart->format('d/m/Y')} - {$periodEnd->format('d/m/Y')})",
+                'status' => 'unpaid',
+                'due_date' => now()->addDays(14),
+                'notes' => "Retainer: {$project->name} ({$periodStart->format('d/m/Y')} - {$periodEnd->format('d/m/Y')})",
             ]);
 
             ProjectInvoice::create([
-                'project_id'   => $project->id,
-                'tenant_id'    => $this->tid(),
-                'invoice_id'   => $invoice->id,
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'invoice_id' => $invoice->id,
                 'billing_type' => 'retainer',
                 'period_start' => $periodStart,
-                'period_end'   => $periodEnd,
+                'period_end' => $periodEnd,
                 'total_amount' => $amount,
-                'status'       => 'invoiced',
-                'user_id'      => auth()->id(),
+                'status' => 'invoiced',
+                'user_id' => auth()->id(),
             ]);
 
             // Advance next billing date
@@ -281,9 +318,16 @@ class ProjectBillingController extends Controller
             $config->update(['next_billing_date' => $nextDate]);
 
             $glResult = $glService->postInvoiceCreated(
-                $this->tid(), auth()->id(), $invNumber, $invoice->id, $amount, 0, $amount
+                $this->tid(),
+                auth()->id(),
+                $invNumber,
+                $invoice->id,
+                $amount,
+                0,
+                $amount
             );
-            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+            if ($glResult->isFailed())
+                session()->flash('gl_warning', $glResult->warningMessage());
         });
 
         return back()->with('success', 'Invoice retainer berhasil dibuat.');
@@ -296,15 +340,17 @@ class ProjectBillingController extends Controller
         abort_if($project->tenant_id !== $this->tid(), 403);
 
         $config = $project->billingConfig;
-        if (!$config) return back()->with('error', 'Konfigurasi billing belum diset.');
+        if (!$config)
+            return back()->with('error', 'Konfigurasi billing belum diset.');
 
         $data = $request->validate([
-            'progress_pct'  => 'required|numeric|min:0.01|max:100',
-            'description'   => 'nullable|string|max:500',
+            'progress_pct' => 'required|numeric|min:0.01|max:100',
+            'description' => 'nullable|string|max:500',
         ]);
 
         $contractValue = (float) $config->contract_value ?: (float) $project->budget;
-        if ($contractValue <= 0) return back()->with('error', 'Nilai kontrak / budget proyek belum diset.');
+        if ($contractValue <= 0)
+            return back()->with('error', 'Nilai kontrak / budget proyek belum diset.');
 
         $retentionPct = (float) $config->retention_pct;
         $progressPct = (float) $data['progress_pct'];
@@ -335,41 +381,47 @@ class ProjectBillingController extends Controller
             $invNumber = 'INV-TRM-' . $terminNumber . '-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
 
             $invoice = Invoice::create([
-                'tenant_id'        => $this->tid(),
-                'customer_id'      => $project->customer_id,
-                'number'           => $invNumber,
-                'subtotal_amount'  => $netAmount,
-                'tax_amount'       => 0,
-                'total_amount'     => $netAmount,
-                'paid_amount'      => 0,
+                'tenant_id' => $this->tid(),
+                'customer_id' => $project->customer_id,
+                'number' => $invNumber,
+                'subtotal_amount' => $netAmount,
+                'tax_amount' => 0,
+                'total_amount' => $netAmount,
+                'paid_amount' => 0,
                 'remaining_amount' => $netAmount,
-                'status'           => 'unpaid',
-                'due_date'         => now()->addDays(30),
-                'notes'            => "Termin #{$terminNumber} — {$project->name} (Progress: {$progressPct}%)"
+                'status' => 'unpaid',
+                'due_date' => now()->addDays(30),
+                'notes' => "Termin #{$terminNumber} — {$project->name} (Progress: {$progressPct}%)"
                     . ($retentionPct > 0 ? "\nRetensi {$retentionPct}%: Rp " . number_format($retentionAmount, 0, ',', '.') : '')
                     . ($data['description'] ? "\n{$data['description']}" : ''),
             ]);
 
             ProjectInvoice::create([
-                'project_id'       => $project->id,
-                'tenant_id'        => $this->tid(),
-                'invoice_id'       => $invoice->id,
-                'billing_type'     => 'termin',
-                'gross_amount'     => $thisGross,
-                'total_amount'     => $netAmount,
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'invoice_id' => $invoice->id,
+                'billing_type' => 'termin',
+                'gross_amount' => $thisGross,
+                'total_amount' => $netAmount,
                 'retention_amount' => $retentionAmount,
-                'termin_number'    => $terminNumber,
-                'progress_pct'     => $progressPct,
-                'status'           => 'invoiced',
-                'user_id'          => auth()->id(),
-                'notes'            => $data['description'] ?? null,
+                'termin_number' => $terminNumber,
+                'progress_pct' => $progressPct,
+                'status' => 'invoiced',
+                'user_id' => auth()->id(),
+                'notes' => $data['description'] ?? null,
             ]);
 
             $glResult = $glService->postInvoiceCreated(
-                $this->tid(), auth()->id(), $invNumber, $invoice->id,
-                $netAmount, 0, $netAmount
+                $this->tid(),
+                auth()->id(),
+                $invNumber,
+                $invoice->id,
+                $netAmount,
+                0,
+                $netAmount
             );
-            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+            if ($glResult->isFailed())
+                session()->flash('gl_warning', $glResult->warningMessage());
         });
 
         $msg = "Termin #{$terminNumber} berhasil dibuat."
@@ -387,7 +439,8 @@ class ProjectBillingController extends Controller
         abort_if($projectInvoice->tenant_id !== $this->tid(), 403);
 
         $outstanding = $projectInvoice->retentionOutstanding();
-        if ($outstanding <= 0) return back()->with('error', 'Retensi sudah dirilis sepenuhnya.');
+        if ($outstanding <= 0)
+            return back()->with('error', 'Retensi sudah dirilis sepenuhnya.');
 
         $data = $request->validate([
             'amount' => 'nullable|numeric|min:0.01|max:' . $outstanding,
@@ -401,45 +454,51 @@ class ProjectBillingController extends Controller
             $fullyReleased = $newReleased >= (float) $projectInvoice->retention_amount;
 
             $projectInvoice->update([
-                'retention_released'      => $newReleased,
+                'retention_released' => $newReleased,
                 'retention_released_flag' => $fullyReleased,
-                'retention_release_date'  => $fullyReleased ? now() : $projectInvoice->retention_release_date,
+                'retention_release_date' => $fullyReleased ? now() : $projectInvoice->retention_release_date,
             ]);
 
             // Create a separate invoice for the released retention
             $invNumber = 'INV-RET-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(3));
             $invoice = Invoice::create([
-                'tenant_id'        => $this->tid(),
-                'customer_id'      => $project->customer_id,
-                'number'           => $invNumber,
-                'subtotal_amount'  => $releaseAmount,
-                'tax_amount'       => 0,
-                'total_amount'     => $releaseAmount,
-                'paid_amount'      => 0,
+                'tenant_id' => $this->tid(),
+                'customer_id' => $project->customer_id,
+                'number' => $invNumber,
+                'subtotal_amount' => $releaseAmount,
+                'tax_amount' => 0,
+                'total_amount' => $releaseAmount,
+                'paid_amount' => 0,
                 'remaining_amount' => $releaseAmount,
-                'status'           => 'unpaid',
-                'due_date'         => now()->addDays(14),
-                'notes'            => "Rilis retensi — {$project->name}"
+                'status' => 'unpaid',
+                'due_date' => now()->addDays(14),
+                'notes' => "Rilis retensi — {$project->name}"
                     . ($projectInvoice->termin_number ? " (Termin #{$projectInvoice->termin_number})" : ''),
             ]);
 
             ProjectInvoice::create([
-                'project_id'       => $project->id,
-                'tenant_id'        => $this->tid(),
-                'invoice_id'       => $invoice->id,
-                'billing_type'     => 'retention_release',
-                'total_amount'     => $releaseAmount,
-                'gross_amount'     => $releaseAmount,
-                'status'           => 'invoiced',
-                'user_id'          => auth()->id(),
-                'notes'            => "Rilis retensi dari termin #{$projectInvoice->termin_number}",
+                'project_id' => $project->id,
+                'tenant_id' => $this->tid(),
+                'invoice_id' => $invoice->id,
+                'billing_type' => 'retention_release',
+                'total_amount' => $releaseAmount,
+                'gross_amount' => $releaseAmount,
+                'status' => 'invoiced',
+                'user_id' => auth()->id(),
+                'notes' => "Rilis retensi dari termin #{$projectInvoice->termin_number}",
             ]);
 
             $glResult = $glService->postInvoiceCreated(
-                $this->tid(), auth()->id(), $invNumber, $invoice->id,
-                $releaseAmount, 0, $releaseAmount
+                $this->tid(),
+                auth()->id(),
+                $invNumber,
+                $invoice->id,
+                $releaseAmount,
+                0,
+                $releaseAmount
             );
-            if ($glResult->isFailed()) session()->flash('gl_warning', $glResult->warningMessage());
+            if ($glResult->isFailed())
+                session()->flash('gl_warning', $glResult->warningMessage());
         });
 
         return back()->with('success', "Retensi Rp " . number_format($releaseAmount, 0, ',', '.') . " berhasil dirilis.");

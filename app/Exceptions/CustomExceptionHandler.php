@@ -30,20 +30,13 @@ class CustomExceptionHandler extends ExceptionHandler
 
     /**
      * Register the exception handling callbacks for the application.
+     * Note: Reporting/logging to DB is handled via bootstrap/app.php withExceptions callback
+     * to avoid infinite recursion. Only rendering customizations are registered here.
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            // Log all exceptions to database with enriched context
-            $this->logToDatabase($e);
-        });
-
-        $this->reportable(function (Throwable $e) {
-            // Send alerts for critical errors
-            if ($this->isCriticalError($e)) {
-                $this->sendAlert($e);
-            }
-        });
+        // Reporting is intentionally moved to bootstrap/app.php withExceptions
+        // to avoid infinite recursion caused by double-calling parent::report()
     }
 
     /**
@@ -274,15 +267,13 @@ class CustomExceptionHandler extends ExceptionHandler
     ];
 
     /**
-     * Determine if the exception should be reported
+     * Determine if the exception should be reported.
+     * Override to prevent re-triggering the global report callback.
      */
     public function report(Throwable $e): void
     {
-        if ($this->shouldntReport($e)) {
-            return;
-        }
-
-        parent::report($e);
+        // Reporting is handled via bootstrap/app.php withExceptions callback.
+        // Do NOT call parent::report() here to avoid infinite recursion.
     }
 
     /**

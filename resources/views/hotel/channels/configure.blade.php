@@ -197,50 +197,49 @@
         @endif
     </div>
 
-    @push('scripts')
-        <script>
-            function channelConfig() {
-                return {
-                    showApiKey: false,
-                    showApiSecret: false,
-                    testing: false,
-                    testResult: null,
+    {{-- Alpine.js Component --}}
+    <script>
+        window.channelConfig = function() {
+            return {
+                showApiKey: false,
+                showApiSecret: false,
+                testing: false,
+                testResult: null,
 
-                    async testConnection() {
-                        this.testing = true;
-                        this.testResult = null;
+                async testConnection() {
+                    this.testing = true;
+                    this.testResult = null;
 
-                        try {
-                            const response = await fetch('{{ route('hotel.channels.sync', $channel) }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json',
-                                },
-                            });
+                    try {
+                        const response = await fetch('{{ route('hotel.channels.sync', $channel) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                        });
 
-                            const data = await response.json();
+                        const data = await response.json();
 
-                            if (data.success) {
-                                this.testResult =
-                                    '<div class="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 rounded-lg p-3">✓ Connection successful! ' +
-                                    (data.message || '') + '</div>';
-                            } else {
-                                this.testResult =
-                                    '<div class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg p-3">✕ Connection failed: ' +
-                                    (data.message || 'Unknown error') + '</div>';
-                            }
-                        } catch (error) {
+                        if (data.success) {
+                            this.testResult =
+                                '<div class="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 rounded-lg p-3">✓ Connection successful! ' +
+                                (data.message || '') + '</div>';
+                        } else {
                             this.testResult =
                                 '<div class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg p-3">✕ Connection failed: ' +
-                                error.message + '</div>';
-                        } finally {
-                            this.testing = false;
+                                (data.message || 'Unknown error') + '</div>';
                         }
-                    },
-                }
+                    } catch (error) {
+                        this.testResult =
+                            '<div class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg p-3">✕ Connection failed: ' +
+                            error.message + '</div>';
+                    } finally {
+                        this.testing = false;
+                    }
+                },
             }
-        </script>
-    @endpush
+        };
+    </script>
 </x-app-layout>

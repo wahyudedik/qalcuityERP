@@ -267,11 +267,43 @@
             }
 
             function startScanner() {
+                // Check if browser supports getUserMedia
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('Browser Anda tidak mendukung akses kamera. Gunakan browser modern dengan HTTPS.');
+                    return;
+                }
+
                 const videoEl = document.getElementById('barcode-video');
-                codeReader = new ZXing.BrowserMultiFormatReader();
-                codeReader.decodeFromVideoDevice(null, videoEl, (result, err) => {
-                    if (result) handleBarcodeScanned(result.text);
-                });
+
+                try {
+                    codeReader = new ZXing.BrowserMultiFormatReader();
+                    codeReader.decodeFromVideoDevice(null, videoEl, (result, err) => {
+                        if (result) handleBarcodeScanned(result.text);
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.error('Scanner error:', err);
+                        }
+                    }).catch((error) => {
+                        console.error('Failed to access camera:', error);
+                        handleCameraError(error);
+                        stopScanner();
+                    });
+                } catch (error) {
+                    console.error('Scanner initialization error:', error);
+                    alert('Gagal menginisialisasi scanner: ' + error.message);
+                    stopScanner();
+                }
+            }
+
+            function handleCameraError(error) {
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    alert('Akses kamera ditolak. Mohon izinkan akses kamera di browser settings.');
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    alert('Tidak ada kamera yang ditemukan di perangkat Anda.');
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    alert('Kamera sedang digunakan oleh aplikasi lain.');
+                } else {
+                    alert('Gagal mengakses kamera: ' + error.message);
+                }
             }
 
             function stopScanner() {

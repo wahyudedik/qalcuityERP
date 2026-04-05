@@ -15,9 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Super Admin User
         $this->call([
             SuperAdminSeeder::class,
-            DemoProductSeeder::class,
+        ]);
+
+        // 2. Complete Demo Data (all modules included)
+        $this->call([
             TenantDemoSeeder::class,
         ]);
     }

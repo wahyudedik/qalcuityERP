@@ -208,8 +208,7 @@
                                         </form>
                                     @endif
                                     @if ($rsv->status === 'confirmed')
-                                        <form method="POST"
-                                            action="{{ route('hotel.reservations.check-in', $rsv) }}">
+                                        <form method="POST" action="{{ route('hotel.checkin.process', $rsv) }}">
                                             @csrf
                                             <button type="submit"
                                                 class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
@@ -224,8 +223,7 @@
                                         </form>
                                     @endif
                                     @if ($rsv->status === 'checked_in')
-                                        <form method="POST"
-                                            action="{{ route('hotel.reservations.check-out', $rsv) }}">
+                                        <form method="POST" action="{{ route('hotel.checkout.process', $rsv) }}">
                                             @csrf
                                             <button type="submit"
                                                 class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10"

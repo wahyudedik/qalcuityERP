@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsolidationOwnership extends Model
 {
+    protected $table = 'consolidation_ownership';
+
     protected $fillable = [
         'company_group_id',
         'parent_tenant_id',
@@ -42,7 +44,7 @@ class ConsolidationOwnership extends Model
     public function isActive(?string $date = null): bool
     {
         $checkDate = $date ? \Carbon\Carbon::parse($date) : now();
-        
+
         if ($checkDate->lt($this->effective_from)) {
             return false;
         }
@@ -56,7 +58,7 @@ class ConsolidationOwnership extends Model
 
     public function getConsolidationMethodLabel(): string
     {
-        return match($this->consolidation_method) {
+        return match ($this->consolidation_method) {
             'full' => 'Full Consolidation (100%)',
             'proportional' => 'Proportional Consolidation',
             'equity' => 'Equity Method',

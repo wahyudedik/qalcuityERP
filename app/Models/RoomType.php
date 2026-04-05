@@ -52,6 +52,14 @@ class RoomType extends Model
         return $this->hasMany(RoomRate::class);
     }
 
+    /**
+     * Alias for roomRates - used for easier access in controllers
+     */
+    public function rates(): HasMany
+    {
+        return $this->roomRates();
+    }
+
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);

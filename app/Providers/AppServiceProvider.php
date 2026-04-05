@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Exceptions\CustomExceptionHandler;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Observers\ProductObserver;
@@ -20,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Register CustomExceptionHandler as the application exception handler
+        $this->app->singleton(
+            \Illuminate\Contracts\Debug\ExceptionHandler::class,
+            CustomExceptionHandler::class
+        );
+
         // GeminiService TIDAK boleh singleton — state (language, tenantContext) harus fresh per request
         $this->app->bind(GeminiService::class);
         $this->app->singleton(ChatSessionManager::class);
@@ -160,23 +167,24 @@ class AppServiceProvider extends ServiceProvider
             $tenant = $request->user()->tenant;
         }
 
-        if (!$tenant) return 1.0;
+        if (!$tenant)
+            return 1.0;
 
         return match ($tenant->plan) {
-            'starter'      => 1.0,
-            'basic'        => 1.5,
-            'business'     => 2.0,
+            'starter' => 1.0,
+            'basic' => 1.5,
+            'business' => 2.0,
             'professional' => 3.0,
-            'pro'          => 3.0,
-            'enterprise'   => 10.0,
-            default        => 0.5,
+            'pro' => 3.0,
+            'enterprise' => 10.0,
+            default => 0.5,
         };
     }
 
     private function rateLimitResponse(string $label, int $limit): \Illuminate\Http\JsonResponse
     {
         return response()->json([
-            'error'   => 'rate_limit_exceeded',
+            'error' => 'rate_limit_exceeded',
             'message' => "{$label} rate limit terlampaui ({$limit}/menit). Coba lagi nanti.",
         ], 429);
     }

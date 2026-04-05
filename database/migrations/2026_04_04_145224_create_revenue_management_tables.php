@@ -167,7 +167,7 @@ return new class extends Migration {
                 $table->timestamp('reviewed_at')->nullable();
                 $table->timestamps();
 
-                $table->index(['tenant_id', 'recommendation_date', 'status']);
+                $table->index(['tenant_id', 'recommendation_date', 'status'], 'pricing_rec_tenant_date_status_idx');
             });
         }
     }

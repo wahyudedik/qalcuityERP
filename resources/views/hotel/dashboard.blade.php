@@ -116,7 +116,7 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-600 dark:text-slate-400">Pending tasks</p>
-                    <a href="{{ route('hotel.housekeeping.board') }}"
+                    <a href="{{ route('hotel.housekeeping.room-board') }}"
                         class="text-sm text-blue-500 hover:underline">View board</a>
                 </div>
             </div>
@@ -159,7 +159,7 @@
             </svg>
             Room Availability
         </a>
-        <a href="{{ route('hotel.housekeeping.board') }}"
+        <a href="{{ route('hotel.housekeeping.room-board') }}"
             class="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

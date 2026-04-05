@@ -144,6 +144,9 @@ class ErrorLog extends Model
     /**
      * Get severity color for UI display
      */
+    /**
+     * Get severity color class (alias for levelColor)
+     */
     public function getSeverityColor(): string
     {
         return match ($this->level) {
@@ -156,6 +159,14 @@ class ErrorLog extends Model
             'debug' => 'bg-gray-500',
             default => 'bg-gray-500',
         };
+    }
+
+    /**
+     * Get level color class (for backward compatibility)
+     */
+    public function levelColor(): string
+    {
+        return $this->getSeverityColor();
     }
 
     /**

@@ -8,20 +8,16 @@
 
     $typeLabels = [
         'checkout_clean' => 'Checkout Clean',
-        'daily_clean' => 'Daily Clean',
+        'stay_clean' => 'Stay Clean',
         'deep_clean' => 'Deep Clean',
-        'maintenance' => 'Maintenance',
-        'turn_down' => 'Turn Down',
-        'special_request' => 'Special Request',
+        'inspection' => 'Inspection',
     ];
 
     $typeColors = [
         'checkout_clean' => 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
-        'daily_clean' => 'bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400',
+        'stay_clean' => 'bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400',
         'deep_clean' => 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400',
-        'maintenance' => 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400',
-        'turn_down' => 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
-        'special_request' => 'bg-pink-100 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400',
+        'inspection' => 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
     ];
 @endphp
 
@@ -53,7 +49,7 @@
     </p>
 
     {{-- Time Info --}}
-    @if ($task->status === 'pending')
+    @if ($task->status === 'pending' || $task->status === 'assigned')
         <p class="text-xs text-gray-400 dark:text-slate-500">
             Scheduled: {{ $task->scheduled_at?->format('H:i') ?? '-' }}
         </p>
@@ -65,44 +61,31 @@
         <p class="text-xs text-green-500">
             Completed: {{ $task->completed_at?->format('H:i') ?? '-' }}
         </p>
-    @elseif($task->status === 'inspected')
-        <p class="text-xs text-gray-400 dark:text-slate-500">
-            Inspected by: {{ $task->inspectedBy?->name ?? '-' }}
-        </p>
     @endif
 
     {{-- Action Buttons --}}
     <div class="flex flex-wrap gap-1 mt-3 pt-2 border-t border-gray-100 dark:border-white/5">
-        @if ($task->status === 'pending')
+        @if ($task->status === 'pending' || $task->status === 'assigned')
             {{-- Assign Button --}}
-            <button onclick="housekeepingBoard().openAssignModal({{ $task->id }})"
+            <button @click="openAssignModal({{ $task->id }})"
                 class="px-2 py-1 text-xs bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20">
                 Assign
             </button>
             {{-- Start Button --}}
-            <form method="POST" action="{{ route('hotel.housekeeping.complete', $task) }}" class="inline">
-                @csrf @method('PATCH')
+            <form method="POST" action="{{ route('hotel.housekeeping.tasks.start', $task->id) }}" class="inline">
+                @csrf
                 <button type="submit"
                     class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-500/30">
-                    Start & Complete
+                    Start
                 </button>
             </form>
         @elseif($task->status === 'in_progress')
             {{-- Complete Button --}}
-            <form method="POST" action="{{ route('hotel.housekeeping.complete', $task) }}" class="inline">
-                @csrf @method('PATCH')
+            <form method="POST" action="{{ route('hotel.housekeeping.tasks.complete', $task->id) }}" class="inline">
+                @csrf
                 <button type="submit"
                     class="px-2 py-1 text-xs bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-500/30">
                     Complete
-                </button>
-            </form>
-        @elseif($task->status === 'completed')
-            {{-- Inspect Button --}}
-            <form method="POST" action="{{ route('hotel.housekeeping.inspect', $task) }}" class="inline">
-                @csrf @method('PATCH')
-                <button type="submit"
-                    class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-500/30">
-                    Inspect
                 </button>
             </form>
         @endif

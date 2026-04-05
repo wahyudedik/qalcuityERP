@@ -69,7 +69,7 @@
                 </button>
 
                 {{-- Rates Table --}}
-                <div x-show="expandedRoomTypes['{{ $roomType->id }}']" x-collapse>
+                <div x-show="expandedRoomTypes['{{ $roomType->id }}']">
                     <div class="overflow-x-auto border-t border-gray-100 dark:border-white/10">
                         <table class="w-full text-sm">
                             <thead
@@ -180,114 +180,119 @@
                     class="text-blue-600 dark:text-blue-400 hover:underline">Create room types first</a>
             </div>
         @endif
-    </div>
 
-    {{-- Add Rate Modal --}}
-    <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-        @click.self="showAddModal = false">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto"
-            @click.stop>
-            <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Add Rate</h3>
-                <button @click="showAddModal = false"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
-            </div>
-            <form method="POST" action="{{ route('hotel.rates.store') }}" class="p-6 space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Room Type *</label>
-                    <select name="room_type_id" required
-                        class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach ($roomTypes as $roomType)
-                            <option value="{{ $roomType->id }}">{{ $roomType->name }}</option>
-                        @endforeach
-                    </select>
+        {{-- Add Rate Modal --}}
+        <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            @click.self="showAddModal = false">
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto"
+                @click.stop>
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Add Rate</h3>
+                    <button @click="showAddModal = false"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Name</label>
-                    <input type="text" name="name" placeholder="e.g., High Season Rate"
-                        class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
+                <form method="POST" action="{{ route('hotel.rates.store') }}" class="p-6 space-y-4">
+                    @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Rate Type
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Room Type
                             *</label>
-                        <select name="rate_type" required
+                        <select name="room_type_id" required
                             class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @foreach ($rateTypes as $type)
-                                <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                            @foreach ($roomTypes as $roomType)
+                                <option value="{{ $roomType->id }}">{{ $roomType->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Amount (IDR)
-                            *</label>
-                        <input type="number" name="amount" required min="0" step="1000"
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Name</label>
+                        <input type="text" name="name" placeholder="e.g., High Season Rate"
                             class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Start
-                            Date</label>
-                        <input type="date" name="start_date"
-                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Rate Type
+                                *</label>
+                            <select name="rate_type" required
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @foreach ($rateTypes as $type)
+                                    <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Amount
+                                (IDR)
+                                *</label>
+                            <input type="number" name="amount" required min="0" step="1000"
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">End
-                            Date</label>
-                        <input type="date" name="end_date"
-                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Days of
-                        Week</label>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ([0, 1, 2, 3, 4, 5, 6] as $i => $day)
-                            <label
-                                class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5">
-                                <input type="checkbox" name="day_of_week[]" value="{{ $day }}"
-                                    class="rounded text-blue-600">
-                                <span class="text-xs text-gray-600 dark:text-slate-400">{{ $dayNames[$day] }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Min Stay
-                            (nights)</label>
-                        <input type="number" name="min_stay" min="1"
-                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Start
+                                Date</label>
+                            <input type="date" name="start_date"
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">End
+                                Date</label>
+                            <input type="date" name="end_date"
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Max Stay
-                            (nights)</label>
-                        <input type="number" name="max_stay" min="1"
-                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Days of
+                            Week</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ([0, 1, 2, 3, 4, 5, 6] as $i => $day)
+                                <label
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5">
+                                    <input type="checkbox" name="day_of_week[]" value="{{ $day }}"
+                                        class="rounded text-blue-600">
+                                    <span
+                                        class="text-xs text-gray-600 dark:text-slate-400">{{ $dayNames[$day] }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="is_active" id="is_active" value="1" checked
-                        class="rounded text-blue-600">
-                    <label for="is_active" class="text-sm text-gray-700 dark:text-slate-300">Active</label>
-                </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" @click="showAddModal = false"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Cancel</button>
-                    <button type="submit"
-                        class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Add Rate</button>
-                </div>
-            </form>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Min Stay
+                                (nights)</label>
+                            <input type="number" name="min_stay" min="1"
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Max Stay
+                                (nights)</label>
+                            <input type="number" name="max_stay" min="1"
+                                class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="is_active" id="is_active" value="1" checked
+                            class="rounded text-blue-600">
+                        <label for="is_active" class="text-sm text-gray-700 dark:text-slate-300">Active</label>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="showAddModal = false"
+                            class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Cancel</button>
+                        <button type="submit"
+                            class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Add
+                            Rate</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</x-app-layout>
 
-@push('scripts')
+    </div>{{-- end x-data rateManagement --}}
+
+    {{-- Alpine.js Component - Must be before closing x-app-layout --}}
     <script>
-        function rateManagement() {
+        // Define rateManagement component for Alpine.js
+        window.rateManagement = function() {
             return {
                 showAddModal: false,
                 expandedRoomTypes: {},
@@ -301,6 +306,6 @@
                     alert('Edit rate ID: ' + rateId + ' (Implement modal or inline edit)');
                 },
             }
-        }
+        };
     </script>
-@endpush
+</x-app-layout>

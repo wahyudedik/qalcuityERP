@@ -180,42 +180,39 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function syncLogs() {
-                return {
-                    showModal: false,
-                    selectedLog: {},
+    {{-- Alpine.js Component --}}
+    <script>
+        @php
+            $logsData = $logs
+                ->map(function ($log) {
+                    return [
+                        'id' => $log->id,
+                        'request_data' => $log->request_data,
+                        'response_data' => $log->response_data,
+                    ];
+                })
+                ->keyBy('id');
+        @endphp
+        window.syncLogs = function() {
+            return {
+                showModal: false,
+                selectedLog: {},
+                logsData: {{ \Illuminate\Support\Js::from($logsData) }},
 
-                    @php
-                        $logsData = $logs
-                            ->map(function ($log) {
-                                return [
-                                    'id' => $log->id,
-                                    'request_data' => $log->request_data,
-                                    'response_data' => $log->response_data,
-                                ];
-                            })
-                            ->keyBy('id');
-                    @endphp
+                showDetails(logId) {
+                    this.selectedLog = this.logsData[logId] || {};
+                    this.showModal = true;
+                },
 
-                    logsData: {{ \Illuminate\Support\Js::from($logsData) }},
-
-                    showDetails(logId) {
-                        this.selectedLog = this.logsData[logId] || {};
-                        this.showModal = true;
-                    },
-
-                    formatJson(data) {
-                        if (!data) return '';
-                        try {
-                            return JSON.stringify(data, null, 2);
-                        } catch (e) {
-                            return data;
-                        }
-                    },
-                }
+                formatJson(data) {
+                    if (!data) return '';
+                    try {
+                        return JSON.stringify(data, null, 2);
+                    } catch (e) {
+                        return data;
+                    }
+                },
             }
-        </script>
-    @endpush
+        };
+    </script>
 </x-app-layout>

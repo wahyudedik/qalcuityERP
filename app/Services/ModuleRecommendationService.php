@@ -35,7 +35,11 @@ class ModuleRecommendationService
         'reimbursement',
         'wms',
         'agriculture',
+        'livestock',
         'hotel',
+        'fnb',
+        'spa',
+        'telecom',
     ];
 
     /** Module metadata: label, icon, description */
@@ -69,7 +73,11 @@ class ModuleRecommendationService
         'reimbursement' => ['label' => 'Reimbursement', 'icon' => '🧾', 'desc' => 'Pengajuan & pembayaran reimbursement karyawan'],
         'wms' => ['label' => 'WMS (Gudang Lanjutan)', 'icon' => '🏗️', 'desc' => 'Zone, rak, bin, putaway, picking & opname'],
         'agriculture' => ['label' => 'Pertanian / Lahan', 'icon' => '🌾', 'desc' => 'Manajemen lahan, siklus tanam & panen'],
+        'livestock' => ['label' => 'Peternakan', 'icon' => '🐄', 'desc' => 'Tracking populasi ternak, pakan, FCR & vaksinasi'],
         'hotel' => ['label' => 'Hotel PMS', 'icon' => '🏨', 'desc' => 'Reservasi, kamar, tamu, housekeeping & channel'],
+        'fnb' => ['label' => 'F&B / Restoran', 'icon' => '🍽️', 'desc' => 'Menu, kasir restoran, room service & banquet'],
+        'spa' => ['label' => 'Spa & Wellness', 'icon' => '💆', 'desc' => 'Booking treatment, terapis & paket spa'],
+        'telecom' => ['label' => 'Telekomunikasi (ISP)', 'icon' => '📡', 'desc' => 'Manajemen perangkat, paket internet, hotspot & voucher'],
     ];
 
     /**
@@ -80,8 +88,8 @@ class ModuleRecommendationService
     {
         return match ($industry) {
             'fnb' => [
-                'modules' => ['pos', 'inventory', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'reports', 'loyalty'],
-                'reason' => 'Bisnis F&B butuh kasir cepat, kontrol stok bahan baku, dan pencatatan keuangan harian.',
+                'modules' => ['pos', 'fnb', 'inventory', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'reports', 'loyalty'],
+                'reason' => 'Bisnis F&B butuh kasir cepat, modul restoran/menu, kontrol stok bahan baku, dan pencatatan keuangan harian.',
             ],
             'retail' => [
                 'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'loyalty', 'consignment', 'ecommerce', 'reports'],
@@ -108,12 +116,16 @@ class ModuleRecommendationService
                 'reason' => 'Pertanian perlu manajemen lahan/blok, kontrol stok hasil panen, pembelian input, dan penjualan.',
             ],
             'livestock' => [
-                'modules' => ['inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports', 'agriculture'],
-                'reason' => 'Peternakan perlu tracking populasi, pakan & FCR, vaksinasi, dan penjualan ternak.',
+                'modules' => ['livestock', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'payroll', 'assets', 'reports'],
+                'reason' => 'Peternakan perlu tracking populasi, pakan & FCR, vaksinasi, kesehatan ternak, dan penjualan.',
             ],
             'hotel' => [
-                'modules' => ['hotel', 'pos', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'reports'],
-                'reason' => 'Hotel & penginapan butuh manajemen reservasi, kamar, tamu, housekeeping, channel distribution, dan laporan pendapatan.',
+                'modules' => ['hotel', 'fnb', 'spa', 'pos', 'invoicing', 'accounting', 'hrm', 'payroll', 'crm', 'loyalty', 'reports'],
+                'reason' => 'Hotel & penginapan butuh manajemen reservasi, kamar, tamu, housekeeping, F&B, spa, channel distribution, dan laporan pendapatan.',
+            ],
+            'telecom' => [
+                'modules' => ['telecom', 'invoicing', 'subscription_billing', 'accounting', 'hrm', 'payroll', 'reports'],
+                'reason' => 'ISP & provider telekomunikasi butuh manajemen perangkat, paket internet, hotspot, voucher, dan penagihan langganan.',
             ],
             default => [
                 'modules' => ['pos', 'inventory', 'purchasing', 'sales', 'invoicing', 'accounting', 'hrm', 'reports'],

@@ -140,7 +140,7 @@
                     </div>
 
                     {{-- Default Deposit Amount --}}
-                    <div x-show="depositRequired" x-collapse class="space-y-4">
+                    <div x-show="depositRequired" class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Default
@@ -247,13 +247,12 @@
         </form>
     </div>
 
-    @push('scripts')
-        <script>
-            function hotelSettings() {
-                return {
-                    depositRequired: {{ old('deposit_required', $settings->deposit_required ?? false) ? 'true' : 'false' }},
-                }
+    {{-- Alpine.js Component --}}
+    <script>
+        window.hotelSettings = function() {
+            return {
+                depositRequired: {{ old('deposit_required', $settings->deposit_required ?? false) ? 'true' : 'false' }},
             }
-        </script>
-    @endpush
+        };
+    </script>
 </x-app-layout>

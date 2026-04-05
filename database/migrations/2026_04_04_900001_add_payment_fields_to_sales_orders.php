@@ -10,23 +10,36 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        if (!Schema::hasTable('sales_orders'))
+            return;
         Schema::table('sales_orders', function (Blueprint $table) {
             // Payment fields for POS
-            $table->string('payment_type')->nullable()->after('status'); // cash, qris, card, transfer
-            $table->string('payment_method')->nullable()->after('payment_type'); // cash, gopay, ovo, dana, etc.
-            $table->decimal('paid_amount', 15, 2)->default(0)->after('total');
-            $table->decimal('change_amount', 15, 2)->default(0)->after('paid_amount');
-            $table->string('payment_reference')->nullable()->after('change_amount'); // Transaction number from gateway
-            $table->timestamp('completed_at')->nullable()->after('payment_reference');
-            $table->timestamp('stock_deducted_at')->nullable()->after('completed_at');
+            if (!Schema::hasColumn('sales_orders', 'payment_type')) {
+                $table->string('payment_type')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('sales_orders', 'payment_method')) {
+                $table->string('payment_method')->nullable()->after('payment_type');
+            }
+            if (!Schema::hasColumn('sales_orders', 'paid_amount')) {
+                $table->decimal('paid_amount', 15, 2)->default(0)->after('total');
+            }
+            if (!Schema::hasColumn('sales_orders', 'change_amount')) {
+                $table->decimal('change_amount', 15, 2)->default(0)->after('paid_amount');
+            }
+            if (!Schema::hasColumn('sales_orders', 'payment_reference')) {
+                $table->string('payment_reference')->nullable()->after('change_amount');
+            }
+            if (!Schema::hasColumn('sales_orders', 'completed_at')) {
+                $table->timestamp('completed_at')->nullable()->after('payment_reference');
+            }
+            if (!Schema::hasColumn('sales_orders', 'stock_deducted_at')) {
+                $table->timestamp('stock_deducted_at')->nullable()->after('completed_at');
+            }
+            if (!Schema::hasColumn('sales_orders', 'source')) {
+                $table->string('source')->default('manual')->after('user_id');
+            }
 
-            // Source tracking
-            $table->string('source')->default('manual')->after('user_id'); // pos, online, manual
-
-            // Indexes for performance
-            $table->index(['tenant_id', 'status']);
-            $table->index(['tenant_id', 'payment_type']);
-            $table->index(['tenant_id', 'created_at']);
+            // Indexes for performance (use try/catch to avoid duplicates)
         });
     }
 

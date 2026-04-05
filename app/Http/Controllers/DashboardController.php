@@ -357,192 +357,256 @@ class DashboardController extends Controller
 
     private function salesStats(int $tenantId): array
     {
-        $thisMonth = SalesOrder::where('tenant_id', $tenantId)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year);
+        try {
+            $thisMonth = SalesOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereMonth('date', now()->month)
+                ->whereYear('date', now()->year);
 
-        $lastMonth = SalesOrder::where('tenant_id', $tenantId)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereMonth('date', now()->subMonth()->month)
-            ->whereYear('date', now()->subMonth()->year);
+            $lastMonth = SalesOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereMonth('date', now()->subMonth()->month)
+                ->whereYear('date', now()->subMonth()->year);
 
-        $thisRevenue = $thisMonth->sum('total');
-        $lastRevenue = $lastMonth->sum('total');
-        $growth = $lastRevenue > 0 ? (($thisRevenue - $lastRevenue) / $lastRevenue) * 100 : 0;
+            $thisRevenue = $thisMonth->sum('total');
+            $lastRevenue = $lastMonth->sum('total');
+            $growth = $lastRevenue > 0 ? (($thisRevenue - $lastRevenue) / $lastRevenue) * 100 : 0;
 
-        // Chart data: 7 hari terakhir — SINGLE aggregate query instead of 7 separate queries
-        $sevenDaysAgo = now()->subDays(6)->startOfDay();
-        $dailySales = SalesOrder::where('tenant_id', $tenantId)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereDate('date', '>=', $sevenDaysAgo)
-            ->selectRaw('DATE(date) as sale_date, SUM(total) as day_total')
-            ->groupByRaw('DATE(date)')
-            ->pluck('day_total', 'sale_date');
+            // Chart data: 7 hari terakhir — SINGLE aggregate query instead of 7 separate queries
+            $sevenDaysAgo = now()->subDays(6)->startOfDay();
+            $dailySales = SalesOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereDate('date', '>=', $sevenDaysAgo)
+                ->selectRaw('DATE(date) as sale_date, SUM(total) as day_total')
+                ->groupByRaw('DATE(date)')
+                ->pluck('day_total', 'sale_date');
 
-        $chartData = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $d = now()->subDays($i);
-            $key = $d->format('Y-m-d');
-            $chartData[] = [
-                'date' => $d->format('d M'),
-                'total' => (float) ($dailySales[$key] ?? 0),
+            $chartData = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $d = now()->subDays($i);
+                $key = $d->format('Y-m-d');
+                $chartData[] = [
+                    'date' => $d->format('d M'),
+                    'total' => (float) ($dailySales[$key] ?? 0),
+                ];
+            }
+
+            return [
+                'this_month_revenue' => $thisRevenue,
+                'this_month_orders' => $thisMonth->count(),
+                'growth_percent' => round($growth, 1),
+                'pending_orders' => SalesOrder::where('tenant_id', $tenantId)->whereIn('status', ['pending', 'confirmed'])->count(),
+                'chart' => $chartData,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard salesStats failed: " . $e->getMessage());
+            return [
+                'this_month_revenue' => 0,
+                'this_month_orders' => 0,
+                'growth_percent' => 0,
+                'pending_orders' => 0,
+                'chart' => [],
             ];
         }
-
-        return [
-            'this_month_revenue' => $thisRevenue,
-            'this_month_orders' => $thisMonth->count(),
-            'growth_percent' => round($growth, 1),
-            'pending_orders' => SalesOrder::where('tenant_id', $tenantId)->whereIn('status', ['pending', 'confirmed'])->count(),
-            'chart' => $chartData,
-        ];
     }
 
 
     private function inventoryStats(int $tenantId): array
     {
-        $lowStock = ProductStock::with(['product', 'warehouse'])
-            ->whereHas('product', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
-            ->whereColumn('quantity', '<=', 'products.stock_min')
-            ->join('products', 'product_stocks.product_id', '=', 'products.id')
-            ->select('product_stocks.*')
-            ->limit(5)
-            ->get();
+        try {
+            $lowStock = ProductStock::with(['product', 'warehouse'])
+                ->whereHas('product', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
+                ->whereColumn('quantity', '<=', 'products.stock_min')
+                ->join('products', 'product_stocks.product_id', '=', 'products.id')
+                ->select('product_stocks.*')
+                ->limit(5)
+                ->get();
 
-        // Produk akan expired dalam 7 hari
-        $expiringCount = \App\Models\ProductBatch::where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->where('quantity', '>', 0)
-            ->where('expiry_date', '>=', today())
-            ->where('expiry_date', '<=', today()->addDays(7))
-            ->whereHas('product', fn($q) => $q->where('has_expiry', true))
-            ->count();
+            // Produk akan expired dalam 7 hari
+            $expiringCount = \App\Models\ProductBatch::where('tenant_id', $tenantId)
+                ->where('status', 'active')
+                ->where('quantity', '>', 0)
+                ->where('expiry_date', '>=', today())
+                ->where('expiry_date', '<=', today()->addDays(7))
+                ->whereHas('product', fn($q) => $q->where('has_expiry', true))
+                ->count();
 
-        return [
-            'total_products' => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
-            'total_warehouses' => \App\Models\Warehouse::where('tenant_id', $tenantId)->count(),
-            'low_stock_count' => $lowStock->count(),
-            'low_stock_items' => $lowStock,
-            'expiring_soon' => $expiringCount,
-        ];
+            return [
+                'total_products' => \App\Models\Product::where('tenant_id', $tenantId)->where('is_active', true)->count(),
+                'total_warehouses' => \App\Models\Warehouse::where('tenant_id', $tenantId)->count(),
+                'low_stock_count' => $lowStock->count(),
+                'low_stock_items' => $lowStock,
+                'expiring_soon' => $expiringCount,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard inventoryStats failed: " . $e->getMessage());
+            return [
+                'total_products' => 0,
+                'total_warehouses' => 0,
+                'low_stock_count' => 0,
+                'low_stock_items' => collect(),
+                'expiring_soon' => 0,
+            ];
+        }
     }
 
     private function financeStats(int $tenantId): array
     {
-        $income = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
-            ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
-        $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
-            ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
+        try {
+            $income = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
+                ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
+            $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
+                ->whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('amount');
 
-        // Chart 6 bulan terakhir — 1 aggregate query (was 12 separate queries)
-        $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
-        $monthlyTx = Transaction::where('tenant_id', $tenantId)
-            ->whereDate('date', '>=', $sixMonthsAgo)
-            ->selectRaw("DATE_FORMAT(date, '%Y-%m') as ym, type, SUM(amount) as total")
-            ->groupByRaw("DATE_FORMAT(date, '%Y-%m'), type")
-            ->get()
-            ->groupBy('ym');
+            // Chart 6 bulan terakhir — 1 aggregate query (was 12 separate queries)
+            $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
+            $monthlyTx = Transaction::where('tenant_id', $tenantId)
+                ->whereDate('date', '>=', $sixMonthsAgo)
+                ->selectRaw("DATE_FORMAT(date, '%Y-%m') as ym, type, SUM(amount) as total")
+                ->groupByRaw("DATE_FORMAT(date, '%Y-%m'), type")
+                ->get()
+                ->groupBy('ym');
 
-        $chartData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $d = now()->subMonths($i);
-            $ym = $d->format('Y-m');
-            $group = $monthlyTx[$ym] ?? collect();
-            $chartData[] = [
-                'month' => $d->format('M Y'),
-                'income' => (float) $group->where('type', 'income')->sum('total'),
-                'expense' => (float) $group->where('type', 'expense')->sum('total'),
+            $chartData = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $d = now()->subMonths($i);
+                $ym = $d->format('Y-m');
+                $group = $monthlyTx[$ym] ?? collect();
+                $chartData[] = [
+                    'month' => $d->format('M Y'),
+                    'income' => (float) $group->where('type', 'income')->sum('total'),
+                    'expense' => (float) $group->where('type', 'expense')->sum('total'),
+                ];
+            }
+
+            // Top expense categories this month
+            $topExpenses = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
+                ->whereMonth('date', now()->month)->whereYear('date', now()->year)
+                ->selectRaw('expense_category_id, SUM(amount) as total')
+                ->groupBy('expense_category_id')
+                ->with('category')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get();
+
+            // Overdue invoices
+            $overdueInvoices = \App\Models\Invoice::where('tenant_id', $tenantId)
+                ->whereIn('status', ['unpaid', 'partial'])
+                ->where('due_date', '<', today())
+                ->count();
+
+            return [
+                'income' => $income,
+                'expense' => $expense,
+                'profit' => $income - $expense,
+                'pending_po' => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
+                'overdue_invoices' => $overdueInvoices,
+                'top_expenses' => $topExpenses,
+                'chart' => $chartData,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard financeStats failed: " . $e->getMessage());
+            return [
+                'income' => 0,
+                'expense' => 0,
+                'profit' => 0,
+                'pending_po' => 0,
+                'overdue_invoices' => 0,
+                'top_expenses' => collect(),
+                'chart' => [],
             ];
         }
-
-        // Top expense categories this month
-        $topExpenses = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
-            ->whereMonth('date', now()->month)->whereYear('date', now()->year)
-            ->selectRaw('expense_category_id, SUM(amount) as total')
-            ->groupBy('expense_category_id')
-            ->with('category')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
-
-        // Overdue invoices
-        $overdueInvoices = \App\Models\Invoice::where('tenant_id', $tenantId)
-            ->whereIn('status', ['unpaid', 'partial'])
-            ->where('due_date', '<', today())
-            ->count();
-
-        return [
-            'income' => $income,
-            'expense' => $expense,
-            'profit' => $income - $expense,
-            'pending_po' => PurchaseOrder::where('tenant_id', $tenantId)->whereIn('status', ['draft', 'sent'])->count(),
-            'overdue_invoices' => $overdueInvoices,
-            'top_expenses' => $topExpenses,
-            'chart' => $chartData,
-        ];
     }
 
     private function hrmStats(int $tenantId): array
     {
-        return [
-            'total_employees' => Employee::where('tenant_id', $tenantId)->where('status', 'active')->count(),
-            'present_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
-                ->whereDate('date', today())->where('status', 'present')->count(),
-            'absent_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
-                ->whereDate('date', today())->where('status', 'absent')->count(),
-            'total_customers' => Customer::where('tenant_id', $tenantId)->where('is_active', true)->count(),
-        ];
+        try {
+            return [
+                'total_employees' => Employee::where('tenant_id', $tenantId)->where('status', 'active')->count(),
+                'present_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
+                    ->whereDate('date', today())->where('status', 'present')->count(),
+                'absent_today' => \App\Models\Attendance::where('tenant_id', $tenantId)
+                    ->whereDate('date', today())->where('status', 'absent')->count(),
+                'total_customers' => Customer::where('tenant_id', $tenantId)->where('is_active', true)->count(),
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard hrmStats failed: " . $e->getMessage());
+            return [
+                'total_employees' => 0,
+                'present_today' => 0,
+                'absent_today' => 0,
+                'total_customers' => 0,
+            ];
+        }
     }
 
     private function ecommerceStats(int $tenantId): array
     {
-        $thisMonth = EcommerceOrder::where('tenant_id', $tenantId)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereMonth('ordered_at', now()->month)
-            ->whereYear('ordered_at', now()->year);
+        try {
+            $thisMonth = EcommerceOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereMonth('ordered_at', now()->month)
+                ->whereYear('ordered_at', now()->year);
 
-        $lastMonth = EcommerceOrder::where('tenant_id', $tenantId)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereMonth('ordered_at', now()->subMonth()->month)
-            ->whereYear('ordered_at', now()->subMonth()->year);
+            $lastMonth = EcommerceOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->whereMonth('ordered_at', now()->subMonth()->month)
+                ->whereYear('ordered_at', now()->subMonth()->year);
 
-        $thisCount = $thisMonth->count();
-        $lastCount = $lastMonth->count();
-        $thisRevenue = $thisMonth->sum('total');
-        $pending = EcommerceOrder::where('tenant_id', $tenantId)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->count();
+            $thisCount = $thisMonth->count();
+            $lastCount = $lastMonth->count();
+            $thisRevenue = $thisMonth->sum('total');
+            $pending = EcommerceOrder::where('tenant_id', $tenantId)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->count();
 
-        $growth = $lastCount > 0
-            ? round((($thisCount - $lastCount) / $lastCount) * 100, 1)
-            : ($thisCount > 0 ? 100 : 0);
+            $growth = $lastCount > 0
+                ? round((($thisCount - $lastCount) / $lastCount) * 100, 1)
+                : ($thisCount > 0 ? 100 : 0);
 
-        return [
-            'this_month_orders' => $thisCount,
-            'this_month_revenue' => $thisRevenue,
-            'pending_orders' => $pending,
-            'growth_percent' => $growth,
-        ];
+            return [
+                'this_month_orders' => $thisCount,
+                'this_month_revenue' => $thisRevenue,
+                'pending_orders' => $pending,
+                'growth_percent' => $growth,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard ecommerceStats failed: " . $e->getMessage());
+            return [
+                'this_month_orders' => 0,
+                'this_month_revenue' => 0,
+                'pending_orders' => 0,
+                'growth_percent' => 0,
+            ];
+        }
     }
 
     private function posStats(int $tenantId): array
     {
-        $stats = SalesOrder::where('tenant_id', $tenantId)
-            ->where('source', 'pos')
-            ->whereDate('date', today())
-            ->whereNotIn('status', ['cancelled'])
-            ->selectRaw('COALESCE(SUM(total), 0) as revenue, COUNT(*) as cnt')
-            ->first();
+        try {
+            $stats = SalesOrder::where('tenant_id', $tenantId)
+                ->where('source', 'pos')
+                ->whereDate('date', today())
+                ->whereNotIn('status', ['cancelled'])
+                ->selectRaw('COALESCE(SUM(total), 0) as revenue, COUNT(*) as cnt')
+                ->first();
 
-        $revenue = (float) $stats->revenue;
-        $count = (int) $stats->cnt;
+            $revenue = (float) $stats->revenue;
+            $count = (int) $stats->cnt;
 
-        return [
-            'revenue' => $revenue,
-            'count' => $count,
-            'avg_ticket' => $count > 0 ? round($revenue / $count) : 0,
-        ];
+            return [
+                'revenue' => $revenue,
+                'count' => $count,
+                'avg_ticket' => $count > 0 ? round($revenue / $count) : 0,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning("Dashboard posStats failed: " . $e->getMessage());
+            return [
+                'revenue' => 0,
+                'count' => 0,
+                'avg_ticket' => 0,
+            ];
+        }
     }
 
     // ─── Widget CRUD ─────────────────────────────────────────────

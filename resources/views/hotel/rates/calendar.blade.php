@@ -184,12 +184,11 @@
             </a>
         </div>
     </div>
-</x-app-layout>
 
-@push('scripts')
+    {{-- Alpine.js Component --}}
     <script>
-        function bulkUpdateForm() {
+        window.bulkUpdateForm = function() {
             return {};
-        }
+        };
     </script>
-@endpush
+</x-app-layout>

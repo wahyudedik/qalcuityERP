@@ -1091,6 +1091,7 @@ Route::middleware('auth')->group(function () {
 
     // Project Billing
     Route::prefix('project-billing')->name('project-billing.')->middleware('role:admin,manager')->group(function () {
+        Route::get('/', [ProjectBillingController::class, 'index'])->name('index')->middleware('permission:project_billing,view');
         Route::get('/{project}', [ProjectBillingController::class, 'show'])->name('show')->middleware('permission:project_billing,view');
         Route::post('/{project}/config', [ProjectBillingController::class, 'saveConfig'])->name('config')->middleware('permission:project_billing,edit');
         Route::post('/{project}/milestones', [ProjectBillingController::class, 'storeMilestone'])->name('milestones.store')->middleware('permission:project_billing,create');
@@ -1483,6 +1484,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('walk-ins', App\Http\Controllers\Hotel\WalkInReservationController::class)->except(['create', 'store'])->names('walk-ins');
 
         // Check-in / Check-out
+        Route::get('check-in-out', [App\Http\Controllers\Hotel\CheckInOutController::class, 'index'])->name('checkin-out.index');
         Route::get('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkInForm'])->name('checkin.form');
         Route::post('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckIn'])->name('checkin.process');
         Route::get('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkOutForm'])->name('checkout.form');
@@ -1493,6 +1495,7 @@ Route::middleware('auth')->group(function () {
             // Dashboard & Room Board
             Route::get('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'index'])->name('index');
             Route::get('room-board', [App\Http\Controllers\Hotel\HousekeepingController::class, 'roomBoard'])->name('room-board');
+            Route::post('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'store'])->name('store');
             Route::post('rooms/{roomId}/status', [App\Http\Controllers\Hotel\HousekeepingController::class, 'updateRoomStatus'])->name('rooms.status');
 
             // Tasks Management

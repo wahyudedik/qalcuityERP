@@ -306,204 +306,204 @@
         </form>
     </div>
 
-    @push('scripts')
-        <script>
-            function reservationForm() {
-                return {
-                    // State
-                    guestSearch: '',
-                    guestResults: [],
-                    selectedGuestId: {{ isset($reservation) && $reservation->guest ? $reservation->guest->id : 'null' }},
-                    selectedGuest: {{ isset($reservation) && $reservation->guest ? json_encode($reservation->guest->only(['id', 'name', 'email', 'phone', 'guest_code'])) : 'null' }},
-                    showGuestDropdown: false,
-                    showNewGuestForm: false,
-                    isLoadingGuests: false,
-                    formSubmitted: false,
+    {{-- Alpine.js Component --}}
+    <script>
+        window.reservationForm = function() {
+            return {
+                // State
+                guestSearch: '',
+                guestResults: [],
+                selectedGuestId: {{ isset($reservation) && $reservation->guest ? $reservation->guest->id : 'null' }},
+                selectedGuest: {{ isset($reservation) && $reservation->guest ? json_encode($reservation->guest->only(['id', 'name', 'email', 'phone', 'guest_code'])) : 'null' }},
+                showGuestDropdown: false,
+                showNewGuestForm: false,
+                isLoadingGuests: false,
+                formSubmitted: false,
 
-                    // Room
-                    selectedRoomTypeId: {{ isset($reservation) && $reservation->roomType ? $reservation->roomType->id : 'null' }},
-                    selectedRoomId: {{ isset($reservation) && $reservation->room ? $reservation->room->id : 'null' }},
-                    availableRooms: [],
+                // Room
+                selectedRoomTypeId: {{ isset($reservation) && $reservation->roomType ? $reservation->roomType->id : 'null' }},
+                selectedRoomId: {{ isset($reservation) && $reservation->room ? $reservation->room->id : 'null' }},
+                availableRooms: [],
 
-                    // Dates
-                    checkInDate: '{{ isset($reservation) ? $reservation->check_in_date : date('Y-m-d') }}',
-                    checkOutDate: '{{ isset($reservation) ? $reservation->check_out_date : date('Y-m-d', strtotime('+1 day')) }}',
-                    nights: 1,
-                    adults: {{ isset($reservation) ? $reservation->adults : 1 }},
-                    children: {{ isset($reservation) ? $reservation->children : 0 }},
+                // Dates
+                checkInDate: '{{ isset($reservation) ? $reservation->check_in_date : date('Y-m-d') }}',
+                checkOutDate: '{{ isset($reservation) ? $reservation->check_out_date : date('Y-m-d', strtotime('+1 day')) }}',
+                nights: 1,
+                adults: {{ isset($reservation) ? $reservation->adults : 1 }},
+                children: {{ isset($reservation) ? $reservation->children : 0 }},
 
-                    // Rates
-                    ratePerNight: {{ isset($reservation) ? $reservation->rate_per_night : 0 }},
-                    subtotal: {{ isset($reservation) ? $reservation->total_amount : 0 }},
-                    discount: {{ isset($reservation) ? $reservation->discount : 0 }},
-                    taxRate: 11, // Default 11% tax
-                    tax: {{ isset($reservation) ? $reservation->tax : 0 }},
-                    grandTotal: {{ isset($reservation) ? $reservation->grand_total : 0 }},
-                    isLoadingRate: false,
+                // Rates
+                ratePerNight: {{ isset($reservation) ? $reservation->rate_per_night : 0 }},
+                subtotal: {{ isset($reservation) ? $reservation->total_amount : 0 }},
+                discount: {{ isset($reservation) ? $reservation->discount : 0 }},
+                taxRate: 11, // Default 11% tax
+                tax: {{ isset($reservation) ? $reservation->tax : 0 }},
+                grandTotal: {{ isset($reservation) ? $reservation->grand_total : 0 }},
+                isLoadingRate: false,
 
-                    // Other
-                    source: '{{ isset($reservation) ? $reservation->source : 'direct' }}',
-                    specialRequests: '{{ isset($reservation) ? addslashes($reservation->special_requests ?? '') : '' }}',
+                // Other
+                source: '{{ isset($reservation) ? $reservation->source : 'direct' }}',
+                specialRequests: '{{ isset($reservation) ? addslashes($reservation->special_requests ?? '') : '' }}',
 
-                    // New guest form
-                    newGuest: {
-                        name: '',
-                        email: '',
-                        phone: '',
-                        id_type: '',
-                        id_number: ''
-                    },
+                // New guest form
+                newGuest: {
+                    name: '',
+                    email: '',
+                    phone: '',
+                    id_type: '',
+                    id_number: ''
+                },
 
-                    init() {
-                        this.calculateNights();
-                        if (this.selectedRoomTypeId) {
-                            this.loadAvailableRooms();
-                        }
-                        if (this.selectedRoomTypeId && this.checkInDate && this.checkOutDate) {
-                            this.fetchRate();
-                        }
-                    },
-
-                    async searchGuests() {
-                        if (this.guestSearch.length < 2) {
-                            this.guestResults = [];
-                            return;
-                        }
-                        this.isLoadingGuests = true;
-                        try {
-                            const res = await fetch('/hotel/guests/search?q=' + encodeURIComponent(this.guestSearch));
-                            const data = await res.json();
-                            this.guestResults = data.data || [];
-                        } catch (e) {
-                            console.error(e);
-                        }
-                        this.isLoadingGuests = false;
-                    },
-
-                    selectGuest(guest) {
-                        this.selectedGuestId = guest.id;
-                        this.selectedGuest = guest;
-                        this.guestSearch = guest.name;
-                        this.showGuestDropdown = false;
-                        this.showNewGuestForm = false;
-                        document.getElementById('selected_guest_id').value = guest.id;
-                    },
-
-                    clearGuest() {
-                        this.selectedGuestId = null;
-                        this.selectedGuest = null;
-                        this.guestSearch = '';
-                        document.getElementById('selected_guest_id').value = '';
-                    },
-
-                    async onRoomTypeChange() {
-                        document.getElementById('selected_room_type_id').value = this.selectedRoomTypeId;
-                        await this.loadAvailableRooms();
-                        await this.fetchRate();
-                    },
-
-                    async loadAvailableRooms() {
-                        if (!this.selectedRoomTypeId) {
-                            this.availableRooms = [];
-                            return;
-                        }
-                        try {
-                            const res = await fetch('/hotel/rooms/by-type/' + this.selectedRoomTypeId);
-                            const data = await res.json();
-                            this.availableRooms = data.rooms || [];
-                        } catch (e) {
-                            console.error(e);
-                        }
-                    },
-
-                    calculateNights() {
-                        if (this.checkInDate && this.checkOutDate) {
-                            const ci = new Date(this.checkInDate);
-                            const co = new Date(this.checkOutDate);
-                            this.nights = Math.max(1, Math.round((co - ci) / (1000 * 60 * 60 * 24)));
-                            this.fetchRate();
-                        }
-                    },
-
-                    async fetchRate() {
-                        if (!this.selectedRoomTypeId || !this.checkInDate || !this.checkOutDate) {
-                            return;
-                        }
-                        this.isLoadingRate = true;
-                        try {
-                            const res = await fetch('/hotel/reservations/calculate-rate', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                        'content')
-                                },
-                                body: JSON.stringify({
-                                    room_type_id: this.selectedRoomTypeId,
-                                    check_in_date: this.checkInDate,
-                                    check_out_date: this.checkOutDate
-                                })
-                            });
-                            const data = await res.json();
-                            if (data.success) {
-                                this.ratePerNight = data.data.rate_per_night;
-                                this.subtotal = data.data.subtotal;
-                                this.tax = data.data.tax;
-                                this.grandTotal = data.data.grand_total;
-                            }
-                        } catch (e) {
-                            console.error(e);
-                        }
-                        this.isLoadingRate = false;
-                    },
-
-                    recalculateTotal() {
-                        this.subtotal = (parseFloat(this.ratePerNight) || 0) * (parseInt(this.nights) || 1);
-                        const afterDiscount = this.subtotal - (parseFloat(this.discount) || 0);
-                        this.tax = afterDiscount * (this.taxRate / 100);
-                        this.grandTotal = afterDiscount + this.tax;
-                    },
-
-                    formatNumber(num) {
-                        return new Intl.NumberFormat('id-ID').format(Math.round(num || 0));
+                init() {
+                    this.calculateNights();
+                    if (this.selectedRoomTypeId) {
+                        this.loadAvailableRooms();
                     }
+                    if (this.selectedRoomTypeId && this.checkInDate && this.checkOutDate) {
+                        this.fetchRate();
+                    }
+                },
+
+                async searchGuests() {
+                    if (this.guestSearch.length < 2) {
+                        this.guestResults = [];
+                        return;
+                    }
+                    this.isLoadingGuests = true;
+                    try {
+                        const res = await fetch('/hotel/guests/search?q=' + encodeURIComponent(this.guestSearch));
+                        const data = await res.json();
+                        this.guestResults = data.data || [];
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    this.isLoadingGuests = false;
+                },
+
+                selectGuest(guest) {
+                    this.selectedGuestId = guest.id;
+                    this.selectedGuest = guest;
+                    this.guestSearch = guest.name;
+                    this.showGuestDropdown = false;
+                    this.showNewGuestForm = false;
+                    document.getElementById('selected_guest_id').value = guest.id;
+                },
+
+                clearGuest() {
+                    this.selectedGuestId = null;
+                    this.selectedGuest = null;
+                    this.guestSearch = '';
+                    document.getElementById('selected_guest_id').value = '';
+                },
+
+                async onRoomTypeChange() {
+                    document.getElementById('selected_room_type_id').value = this.selectedRoomTypeId;
+                    await this.loadAvailableRooms();
+                    await this.fetchRate();
+                },
+
+                async loadAvailableRooms() {
+                    if (!this.selectedRoomTypeId) {
+                        this.availableRooms = [];
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/hotel/rooms/by-type/' + this.selectedRoomTypeId);
+                        const data = await res.json();
+                        this.availableRooms = data.rooms || [];
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                calculateNights() {
+                    if (this.checkInDate && this.checkOutDate) {
+                        const ci = new Date(this.checkInDate);
+                        const co = new Date(this.checkOutDate);
+                        this.nights = Math.max(1, Math.round((co - ci) / (1000 * 60 * 60 * 24)));
+                        this.fetchRate();
+                    }
+                },
+
+                async fetchRate() {
+                    if (!this.selectedRoomTypeId || !this.checkInDate || !this.checkOutDate) {
+                        return;
+                    }
+                    this.isLoadingRate = true;
+                    try {
+                        const res = await fetch('/hotel/reservations/calculate-rate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute(
+                                        'content')
+                            },
+                            body: JSON.stringify({
+                                room_type_id: this.selectedRoomTypeId,
+                                check_in_date: this.checkInDate,
+                                check_out_date: this.checkOutDate
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.ratePerNight = data.data.rate_per_night;
+                            this.subtotal = data.data.subtotal;
+                            this.tax = data.data.tax;
+                            this.grandTotal = data.data.grand_total;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    this.isLoadingRate = false;
+                },
+
+                recalculateTotal() {
+                    this.subtotal = (parseFloat(this.ratePerNight) || 0) * (parseInt(this.nights) || 1);
+                    const afterDiscount = this.subtotal - (parseFloat(this.discount) || 0);
+                    this.tax = afterDiscount * (this.taxRate / 100);
+                    this.grandTotal = afterDiscount + this.tax;
+                },
+
+                formatNumber(num) {
+                    return new Intl.NumberFormat('id-ID').format(Math.round(num || 0));
                 }
             }
+        };
 
-            @if (session('success'))
-                showToast(@json(session('success')), 'success');
-            @endif
-            @if (session('error'))
-                showToast(@json(session('error')), 'error');
-            @endif
-            @if ($errors->any())
-                showToast(@json($errors->first()), 'error');
-            @endif
+        function showToast(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-600'
+            };
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            const toast = document.createElement('div');
+            toast.className =
+                `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+            toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
 
-            function showToast(message, type = 'success') {
-                const colors = {
-                    success: 'bg-green-600',
-                    error: 'bg-red-600',
-                    warning: 'bg-yellow-500',
-                    info: 'bg-blue-600'
-                };
-                const icons = {
-                    success: '✓',
-                    error: '✕',
-                    warning: '⚠',
-                    info: 'ℹ'
-                };
-                const toast = document.createElement('div');
-                toast.className =
-                    `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
-                toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-                setTimeout(() => {
-                    toast.classList.add('translate-y-4', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3500);
-            }
-        </script>
-    @endpush
+        @if (session('success'))
+            showToast(@json(session('success')), 'success');
+        @endif
+        @if (session('error'))
+            showToast(@json(session('error')), 'error');
+        @endif
+        @if ($errors->any())
+            showToast(@json($errors->first()), 'error');
+        @endif
+    </script>
 </x-app-layout>

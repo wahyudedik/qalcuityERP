@@ -1,6 +1,6 @@
 <?php
 
-use App\Exceptions\CustomExceptionHandler;
+use App\Services\ErrorContextEnricher;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -42,8 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // We exclude nothing here; the middleware itself manages token-less offline requests.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (\Throwable $e) use ($exceptions): void {
-            // Skip logging for certain exception types
+        $exceptions->report(function (\Throwable $e): void {
+            // Skip logging for certain non-critical exception types
             $ignore = [
                 \Illuminate\Auth\AuthenticationException::class,
                 \Illuminate\Auth\Access\AuthorizationException::class,
@@ -58,8 +58,19 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
 
-            // Use our custom handler for enhanced logging
-            $handler = app(CustomExceptionHandler::class);
-            $handler->report($e);
+            // Directly log to database without going through the exception handler
+            // to avoid infinite recursion
+            try {
+                ErrorContextEnricher::logToDatabase(
+                    exception: $e,
+                    level: $e instanceof \Error || $e instanceof \ParseError ? 'emergency' : 'error',
+                    type: 'exception'
+                );
+            } catch (\Throwable $logError) {
+                \Illuminate\Support\Facades\Log::error('Failed to log exception to database', [
+                    'original_exception' => get_class($e),
+                    'log_error' => $logError->getMessage(),
+                ]);
+            }
         });
     })->create();

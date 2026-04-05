@@ -9,6 +9,7 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RoomController extends Controller
 {
@@ -175,7 +176,28 @@ class RoomController extends Controller
         $old = $room->getOriginal();
         $room->update(['status' => $data['status']]);
 
-        ActivityLog::record('room_status_changed', "Room {$room->number} status changed: {$old['status']} → {$room->status}", $room, $old, $room->fresh()->toArray());
+        try {
+            ActivityLog::record(
+                'room_status_changed',
+                "Room {$room->number} status changed: {$old['status']} → {$room->status}",
+                $room,
+                $old,
+                $room->fresh()->only(['id', 'number', 'status', 'updated_at'])
+            );
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            Log::warning('Failed to log activity for room status change', [
+                'room_id' => $room->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Room {$room->number} status updated to {$data['status']}.",
+            ]);
+        }
 
         return back()->with('success', "Room {$room->number} status updated to {$data['status']}.");
     }

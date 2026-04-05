@@ -1287,7 +1287,7 @@
                             @if (($navTenant?->isModuleEnabled('project_billing') ?? true) && $canView('project_billing'))
                                 {
                                     label: 'Project Billing',
-                                    href: '#',
+                                    href: '{{ route('project-billing.index') }}',
                                     active: {{ request()->routeIs('project-billing*') ? 'true' : 'false' }}
                                 },
                             @endif
@@ -1607,13 +1607,13 @@
                                 active: {{ request()->routeIs('hotel.guests*') ? 'true' : 'false' }}
                             }, {
                                 label: 'Check-in / Check-out',
-                                href: '{{ route('hotel.reservations.index', ['filter' => 'today']) }}',
-                                active: {{ request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false' }}
+                                href: '{{ route('hotel.checkin-out.index') }}',
+                                active: {{ request()->routeIs('hotel.checkin-out*') ? 'true' : 'false' }}
                             }, {
                                 section: 'Operasional'
                             }, {
                                 label: 'Housekeeping',
-                                href: '{{ route('hotel.housekeeping.board') }}',
+                                href: '{{ route('hotel.housekeeping.room-board') }}',
                                 active: {{ request()->routeIs('hotel.housekeeping*') ? 'true' : 'false' }}
                             }, {
                                 section: 'Tarif & Distribusi'

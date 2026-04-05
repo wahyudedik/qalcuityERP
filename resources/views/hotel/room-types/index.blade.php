@@ -263,14 +263,30 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function roomTypeManager() {
-                return {
-                    showModal: false,
-                    isEdit: false,
-                    newAmenity: '',
-                    form: {
+    {{-- Alpine.js Component --}}
+    <script>
+        window.roomTypeManager = function() {
+            return {
+                showModal: false,
+                isEdit: false,
+                newAmenity: '',
+                form: {
+                    id: '',
+                    name: '',
+                    code: '',
+                    description: '',
+                    base_occupancy: 2,
+                    max_occupancy: 4,
+                    base_rate: 0,
+                    amenities: [],
+                    is_active: true,
+                },
+                roomTypes: @json($roomTypes),
+
+                openAddModal() {
+                    this.isEdit = false;
+                    this.newAmenity = '';
+                    this.form = {
                         id: '',
                         name: '',
                         code: '',
@@ -280,90 +296,73 @@
                         base_rate: 0,
                         amenities: [],
                         is_active: true,
-                    },
-                    roomTypes: @json($roomTypes),
+                    };
+                    this.showModal = true;
+                },
 
-                    openAddModal() {
-                        this.isEdit = false;
+                openEditModal(rtId) {
+                    const rt = this.roomTypes.find(r => r.id === rtId);
+                    if (!rt) return;
+
+                    this.isEdit = true;
+                    this.newAmenity = '';
+                    this.form = {
+                        id: rt.id,
+                        name: rt.name,
+                        code: rt.code,
+                        description: rt.description || '',
+                        base_occupancy: rt.base_occupancy || 2,
+                        max_occupancy: rt.max_occupancy || 4,
+                        base_rate: rt.base_rate,
+                        amenities: rt.amenities || [],
+                        is_active: rt.is_active,
+                    };
+                    this.showModal = true;
+                },
+
+                addAmenity() {
+                    const amenity = this.newAmenity.trim();
+                    if (amenity && !this.form.amenities.includes(amenity)) {
+                        this.form.amenities.push(amenity);
                         this.newAmenity = '';
-                        this.form = {
-                            id: '',
-                            name: '',
-                            code: '',
-                            description: '',
-                            base_occupancy: 2,
-                            max_occupancy: 4,
-                            base_rate: 0,
-                            amenities: [],
-                            is_active: true,
-                        };
-                        this.showModal = true;
-                    },
-
-                    openEditModal(rtId) {
-                        const rt = this.roomTypes.find(r => r.id === rtId);
-                        if (!rt) return;
-
-                        this.isEdit = true;
-                        this.newAmenity = '';
-                        this.form = {
-                            id: rt.id,
-                            name: rt.name,
-                            code: rt.code,
-                            description: rt.description || '',
-                            base_occupancy: rt.base_occupancy || 2,
-                            max_occupancy: rt.max_occupancy || 4,
-                            base_rate: rt.base_rate,
-                            amenities: rt.amenities || [],
-                            is_active: rt.is_active,
-                        };
-                        this.showModal = true;
-                    },
-
-                    addAmenity() {
-                        const amenity = this.newAmenity.trim();
-                        if (amenity && !this.form.amenities.includes(amenity)) {
-                            this.form.amenities.push(amenity);
-                            this.newAmenity = '';
-                        }
                     }
                 }
             }
+        };
 
-            function showToast(message, type = 'success') {
-                const colors = {
-                    success: 'bg-green-600',
-                    error: 'bg-red-600',
-                    warning: 'bg-yellow-500',
-                    info: 'bg-blue-600',
-                };
-                const icons = {
-                    success: '✓',
-                    error: '✕',
-                    warning: '⚠',
-                    info: 'ℹ'
-                };
-                const toast = document.createElement('div');
-                toast.className =
-                    `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
-                toast.innerHTML = `<span class="text-base">${icons[type] || icons.success}</span><span>${message}</span>`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-                setTimeout(() => {
-                    toast.classList.add('translate-y-4', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3500);
-            }
+        function showToast(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-600',
+            };
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            const toast = document.createElement('div');
+            toast.className =
+                `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+            toast.innerHTML = `<span class="text-base">${icons[type] || icons.success}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
 
-            @if (session('success'))
-                showToast(@json(session('success')), 'success');
-            @endif
-            @if (session('error'))
-                showToast(@json(session('error')), 'error');
-            @endif
-            @if ($errors->any())
-                showToast(@json($errors->first()), 'error');
-            @endif
-        </script>
-    @endpush
+        @if (session('success'))
+            showToast(@json(session('success')), 'success');
+        @endif
+        @if (session('error'))
+            showToast(@json(session('error')), 'error');
+        @endif
+        @if ($errors->any())
+            showToast(@json($errors->first()), 'error');
+        @endif
+    </script>
 </x-app-layout>

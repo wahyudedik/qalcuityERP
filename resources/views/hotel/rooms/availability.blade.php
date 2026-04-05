@@ -246,111 +246,110 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function availabilityCalendar() {
-                return {
-                    selectedRoomType: '',
-                    showDayDetail: false,
-                    dayDetailTitle: '',
-                    dayDetailData: [],
-                    calendar: @json($calendar),
-                    roomTypes: @json($roomTypes),
+    {{-- Alpine.js Component --}}
+    <script>
+        window.availabilityCalendar = function() {
+            return {
+                selectedRoomType: '',
+                showDayDetail: false,
+                dayDetailTitle: '',
+                dayDetailData: [],
+                calendar: @json($calendar),
+                roomTypes: @json($roomTypes),
 
-                    filterRoomType() {
-                        const rows = document.querySelectorAll('.room-type-row');
-                        rows.forEach(row => {
-                            if (!this.selectedRoomType || row.dataset.roomTypeId === this.selectedRoomType) {
-                                row.classList.remove('hidden');
-                            } else {
-                                row.classList.add('hidden');
-                            }
-                        });
-                    },
+                filterRoomType() {
+                    const rows = document.querySelectorAll('.room-type-row');
+                    rows.forEach(row => {
+                        if (!this.selectedRoomType || row.dataset.roomTypeId === this.selectedRoomType) {
+                            row.classList.remove('hidden');
+                        } else {
+                            row.classList.add('hidden');
+                        }
+                    });
+                },
 
-                    showDay(dateStr) {
-                        const dayData = this.calendar[dateStr];
-                        if (!dayData) return;
+                showDay(dateStr) {
+                    const dayData = this.calendar[dateStr];
+                    if (!dayData) return;
 
-                        const date = new Date(dateStr);
-                        this.dayDetailTitle = date.toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        });
+                    const date = new Date(dateStr);
+                    this.dayDetailTitle = date.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
 
-                        this.dayDetailData = Object.values(dayData.room_types).map(rt => ({
-                            name: rt.name,
-                            total: rt.total,
-                            occupied: rt.occupied,
-                            available: rt.available,
-                            occupancy_rate: rt.occupancy_rate
-                        }));
+                    this.dayDetailData = Object.values(dayData.room_types).map(rt => ({
+                        name: rt.name,
+                        total: rt.total,
+                        occupied: rt.occupied,
+                        available: rt.available,
+                        occupancy_rate: rt.occupancy_rate
+                    }));
 
-                        this.showDayDetail = true;
-                    }
+                    this.showDayDetail = true;
                 }
             }
+        };
 
-            function showToast(message, type = 'success') {
-                const colors = {
-                    success: 'bg-green-600',
-                    error: 'bg-red-600',
-                    warning: 'bg-yellow-500',
-                    info: 'bg-blue-600',
-                };
-                const toast = document.createElement('div');
-                toast.className =
-                    `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
-                toast.innerHTML = `<span>${message}</span>`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-                setTimeout(() => {
-                    toast.classList.add('translate-y-4', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3500);
-            }
+        function showToast(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-600',
+            };
+            const toast = document.createElement('div');
+            toast.className =
+                `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
 
-            @if (session('success'))
-                showToast(@json(session('success')), 'success');
-            @endif
-            @if (session('error'))
-                showToast(@json(session('error')), 'error');
-            @endif
-        </script>
+        @if (session('success'))
+            showToast(@json(session('success')), 'success');
+        @endif
+        @if (session('error'))
+            showToast(@json(session('error')), 'error');
+        @endif
+    </script>
 
-        <style>
-            /* Smooth scrollbar for calendar */
-            .overflow-x-auto::-webkit-scrollbar {
-                height: 8px;
-            }
+    <style>
+        /* Smooth scrollbar for calendar */
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+        }
 
-            .overflow-x-auto::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
-                border-radius: 4px;
-            }
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
 
-            .overflow-x-auto::-webkit-scrollbar-thumb {
-                background: rgba(0, 0, 0, 0.15);
-                border-radius: 4px;
-            }
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
 
-            .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-                background: rgba(0, 0, 0, 0.25);
-            }
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
 
-            .dark .overflow-x-auto::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.05);
-            }
+        .dark .overflow-x-auto::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-            .dark .overflow-x-auto::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.15);
-            }
+        .dark .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+        }
 
-            .dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 255, 255, 0.25);
-            }
-        </style>
-    @endpush
+        .dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+    </style>
 </x-app-layout>

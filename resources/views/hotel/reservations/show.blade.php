@@ -17,7 +17,7 @@
                 </form>
             @endif
             @if ($reservation->status === 'confirmed')
-                <form method="POST" action="{{ route('hotel.reservations.check-in', $reservation) }}">
+                <form method="POST" action="{{ route('hotel.checkin.process', $reservation) }}">
                     @csrf
                     <button type="submit"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
@@ -30,7 +30,7 @@
                 </form>
             @endif
             @if ($reservation->status === 'checked_in')
-                <form method="POST" action="{{ route('hotel.reservations.check-out', $reservation) }}">
+                <form method="POST" action="{{ route('hotel.checkout.process', $reservation) }}">
                     @csrf
                     <button type="submit"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition">
@@ -623,32 +623,46 @@
             showToast(@json($errors->first()), 'error');
         @endif
 
-        function openRoomChangeModal() {
-        document.getElementById('modal-room-change').classList.remove('hidden');
-        }
+        <script>
+            function openRoomChangeModal() {
+                document.getElementById('modal-room-change').classList.remove('hidden');
+            }
 
-        function openEarlyLateModal(type) {
-        const titles = {
-        'early_checkin': 'Early Check-in Request',
-        'late_checkout': 'Late Check-out Request'
-        };
+            function openEarlyLateModal(type) {
+                const titles = {
+                    'early_checkin': 'Early Check-in Request',
+                    'late_checkout': 'Late Check-out Request'
+                };
 
-        document.getElementById('early-late-title').textContent = titles[type] || 'Request';
-        document.getElementById('request-type-input').value = type;
-        document.getElementById('modal-early-late').classList.remove('hidden');
-        }
+                document.getElementById('early-late-title').textContent = titles[type] || 'Request';
+                document.getElementById('request-type-input').value = type;
+                document.getElementById('modal-early-late').classList.remove('hidden');
+            }
 
-        function showToast(message, type = 'success') {
-        const colors = { success: 'bg-green-600', error: 'bg-red-600', warning: 'bg-yellow-500', info: 'bg-blue-600' };
-        const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
-        const toast = document.createElement('div');
-        toast.className = `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm
-        font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
-        toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
-        document.body.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-        setTimeout(() => { toast.classList.add('translate-y-4', 'opacity-0'); setTimeout(() => toast.remove(), 300); },
-        3500);
-        }
+            function showToast(message, type = 'success') {
+                const colors = {
+                    success: 'bg-green-600',
+                    error: 'bg-red-600',
+                    warning: 'bg-yellow-500',
+                    info: 'bg-blue-600'
+                };
+                const icons = {
+                    success: '✓',
+                    error: '✕',
+                    warning: '⚠',
+                    info: 'ℹ'
+                };
+                const toast = document.createElement('div');
+                toast.className =
+                    `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+                toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+                document.body.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+                setTimeout(() => {
+                    toast.classList.add('translate-y-4', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+        </script>
     @endpush
 </x-app-layout>

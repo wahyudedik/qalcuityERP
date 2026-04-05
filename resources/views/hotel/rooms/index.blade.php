@@ -297,13 +297,27 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function roomManager() {
-                return {
-                    showModal: false,
-                    isEdit: false,
-                    form: {
+    {{-- Alpine.js Component --}}
+    <script>
+        window.roomManager = function() {
+            return {
+                showModal: false,
+                isEdit: false,
+                form: {
+                    id: '',
+                    number: '',
+                    room_type_id: '',
+                    floor: '',
+                    building: '',
+                    status: 'available',
+                    description: '',
+                    is_active: true,
+                },
+                rooms: @json($rooms->items()),
+
+                openAddModal() {
+                    this.isEdit = false;
+                    this.form = {
                         id: '',
                         number: '',
                         room_type_id: '',
@@ -312,102 +326,91 @@
                         status: 'available',
                         description: '',
                         is_active: true,
-                    },
-                    rooms: @json($rooms->items()),
+                    };
+                    this.showModal = true;
+                },
 
-                    openAddModal() {
-                        this.isEdit = false;
-                        this.form = {
-                            id: '',
-                            number: '',
-                            room_type_id: '',
-                            floor: '',
-                            building: '',
-                            status: 'available',
-                            description: '',
-                            is_active: true,
-                        };
-                        this.showModal = true;
-                    },
+                openEditModal(roomId) {
+                    const room = this.rooms.find(r => r.id === roomId);
+                    if (!room) return;
 
-                    openEditModal(roomId) {
-                        const room = this.rooms.find(r => r.id === roomId);
-                        if (!room) return;
+                    this.isEdit = true;
+                    this.form = {
+                        id: room.id,
+                        number: room.number,
+                        room_type_id: String(room.room_type_id),
+                        floor: room.floor || '',
+                        building: room.building || '',
+                        status: room.status,
+                        description: room.description || '',
+                        is_active: room.is_active,
+                    };
+                    this.showModal = true;
+                },
 
-                        this.isEdit = true;
-                        this.form = {
-                            id: room.id,
-                            number: room.number,
-                            room_type_id: String(room.room_type_id),
-                            floor: room.floor || '',
-                            building: room.building || '',
-                            status: room.status,
-                            description: room.description || '',
-                            is_active: room.is_active,
-                        };
-                        this.showModal = true;
-                    },
-
-                    changeStatus(roomId, newStatus) {
-                        fetch(`{{ url('hotel/rooms') }}/${roomId}/status`, {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    status: newStatus
-                                }),
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    showToast('Room status updated', 'success');
-                                    setTimeout(() => location.reload(), 500);
-                                } else {
-                                    showToast(data.message || 'Failed to update status', 'error');
-                                }
-                            })
-                            .catch(() => showToast('Failed to update status', 'error'));
-                    }
+                changeStatus(roomId, newStatus) {
+                    fetch(`{{ url('hotel/rooms') }}/${roomId}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify({
+                                status: newStatus
+                            }),
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                showToast(data.message || 'Room status updated', 'success');
+                                setTimeout(() => location.reload(), 500);
+                            } else {
+                                showToast(data.message || 'Failed to update status', 'error');
+                            }
+                        })
+                        .catch(err => showToast('Failed to update status: ' + err.message, 'error'));
                 }
             }
+        };
 
-            function showToast(message, type = 'success') {
-                const colors = {
-                    success: 'bg-green-600',
-                    error: 'bg-red-600',
-                    warning: 'bg-yellow-500',
-                    info: 'bg-blue-600',
-                };
-                const icons = {
-                    success: '✓',
-                    error: '✕',
-                    warning: '⚠',
-                    info: 'ℹ'
-                };
-                const toast = document.createElement('div');
-                toast.className =
-                    `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
-                toast.innerHTML = `<span class="text-base">${icons[type] || icons.success}</span><span>${message}</span>`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-                setTimeout(() => {
-                    toast.classList.add('translate-y-4', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3500);
-            }
+        function showToast(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-600',
+            };
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            const toast = document.createElement('div');
+            toast.className =
+                `fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl text-white text-sm font-medium shadow-xl transition-all duration-300 translate-y-4 opacity-0 ${colors[type] || colors.success}`;
+            toast.innerHTML = `<span class="text-base">${icons[type] || icons.success}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
 
-            @if (session('success'))
-                showToast(@json(session('success')), 'success');
-            @endif
-            @if (session('error'))
-                showToast(@json(session('error')), 'error');
-            @endif
-            @if ($errors->any())
-                showToast(@json($errors->first()), 'error');
-            @endif
-        </script>
-    @endpush
+        @if (session('success'))
+            showToast(@json(session('success')), 'success');
+        @endif
+        @if (session('error'))
+            showToast(@json(session('error')), 'error');
+        @endif
+        @if ($errors->any())
+            showToast(@json($errors->first()), 'error');
+        @endif
+    </script>
 </x-app-layout>

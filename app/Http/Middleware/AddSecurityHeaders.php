@@ -60,11 +60,11 @@ class AddSecurityHeaders
         // Define allowed sources for different content types
         $policies = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net{$viteDevSrc}",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com{$viteDevSrc}",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net{$viteDevSrc}",
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://api.gemini.google.com{$viteDevSrc}",
+            "connect-src 'self' https://api.gemini.google.com https://cdn.jsdelivr.net{$viteDevSrc}",
             "worker-src 'self' blob:",
             "frame-src 'self'",
             "object-src 'none'",

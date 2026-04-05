@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\SalesOrder;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -78,7 +78,8 @@ class ForecastService
                 ->whereYear('due_date', $y)->whereMonth('due_date', $m)
                 ->sum('paid_amount');
 
-            $outflow = (float) Expense::where('tenant_id', $tenantId)
+            $outflow = (float) Transaction::where('tenant_id', $tenantId)
+                ->where('type', 'expense')
                 ->whereYear('date', $y)->whereMonth('date', $m)
                 ->sum('amount');
 

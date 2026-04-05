@@ -60,7 +60,7 @@ class HousekeepingService
     public function createCleaningTask(
         int $roomId,
         string $type,
-        int $priority = 'normal',
+        string $priority = 'normal',
         ?int $estimatedDuration = null,
         ?string $notes = null
     ): HousekeepingTask {

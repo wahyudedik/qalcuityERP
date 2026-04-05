@@ -207,10 +207,13 @@ class CheckInOutService
             // Update room status to 'cleaning'
             $room->update(['status' => 'cleaning']);
 
-            // Auto-create housekeeping task
-            $this->housekeepingService->autoGenerateCheckoutTasks(
+            // Auto-create housekeeping task for checkout cleaning
+            $this->housekeepingService->createCleaningTask(
                 $room->id,
-                $reservation->tenant_id
+                'checkout_clean',
+                'normal',
+                null,
+                "Auto-generated after check-out of reservation {$reservation->reservation_number}"
             );
 
             Log::info('Check-out processed', [

@@ -28,6 +28,58 @@ class CheckInOutController extends Controller
         return auth()->user()->tenant_id;
     }
 
+    /**
+     * Display Check-in/Check-out Dashboard
+     */
+    public function index(Request $request)
+    {
+        $tenantId = $this->tenantId();
+        $today = now()->toDateString();
+
+        // Get reservations for check-in today
+        $checkIns = Reservation::where('tenant_id', $tenantId)
+            ->whereDate('check_in_date', $today)
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->with(['guest', 'roomType', 'room'])
+            ->orderBy('check_in_date', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Get reservations for check-out today
+        $checkOuts = Reservation::where('tenant_id', $tenantId)
+            ->whereDate('check_out_date', $today)
+            ->where('status', 'checked_in')
+            ->with(['guest', 'roomType', 'room'])
+            ->orderBy('check_out_date', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Get early check-ins (before today)
+        $earlyCheckIns = Reservation::where('tenant_id', $tenantId)
+            ->whereDate('check_in_date', '<', $today)
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->with(['guest', 'roomType', 'room'])
+            ->orderBy('check_in_date', 'asc')
+            ->take(10)
+            ->get();
+
+        // Get late check-outs (after today)
+        $lateCheckOuts = Reservation::where('tenant_id', $tenantId)
+            ->whereDate('check_out_date', '>', $today)
+            ->where('status', 'checked_in')
+            ->with(['guest', 'roomType', 'room'])
+            ->orderBy('check_out_date', 'asc')
+            ->take(10)
+            ->get();
+
+        return view('hotel.check-in-out.index', compact(
+            'checkIns',
+            'checkOuts',
+            'earlyCheckIns',
+            'lateCheckOuts'
+        ));
+    }
+
     public function checkInForm(Reservation $reservation)
     {
         abort_unless($reservation->tenant_id === $this->tenantId(), 403);

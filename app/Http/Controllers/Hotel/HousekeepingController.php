@@ -66,6 +66,7 @@ class HousekeepingController extends Controller
         $tenantId = auth()->user()->current_tenant_id;
         $filter = $request->get('filter', 'all'); // all, dirty, clean, inspected, ooo
 
+        // Get rooms with their tasks
         $query = Room::where('tenant_id', $tenantId)
             ->with(['roomType', 'housekeepingTasks']);
 
@@ -75,7 +76,35 @@ class HousekeepingController extends Controller
 
         $rooms = $query->orderBy('floor')->orderBy('number')->get();
 
-        return view('hotel.housekeeping.room-board', compact('rooms', 'filter'));
+        // Get all housekeeping tasks for today grouped by status
+        $today = now()->toDateString();
+        $tasks = \App\Models\HousekeepingTask::where('tenant_id', $tenantId)
+            ->with(['room.roomType', 'assignedTo'])
+            ->whereDate('created_at', $today)
+            ->orderBy('priority')
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy('status');
+
+        // Create board data structure based on actual enum values
+        $board = [
+            'pending' => ($tasks['pending'] ?? collect())->concat($tasks['assigned'] ?? collect()),
+            'in_progress' => $tasks['in_progress'] ?? collect(),
+            'completed' => $tasks['completed'] ?? collect(),
+            'inspected' => collect(), // Not used in current schema, keeping for UI compatibility
+        ];
+
+        // Get task types and priorities
+        $taskTypes = ['checkout_clean', 'stay_clean', 'deep_clean', 'inspection'];
+        $priorities = ['low', 'normal', 'high', 'urgent'];
+
+        // Get housekeeping staff
+        $users = User::where('tenant_id', $tenantId)
+            ->whereIn('role', ['housekeeping', 'maintenance'])
+            ->orderBy('name')
+            ->get();
+
+        return view('hotel.housekeeping.room-board', compact('rooms', 'filter', 'board', 'taskTypes', 'priorities', 'users'));
     }
 
     /**
@@ -120,6 +149,41 @@ class HousekeepingController extends Controller
         $staff = User::where('tenant_id', $tenantId)->role('housekeeping')->get();
 
         return view('hotel.housekeeping.tasks.index', compact('tasks', 'staff'));
+    }
+
+    /**
+     * Store new housekeeping task
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'type' => 'required|string',
+            'priority' => 'required|in:low,normal,high,urgent',
+            'assigned_to' => 'nullable|exists:users,id',
+            'notes' => 'nullable|string',
+        ]);
+
+        $this->housekeepingService->createCleaningTask(
+            $request->room_id,
+            $request->type,
+            $request->priority,
+            null,
+            $request->notes
+        );
+
+        // If assigned_to is provided, assign the task
+        if ($request->filled('assigned_to')) {
+            $latestTask = HousekeepingTask::where('tenant_id', auth()->user()->current_tenant_id)
+                ->latest()
+                ->first();
+
+            if ($latestTask) {
+                $this->housekeepingService->assignTask($latestTask->id, $request->assigned_to);
+            }
+        }
+
+        return back()->with('success', 'Housekeeping task created successfully');
     }
 
     /**

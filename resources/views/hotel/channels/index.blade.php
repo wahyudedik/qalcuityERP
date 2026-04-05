@@ -176,41 +176,40 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function channelManager() {
-                return {
-                    syncing: null,
+    {{-- Alpine.js Component --}}
+    <script>
+        window.channelManager = function() {
+            return {
+                syncing: null,
 
-                    async syncChannel(channel) {
-                        this.syncing = channel;
+                async syncChannel(channel) {
+                    this.syncing = channel;
 
-                        try {
-                            const response = await fetch('{{ url('hotel/channels') }}/' + channel + '/sync', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json',
-                                },
-                            });
+                    try {
+                        const response = await fetch('{{ url('hotel/channels') }}/' + channel + '/sync', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                        });
 
-                            const data = await response.json();
+                        const data = await response.json();
 
-                            if (data.success) {
-                                alert(channel + ' synced successfully!');
-                                window.location.reload();
-                            } else {
-                                alert('Sync failed: ' + (data.message || 'Unknown error'));
-                            }
-                        } catch (error) {
-                            alert('Sync failed: ' + error.message);
-                        } finally {
-                            this.syncing = null;
+                        if (data.success) {
+                            alert(channel + ' synced successfully!');
+                            window.location.reload();
+                        } else {
+                            alert('Sync failed: ' + (data.message || 'Unknown error'));
                         }
-                    },
-                }
+                    } catch (error) {
+                        alert('Sync failed: ' + error.message);
+                    } finally {
+                        this.syncing = null;
+                    }
+                },
             }
-        </script>
-    @endpush
+        };
+    </script>
 </x-app-layout>
