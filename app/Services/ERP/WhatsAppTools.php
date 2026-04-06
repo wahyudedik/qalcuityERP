@@ -4,29 +4,32 @@ namespace App\Services\ERP;
 
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\TenantApiSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppTools
 {
-    public function __construct(protected int $tenantId, protected int $userId) {}
+    public function __construct(protected int $tenantId, protected int $userId)
+    {
+    }
 
     public static function definitions(): array
     {
         return [
             [
-                'name'        => 'send_whatsapp',
+                'name' => 'send_whatsapp',
                 'description' => 'Kirim pesan WhatsApp ke customer atau nomor tertentu via Fonnte. Gunakan untuk: '
                     . '"kirim invoice ke customer Budi via WA", '
                     . '"kirim tagihan ke nomor 08123456789", '
                     . '"reminder pembayaran ke customer X via WhatsApp", '
                     . '"kirim pesan WA ke Budi: pesanan sudah siap".',
                 'parameters' => [
-                    'type'       => 'object',
+                    'type' => 'object',
                     'properties' => [
-                        'to'            => ['type' => 'string', 'description' => 'Nomor WA tujuan (08xx atau 62xx) ATAU nama customer'],
-                        'message'       => ['type' => 'string', 'description' => 'Isi pesan yang akan dikirim'],
-                        'invoice_number'=> ['type' => 'string', 'description' => 'Nomor invoice untuk dikirim (opsional, akan generate pesan otomatis)'],
+                        'to' => ['type' => 'string', 'description' => 'Nomor WA tujuan (08xx atau 62xx) ATAU nama customer'],
+                        'message' => ['type' => 'string', 'description' => 'Isi pesan yang akan dikirim'],
+                        'invoice_number' => ['type' => 'string', 'description' => 'Nomor invoice untuk dikirim (opsional, akan generate pesan otomatis)'],
                     ],
                     'required' => ['to'],
                 ],
@@ -36,10 +39,12 @@ class WhatsAppTools
 
     public function sendWhatsapp(array $args): array
     {
-        $token = config('services.fonnte.token');
+        // Read Fonnte token from tenant DB settings, fallback to .env
+        $token = TenantApiSetting::get($this->tenantId, 'fonnte_token')
+            ?? config('services.fonnte.token');
         if (!$token) {
             return [
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'WhatsApp belum dikonfigurasi. Tambahkan FONNTE_TOKEN di pengaturan sistem.',
             ];
         }
@@ -58,7 +63,8 @@ class WhatsAppTools
 
         // Normalize nomor
         $to = preg_replace('/[^0-9]/', '', $to);
-        if (str_starts_with($to, '0')) $to = '62' . substr($to, 1);
+        if (str_starts_with($to, '0'))
+            $to = '62' . substr($to, 1);
 
         // Build message
         $message = $args['message'] ?? '';
@@ -83,7 +89,7 @@ class WhatsAppTools
         try {
             $response = Http::withHeaders(['Authorization' => $token])
                 ->post('https://api.fonnte.com/send', [
-                    'target'  => $to,
+                    'target' => $to,
                     'message' => $message,
                 ]);
 
@@ -91,16 +97,16 @@ class WhatsAppTools
 
             if ($response->successful() && ($result['status'] ?? false)) {
                 return [
-                    'status'  => 'success',
+                    'status' => 'success',
                     'message' => "Pesan WhatsApp berhasil dikirim ke {$to}.",
-                    'to'      => $to,
+                    'to' => $to,
                     'preview' => mb_substr($message, 0, 100) . (strlen($message) > 100 ? '...' : ''),
                 ];
             }
 
             Log::warning('Fonnte WA failed', ['response' => $result]);
             return [
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Gagal mengirim WA: ' . ($result['reason'] ?? 'Unknown error'),
             ];
 
@@ -113,8 +119,8 @@ class WhatsAppTools
     private function buildInvoiceMessage(Invoice $invoice, $tenant): string
     {
         $tenantName = $tenant?->name ?? 'Kami';
-        $total      = 'Rp ' . number_format($invoice->total_amount, 0, ',', '.');
-        $due        = $invoice->due_date?->format('d M Y') ?? '-';
+        $total = 'Rp ' . number_format($invoice->total_amount, 0, ',', '.');
+        $due = $invoice->due_date?->format('d M Y') ?? '-';
 
         return "Halo {$invoice->customer?->name},\n\n"
             . "Berikut tagihan dari *{$tenantName}*:\n\n"

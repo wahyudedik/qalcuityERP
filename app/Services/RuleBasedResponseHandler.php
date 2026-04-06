@@ -13,10 +13,22 @@ use Illuminate\Support\Facades\Log;
 class RuleBasedResponseHandler
 {
     /**
+     * Cek apakah rule-based handler di-enable
+     */
+    public function isEnabled(): bool
+    {
+        return config('gemini.optimization.rule_based_enabled', true);
+    }
+
+    /**
      * Cek apakah pesan bisa ditangani oleh rule-based handler
      */
     public function canHandle(string $message): bool
     {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
         $message = strtolower(trim($message));
 
         // Pattern untuk pertanyaan sederhana yang tidak perlu AI

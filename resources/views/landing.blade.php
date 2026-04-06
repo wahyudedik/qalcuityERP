@@ -9,9 +9,9 @@
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="canonical" href="{{ url('/') }}">
     <meta name="description"
-        content="Platform ERP AI untuk semua industri: retail, F&B, konstruksi, pabrik beton, pertanian, manufaktur, distributor, dan jasa. 40+ modul terintegrasi dengan AI chat. Gratis 14 hari.">
+        content="Platform ERP AI untuk semua industri: retail, F&B, konstruksi, pabrik beton, pertanian, manufaktur, distributor, telecom/ISP, hospitality, perikanan, peternakan, dan jasa. 70+ modul terintegrasi dengan AI chat. Gratis 14 hari.">
     <meta name="keywords"
-        content="ERP Indonesia, ERP AI, software akuntansi, aplikasi kasir POS, manajemen inventori, ERP konstruksi, ERP pertanian, ERP pabrik beton, ERP manufaktur, SaaS ERP, Qalcuity">
+        content="ERP Indonesia, ERP AI, software akuntansi, aplikasi kasir POS, manajemen inventori, ERP konstruksi, ERP pertanian, ERP pabrik beton, ERP manufaktur, ERP telecom, ERP ISP, ERP hotel, ERP restoran, SaaS ERP, Qalcuity">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Noteds Technology">
 
@@ -20,7 +20,7 @@
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:title" content="Qalcuity ERP — ERP Cerdas Berbasis AI untuk Semua Industri">
     <meta property="og:description"
-        content="Kelola inventory, penjualan, keuangan, SDM, konstruksi, pertanian, dan 40+ modul bisnis dengan AI. Cukup ketik perintah, AI langsung bertindak.">
+        content="Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, kosmetik & beauty, CRM, fleet, telecom/ISP, hospitality, e-commerce marketplace, dan 70+ modul bisnis dengan AI. Cukup ketik perintah, AI langsung bertindak.">
     <meta property="og:image" content="{{ url('/logo.png') }}">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="Qalcuity ERP">
@@ -29,7 +29,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Qalcuity ERP — ERP AI untuk Semua Industri Indonesia">
     <meta name="twitter:description"
-        content="40+ modul ERP terintegrasi AI. Retail, F&B, konstruksi, pertanian, manufaktur, distributor.">
+        content="70+ modul ERP terintegrasi AI. Retail, F&B, konstruksi, pertanian, manufaktur, distributor, telecom/ISP, hospitality, perikanan, peternakan.">
     <meta name="twitter:image" content="{{ url('/logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -65,7 +65,7 @@
         "name": "Qalcuity ERP",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "description": "Platform ERP berbasis AI untuk semua industri Indonesia. 40+ modul terintegrasi: inventori, penjualan, keuangan, SDM, konstruksi, pertanian, manufaktur.",
+        "description": "Platform ERP berbasis AI untuk semua industri Indonesia. 70+ modul terintegrasi: inventori, penjualan, keuangan, SDM, konstruksi, pertanian, manufaktur, telecom/ISP, hospitality, e-commerce, perikanan, peternakan.",
         "url": "{{ url('/') }}",
         "offers": {
             "@@type": "AggregateOffer",
@@ -195,9 +195,11 @@
             </h1>
 
             <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, CRM, fleet, dan 40+ modul
+                Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, kosmetik & beauty, CRM,
+                fleet, telecom/ISP, hospitality, e-commerce marketplace, dan 70+ modul
                 bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung
-                bertindak. Cocok untuk retail, F&B, pabrik beton, perkebunan, distributor, dan semua jenis industri.
+                bertindak. Cocok untuk retail, F&B, pabrik beton, perkebunan, distributor, manufaktur kosmetik, ISP,
+                hotel, restoran, perikanan, peternakan, dan semua jenis industri.
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -378,6 +380,30 @@
                             'desc' =>
                                 'Hubungkan WhatsApp atau Telegram ke sistem ERP. Terima notifikasi dan kelola bisnis langsung dari aplikasi chat favorit Anda.',
                         ],
+                        [
+                            'icon' =>
+                                'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                            'title' => 'Analytics & Reporting',
+                            'color' => 'teal',
+                            'desc' =>
+                                'Dashboard analitik dengan batch performance, QC trends, regulatory compliance, cost analysis, supplier quality, dan predictive expiry forecast.',
+                        ],
+                        [
+                            'icon' =>
+                                'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
+                            'title' => 'Manufaktur Kosmetik',
+                            'color' => 'rose',
+                            'desc' =>
+                                'Formula INCI, batch production, QC laboratory, BPOM registration, packaging & labeling, distribution channels, dan product lifecycle management.',
+                        ],
+                        [
+                            'icon' =>
+                                'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0',
+                            'title' => 'Distribution Channels',
+                            'color' => 'cyan',
+                            'desc' =>
+                                'Kelola retail, online marketplace, distributor, dan reseller/MLM dengan pricing formulas, channel inventory, dan sales performance tracking.',
+                        ],
                     ];
                     $cm = [
                         'blue' => ['bg' => 'bg-blue-50', 'ic' => 'text-blue-600'],
@@ -386,6 +412,9 @@
                         'green' => ['bg' => 'bg-green-50', 'ic' => 'text-green-600'],
                         'orange' => ['bg' => 'bg-orange-50', 'ic' => 'text-orange-600'],
                         'pink' => ['bg' => 'bg-pink-50', 'ic' => 'text-pink-600'],
+                        'teal' => ['bg' => 'bg-teal-50', 'ic' => 'text-teal-600'],
+                        'rose' => ['bg' => 'bg-rose-50', 'ic' => 'text-rose-600'],
+                        'cyan' => ['bg' => 'bg-cyan-50', 'ic' => 'text-cyan-600'],
                     ];
                 @endphp
                 @foreach ($features as $f)
@@ -412,7 +441,7 @@
             <div class="text-center mb-16">
                 <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Modul Lengkap</span>
                 <h2 class="text-4xl font-black text-gray-900 mt-3">Semua yang bisnis Anda butuhkan</h2>
-                <p class="text-gray-400 mt-4 max-w-lg mx-auto">40+ modul terintegrasi, dikelola lewat satu antarmuka
+                <p class="text-gray-400 mt-4 max-w-lg mx-auto">50+ modul terintegrasi, dikelola lewat satu antarmuka
                     AI.</p>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -422,61 +451,133 @@
                             'emoji' => '📦',
                             'title' => 'Inventory',
                             'color' => 'blue',
-                            'items' => ['Multi-gudang', 'Transfer stok', 'Stock opname', 'Konsinyasi'],
+                            'items' => ['Multi-gudang', 'Transfer stok', 'Stock opname', 'Konsinyasi', 'Bin location'],
                         ],
                         [
                             'emoji' => '🛒',
                             'title' => 'Penjualan',
                             'color' => 'green',
-                            'items' => ['Quotation → SO → Invoice', 'Piutang', 'Loyalty', 'Subscription Billing'],
+                            'items' => [
+                                'Quotation → SO → Invoice',
+                                'Piutang',
+                                'Loyalty',
+                                'Subscription Billing',
+                                'Down Payment',
+                            ],
                         ],
                         [
                             'emoji' => '🏭',
                             'title' => 'Pembelian',
                             'color' => 'orange',
-                            'items' => ['Purchase Order', 'Supplier', 'Landed Cost', '3-Way Matching'],
+                            'items' => ['Purchase Order', 'Supplier', 'Landed Cost', '3-Way Matching', 'RFQ'],
                         ],
                         [
                             'emoji' => '👥',
                             'title' => 'SDM & Payroll',
                             'color' => 'purple',
-                            'items' => ['Karyawan & Absensi', 'Penggajian', 'Overtime', 'Komisi Sales'],
+                            'items' => [
+                                'Karyawan & Absensi',
+                                'Penggajian',
+                                'Overtime',
+                                'Komisi Sales',
+                                'Fingerprint/RFID',
+                            ],
                         ],
                         [
                             'emoji' => '💰',
                             'title' => 'Keuangan',
                             'color' => 'indigo',
-                            'items' => ['Jurnal GL', 'Anggaran', 'Rekonsiliasi Bank', 'Multi-currency'],
+                            'items' => [
+                                'Jurnal GL',
+                                'Anggaran',
+                                'Rekonsiliasi Bank',
+                                'Multi-currency',
+                                'Approval Workflow',
+                            ],
                         ],
                         [
                             'emoji' => '🏗️',
                             'title' => 'Konstruksi',
                             'color' => 'amber',
-                            'items' => ['RAB Detail', 'Mix Design Beton', 'Progress Volume', 'Retensi & Termin'],
+                            'items' => [
+                                'RAB Detail',
+                                'Mix Design Beton',
+                                'Progress Volume',
+                                'Retensi & Termin',
+                                'Subcontractor',
+                            ],
                         ],
                         [
                             'emoji' => '🌾',
                             'title' => 'Pertanian',
                             'color' => 'teal',
-                            'items' => ['Manajemen Lahan', 'Siklus Tanam', 'Pencatatan Panen', 'Biaya per Hektar'],
+                            'items' => [
+                                'Manajemen Lahan',
+                                'Siklus Tanam',
+                                'Pencatatan Panen',
+                                'Biaya per Hektar',
+                                'Irigasi',
+                            ],
                         ],
                         [
                             'emoji' => '⚙️',
                             'title' => 'Manufaktur',
                             'color' => 'slate',
-                            'items' => ['Work Order', 'BOM Multi-Level', 'MRP Planning', 'Mix Design'],
+                            'items' => ['Work Order', 'BOM Multi-Level', 'MRP Planning', 'Work Center', 'QC Lab'],
                         ],
                         [
                             'emoji' => '📋',
                             'title' => 'Proyek',
                             'color' => 'rose',
-                            'items' => ['Task & Milestone', 'Timesheet', 'Project Billing', 'Volume Tracking'],
+                            'items' => [
+                                'Task & Milestone',
+                                'Timesheet',
+                                'Project Billing',
+                                'Volume Tracking',
+                                'Expense',
+                            ],
                         ],
                         [
                             'emoji' => '🤝',
                             'title' => 'CRM & Sales',
                             'color' => 'yellow',
-                            'items' => ['Pipeline lead', 'Helpdesk & Tiket', 'Knowledge Base', 'SLA Tracking'],
+                            'items' => [
+                                'Pipeline lead',
+                                'Helpdesk & Tiket',
+                                'Knowledge Base',
+                                'SLA Tracking',
+                                'Activity Log',
+                            ],
+                        ],
+                        [
+                            'emoji' => '🌐',
+                            'title' => 'Telecom/ISP',
+                            'color' => 'cyan',
+                            'items' => [
+                                'Pelanggan Internet',
+                                'Bandwidth Mgmt',
+                                'Voucher Hotspot',
+                                'MikroTik API',
+                                'Billing Otomatis',
+                            ],
+                        ],
+                        [
+                            'emoji' => '🏨',
+                            'title' => 'Hospitality',
+                            'color' => 'emerald',
+                            'items' => ['Room Reservation', 'Housekeeping', 'Minibar', 'Restaurant POS', 'Spa & Tour'],
+                        ],
+                        [
+                            'emoji' => '🛍️',
+                            'title' => 'E-Commerce',
+                            'color' => 'pink',
+                            'items' => [
+                                'Shopee/Tokopedia/Lazada',
+                                'Auto Sync Stock',
+                                'Price Sync',
+                                'Order Integration',
+                                'Webhook',
+                            ],
                         ],
                     ];
                     $mc = [
@@ -490,6 +591,9 @@
                         'rose' => ['b' => 'border-rose-200', 't' => 'text-rose-700', 'd' => 'bg-rose-400'],
                         'slate' => ['b' => 'border-slate-200', 't' => 'text-slate-700', 'd' => 'bg-slate-400'],
                         'yellow' => ['b' => 'border-yellow-200', 't' => 'text-yellow-700', 'd' => 'bg-yellow-400'],
+                        'cyan' => ['b' => 'border-cyan-200', 't' => 'text-cyan-700', 'd' => 'bg-cyan-400'],
+                        'emerald' => ['b' => 'border-emerald-200', 't' => 'text-emerald-700', 'd' => 'bg-emerald-400'],
+                        'pink' => ['b' => 'border-pink-200', 't' => 'text-pink-700', 'd' => 'bg-pink-400'],
                     ];
                 @endphp
                 @foreach ($modules as $m)
@@ -510,7 +614,7 @@
                 @endforeach
             </div>
             <div class="mt-5 flex flex-wrap gap-2 justify-center">
-                @foreach (['🚚 Pengiriman', '🛍️ E-Commerce', '🤖 Bot WA/Telegram', '🏦 Rekonsiliasi Bank', '⭐ Loyalty Program', '✍️ Tanda Tangan Digital', '📊 AI Forecasting', '🔔 Push Notification', '🏪 Konsinyasi', '📐 Project Billing', '🔄 Subscription Billing', '🎫 Helpdesk & Tiket', '🚢 Landed Cost', '💵 Komisi Sales', '🚛 Fleet & Aset', '📝 Kontrak', '🧮 Mix Design Beton', '📐 RAB Konstruksi', '🌱 Siklus Tanam', '🌾 Pencatatan Panen', '📦 Bulk Import/Export', '🔗 Webhook Outbound'] as $tag)
+                @foreach (['🚚 Pengiriman', '🛍️ E-Commerce', '🤖 Bot WA/Telegram', '🏦 Rekonsiliasi Bank', '⭐ Loyalty Program', '✍️ Tanda Tangan Digital', '📊 AI Forecasting', '🔔 Push Notification', '🏪 Konsinyasi', '📐 Project Billing', '🔄 Subscription Billing', '🎫 Helpdesk & Tiket', '🚢 Landed Cost', '💵 Komisi Sales', '🚛 Fleet & Aset', '📝 Kontrak', '🧮 Mix Design Beton', '📐 RAB Konstruksi', '🌱 Siklus Tanam', '🌾 Pencatatan Panen', '📦 Bulk Import/Export', '🔗 Webhook Outbound', '🌐 Telecom/ISP', '🏨 Hotel Management', '🍽️ Restaurant POS', '💆 Spa & Wellness', '✈️ Tour & Travel', '🐟 Budidaya Ikan', '🐄 Peternakan', '🖨️ Print Estimation', '👆 Fingerprint/RFID', '🏭 BOM Multi-Level', '📊 Custom Dashboard', '✅ Approval Workflow', '📷 Zero Input OCR', '🏢 Multi-Company', '🌍 Multi-Currency'] as $tag)
                     <span
                         class="text-xs bg-white border border-gray-200 rounded-full px-3 py-1.5 text-gray-500 shadow-sm">{{ $tag }}</span>
                 @endforeach
@@ -796,6 +900,50 @@
                             'desc' => 'Mix design SNI (K-175 s/d K-500), hitung kebutuhan material, HPP per m³',
                             'color' => 'bg-cyan-50 border-cyan-200',
                         ],
+                        [
+                            'emoji' => '💄',
+                            'title' => 'Kosmetik & Beauty',
+                            'desc' => 'Formula INCI, BPOM, batch production, QC lab, distribusi channel, analytics',
+                            'color' => 'bg-pink-50 border-pink-200',
+                        ],
+                        [
+                            'emoji' => '🐟',
+                            'title' => 'Perikanan',
+                            'desc' => 'Manajemen kolam, siklus budidaya, pakan, panen, cold chain',
+                            'color' => 'bg-teal-50 border-teal-200',
+                        ],
+                        [
+                            'emoji' => '🐄',
+                            'title' => 'Peternakan',
+                            'desc' => 'Manajemen ternak, breeding, pakan, kesehatan, produksi susu/telur',
+                            'color' => 'bg-amber-50 border-amber-200',
+                        ],
+                        [
+                            'emoji' => '🌐',
+                            'title' => 'Telecom & ISP',
+                            'desc' =>
+                                'Manajemen pelanggan internet, bandwidth, voucher hotspot, billing otomatis, MikroTik integration',
+                            'color' => 'bg-indigo-50 border-indigo-200',
+                        ],
+                        [
+                            'emoji' => '🏨',
+                            'title' => 'Hotel & Hospitality',
+                            'desc' =>
+                                'Reservasi kamar, housekeeping, minibar, restaurant, spa, tour package, night audit',
+                            'color' => 'bg-blue-50 border-blue-200',
+                        ],
+                        [
+                            'emoji' => '🍽️',
+                            'title' => 'Restoran & F&B',
+                            'desc' => 'POS restoran, meja, menu, kitchen order, table reservation, banquet event',
+                            'color' => 'bg-orange-50 border-orange-200',
+                        ],
+                        [
+                            'emoji' => '🏢',
+                            'title' => 'Percetakan & Publishing',
+                            'desc' => 'Print estimation, print job, prepress, plate management, web-to-print order',
+                            'color' => 'bg-slate-50 border-slate-200',
+                        ],
                     ];
                 @endphp
                 @foreach ($industries as $ind)
@@ -809,7 +957,8 @@
             <p class="text-center text-sm text-gray-400 mt-8">Ketik <span
                     class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template konstruksi"</span> atau
                 <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template pertanian"</span> di AI
-                Chat untuk langsung mulai.</p>
+                Chat untuk langsung mulai.
+            </p>
         </div>
     </section>
 
@@ -883,6 +1032,7 @@
                                 ['text' => 'Pembelian & Supplier', 'ok' => true],
                                 ['text' => 'CRM, Helpdesk, Konsinyasi', 'ok' => true],
                                 ['text' => 'Komisi Sales & Subscription', 'ok' => true],
+                                ['text' => 'E-Commerce Integration', 'ok' => true],
                                 ['text' => 'AI Chat (300 pesan/bulan)', 'ok' => true],
                                 ['text' => 'Hingga 10 pengguna', 'ok' => true],
                             ],
@@ -902,6 +1052,8 @@
                                 ['text' => 'Manufaktur (BOM & MRP)', 'ok' => true],
                                 ['text' => 'Fleet, Kontrak, Landed Cost', 'ok' => true],
                                 ['text' => 'Project Billing & Forecasting', 'ok' => true],
+                                ['text' => 'Telecom/ISP Module', 'ok' => true],
+                                ['text' => 'Hospitality Module', 'ok' => true],
                                 ['text' => 'AI Chat (1.000 pesan/bulan)', 'ok' => true],
                             ],
                             'cta' => 'Mulai Trial Gratis',
@@ -920,6 +1072,7 @@
                                 ['text' => 'Multi Company & Konsolidasi', 'ok' => true],
                                 ['text' => 'Zero Input OCR & WhatsApp Bot', 'ok' => true],
                                 ['text' => 'Custom API & Digital Signature', 'ok' => true],
+                                ['text' => 'Fingerprint/RFID Integration', 'ok' => true],
                                 ['text' => 'Prioritas Support & SLA 99.9%', 'ok' => true],
                             ],
                             'cta' => 'Hubungi Kami',

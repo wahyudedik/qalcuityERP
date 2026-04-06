@@ -1,0 +1,150 @@
+<?php
+
+namespace App\Http\Controllers\Livestock;
+
+use App\Http\Controllers\Controller;
+use App\Models\PoultryEggProduction;
+use App\Models\LivestockHerd;
+use Illuminate\Http\Request;
+
+class PoultryController extends Controller
+{
+    /**
+     * Display egg production records
+     */
+    public function eggProduction(Request $request)
+    {
+        $stats = [
+            'total_records' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)->count(),
+            'today_eggs' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)
+                ->whereDate('record_date', today())
+                ->sum('eggs_collected'),
+            'avg_laying_rate' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)
+                ->whereBetween('record_date', [now()->subDays(7), now()])
+                ->avg('laying_rate_percentage') ?? 0,
+            'avg_breakage_rate' => 0,
+        ];
+
+        $records = PoultryEggProduction::with(['herd', 'recordedBy'])
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->orderByDesc('record_date')
+            ->paginate(20);
+
+        $herds = LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+            ->where('animal_type', 'ayam_layer')
+            ->active()
+            ->get();
+
+        return view('livestock.poultry.egg-production', compact('stats', 'records', 'herds'));
+    }
+
+    /**
+     * Store egg production record
+     */
+    public function storeEggRecord(Request $request)
+    {
+        $validated = $request->validate([
+            'livestock_herd_id' => 'required|exists:livestock_herds,id',
+            'record_date' => 'required|date',
+            'eggs_collected' => 'required|integer|min:0',
+            'eggs_broken' => 'nullable|integer|min:0',
+            'eggs_double_yolk' => 'nullable|integer|min:0',
+            'eggs_small' => 'nullable|integer|min:0',
+            'eggs_medium' => 'nullable|integer|min:0',
+            'eggs_large' => 'nullable|integer|min:0',
+            'eggs_extra_large' => 'nullable|integer|min:0',
+            'total_weight_kg' => 'nullable|numeric|min:0',
+            'laying_rate_percentage' => 'nullable|numeric|min:0|max:100',
+            'feed_consumed_kg' => 'nullable|numeric|min:0',
+            'feed_conversion_ratio' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            $record = new PoultryEggProduction();
+            $record->tenant_id = auth()->user()->tenant_id;
+            $record->fill($validated);
+            $record->eggs_broken = $validated['eggs_broken'] ?? 0;
+            $record->recorded_by = auth()->id();
+            $record->save();
+
+            return back()->with('success', 'Egg production recorded successfully!');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Display flock performance
+     */
+    public function flockPerformance(Request $request)
+    {
+        $stats = [
+            'total_flocks' => LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+                ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+                ->count(),
+            'avg_mortality_rate' => \App\Models\PoultryFlockPerformance::where('tenant_id', auth()->user()->tenant_id)
+                ->whereBetween('record_date', [now()->subDays(30), now()])
+                ->avg('mortality_rate_percentage') ?? 0,
+            'avg_fcr' => \App\Models\PoultryFlockPerformance::where('tenant_id', auth()->user()->tenant_id)
+                ->whereBetween('record_date', [now()->subDays(30), now()])
+                ->avg('feed_conversion_ratio') ?? 0,
+        ];
+
+        $performances = \App\Models\PoultryFlockPerformance::with(['herd', 'recordedBy'])
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->orderByDesc('record_date')
+            ->paginate(20);
+
+        $herds = LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+            ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+            ->active()
+            ->get();
+
+        return view('livestock.poultry.flock-performance', compact('stats', 'performances', 'herds'));
+    }
+
+    /**
+     * Store flock performance record
+     */
+    public function storePerformance(Request $request)
+    {
+        $validated = $request->validate([
+            'livestock_herd_id' => 'required|exists:livestock_herds,id',
+            'record_date' => 'required|date',
+            'birds_alive' => 'required|integer|min:0',
+            'mortality_count' => 'nullable|integer|min:0',
+            'average_weight_kg' => 'nullable|numeric|min:0',
+            'feed_consumed_kg' => 'required|numeric|min:0',
+            'water_consumed_liters' => 'nullable|numeric|min:0',
+            'average_daily_gain' => 'nullable|numeric',
+            'feed_conversion_ratio' => 'nullable|numeric|min:0',
+            'health_status' => 'nullable|in:healthy,sick,quarantine',
+            'observations' => 'nullable|string',
+        ]);
+
+        try {
+            $performance = new \App\Models\PoultryFlockPerformance();
+            $performance->tenant_id = auth()->user()->tenant_id;
+            $performance->fill($validated);
+            $performance->mortality_count = $validated['mortality_count'] ?? 0;
+            $performance->health_status = $validated['health_status'] ?? 'healthy';
+            $performance->recorded_by = auth()->id();
+
+            // Calculate mortality rate
+            if ($performance->birds_alive > 0) {
+                $totalBirds = $performance->birds_alive + $performance->mortality_count;
+                $performance->mortality_rate_percentage = round(
+                    ($performance->mortality_count / $totalBirds) * 100,
+                    2
+                );
+            }
+
+            $performance->save();
+
+            return back()->with('success', 'Flock performance recorded!');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+}

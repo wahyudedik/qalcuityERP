@@ -67,9 +67,9 @@ class ChatController extends Controller
         // OPTIMIZATION 1: Rule-based handler untuk pertanyaan sederhana
         if ($this->ruleHandler->canHandle($request->message)) {
             $response = $this->ruleHandler->handle($request->message, $user->name);
-            
+
             $this->sessionManager->saveModelMessage($session, $response['text'], $response['model']);
-            
+
             return response()->json([
                 'session_id' => $session->id,
                 'session_title' => $session->fresh()->title,
@@ -77,7 +77,29 @@ class ChatController extends Controller
                 'model' => $response['model'],
                 'actions' => [],
                 'cached' => false,
+                'optimized' => true, // Flag untuk monitoring
+                'optimization_type' => 'rule-based',
+            ]);
+        }
+
+        // OPTIMIZATION 2: Cache layer untuk query repetitif
+        $cacheKey = $this->cacheService->generateCacheKey($tenantId ?? 0, $user->id, $request->message);
+        $cachedResponse = $this->cacheService->get($cacheKey);
+
+        if ($cachedResponse !== null) {
+            // Cache HIT - skip API call!
+            $this->sessionManager->saveModelMessage($session, $cachedResponse['text'], $cachedResponse['model'] ?? 'cached');
+
+            return response()->json([
+                'session_id' => $session->id,
+                'session_title' => $session->fresh()->title,
+                'message' => $cachedResponse['text'],
+                'model' => $cachedResponse['model'] ?? 'cached',
+                'actions' => $cachedResponse['actions'] ?? [],
+                'cached' => true,
                 'optimized' => true,
+                'optimization_type' => 'cache-hit',
+                'cache_ttl' => config('cache.ttl', 3600),
             ]);
         }
 
@@ -103,10 +125,10 @@ class ChatController extends Controller
         // OPTIMIZATION 2: Check cache untuk query repetitif
         $cacheKey = $this->cacheService->generateCacheKey($tenantId, $user->id, $request->message);
         $cachedResponse = $this->cacheService->get($cacheKey);
-        
+
         if ($cachedResponse !== null) {
             $this->sessionManager->saveModelMessage($session, $cachedResponse['text'], $cachedResponse['model']);
-            
+
             return response()->json([
                 'session_id' => $session->id,
                 'session_title' => $session->title,
@@ -175,14 +197,14 @@ class ChatController extends Controller
 
                 $text = $text ?: 'Maaf, saya tidak dapat memproses permintaan tersebut. Coba ulangi dengan kalimat yang lebih spesifik.';
                 $this->sessionManager->saveModelMessage($session, $text, $response['model']);
-                
+
                 // Cache the response
                 $this->cacheService->put($cacheKey, [
                     'text' => $text,
                     'model' => $response['model'],
                     'actions' => [],
                 ]);
-                
+
                 if ($tenantId)
                     $this->quota->track($tenantId, $user->id, strlen($text));
 
@@ -243,13 +265,14 @@ class ChatController extends Controller
         if ($this->ruleHandler->canHandle($request->message)) {
             $response = $this->ruleHandler->handle($request->message, $user->name);
             $this->sessionManager->saveModelMessage($session, $response['text'], $response['model']);
-            
+
             // Return sebagai SSE untuk konsistensi
             return response()->stream(function () use ($response) {
                 echo "event: start\ndata: " . json_encode(['message' => 'Processing...']) . "\n\n";
                 echo "event: chunk\ndata: " . json_encode(['text' => $response['text'], 'progress' => 100, 'is_final' => true]) . "\n\n";
                 echo "event: complete\ndata: " . json_encode(['full_text' => $response['text'], 'model' => $response['model']]) . "\n\n";
-                if (ob_get_level() > 0) ob_flush();
+                if (ob_get_level() > 0)
+                    ob_flush();
                 flush();
             }, 200, [
                 'Content-Type' => 'text/event-stream',
@@ -262,7 +285,7 @@ class ChatController extends Controller
         // Setup tool registry jika ada tenant
         $registry = null;
         $toolDeclarations = [];
-        
+
         if ($tenantId) {
             $registry = new ToolRegistry($tenantId, $user->id);
             $allowedTools = $user->allowedAiTools();
@@ -928,5 +951,176 @@ class ChatController extends Controller
         if ($bytes < 1048576)
             return round($bytes / 1024, 1) . ' KB';
         return round($bytes / 1048576, 1) . ' MB';
+    }
+
+    /**
+     * OPTIMIZATION 3: Batch processing untuk multiple messages.
+     * POST /chat/batch
+     * 
+     * Berguna untuk:
+     * - Processing multiple queries sekaligus
+     * - Bulk analysis dari CSV/Excel
+     * - Automated report generation
+     */
+    public function batch(Request $request): JsonResponse
+    {
+        $request->validate([
+            'messages' => 'required|array|min:1|max:10', // Max 10 messages per batch
+            'messages.*.message' => 'required|string|max:4000',
+            'messages.*.session_id' => 'nullable|integer',
+        ]);
+
+        $user = $request->user();
+        $tenantId = $user->tenant_id;
+
+        // Jika Redis tidak tersedia, fallback ke sequential processing
+        if (!config('cache.default') === 'redis' && !extension_loaded('redis')) {
+            Log::warning('Batch processing without Redis - using sequential mode');
+            return $this->processBatchSequentially($request, $user, $tenantId);
+        }
+
+        // Gunakan AiBatchProcessor untuk optimized batch processing
+        $batchProcessor = new \App\Services\AiBatchProcessor(
+            $this->gemini,
+            $this->cacheService
+        );
+
+        // Prepare batch data
+        $batchData = [];
+        foreach ($request->messages as $index => $msgData) {
+            $session = $this->sessionManager->getOrCreateSession($user, $msgData['session_id'] ?? null);
+            $history = $this->sessionManager->getHistory($session);
+
+            $batchData[] = [
+                'tenant_id' => $tenantId,
+                'user_id' => $user->id,
+                'message' => $msgData['message'],
+                'history' => $history,
+                'session_id' => $session->id,
+                'tenant_context' => $user->tenant?->aiBusinessContext(),
+                'language' => $this->detectLanguage($msgData['message']),
+            ];
+        }
+
+        try {
+            // Process batch dengan caching dan optimization
+            $results = $batchProcessor->processBatch($batchData);
+
+            // Save results to sessions
+            foreach ($results as $index => $result) {
+                $sessionId = $batchData[$index]['session_id'];
+                $session = ChatSession::find($sessionId);
+
+                if ($session) {
+                    $this->sessionManager->saveModelMessage(
+                        $session,
+                        $result['text'],
+                        $result['model'] ?? 'batch-processed'
+                    );
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'total' => count($results),
+                'cached_count' => collect($results)->where('cached', true)->count(),
+                'api_calls_made' => collect($results)->where('cached', false)->count(),
+                'results' => $results,
+                'optimization_stats' => [
+                    'cache_hit_rate' => round(
+                        (collect($results)->where('cached', true)->count() / count($results)) * 100,
+                        2
+                    ) . '%',
+                    'estimated_savings' => '$' . number_format(
+                        collect($results)->where('cached', true)->count() * 0.0001,
+                        4
+                    ),
+                ],
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('ChatController batch processing failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Batch processing failed. Please try again.',
+                'details' => app()->isLocal() ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Fallback batch processing tanpa Redis
+     */
+    protected function processBatchSequentially(Request $request, $user, $tenantId): JsonResponse
+    {
+        $results = [];
+
+        foreach ($request->messages as $msgData) {
+            try {
+                $session = $this->sessionManager->getOrCreateSession($user, $msgData['session_id'] ?? null);
+                $history = $this->sessionManager->getHistory($session);
+
+                // Check cache first
+                $cacheKey = $this->cacheService->generateCacheKey($tenantId ?? 0, $user->id, $msgData['message']);
+                $cached = $this->cacheService->get($cacheKey);
+
+                if ($cached !== null) {
+                    $results[] = array_merge($cached, ['cached' => true]);
+                    continue;
+                }
+
+                // Call Gemini API
+                $response = $this->gemini->chat($msgData['message'], $history);
+
+                // Cache result
+                $this->cacheService->put($cacheKey, $response);
+
+                // Save to session
+                $this->sessionManager->saveModelMessage($session, $response['text'], $response['model']);
+
+                $results[] = array_merge($response, ['cached' => false]);
+
+            } catch (\Throwable $e) {
+                Log::error('Batch message processing failed: ' . $e->getMessage());
+                $results[] = [
+                    'text' => 'Error processing this message.',
+                    'model' => 'error',
+                    'cached' => false,
+                    'error' => true,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'total' => count($results),
+            'cached_count' => collect($results)->where('cached', true)->count(),
+            'api_calls_made' => collect($results)->where('cached', false)->count(),
+            'results' => $results,
+            'mode' => 'sequential-fallback',
+        ]);
+    }
+
+    /**
+     * Get optimization statistics untuk monitoring.
+     * GET /chat/stats
+     */
+    public function getOptimizationStats(): JsonResponse
+    {
+        return response()->json([
+            'cache' => $this->cacheService->getStats(),
+            'rule_based_patterns' => $this->ruleHandler->getSupportedPatterns(),
+            'streaming_supported' => \App\Services\AiStreamingService::clientSupportsStreaming(),
+            'queue_driver' => config('queue.default'),
+            'cache_driver' => config('cache.default'),
+            'redis_available' => extension_loaded('redis'),
+            'optimizations_enabled' => [
+                'caching' => true,
+                'rule_based' => true,
+                'batch_processing' => true,
+                'streaming' => true,
+            ],
+        ]);
     }
 }

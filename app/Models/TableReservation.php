@@ -2,26 +2,29 @@
 
 namespace App\Models;
 
-use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Table Reservation untuk Restaurant (bukan hotel)
+ */
 class TableReservation extends Model
 {
-    use SoftDeletes, AuditsChanges;
-
     protected $fillable = [
         'tenant_id',
         'table_id',
-        'guest_id',
-        'guest_name',
-        'guest_phone',
+        'customer_name',
+        'customer_phone',
+        'customer_email',
         'party_size',
         'reservation_date',
         'reservation_time',
-        'status',
+        'duration_minutes',
+        'status', // confirmed, seated, completed, cancelled, no_show
         'special_requests',
+        'deposit_amount',
+        'notes',
         'created_by',
     ];
 
@@ -31,6 +34,9 @@ class TableReservation extends Model
             'party_size' => 'integer',
             'reservation_date' => 'date',
             'reservation_time' => 'datetime:H:i',
+            'duration_minutes' => 'integer',
+            'deposit_amount' => 'decimal:2',
+            'reserved_at' => 'datetime',
         ];
     }
 
@@ -41,12 +47,7 @@ class TableReservation extends Model
 
     public function table(): BelongsTo
     {
-        return $this->belongsTo(RestaurantTable::class);
-    }
-
-    public function guest(): BelongsTo
-    {
-        return $this->belongsTo(Guest::class);
+        return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
     public function createdBy(): BelongsTo
@@ -54,29 +55,33 @@ class TableReservation extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(FbOrder::class, 'table_reservation_id');
+    }
+
     /**
      * Check if reservation is for today
      */
-    public function isForToday(): bool
+    public function isToday(): bool
     {
         return $this->reservation_date->isToday();
     }
 
     /**
-     * Mark as seated
+     * Get reservation duration in hours
      */
-    public function markAsSeated(): void
+    public function getDurationHours(): float
     {
-        $this->update(['status' => 'seated']);
-        $this->table?->occupy();
+        return $this->duration_minutes / 60;
     }
 
     /**
-     * Mark as completed
+     * Calculate end time
      */
-    public function markAsCompleted(): void
+    public function getEndTime(): string
     {
-        $this->update(['status' => 'completed']);
-        $this->table?->release();
+        $startTime = \Carbon\Carbon::parse($this->reservation_time);
+        return $startTime->addMinutes($this->duration_minutes)->format('H:i');
     }
 }

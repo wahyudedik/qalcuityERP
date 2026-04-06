@@ -6,46 +6,81 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Recipe - Untuk cost calculation
+ */
 class Recipe extends Model
 {
     protected $fillable = [
-        'tenant_id', 'product_id', 'name', 'batch_size', 'batch_unit', 'notes', 'is_active',
+        'tenant_id',
+        'menu_item_id',
+        'name',
+        'description',
+        'yield_quantity', // berapa porsi yang dihasilkan
+        'yield_unit', // pcs, liters, kg
+        'preparation_time_minutes',
+        'cooking_time_minutes',
+        'instructions',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'batch_size' => 'decimal:3',
-            'is_active'  => 'boolean',
+            'yield_quantity' => 'decimal:2',
+            'preparation_time_minutes' => 'integer',
+            'cooking_time_minutes' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
-    public function ingredients(): HasMany { return $this->hasMany(RecipeIngredient::class); }
-
-    /**
-     * Hitung HPP per unit produk jadi.
-     * HPP = SUM(ingredient.product.price_buy * qty_per_batch) / batch_size
-     */
-    public function calculateHpp(): float
+    public function tenant(): BelongsTo
     {
-        $totalCost = 0;
+        return $this->belongsTo(Tenant::class);
+    }
 
-        foreach ($this->ingredients()->with('product')->get() as $ingredient) {
-            $totalCost += ($ingredient->product->price_buy ?? 0) * $ingredient->quantity_per_batch;
-        }
+    public function menuItem(): BelongsTo
+    {
+        return $this->belongsTo(MenuItem::class);
+    }
 
-        return $this->batch_size > 0 ? $totalCost / $this->batch_size : 0;
+    public function ingredients(): HasMany
+    {
+        return $this->hasMany(RecipeIngredient::class);
     }
 
     /**
-     * Qty bahan baku yang dibutuhkan per unit produk jadi.
+     * Calculate total recipe cost
      */
-    public function qtyPerUnit(RecipeIngredient $ingredient): float
+    public function calculateTotalCost(): float
     {
-        return $this->batch_size > 0
-            ? $ingredient->quantity_per_batch / $this->batch_size
-            : $ingredient->quantity_per_batch;
+        return $this->ingredients->sum(function ($ingredient) {
+            return $ingredient->calculateCost();
+        });
+    }
+
+    /**
+     * Calculate cost per serving
+     */
+    public function calculateCostPerServing(): float
+    {
+        if ($this->yield_quantity <= 0) {
+            return 0;
+        }
+
+        return $this->calculateTotalCost() / $this->yield_quantity;
+    }
+
+    /**
+     * Get profit margin based on menu item price
+     */
+    public function getProfitMargin(): float
+    {
+        if (!$this->menuItem || $this->menuItem->price <= 0) {
+            return 0;
+        }
+
+        $costPerServing = $this->calculateCostPerServing();
+        return (($this->menuItem->price - $costPerServing) / $this->menuItem->price) * 100;
     }
 }

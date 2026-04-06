@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Telecom\HotspotUserController;
 use App\Http\Controllers\Api\Telecom\UsageController;
 use App\Http\Controllers\Api\Telecom\VoucherController;
 use App\Http\Controllers\Api\Telecom\WebhookController;
+use App\Http\Controllers\OfflineSyncController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -129,4 +130,13 @@ Route::prefix('payment')->group(function () {
             Route::get('/stats', [\App\Http\Controllers\Api\WebhookTestController::class, 'getWebhookStats']);
         });
     });
+});
+
+// ── Offline Sync endpoints (authenticated) ──────────────────────
+Route::middleware(['auth:sanctum', 'api.rate:api-write'])->prefix('offline')->group(function () {
+    Route::get('/status', [OfflineSyncController::class, 'getStatus']);
+    Route::post('/sync', [OfflineSyncController::class, 'bulkSync']);
+    Route::delete('/failed', [OfflineSyncController::class, 'clearFailed']);
+    Route::get('/cache/{key}', [OfflineSyncController::class, 'getCache']);
+    Route::post('/cache/{key}', [OfflineSyncController::class, 'updateCache']);
 });

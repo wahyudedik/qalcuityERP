@@ -2,26 +2,49 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EcommerceOrder extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'tenant_id', 'channel_id', 'external_order_id', 'customer_name',
-        'customer_phone', 'items', 'subtotal', 'shipping_cost', 'total',
-        'status', 'payment_method', 'shipping_address', 'courier',
-        'tracking_number', 'ordered_at', 'synced_at',
+        'tenant_id',
+        'platform_id',
+        'external_order_id',
+        'internal_order_id',
+        'customer_name',
+        'customer_email',
+        'customer_phone',
+        'shipping_address',
+        'subtotal',
+        'shipping_cost',
+        'total_amount',
+        'payment_status',
+        'fulfillment_status',
+        'line_items',
+        'raw_data',
+        'ordered_at',
+        'synced_at',
     ];
 
     protected $casts = [
-        'items'           => 'array',
-        'shipping_address'=> 'array',
-        'subtotal'        => 'float',
-        'shipping_cost'   => 'float',
-        'total'           => 'float',
-        'ordered_at'      => 'datetime',
-        'synced_at'       => 'datetime',
+        'subtotal' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'line_items' => 'array',
+        'raw_data' => 'array',
+        'ordered_at' => 'datetime',
+        'synced_at' => 'datetime',
     ];
 
-    public function channel() { return $this->belongsTo(EcommerceChannel::class, 'channel_id'); }
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function platform()
+    {
+        return $this->belongsTo(EcommercePlatform::class);
+    }
 }

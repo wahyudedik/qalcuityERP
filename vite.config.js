@@ -8,6 +8,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/offline-manager.js',
+                'resources/js/offline-pos.js',
+                'resources/js/offline-status.js',
             ],
             refresh: true,
         }),

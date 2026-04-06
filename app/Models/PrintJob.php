@@ -2,124 +2,160 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PrintJob extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
-        'job_type',
-        'reference_id',
-        'reference_number',
-        'printer_type',
-        'printer_destination',
-        'print_data',
+        'job_number',
+        'customer_id',
+        'job_name',
+        'description',
+        'product_type',
         'status',
-        'error_message',
-        'retry_count',
-        'processed_at',
+        'priority',
+        'due_date',
+        'quantity',
+        'paper_type',
+        'paper_size_width',
+        'paper_size_height',
+        'colors_front',
+        'colors_back',
+        'finishing_type',
+        'specifications',
+        'file_path',
+        'proof_path',
+        'proof_approved',
+        'proof_approved_at',
+        'approved_by',
+        'estimated_cost',
+        'actual_cost',
+        'quoted_price',
+        'started_at',
+        'completed_at',
+        'assigned_operator',
+        'special_instructions',
+        'notes'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'print_data' => 'array',
-            'processed_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'specifications' => 'array',
+        'proof_approved' => 'boolean',
+        'proof_approved_at' => 'datetime',
+        'due_date' => 'date',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'estimated_cost' => 'decimal:2',
+        'actual_cost' => 'decimal:2',
+        'quoted_price' => 'decimal:2',
+        'paper_size_width' => 'decimal:2',
+        'paper_size_height' => 'decimal:2',
+    ];
 
-    public function tenant(): BelongsTo
+    // Relationships
+    public function tenant()
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    /**
-     * Mark job as processing
-     */
-    public function markAsProcessing(): void
+    public function customer()
     {
-        $this->update([
-            'status' => 'processing',
-            'retry_count' => $this->retry_count + 1,
-        ]);
+        return $this->belongsTo(Customer::class);
     }
 
-    /**
-     * Mark job as completed
-     */
-    public function markAsCompleted(): void
+    public function approvedBy()
     {
-        $this->update([
-            'status' => 'completed',
-            'processed_at' => now(),
-            'error_message' => null,
-        ]);
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /**
-     * Mark job as failed
-     */
-    public function markAsFailed(string $errorMessage): void
+    public function assignedOperator()
     {
-        $this->update([
-            'status' => 'failed',
-            'error_message' => $errorMessage,
-            'processed_at' => now(),
-        ]);
+        return $this->belongsTo(User::class, 'assigned_operator');
     }
 
-    /**
-     * Cancel job
-     */
-    public function cancel(): void
+    public function prepressWorkflows()
     {
-        $this->update(['status' => 'cancelled']);
+        return $this->hasMany(PrepressWorkflow::class);
     }
 
-    /**
-     * Check if job can be retried
-     */
-    public function canRetry(int $maxRetries = 3): bool
+    public function plates()
     {
-        return $this->status === 'failed' && $this->retry_count < $maxRetries;
+        return $this->hasMany(PrintingPlate::class);
     }
 
-    /**
-     * Retry the job
-     */
-    public function retry(): void
+    public function pressRuns()
     {
-        $this->update([
-            'status' => 'pending',
-            'error_message' => null,
-        ]);
+        return $this->hasMany(PressRun::class);
     }
 
-    /**
-     * Scope: Get pending jobs
-     */
-    public function scopePending($query)
+    public function finishingOperations()
     {
-        return $query->where('status', 'pending');
+        return $this->hasMany(FinishingOperation::class);
     }
 
-    /**
-     * Scope: Get failed jobs
-     */
-    public function scopeFailed($query)
+    public function estimates()
     {
-        return $query->where('status', 'failed');
+        return $this->hasMany(PrintEstimate::class);
     }
 
-    /**
-     * Scope: Get completed jobs
-     */
-    public function scopeCompleted($query)
+    public function webOrders()
     {
-        return $query->where('status', 'completed');
+        return $this->hasMany(WebToPrintOrder::class);
+    }
+
+    // Accessors
+    public function getStatusColorAttribute(): string
+    {
+        return match ($this->status) {
+            'queued' => 'gray',
+            'prepress' => 'blue',
+            'platemaking' => 'indigo',
+            'on_press' => 'purple',
+            'finishing' => 'orange',
+            'quality_check' => 'yellow',
+            'completed' => 'green',
+            'cancelled' => 'red',
+            default => 'gray'
+        };
+    }
+
+    public function getPriorityColorAttribute(): string
+    {
+        return match ($this->priority) {
+            'low' => 'gray',
+            'normal' => 'blue',
+            'high' => 'orange',
+            'urgent' => 'red',
+            default => 'blue'
+        };
+    }
+
+    public function getProgressPercentageAttribute(): float
+    {
+        $stages = ['queued', 'prepress', 'platemaking', 'on_press', 'finishing', 'quality_check', 'completed'];
+        $currentIndex = array_search($this->status, $stages);
+        return $currentIndex !== false ? ($currentIndex / (count($stages) - 1)) * 100 : 0;
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->whereNotIn('status', ['completed', 'cancelled']);
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('due_date', '<', now())
+            ->whereNotIn('status', ['completed', 'cancelled']);
+    }
+
+    public function scopeByPriority($query, $priority)
+    {
+        return $query->where('priority', $priority);
     }
 }

@@ -5,20 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Recipe Ingredient - Bahan dalam resep
+ */
 class RecipeIngredient extends Model
 {
     protected $fillable = [
         'tenant_id',
-        'menu_item_id',
-        'supply_id',
-        'quantity_required',
+        'recipe_id',
+        'inventory_item_id',
+        'ingredient_name',
+        'quantity',
         'unit',
+        'cost_per_unit',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'quantity_required' => 'decimal:2',
+            'quantity' => 'decimal:3',
+            'cost_per_unit' => 'decimal:2',
         ];
     }
 
@@ -27,13 +34,33 @@ class RecipeIngredient extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function menuItem(): BelongsTo
+    public function recipe(): BelongsTo
     {
-        return $this->belongsTo(MenuItem::class, 'menu_item_id');
+        return $this->belongsTo(Recipe::class);
     }
 
-    public function supply(): BelongsTo
+    public function inventoryItem(): BelongsTo
     {
-        return $this->belongsTo(FbSupply::class, 'supply_id');
+        return $this->belongsTo(InventoryItem::class);
+    }
+
+    /**
+     * Calculate ingredient cost
+     */
+    public function calculateCost(): float
+    {
+        return $this->quantity * $this->cost_per_unit;
+    }
+
+    /**
+     * Update cost from current inventory price
+     */
+    public function updateCostFromInventory(): void
+    {
+        if ($this->inventoryItem) {
+            $this->update([
+                'cost_per_unit' => $this->inventoryItem->unit_cost ?? 0,
+            ]);
+        }
     }
 }

@@ -888,6 +888,14 @@
                             badge: {{ \App\Models\AffiliateAuditLog::where('severity', 'fraud')->where('created_at', '>=', now()->subDays(7))->count() ?:'null' }},
                             badgeClass: 'badge-red'
                         },
+                        {
+                            section: 'Platform'
+                        },
+                        {
+                            label: 'Pengaturan Platform',
+                            href: '{{ route('super-admin.settings.index') }}',
+                            active: {{ request()->routeIs('super-admin.settings*') ? 'true' : 'false' }}
+                        },
                     ]
                 },
             @elseif ($user?->isAffiliate())
@@ -932,8 +940,85 @@
                             {
                                 label: 'Data Supplier',
                                 href: '{{ route('suppliers.index') }}',
-                                active: {{ request()->routeIs('suppliers*') ? 'true' : 'false' }}
+                                active: {{ request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Supplier Scorecard',
+                                href: '{{ route('suppliers.scorecards.index') }}',
+                                active: {{ request()->routeIs('suppliers.scorecards*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Strategic Sourcing',
+                                href: '{{ route('suppliers.sourcing') }}',
+                                active: {{ request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Printing Jobs',
+                                href: '{{ route('printing.dashboard') }}',
+                                active: {{ request()->routeIs('printing*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Tour & Travel',
+                                href: '{{ route('tour-travel.packages.index') }}',
+                                active: {{ request()->routeIs('tour-travel*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Livestock Enhancement',
+                                href: '{{ route('livestock-enhancement.dairy.milk-records') }}',
+                                active: {{ request()->routeIs('livestock-enhancement*') ? 'true' : 'false' }}
                             },
+                            @if (auth()->user()->tenant_id)
+                                {
+                                    section: 'Manufacturing',
+                                    icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
+                                    label: 'Cosmetic Formulas',
+                                    href: '{{ route('cosmetic.formulas.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.formulas*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Manufacturing',
+                                    icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+                                    label: 'Batch Production',
+                                    href: '{{ route('cosmetic.batches.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.batches*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Quality Control',
+                                    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+                                    label: 'QC Laboratory',
+                                    href: '{{ route('cosmetic.qc.tests') }}',
+                                    active: {{ request()->routeIs('cosmetic.qc*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Regulatory',
+                                    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                                    label: 'BPOM Registrations',
+                                    href: '{{ route('cosmetic.registrations.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.registrations*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Product Variants',
+                                    icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
+                                    label: 'Variants Manager',
+                                    href: '{{ route('cosmetic.variants.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.variants*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Packaging',
+                                    icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+                                    label: 'Packaging & Labels',
+                                    href: '{{ route('cosmetic.packaging.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.packaging*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Expiry Management',
+                                    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                                    label: 'Expiry & Recalls',
+                                    href: '{{ route('cosmetic.expiry.dashboard') }}',
+                                    active: {{ request()->routeIs('cosmetic.expiry*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Distribution',
+                                    icon: 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0',
+                                    label: 'Distribution Channels',
+                                    href: '{{ route('cosmetic.distribution.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.distribution*') ? 'true' : 'false' }}
+                                }, {
+                                    section: 'Analytics & Reports',
+                                    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                                    label: 'Cosmetic Analytics',
+                                    href: '{{ route('cosmetic.analytics.dashboard') }}',
+                                    active: {{ request()->routeIs('cosmetic.analytics*') ? 'true' : 'false' }}
+                                },
+                            @endif
                         @endif {
                             section: 'Produk & Gudang'
                         },
@@ -1242,6 +1327,37 @@
                                     label: 'Populasi Ternak',
                                     href: '{{ route('farm.livestock') }}',
                                     active: {{ request()->routeIs('farm.livestock*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if ($navTenant?->isModuleEnabled('fisheries') ?? true)
+                                {
+                                    label: '🐟 Dashboard Perikanan',
+                                    href: '{{ route('fisheries.index') }}',
+                                    active: {{ request()->routeIs('fisheries.index') ? 'true' : 'false' }}
+                                }, {
+                                    label: '❄️ Cold Chain',
+                                    href: '{{ route('fisheries.cold-chain.index') }}',
+                                    active: {{ request()->routeIs('fisheries.cold-chain*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '⚓ Fishing Operations',
+                                    href: '{{ route('fisheries.operations.index') }}',
+                                    active: {{ request()->routeIs('fisheries.operations*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '🐠 Aquaculture',
+                                    href: '{{ route('fisheries.aquaculture.index') }}',
+                                    active: {{ request()->routeIs('fisheries.aquaculture*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '📋 Species & Grading',
+                                    href: '{{ route('fisheries.species.index') }}',
+                                    active: {{ request()->routeIs('fisheries.species*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '📦 Export Documentation',
+                                    href: '{{ route('fisheries.export.index') }}',
+                                    active: {{ request()->routeIs('fisheries.export*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '📊 Analytics',
+                                    href: '{{ route('fisheries.analytics') }}',
+                                    active: {{ request()->routeIs('fisheries.analytics') ? 'true' : 'false' }}
                                 },
                             @endif
                             @if (($navTenant?->isModuleEnabled('contracts') ?? true) && $canView('contracts'))
@@ -1670,6 +1786,10 @@
                                     label: 'Bot WA/Telegram',
                                     href: '{{ route('bot.settings') }}',
                                     active: {{ request()->routeIs('bot*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Integrasi API',
+                                    href: '{{ route('settings.integrations.index') }}',
+                                    active: {{ request()->routeIs('settings.integrations*') ? 'true' : 'false' }}
                                 }, {
                                     label: 'API & Webhook',
                                     href: '{{ route('api-settings.index') }}',

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+            'check.permission' => \App\Http\Middleware\CheckPermissionMiddleware::class,
+            'ip.whitelist' => \App\Http\Middleware\IpWhitelistMiddleware::class,
             'tenant.active' => \App\Http\Middleware\CheckTenantActive::class,
             'tenant.isolation' => \App\Http\Middleware\EnforceTenantIsolation::class,
             'webhook.verify' => \App\Http\Middleware\VerifyWebhookSignature::class,

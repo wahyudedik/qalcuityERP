@@ -302,3 +302,58 @@ Schedule::job(new CheckQuotaExpiryJob())
     ->withoutOverlapping()
     ->onOneServer()
     ->name('telecom-check-quota-expiry');
+
+// ─── Automation & Workflow Builder ──────────────────────────────────────
+
+// Process scheduled workflows — every minute
+Schedule::command('workflows:process-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('workflows-process-scheduled');
+
+// Invoice overdue check — daily at 9 AM (triggers workflow)
+Schedule::call(function () {
+    \App\Models\Workflow::where('trigger_type', 'schedule')
+        ->where('is_active', true)
+        ->whereJsonContains('trigger_config->schedule', 'invoice_overdue_check')
+        ->each(function ($workflow) {
+            $workflow->execute(['triggered_by' => 'schedule:invoice_overdue_check']);
+        });
+})->dailyAt('09:00')->name('workflow-invoice-overdue-check')->withoutOverlapping();
+
+// Monthly bonus calculation — 1st of month at midnight
+Schedule::call(function () {
+    \App\Models\Workflow::where('trigger_type', 'schedule')
+        ->where('is_active', true)
+        ->whereJsonContains('trigger_config->schedule', 'monthly_bonus_calculation')
+        ->each(function ($workflow) {
+            $workflow->execute(['triggered_by' => 'schedule:monthly_bonus_calculation']);
+        });
+})->monthlyOn(1, '00:00')->name('workflow-monthly-bonus')->withoutOverlapping();
+
+// ─── ERROR HANDLING & RECOVERY ──────────────────────────────────────────────
+
+// Daily backup — setiap hari jam 02:00
+Schedule::command('backup:create --type=daily')
+    ->dailyAt('02:00')
+    ->name('daily-backup')
+    ->withoutOverlapping();
+
+// Weekly backup — Minggu jam 03:00
+Schedule::command('backup:create --type=weekly')
+    ->weeklyOn(0, '03:00')
+    ->name('weekly-backup')
+    ->withoutOverlapping();
+
+// Monthly backup — 1st of month jam 04:00
+Schedule::command('backup:create --type=monthly')
+    ->monthlyOn(1, '04:00')
+    ->name('monthly-backup')
+    ->withoutOverlapping();
+
+// Cleanup old data — setiap hari jam 05:00
+Schedule::command('cleanup:old-data')
+    ->dailyAt('05:00')
+    ->name('cleanup-old-data')
+    ->withoutOverlapping();

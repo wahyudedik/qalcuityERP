@@ -2,59 +2,45 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CompanyGroup extends Model
 {
-    protected $fillable = ['owner_user_id', 'name', 'currency_code'];
+    use HasFactory;
 
-    public function owner(): BelongsTo
+    protected $fillable = [
+        'name',
+        'code',
+        'description',
+        'parent_tenant_id',
+        'is_active',
+        'settings',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'settings' => 'array',
+    ];
+
+    public function parentTenant()
     {
-        return $this->belongsTo(User::class, 'owner_user_id');
+        return $this->belongsTo(Tenant::class, 'parent_tenant_id');
     }
-
-    public function members(): BelongsToMany
+    public function members()
     {
-        return $this->belongsToMany(Tenant::class, 'company_group_members', 'company_group_id', 'tenant_id')
-            ->withPivot('role')
-            ->withTimestamps();
+        return $this->hasMany(TenantGroupMember::class);
     }
-
-    public function intercompanyTransactions(): HasMany
+    public function transactions()
     {
-        return $this->hasMany(IntercompanyTransaction::class);
+        return $this->hasMany(InterCompanyTransaction::class);
     }
-
-    public function consolidationReports(): HasMany
+    public function reports()
     {
-        return $this->hasMany(\App\Models\ConsolidationReport::class);
+        return $this->hasMany(ConsolidatedReport::class);
     }
-
-    public function masterAccounts(): HasMany
+    public function sharedServices()
     {
-        return $this->hasMany(\App\Models\ConsolidationMasterAccount::class);
-    }
-
-    public function accountMappings(): HasMany
-    {
-        return $this->hasMany(\App\Models\ConsolidationAccountMapping::class);
-    }
-
-    public function eliminations(): HasMany
-    {
-        return $this->hasMany(\App\Models\ConsolidationElimination::class);
-    }
-
-    public function adjustments(): HasMany
-    {
-        return $this->hasMany(\App\Models\ConsolidationAdjustment::class);
-    }
-
-    public function ownerships(): HasMany
-    {
-        return $this->hasMany(\App\Models\ConsolidationOwnership::class);
+        return $this->hasMany(SharedService::class);
     }
 }

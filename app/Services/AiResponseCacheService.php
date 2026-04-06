@@ -39,10 +39,21 @@ class AiResponseCacheService
     }
 
     /**
+     * Cek apakah caching di-enable
+     */
+    public function isEnabled(): bool
+    {
+        return config('gemini.optimization.cache_enabled', true);
+    }
+
+    /**
      * Cek apakah response ada di cache
      */
     public function has(string $cacheKey): bool
     {
+        if (!$this->isEnabled()) {
+            return false;
+        }
         return Cache::has($cacheKey);
     }
 
@@ -51,11 +62,17 @@ class AiResponseCacheService
      */
     public function get(string $cacheKey): ?array
     {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
         try {
             $cached = Cache::get($cacheKey);
 
             if ($cached && is_array($cached)) {
-                Log::info('AI Response Cache HIT', ['key' => substr($cacheKey, 0, 20) . '...']);
+                if (config('gemini.optimization.logging_enabled', true)) {
+                    Log::info('AI Response Cache HIT', ['key' => substr($cacheKey, 0, 20) . '...']);
+                }
                 return $cached;
             }
 
@@ -71,15 +88,21 @@ class AiResponseCacheService
      */
     public function put(string $cacheKey, array $response, ?int $ttl = null): bool
     {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
         try {
             $ttl = $ttl ?? $this->determineTtl($response);
 
             Cache::put($cacheKey, $response, $ttl);
 
-            Log::info('AI Response Cache PUT', [
-                'key' => substr($cacheKey, 0, 20) . '...',
-                'ttl' => $ttl,
-            ]);
+            if (config('gemini.optimization.logging_enabled', true)) {
+                Log::info('AI Response Cache PUT', [
+                    'key' => substr($cacheKey, 0, 20) . '...',
+                    'ttl' => $ttl,
+                ]);
+            }
 
             return true;
         } catch (\Throwable $e) {
@@ -127,6 +150,11 @@ class AiResponseCacheService
      */
     protected function determineTtl(array $response): int
     {
+        // Gunakan config values jika tersedia
+        $shortTtl = config('gemini.optimization.cache_ttl.short', self::SHORT_TTL);
+        $defaultTtl = config('gemini.optimization.cache_ttl.default', self::DEFAULT_TTL);
+        $longTtl = config('gemini.optimization.cache_ttl.long', self::LONG_TTL);
+
         // Jika response mengandung data real-time, gunakan TTL pendek
         $text = $response['text'] ?? '';
 
@@ -143,7 +171,7 @@ class AiResponseCacheService
 
         foreach ($realtimeKeywords as $keyword) {
             if (stripos($text, $keyword) !== false) {
-                return self::SHORT_TTL;
+                return $shortTtl;
             }
         }
 
@@ -157,12 +185,12 @@ class AiResponseCacheService
 
         foreach ($reportKeywords as $keyword) {
             if (stripos($text, $keyword) !== false) {
-                return self::LONG_TTL;
+                return $longTtl;
             }
         }
 
         // Default TTL
-        return self::DEFAULT_TTL;
+        return $defaultTtl;
     }
 
     /**

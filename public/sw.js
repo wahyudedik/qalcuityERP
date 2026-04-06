@@ -57,7 +57,7 @@ const MODULE_PAGES = [
     '/budget', '/accounting', '/bank-accounts', '/receivables',
     '/projects', '/contracts', '/crm', '/helpdesk', '/pos',
     '/reports', '/fleet', '/manufacturing', '/production',
-    '/mobile',
+    '/mobile', '/construction',
 ];
 
 // ─── Fetch handler ────────────────────────────────────────────────────────────

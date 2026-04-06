@@ -2,20 +2,61 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class IntercompanyTransaction extends Model
+class InterCompanyTransaction extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'company_group_id', 'from_tenant_id', 'to_tenant_id',
-        'type', 'reference', 'amount', 'currency_code',
-        'description', 'status', 'date',
+        'company_group_id',
+        'from_tenant_id',
+        'to_tenant_id',
+        'transaction_type',
+        'reference_type',
+        'reference_id',
+        'amount',
+        'currency',
+        'exchange_rate',
+        'transaction_date',
+        'due_date',
+        'status',
+        'description',
+        'line_items',
+        'created_by_user_id',
+        'approved_by_user_id',
+        'approved_at',
+        'rejection_reason',
     ];
 
-    protected $casts = ['date' => 'date'];
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'exchange_rate' => 'decimal:6',
+        'transaction_date' => 'date',
+        'due_date' => 'date',
+        'line_items' => 'array',
+        'approved_at' => 'datetime',
+    ];
 
-    public function group(): BelongsTo      { return $this->belongsTo(CompanyGroup::class, 'company_group_id'); }
-    public function fromTenant(): BelongsTo { return $this->belongsTo(Tenant::class, 'from_tenant_id'); }
-    public function toTenant(): BelongsTo   { return $this->belongsTo(Tenant::class, 'to_tenant_id'); }
+    public function companyGroup()
+    {
+        return $this->belongsTo(CompanyGroup::class);
+    }
+    public function fromTenant()
+    {
+        return $this->belongsTo(Tenant::class, 'from_tenant_id');
+    }
+    public function toTenant()
+    {
+        return $this->belongsTo(Tenant::class, 'to_tenant_id');
+    }
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
 }

@@ -2,282 +2,360 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ExpenseCategory;
-use App\Models\Product;
-use App\Models\ProductStock;
-use App\Models\Warehouse;
-use App\Services\ERP\OnboardingTools;
-use App\Services\GeminiService;
-use Database\Seeders\DefaultCoaSeeder;
-use Illuminate\Http\JsonResponse;
+use App\Models\OnboardingProfile;
+use App\Models\OnboardingProgress;
+use App\Models\AiTourSession;
+use App\Models\UserTip;
+use App\Services\SampleDataGeneratorService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class OnboardingController extends Controller
 {
-    public function show()
-    {
-        $user = auth()->user();
-        $tenant = $user->tenant;
-
-        // Sudah onboarding atau bukan admin → skip
-        if (!$tenant || $tenant->onboarding_completed || !$user->isAdmin()) {
-            return redirect()->route('dashboard');
-        }
-
-        return view('onboarding.wizard', compact('tenant'));
-    }
-
-    public function complete(Request $request)
-    {
-        $user = auth()->user();
-        $tenant = $user->tenant;
-
-        abort_if(!$tenant || !$user->isAdmin(), 403);
-
-        $data = $request->validate([
-            'business_name' => 'required|string|max:255',
-            'business_type' => 'nullable|string|max:50',
-            'business_description' => 'nullable|string|max:500',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'warehouse_name' => 'required|string|max:255',
-            'products' => 'nullable|array|max:10',
-            'products.*.name' => 'required_with:products|string|max:255',
-            'products.*.price' => 'nullable|numeric|min:0',
-            'products.*.unit' => 'nullable|string|max:20',
-            'expense_categories' => 'nullable|string',
-        ]);
-
-        // Update tenant info
-        $tenant->update([
-            'name' => $data['business_name'],
-            'business_type' => $data['business_type'] ?? $tenant->business_type,
-            'business_description' => $data['business_description'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'address' => $data['address'] ?? null,
-            'onboarding_completed' => true,
-        ]);
-
-        // Buat gudang utama
-        $warehouse = Warehouse::firstOrCreate(
-            ['tenant_id' => $tenant->id, 'name' => $data['warehouse_name']],
-            [
-                'code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['warehouse_name']), 0, 4)) . '-01',
-                'is_active' => true,
-            ]
-        );
-
-        // Buat produk awal
-        foreach ($data['products'] ?? [] as $item) {
-            $name = trim($item['name'] ?? '');
-            if (!$name)
-                continue;
-
-            $product = Product::firstOrCreate(
-                ['tenant_id' => $tenant->id, 'name' => $name],
-                [
-                    'sku' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 6)) . '-' . rand(100, 999),
-                    'price_sell' => $item['price'] ?? 0,
-                    'price_buy' => 0,
-                    'unit' => $item['unit'] ?? 'pcs',
-                    'stock_min' => 5,
-                    'is_active' => true,
-                ]
-            );
-
-            ProductStock::firstOrCreate(
-                ['product_id' => $product->id, 'warehouse_id' => $warehouse->id],
-                ['quantity' => 0]
-            );
-        }
-
-        // Buat kategori pengeluaran
-        $categories = array_filter(array_map('trim', explode(',', $data['expense_categories'] ?? '')));
-        if (empty($categories)) {
-            $categories = ['Bahan Baku', 'Operasional', 'Gaji Karyawan'];
-        }
-        foreach ($categories as $catName) {
-            if (!$catName)
-                continue;
-            ExpenseCategory::firstOrCreate(
-                ['tenant_id' => $tenant->id, 'name' => $catName],
-                [
-                    'code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $catName), 0, 5)) . '-' . rand(10, 99),
-                    'type' => 'expense',
-                    'is_active' => true,
-                ]
-            );
-        }
-
-        // Seed COA default Indonesia untuk tenant baru
-        DefaultCoaSeeder::seedForTenant($tenant->id);
-
-        return redirect()->route('dashboard')->with('success', 'Setup awal selesai! Selamat datang di Qalcuity ERP.');
-    }
-
-    public function skip()
-    {
-        $tenant = auth()->user()->tenant;
-        if ($tenant) {
-            $tenant->update(['onboarding_completed' => true]);
-        }
-        return redirect()->route('dashboard');
+    public function __construct(
+        protected SampleDataGeneratorService $sampleDataService
+    ) {
     }
 
     /**
-     * AI-powered onboarding chat endpoint.
-     * Hanya menggunakan OnboardingTools (bukan semua tools ERP).
+     * Main onboarding dashboard
      */
-    public function aiChat(Request $request): JsonResponse
+    public function index()
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
+
+        // Check if profile exists
+        $profile = OnboardingProfile::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$profile) {
+            return redirect()->route('onboarding.wizard');
+        }
+
+        // Get progress
+        $progress = $this->getProgress($tenantId, $userId);
+
+        // Get pending tips
+        $tips = UserTip::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->where('dismissed', false)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('onboarding.dashboard', compact('profile', 'progress', 'tips'));
+    }
+
+    /**
+     * Industry Selection Wizard
+     */
+    public function wizard()
+    {
+        return view('onboarding.wizard');
+    }
+
+    /**
+     * Save industry selection
+     */
+    public function saveIndustry(Request $request)
     {
         $request->validate([
-            'message' => 'required|string|max:2000',
-            'history' => 'nullable|array',
+            'industry' => 'required|in:retail,restaurant,hotel,construction,agriculture,manufacturing,services',
+            'business_size' => 'required|in:micro,small,medium,large',
+            'employee_count' => 'nullable|integer|min:1',
+            'selected_modules' => 'nullable|array',
         ]);
 
-        $user = auth()->user();
-        $tenant = $user->tenant;
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
 
-        abort_if(!$tenant || !$user->isAdmin(), 403);
+        $profile = OnboardingProfile::updateOrCreate(
+            ['tenant_id' => $tenantId, 'user_id' => $userId],
+            [
+                'industry' => $request->industry,
+                'business_size' => $request->business_size,
+                'employee_count' => $request->employee_count,
+                'selected_modules' => $request->selected_modules ?? [],
+            ]
+        );
 
-        $history = $request->input('history', []);
-        $message = $request->input('message');
+        // Initialize progress steps based on industry
+        $this->initializeProgressSteps($tenantId, $userId, $request->industry);
 
-        // Build tool declarations dari OnboardingTools saja
-        $toolDeclarations = OnboardingTools::definitions();
+        return response()->json([
+            'success' => true,
+            'profile' => $profile,
+            'next_step' => route('onboarding.sample-data'),
+        ]);
+    }
 
-        // System prompt khusus onboarding — singkat dan fokus
-        $systemPrompt = <<<PROMPT
-Kamu adalah asisten setup bisnis Qalcuity ERP yang ramah dan efisien.
-Tugasmu: bantu user baru setup bisnis mereka dalam beberapa langkah singkat.
+    /**
+     * Sample Data Generation page
+     */
+    public function sampleDataPage()
+    {
+        $profile = OnboardingProfile::where('tenant_id', auth()->user()->tenant_id)
+            ->where('user_id', auth()->id())
+            ->first();
 
-Nama bisnis: {$tenant->name}
-Jenis bisnis: {$tenant->business_type}
-
-ALUR SETUP:
-1. Sapa user, tanyakan konfirmasi jenis bisnis mereka
-2. Tawarkan untuk apply template industri yang sesuai (gunakan apply_industry_template)
-3. Tanyakan apakah ada produk/layanan spesifik yang ingin ditambahkan (gunakan setup_business)
-4. Setelah setup selesai, tampilkan ringkasan dan ucapkan selamat
-
-ATURAN:
-- Gunakan Bahasa Indonesia yang ramah dan singkat
-- Jangan tanya terlalu banyak pertanyaan sekaligus — satu pertanyaan per giliran
-- Setelah apply_industry_template atau setup_business berhasil, sertakan teks: [SETUP_COMPLETE]
-- Jika user sudah puas atau minta selesai, sertakan [SETUP_COMPLETE] di respons
-- Jangan jelaskan teknis, fokus pada bisnis user
-PROMPT;
-
-        try {
-            $gemini = new GeminiService();
-
-            // Inject system prompt khusus onboarding
-            $gemini->withTenantContext($systemPrompt);
-
-            $response = $gemini->chatWithTools(
-                message: $message,
-                history: $history,
-                toolDeclarations: $toolDeclarations,
-            );
-
-            $functionCalls = $response['function_calls'] ?? [];
-            $setupComplete = false;
-
-            if (empty($functionCalls)) {
-                $text = $response['text'] ?: 'Maaf, coba ulangi pertanyaan Anda.';
-                $setupComplete = str_contains($text, '[SETUP_COMPLETE]');
-                $text = str_replace('[SETUP_COMPLETE]', '', $text);
-
-                if ($setupComplete) {
-                    $tenant->update(['onboarding_completed' => true]);
-                }
-
-                return response()->json([
-                    'message' => trim($text),
-                    'setup_complete' => $setupComplete,
-                ]);
-            }
-
-            // Eksekusi tool calls dengan validasi
-            $tools = new OnboardingTools($tenant->id, $user->id);
-            $validator = new \App\Services\AiCommandValidator();
-            $functionResults = [];
-
-            foreach ($functionCalls as $call) {
-                $toolName = $call['name'];
-                $args = $call['args'];
-
-                // VALIDATION: Validate command before execution
-                $validationResult = $validator->validate($toolName, $args);
-
-                if (!$validationResult['valid']) {
-                    \Illuminate\Support\Facades\Log::warning('OnboardingController: Blocked invalid AI command', [
-                        'tool' => $toolName,
-                        'user_id' => $user->id,
-                        'tenant_id' => $tenant->id,
-                        'errors' => $validationResult['errors'],
-                    ]);
-
-                    $result = [
-                        'status' => 'error',
-                        'message' => 'Validasi gagal: ' . implode(', ', $validationResult['errors']),
-                    ];
-                } else {
-                    // Use sanitized arguments
-                    $args = $validationResult['sanitized'];
-
-                    $result = match ($toolName) {
-                        'setup_business' => $tools->setupBusiness($args),
-                        'apply_industry_template' => $tools->applyIndustryTemplate($args),
-                        'get_industry_shortcuts' => $tools->getIndustryShortcuts($args),
-                        default => ['status' => 'error', 'message' => "Tool {$toolName} tidak dikenal."],
-                    };
-                }
-
-                $result['_args'] = $args;
-                $functionResults[] = ['name' => $toolName, 'data' => $result];
-
-                // Jika setup_business atau apply_industry_template berhasil → tandai complete
-                if (
-                    in_array($toolName, ['setup_business', 'apply_industry_template'])
-                    && ($result['status'] ?? '') === 'success'
-                ) {
-                    $setupComplete = true;
-                }
-            }
-
-            // Kirim hasil tool kembali ke Gemini untuk dirangkai
-            $finalResponse = $gemini->sendFunctionResults(
-                originalMessage: $message,
-                history: $history,
-                toolDeclarations: $toolDeclarations,
-                functionResults: $functionResults,
-            );
-
-            $finalText = $finalResponse['text'] ?? '';
-
-            // Cek [SETUP_COMPLETE] di respons final
-            if (str_contains($finalText, '[SETUP_COMPLETE]')) {
-                $setupComplete = true;
-                $finalText = str_replace('[SETUP_COMPLETE]', '', $finalText);
-            }
-
-            if ($setupComplete) {
-                $tenant->update(['onboarding_completed' => true]);
-            }
-
-            return response()->json([
-                'message' => trim($finalText) ?: 'Setup berhasil!',
-                'setup_complete' => $setupComplete,
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('OnboardingController aiChat error: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Terjadi kesalahan. Silakan coba lagi atau gunakan setup manual.',
-                'error' => app()->isLocal() ? $e->getMessage() : null,
-            ], 500);
+        if (!$profile) {
+            return redirect()->route('onboarding.wizard');
         }
+
+        $templates = $this->sampleDataService->getTemplates($profile->industry);
+
+        return view('onboarding.sample-data', compact('profile', 'templates'));
+    }
+
+    /**
+     * Generate sample data
+     */
+    public function generateSampleData(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
+
+        $profile = OnboardingProfile::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$profile) {
+            return response()->json(['error' => 'Profile not found'], 404);
+        }
+
+        $result = $this->sampleDataService->generateForIndustry(
+            $profile->industry,
+            $tenantId,
+            $userId
+        );
+
+        if ($result['success']) {
+            // Mark sample data step as completed
+            $this->markStepCompleted($tenantId, $userId, 'generate_sample_data');
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Get onboarding progress
+     */
+    public function getProgressData()
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
+
+        $progress = $this->getProgress($tenantId, $userId);
+
+        return response()->json($progress);
+    }
+
+    /**
+     * Mark step as completed
+     */
+    public function completeStep(Request $request, string $stepKey)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
+
+        $this->markStepCompleted($tenantId, $userId, $stepKey);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Start AI Tour
+     */
+    public function startTour(Request $request)
+    {
+        $request->validate([
+            'tour_type' => 'required|in:general,module_specific,feature_highlight',
+        ]);
+
+        $tour = AiTourSession::create([
+            'tenant_id' => auth()->user()->tenant_id,
+            'user_id' => auth()->id(),
+            'tour_type' => $request->tour_type,
+            'started_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'tour_id' => $tour->id,
+            'steps' => $this->getTourSteps($request->tour_type),
+        ]);
+    }
+
+    /**
+     * Complete tour step
+     */
+    public function completeTourStep(Request $request, int $tourId)
+    {
+        $request->validate(['step' => 'required|string']);
+
+        $tour = AiTourSession::findOrFail($tourId);
+        $tour->completeStep($request->step);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get available tips
+     */
+    public function getTips()
+    {
+        $tips = UserTip::where('tenant_id', auth()->user()->tenant_id)
+            ->where('user_id', auth()->id())
+            ->where('dismissed', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json(['tips' => $tips]);
+    }
+
+    /**
+     * Dismiss tip
+     */
+    public function dismissTip(int $tipId)
+    {
+        $tip = UserTip::findOrFail($tipId);
+        $tip->dismiss();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Reset onboarding (for testing)
+     */
+    public function reset()
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $userId = auth()->id();
+
+        OnboardingProfile::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();
+        OnboardingProgress::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();
+        AiTourSession::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();
+        UserTip::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Helper: Get progress summary
+     */
+    protected function getProgress(int $tenantId, int $userId): array
+    {
+        $totalSteps = OnboardingProgress::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->count();
+
+        $completedSteps = OnboardingProgress::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->where('completed', true)
+            ->count();
+
+        $steps = OnboardingProgress::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->orderBy('order')
+            ->get();
+
+        return [
+            'total_steps' => $totalSteps,
+            'completed_steps' => $completedSteps,
+            'completion_percentage' => $totalSteps > 0 ? round(($completedSteps / $totalSteps) * 100, 2) : 0,
+            'steps' => $steps,
+        ];
+    }
+
+    /**
+     * Helper: Initialize progress steps based on industry
+     */
+    protected function initializeProgressSteps(int $tenantId, int $userId, string $industry): void
+    {
+        $commonSteps = [
+            ['key' => 'complete_profile', 'name' => 'Complete Your Profile', 'category' => 'setup', 'order' => 1],
+            ['key' => 'generate_sample_data', 'name' => 'Generate Sample Data', 'category' => 'setup', 'order' => 2],
+            ['key' => 'explore_dashboard', 'name' => 'Explore Dashboard', 'category' => 'first_action', 'order' => 3],
+            ['key' => 'create_first_record', 'name' => 'Create Your First Record', 'category' => 'first_action', 'order' => 4],
+            ['key' => 'invite_team_member', 'name' => 'Invite Team Member', 'category' => 'collaboration', 'order' => 5],
+        ];
+
+        $industrySpecificSteps = match ($industry) {
+            'retail' => [
+                ['key' => 'add_first_product', 'name' => 'Add Your First Product', 'category' => 'module', 'order' => 6],
+                ['key' => 'process_first_sale', 'name' => 'Process First Sale', 'category' => 'module', 'order' => 7],
+            ],
+            'restaurant' => [
+                ['key' => 'create_menu', 'name' => 'Create Menu Items', 'category' => 'module', 'order' => 6],
+                ['key' => 'setup_tables', 'name' => 'Setup Tables', 'category' => 'module', 'order' => 7],
+                ['key' => 'take_first_order', 'name' => 'Take First Order', 'category' => 'module', 'order' => 8],
+            ],
+            'hotel' => [
+                ['key' => 'setup_rooms', 'name' => 'Setup Rooms', 'category' => 'module', 'order' => 6],
+                ['key' => 'create_booking', 'name' => 'Create First Booking', 'category' => 'module', 'order' => 7],
+                ['key' => 'check_in_guest', 'name' => 'Check-in First Guest', 'category' => 'module', 'order' => 8],
+            ],
+            'construction' => [
+                ['key' => 'create_project', 'name' => 'Create First Project', 'category' => 'module', 'order' => 6],
+                ['key' => 'add_materials', 'name' => 'Add Materials', 'category' => 'module', 'order' => 7],
+            ],
+            'agriculture' => [
+                ['key' => 'add_crop_cycle', 'name' => 'Add Crop Cycle', 'category' => 'module', 'order' => 6],
+                ['key' => 'setup_irrigation', 'name' => 'Setup Irrigation Schedule', 'category' => 'module', 'order' => 7],
+            ],
+            default => []
+        };
+
+        $allSteps = array_merge($commonSteps, $industrySpecificSteps);
+
+        foreach ($allSteps as $step) {
+            OnboardingProgress::create([
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'step_key' => $step['key'],
+                'step_name' => $step['name'],
+                'category' => $step['category'],
+                'order' => $step['order'],
+                'description' => "Complete this step to continue your onboarding journey",
+            ]);
+        }
+    }
+
+    /**
+     * Helper: Mark step as completed
+     */
+    protected function markStepCompleted(int $tenantId, int $userId, string $stepKey): void
+    {
+        $step = OnboardingProgress::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->where('step_key', $stepKey)
+            ->first();
+
+        if ($step) {
+            $step->markAsCompleted();
+        }
+    }
+
+    /**
+     * Helper: Get tour steps
+     */
+    protected function getTourSteps(string $tourType): array
+    {
+        return match ($tourType) {
+            'general' => [
+                ['step' => 'welcome', 'title' => 'Welcome to Qalcuity ERP', 'content' => 'Let me show you around...'],
+                ['step' => 'dashboard', 'title' => 'Dashboard Overview', 'content' => 'This is your command center...'],
+                ['step' => 'modules', 'title' => 'Modules Navigation', 'content' => 'Access all features here...'],
+                ['step' => 'reports', 'title' => 'Reports & Analytics', 'content' => 'View insights and reports...'],
+                ['step' => 'settings', 'title' => 'Settings', 'content' => 'Customize your experience...'],
+            ],
+            'module_specific' => [
+                ['step' => 'module_intro', 'title' => 'Module Introduction', 'content' => 'Learn about this module...'],
+                ['step' => 'key_features', 'title' => 'Key Features', 'content' => 'Here are the main features...'],
+                ['step' => 'common_tasks', 'title' => 'Common Tasks', 'content' => 'How to perform common tasks...'],
+            ],
+            default => []
+        };
     }
 }

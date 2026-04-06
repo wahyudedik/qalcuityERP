@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Exceptions\CustomExceptionHandler;
+use App\Models\SystemSetting;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Observers\ProductObserver;
@@ -51,6 +52,49 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureRateLimiting();
         $this->registerBladeDirectives();
+        $this->loadSystemSettingsIntoConfig();
+    }
+
+    /**
+     * Load system settings from DB into Laravel config.
+     * Overrides .env values with DB-stored values (SuperAdmin managed).
+     * Gracefully skips if DB is not available (first deploy / artisan migrate).
+     */
+    protected function loadSystemSettingsIntoConfig(): void
+    {
+        SystemSetting::loadIntoConfig([
+            // AI / Gemini
+            'gemini_api_key' => 'gemini.api_key',
+            'gemini_model' => 'gemini.model',
+            'gemini_timeout' => 'gemini.timeout',
+            'ai_response_cache_enabled' => 'gemini.optimization.cache_enabled',
+            'ai_cache_short_ttl' => 'gemini.optimization.cache_ttl.short',
+            'ai_cache_default_ttl' => 'gemini.optimization.cache_ttl.default',
+            'ai_cache_long_ttl' => 'gemini.optimization.cache_ttl.long',
+            'ai_rule_based_enabled' => 'gemini.optimization.rule_based_enabled',
+            'ai_streaming_enabled' => 'gemini.optimization.streaming_enabled',
+            // Email / SMTP
+            'mail_host' => 'mail.mailers.smtp.host',
+            'mail_port' => 'mail.mailers.smtp.port',
+            'mail_username' => 'mail.mailers.smtp.username',
+            'mail_password' => 'mail.mailers.smtp.password',
+            'mail_encryption' => 'mail.mailers.smtp.encryption',
+            'mail_from_address' => 'mail.from.address',
+            'mail_from_name' => 'mail.from.name',
+            // Google OAuth
+            'google_client_id' => 'services.google.client_id',
+            'google_client_secret' => 'services.google.client_secret',
+            // Push Notification (VAPID)
+            'vapid_public_key' => 'services.vapid.public_key',
+            'vapid_private_key' => 'services.vapid.private_key',
+            // Error alerts
+            'slack_error_webhook_url' => 'services.slack.error_webhook',
+            'error_alert_email' => 'services.error_alert_email.recipients',
+            // App settings
+            'app_name' => 'app.name',
+            'app_url' => 'app.url',
+            'app_timezone' => 'app.timezone',
+        ]);
     }
 
     protected function registerBladeDirectives(): void
