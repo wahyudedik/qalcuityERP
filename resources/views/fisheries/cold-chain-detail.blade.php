@@ -72,7 +72,7 @@
     {{-- Temperature History Chart Placeholder --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">📈 Riwayat Suhu (24 Jam Terakhir)</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Riwayat Suhu (24 Jam Terakhir)</h2>
             <form class="flex items-center gap-2">
                 <select name="period" onchange="this.form.submit()"
                     class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
@@ -127,7 +127,7 @@
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">📋 Log Suhu Detail</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Log Suhu Detail</h2>
         </div>
 
         @if ($temperatureLogs->isEmpty())
@@ -266,7 +266,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md p-6">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🌡️ Log Temperature Reading</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Log Temperature Reading</h2>
                 <button onclick="document.getElementById('logTempModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>

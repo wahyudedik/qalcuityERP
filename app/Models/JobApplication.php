@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobApplication extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'job_posting_id', 'applicant_name', 'applicant_email',
         'applicant_phone', 'cover_letter', 'resume_path', 'stage', 'notes',

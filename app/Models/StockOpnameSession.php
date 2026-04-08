@@ -1,11 +1,14 @@
 <?php
 namespace App\Models;
+
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StockOpnameSession extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['tenant_id','warehouse_id','number','opname_date','status','user_id','notes'];
     protected function casts(): array { return ['opname_date'=>'date']; }
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }

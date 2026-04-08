@@ -58,6 +58,19 @@ class PosController extends Controller
             ? $request->payment_method
             : 'cash';
 
+        // BUG-SALES-004 FIX: Check credit limit if payment type is credit/transfer
+        if (in_array($paymentType, ['credit', 'transfer']) && $request->customer_id) {
+            $customer = \App\Models\Customer::find($request->customer_id);
+            if ($customer && $customer->wouldExceedCreditLimit($total)) {
+                $available = number_format($customer->availableCredit(), 0, ',', '.');
+                return response()->json([
+                    'success' => false,
+                    'message' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}.",
+                    'error_code' => 'CREDIT_LIMIT_EXCEEDED',
+                ], 422);
+            }
+        }
+
         try {
             $order = DB::transaction(function () use ($request, $tenantId, $total, $paymentType) {
                 $order = SalesOrder::create([
@@ -87,18 +100,40 @@ class PosController extends Controller
                         'total' => $item['qty'] * $item['price'],
                     ]);
 
-                    // Deduct stock — lock row to prevent race condition
-                    $stock = ProductStock::where('product_id', $item['id'])
+                    // BUG-SALES-002 FIX: Atomic stock deduction with pessimistic locking
+                    // Lock ALL stock rows for this product to prevent race conditions
+                    $stocks = ProductStock::where('product_id', $item['id'])
+                        ->where('quantity', '>', 0)
+                        ->orderBy('quantity', 'desc') // Deduct from largest stock first
                         ->lockForUpdate()
-                        ->first();
+                        ->get();
 
-                    if ($stock) {
-                        if ($stock->quantity < $item['qty']) {
-                            throw new \Exception("Stok produk tidak mencukupi (tersisa {$stock->quantity}).");
-                        }
+                    if ($stocks->isEmpty()) {
+                        throw new \Exception("Stok produk tidak tersedia.");
+                    }
 
+                    $totalAvailable = $stocks->sum('quantity');
+                    if ($totalAvailable < $item['qty']) {
+                        throw new \Exception("Stok produk tidak mencukupi (tersisa {$totalAvailable}).");
+                    }
+
+                    // Deduct stock across warehouses atomically
+                    $remainingToDeduct = $item['qty'];
+                    foreach ($stocks as $stock) {
+                        if ($remainingToDeduct <= 0)
+                            break;
+
+                        $deductFromThis = min($remainingToDeduct, $stock->quantity);
                         $before = $stock->quantity;
-                        $stock->decrement('quantity', $item['qty']);
+
+                        // BUG-SALES-002 FIX: Atomic update with condition to prevent negative stock
+                        $updated = ProductStock::where('id', $stock->id)
+                            ->where('quantity', '>=', $deductFromThis)
+                            ->decrement('quantity', $deductFromThis);
+
+                        if (!$updated) {
+                            throw new \Exception("Gagal mengurangi stok untuk produk. Silakan coba lagi.");
+                        }
 
                         StockMovement::create([
                             'tenant_id' => $tenantId,
@@ -106,12 +141,14 @@ class PosController extends Controller
                             'warehouse_id' => $stock->warehouse_id,
                             'user_id' => auth()->id(),
                             'type' => 'out',
-                            'quantity' => $item['qty'],
+                            'quantity' => $deductFromThis,
                             'quantity_before' => $before,
-                            'quantity_after' => $before - $item['qty'],
+                            'quantity_after' => $before - $deductFromThis,
                             'reference' => $order->number,
                             'notes' => 'POS Checkout',
                         ]);
+
+                        $remainingToDeduct -= $deductFromThis;
                     }
                 }
 
@@ -243,17 +280,40 @@ class PosController extends Controller
 
                 // Deduct stock for all items
                 foreach ($order->items as $item) {
-                    $stock = ProductStock::where('product_id', $item->product_id)
+                    // BUG-SALES-002 FIX: Atomic stock deduction with pessimistic locking
+                    // Lock ALL stock rows for this product to prevent race conditions
+                    $stocks = ProductStock::where('product_id', $item->product_id)
+                        ->where('quantity', '>', 0)
+                        ->orderBy('quantity', 'desc')
                         ->lockForUpdate()
-                        ->first();
+                        ->get();
 
-                    if ($stock) {
-                        if ($stock->quantity < $item->quantity) {
-                            throw new \Exception("Insufficient stock for {$item->product->name}");
-                        }
+                    if ($stocks->isEmpty()) {
+                        throw new \Exception("Insufficient stock for product ID {$item->product_id}");
+                    }
 
+                    $totalAvailable = $stocks->sum('quantity');
+                    if ($totalAvailable < $item->quantity) {
+                        throw new \Exception("Insufficient stock for {$item->product->name} (available: {$totalAvailable})");
+                    }
+
+                    // Deduct stock across warehouses atomically
+                    $remainingToDeduct = $item->quantity;
+                    foreach ($stocks as $stock) {
+                        if ($remainingToDeduct <= 0)
+                            break;
+
+                        $deductFromThis = min($remainingToDeduct, $stock->quantity);
                         $before = $stock->quantity;
-                        $stock->decrement('quantity', $item->quantity);
+
+                        // BUG-SALES-002 FIX: Atomic update with condition to prevent negative stock
+                        $updated = ProductStock::where('id', $stock->id)
+                            ->where('quantity', '>=', $deductFromThis)
+                            ->decrement('quantity', $deductFromThis);
+
+                        if (!$updated) {
+                            throw new \Exception("Failed to deduct stock for {$item->product->name}. Please try again.");
+                        }
 
                         StockMovement::create([
                             'tenant_id' => $order->tenant_id,
@@ -261,12 +321,14 @@ class PosController extends Controller
                             'warehouse_id' => $stock->warehouse_id,
                             'user_id' => auth()->id(),
                             'type' => 'out',
-                            'quantity' => $item->quantity,
+                            'quantity' => $deductFromThis,
                             'quantity_before' => $before,
-                            'quantity_after' => $before - $item->quantity,
+                            'quantity_after' => $before - $deductFromThis,
                             'reference' => $order->number,
                             'notes' => 'POS Payment Completed',
                         ]);
+
+                        $remainingToDeduct -= $deductFromThis;
                     }
                 }
             });

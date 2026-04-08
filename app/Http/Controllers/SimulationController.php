@@ -9,9 +9,14 @@ use Illuminate\Http\Request;
 
 class SimulationController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
-    public function __construct(protected SimulationService $service) {}
+    public function __construct(protected SimulationService $service)
+    {
+    }
 
     public function index()
     {
@@ -30,26 +35,26 @@ class SimulationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'          => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'scenario_type' => 'required|in:price_increase,new_branch,stock_out,cost_reduction,demand_change',
-            'parameters'    => 'required|array',
+            'parameters' => 'required|array',
         ]);
 
         try {
             $data = $this->service->run($this->tid(), $request->scenario_type, $request->parameters);
 
             $simulation = Simulation::create([
-                'tenant_id'    => $this->tid(),
-                'user_id'      => auth()->id(),
-                'name'         => $request->name,
+                'tenant_id' => $this->tid(),
+                'user_id' => auth()->id(),
+                'name' => $request->name,
                 'scenario_type' => $request->scenario_type,
-                'parameters'   => $request->parameters,
-                'results'      => $data['results'],
+                'parameters' => $request->parameters,
+                'results' => $data['results'],
                 'ai_narrative' => $data['ai_narrative'],
-                'status'       => 'calculated',
+                'status' => 'calculated',
             ]);
 
-            ActivityLog::record('simulation_created', 'Simulation', $simulation->id, null, $simulation->toArray());
+            ActivityLog::record('simulation_created', 'Simulation created', $simulation, [], $simulation->toArray());
 
             return redirect()->route('simulations.show', $simulation)
                 ->with('success', 'Simulasi berhasil dihitung.');

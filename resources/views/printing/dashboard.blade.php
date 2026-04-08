@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <span>🖨️ Printing Job Dashboard</span>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Printing Job Dashboard</h1>
             <a href="{{ route('printing.create') }}"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium">
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium whitespace-nowrap">
                 + New Print Job
             </a>
         </div>
@@ -36,7 +36,7 @@
     {{-- Overdue Jobs Alert --}}
     @if ($overdue->count() > 0)
         <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4 mb-6">
-            <h3 class="text-sm font-semibold text-red-800 dark:text-red-400 mb-2">⚠️ Overdue Jobs
+            <h3 class="text-sm font-semibold text-red-800 dark:text-red-400 mb-2">Overdue Jobs
                 ({{ $overdue->count() }})</h3>
             <div class="space-y-2">
                 @foreach ($overdue as $job)
@@ -53,7 +53,7 @@
     {{-- Job Queue Table --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">📋 Active Print Jobs</h3>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Active Print Jobs</h3>
             <div class="flex gap-2">
                 <select
                     class="text-sm border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
@@ -76,7 +76,7 @@
 
         @if ($jobs->count() === 0)
             <div class="p-12 text-center">
-                <p class="text-4xl mb-3">🖨️</p>
+                <p class="text-4xl mb-3">📋</p>
                 <p class="text-sm text-gray-500 dark:text-slate-400">No active print jobs.</p>
                 <a href="{{ route('printing.create') }}"
                     class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">

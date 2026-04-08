@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class LoyaltyPoint extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'customer_id', 'program_id', 'total_points',
         'lifetime_points', 'tier', 'tier_updated_at',

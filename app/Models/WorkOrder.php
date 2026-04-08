@@ -2,31 +2,56 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkOrder extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
-        'tenant_id', 'product_id', 'recipe_id', 'bom_id', 'user_id',
-        'number', 'target_quantity', 'unit', 'status',
-        'material_cost', 'labor_cost', 'overhead_cost', 'total_cost',
-        'materials_consumed', 'journal_entry_id',
-        'started_at', 'completed_at', 'notes',
+        'tenant_id',
+        'product_id',
+        'recipe_id',
+        'bom_id',
+        'user_id',
+        'number',
+        'target_quantity',
+        'unit',
+        'status',
+        'material_cost',
+        'labor_cost',
+        'overhead_cost',
+        'overhead_method',
+        'overhead_rate',
+        'calculated_overhead',
+        'total_operation_hours',
+        'total_cost',
+        'materials_reserved',
+        'materials_consumed',
+        'journal_entry_id',
+        'started_at',
+        'completed_at',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'target_quantity'    => 'decimal:3',
-            'material_cost'      => 'decimal:2',
-            'labor_cost'         => 'decimal:2',
-            'overhead_cost'      => 'decimal:2',
-            'total_cost'         => 'decimal:2',
+            'target_quantity' => 'decimal:3',
+            'material_cost' => 'decimal:2',
+            'labor_cost' => 'decimal:2',
+            'overhead_cost' => 'decimal:2',
+            'overhead_rate' => 'decimal:4',
+            'calculated_overhead' => 'decimal:2',
+            'total_operation_hours' => 'decimal:2',
+            'total_cost' => 'decimal:2',
+            'materials_reserved' => 'boolean', // BUG-MFG-002 FIX
             'materials_consumed' => 'boolean',
-            'started_at'         => 'datetime',
-            'completed_at'       => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -37,20 +62,49 @@ class WorkOrder extends Model
      * completed / cancelled → tidak bisa berubah
      */
     public const VALID_TRANSITIONS = [
-        'pending'     => ['in_progress', 'cancelled'],
+        'pending' => ['in_progress', 'cancelled'],
         'in_progress' => ['completed', 'cancelled'],
-        'completed'   => [],
-        'cancelled'   => [],
+        'completed' => [],
+        'cancelled' => [],
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
-    public function recipe(): BelongsTo { return $this->belongsTo(Recipe::class); }
-    public function bom(): BelongsTo { return $this->belongsTo(Bom::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
-    public function outputs(): HasMany { return $this->hasMany(ProductionOutput::class); }
-    public function operations(): HasMany { return $this->hasMany(WorkOrderOperation::class)->orderBy('sequence'); }
-    public function journalEntry(): BelongsTo { return $this->belongsTo(JournalEntry::class); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+    public function recipe(): BelongsTo
+    {
+        return $this->belongsTo(Recipe::class);
+    }
+    public function bom(): BelongsTo
+    {
+        return $this->belongsTo(Bom::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function outputs(): HasMany
+    {
+        return $this->hasMany(ProductionOutput::class);
+    }
+    public function operations(): HasMany
+    {
+        return $this->hasMany(WorkOrderOperation::class)->orderBy('sequence');
+    }
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class);
+    }
+    // BUG-MFG-002 FIX: Material reservations
+    public function materialReservations(): HasMany
+    {
+        return $this->hasMany(MaterialReservation::class);
+    }
 
     public function canTransitionTo(string $newStatus): bool
     {

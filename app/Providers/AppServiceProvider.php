@@ -4,10 +4,13 @@ namespace App\Providers;
 
 use App\Exceptions\CustomExceptionHandler;
 use App\Models\SystemSetting;
+use App\Models\TenantApiSetting;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Observers\ProductObserver;
 use App\Observers\ProductStockObserver;
+use App\Observers\SystemSettingObserver; // BUG-SET-001 FIX
+use App\Observers\TenantApiSettingObserver; // BUG-SET-001 FIX
 use App\Services\ChatSessionManager;
 use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
@@ -42,6 +45,18 @@ class AppServiceProvider extends ServiceProvider
         // Task 44-46: Cost Center, Business Constraints, Transaction Links
         $this->app->singleton(\App\Services\BusinessConstraintService::class);
         $this->app->singleton(\App\Services\TransactionLinkService::class);
+
+        // BUG-AI-002 FIX: ToolRegistry - Factory pattern with static caching
+        // Uses internal static cache, so binding as singleton for DI compatibility
+        $this->app->singleton(\App\Services\ERP\ToolRegistry::class, function ($app) {
+            // This will use static cache internally, so multiple calls are efficient
+            // Actual caching happens in ToolRegistry constructor
+            $user = $app['auth']->user();
+            if ($user && $user->tenant_id) {
+                return new \App\Services\ERP\ToolRegistry($user->tenant_id, $user->id);
+            }
+            return null;
+        });
     }
 
     public function boot(): void
@@ -49,6 +64,10 @@ class AppServiceProvider extends ServiceProvider
         // Register model observers
         Product::observe(ProductObserver::class);
         ProductStock::observe(ProductStockObserver::class);
+
+        // BUG-SET-001 FIX: Register settings observers for cache invalidation
+        SystemSetting::observe(SystemSettingObserver::class);
+        TenantApiSetting::observe(TenantApiSettingObserver::class);
 
         $this->configureRateLimiting();
         $this->registerBladeDirectives();

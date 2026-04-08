@@ -44,13 +44,13 @@ class JournalController extends Controller
 
     public function create()
     {
-        $tid      = $this->tid();
+        $tid = $this->tid();
         $accounts = ChartOfAccount::where('tenant_id', $tid)
             ->where('is_active', true)
             ->where('is_header', false)
             ->orderBy('code')
             ->get();
-        $periods  = AccountingPeriod::where('tenant_id', $tid)
+        $periods = AccountingPeriod::where('tenant_id', $tid)
             ->where('status', 'open')
             ->orderByDesc('start_date')
             ->get();
@@ -61,23 +61,23 @@ class JournalController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'date'           => 'required|date',
-            'description'    => 'required|string|max:255',
-            'period_id'      => 'nullable|exists:accounting_periods,id',
-            'currency_code'  => 'nullable|string|size:3',
-            'currency_rate'  => 'nullable|numeric|min:0',
-            'lines'          => 'required|array|min:2',
-            'lines.*.account_id'  => 'required|exists:chart_of_accounts,id',
-            'lines.*.debit'       => 'nullable|numeric|min:0',
-            'lines.*.credit'      => 'nullable|numeric|min:0',
+            'date' => 'required|date',
+            'description' => 'required|string|max:255',
+            'period_id' => 'nullable|exists:accounting_periods,id',
+            'currency_code' => 'nullable|string|size:3',
+            'currency_rate' => 'nullable|numeric|min:0',
+            'lines' => 'required|array|min:2',
+            'lines.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'lines.*.debit' => 'nullable|numeric|min:0',
+            'lines.*.credit' => 'nullable|numeric|min:0',
             'lines.*.description' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tid();
 
         // Validasi balance
-        $totalDebit  = collect($data['lines'])->sum(fn($l) => (float)($l['debit'] ?? 0));
-        $totalCredit = collect($data['lines'])->sum(fn($l) => (float)($l['credit'] ?? 0));
+        $totalDebit = collect($data['lines'])->sum(fn($l) => (float) ($l['debit'] ?? 0));
+        $totalCredit = collect($data['lines'])->sum(fn($l) => (float) ($l['credit'] ?? 0));
 
         if (abs($totalDebit - $totalCredit) > 0.01) {
             return back()->withErrors(['lines' => 'Jurnal tidak balance. Total debit harus sama dengan total kredit.'])->withInput();
@@ -95,22 +95,22 @@ class JournalController extends Controller
 
         DB::transaction(function () use ($data, $tid) {
             $journal = JournalEntry::create([
-                'tenant_id'     => $tid,
-                'period_id'     => $data['period_id'] ?? null,
-                'user_id'       => auth()->id(),
-                'number'        => JournalEntry::generateNumber($tid),
-                'date'          => $data['date'],
-                'description'   => $data['description'],
+                'tenant_id' => $tid,
+                'period_id' => $data['period_id'] ?? null,
+                'user_id' => auth()->id(),
+                'number' => JournalEntry::generateNumber($tid),
+                'date' => $data['date'],
+                'description' => $data['description'],
                 'currency_code' => $data['currency_code'] ?? 'IDR',
                 'currency_rate' => $data['currency_rate'] ?? 1,
-                'status'        => 'draft',
+                'status' => 'draft',
             ]);
 
             foreach ($data['lines'] as $line) {
                 $journal->lines()->create([
-                    'account_id'  => $line['account_id'],
-                    'debit'       => (float)($line['debit'] ?? 0),
-                    'credit'      => (float)($line['credit'] ?? 0),
+                    'account_id' => $line['account_id'],
+                    'debit' => (float) ($line['debit'] ?? 0),
+                    'credit' => (float) ($line['credit'] ?? 0),
                     'description' => $line['description'] ?? null,
                 ]);
             }
@@ -132,6 +132,14 @@ class JournalController extends Controller
     {
         abort_if($journal->tenant_id !== $this->tid(), 403);
         abort_if($journal->status !== 'draft', 403, 'Hanya jurnal draft yang bisa diposting.');
+
+        // BUG-FIN-002 FIX: Check period lock before posting journal
+        // Prevent creating draft in open period, then posting after period closed
+        $periodLockService = app(\App\Services\PeriodLockService::class);
+        if ($periodLockService->isLocked($journal->tenant_id, $journal->date->toDateString())) {
+            $lockInfo = $periodLockService->getLockInfo($journal->tenant_id, $journal->date->toDateString());
+            return back()->with('error', "Periode {$lockInfo} sudah dikunci. Jurnal tidak dapat diposting.");
+        }
 
         try {
             $journal->post(auth()->id());
@@ -178,36 +186,36 @@ class JournalController extends Controller
     public function storeRecurring(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
+            'name' => 'required|string|max:100',
             'description' => 'nullable|string|max:255',
-            'frequency'   => 'required|in:daily,weekly,monthly,quarterly,yearly',
-            'start_date'  => 'required|date',
-            'end_date'    => 'nullable|date|after:start_date',
-            'lines'       => 'required|array|min:2',
-            'lines.*.account_id'  => 'required|exists:chart_of_accounts,id',
-            'lines.*.debit'       => 'nullable|numeric|min:0',
-            'lines.*.credit'      => 'nullable|numeric|min:0',
+            'frequency' => 'required|in:daily,weekly,monthly,quarterly,yearly',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after:start_date',
+            'lines' => 'required|array|min:2',
+            'lines.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'lines.*.debit' => 'nullable|numeric|min:0',
+            'lines.*.credit' => 'nullable|numeric|min:0',
             'lines.*.description' => 'nullable|string|max:255',
         ]);
 
-        $totalDebit  = collect($data['lines'])->sum(fn($l) => (float)($l['debit'] ?? 0));
-        $totalCredit = collect($data['lines'])->sum(fn($l) => (float)($l['credit'] ?? 0));
+        $totalDebit = collect($data['lines'])->sum(fn($l) => (float) ($l['debit'] ?? 0));
+        $totalCredit = collect($data['lines'])->sum(fn($l) => (float) ($l['credit'] ?? 0));
 
         if (abs($totalDebit - $totalCredit) > 0.01) {
             return back()->withErrors(['lines' => 'Jurnal tidak balance.'])->withInput();
         }
 
         RecurringJournal::create([
-            'tenant_id'     => $this->tid(),
-            'user_id'       => auth()->id(),
-            'name'          => $data['name'],
-            'description'   => $data['description'] ?? null,
-            'frequency'     => $data['frequency'],
-            'start_date'    => $data['start_date'],
-            'end_date'      => $data['end_date'] ?? null,
+            'tenant_id' => $this->tid(),
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'frequency' => $data['frequency'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'] ?? null,
             'next_run_date' => $data['start_date'],
-            'is_active'     => true,
-            'lines'         => $data['lines'],
+            'is_active' => true,
+            'lines' => $data['lines'],
         ]);
 
         return back()->with('success', 'Jurnal berulang berhasil disimpan.');
@@ -216,7 +224,7 @@ class JournalController extends Controller
     public function toggleRecurring(RecurringJournal $recurring)
     {
         abort_if($recurring->tenant_id !== $this->tid(), 403);
-        $recurring->update(['is_active' => ! $recurring->is_active]);
+        $recurring->update(['is_active' => !$recurring->is_active]);
         return back()->with('success', 'Status jurnal berulang diperbarui.');
     }
 }

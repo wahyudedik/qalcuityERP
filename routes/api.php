@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Telecom\UsageController;
 use App\Http\Controllers\Api\Telecom\VoucherController;
 use App\Http\Controllers\Api\Telecom\WebhookController;
 use App\Http\Controllers\OfflineSyncController;
+use App\Http\Controllers\HealthCheckController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -139,4 +140,25 @@ Route::middleware(['auth:sanctum', 'api.rate:api-write'])->prefix('offline')->gr
     Route::delete('/failed', [OfflineSyncController::class, 'clearFailed']);
     Route::get('/cache/{key}', [OfflineSyncController::class, 'getCache']);
     Route::post('/cache/{key}', [OfflineSyncController::class, 'updateCache']);
+
+    // BUG-OFF-001 FIX: Conflict resolution endpoints
+    Route::get('/conflicts', [OfflineSyncController::class, 'getConflicts']);
+    Route::post('/conflicts/{id}/resolve', [OfflineSyncController::class, 'resolveConflict']);
+    Route::post('/conflicts/auto-resolve', [OfflineSyncController::class, 'autoResolveAll']);
+});
+
+// ── CSRF Token Refresh (authenticated, for offline sync) ────────
+// BUG-OFF-002 FIX: Endpoint to get fresh CSRF token
+Route::middleware(['auth:sanctum'])->get('/csrf-token', function () {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+    ]);
+});
+
+// ── Health Check endpoints (public, no auth required) ───────────
+Route::prefix('health')->group(function () {
+    Route::get('/', [HealthCheckController::class, 'health']);
+    Route::get('/detailed', [HealthCheckController::class, 'detailed']);
+    Route::get('/ready', [HealthCheckController::class, 'ready']);
+    Route::get('/live', [HealthCheckController::class, 'live']);
 });

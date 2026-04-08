@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HotelSetting extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

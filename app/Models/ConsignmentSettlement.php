@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsignmentSettlement extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'sales_report_id', 'settlement_date', 'amount',
         'payment_method', 'reference', 'journal_entry_id', 'user_id', 'notes',

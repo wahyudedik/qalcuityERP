@@ -40,12 +40,12 @@ class AiInsightService
         // Konversi anomali ke format insight
         $anomalyInsights = collect($this->anomalyService->detect($tenantId))
             ->map(fn($a) => [
-                'type'     => $a['type'],
+                'type' => $a['type'],
                 'severity' => $a['severity'],
-                'title'    => $a['title'],
-                'body'     => $a['description'],
-                'data'     => $a['data'] ?? [],
-                'action'   => 'lihat detail anomali',
+                'title' => $a['title'],
+                'body' => $a['description'],
+                'data' => $a['data'] ?? [],
+                'action' => 'lihat detail anomali',
             ])->toArray();
 
         $insights = array_merge(
@@ -55,6 +55,8 @@ class AiInsightService
             $this->analyzeStockDepletion($tenantId),
             $this->analyzeExpenseAnomaly($tenantId),
             $this->analyzeReceivables($tenantId),
+            $this->analyzeCreditLimits($tenantId),      // ← BUG-SALES-004: Credit limit monitoring
+            $this->analyzeCurrencyStaleness($tenantId), // ← BUG-FIN-003: Currency rate monitoring
             $this->analyzeSalesVelocity($tenantId),
             $this->analyzeTopProducts($tenantId),
             // ── New analyzers ──
@@ -79,7 +81,8 @@ class AiInsightService
     public function generateAndSave(int $tenantId): array
     {
         $insights = $this->analyze($tenantId);
-        if (empty($insights)) return [];
+        if (empty($insights))
+            return [];
 
         $recipients = User::where('tenant_id', $tenantId)
             ->whereIn('role', ['admin', 'manager'])
@@ -92,18 +95,19 @@ class AiInsightService
                 ->whereDate('created_at', today())
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists)
+                continue;
 
             foreach ($recipients as $userId) {
                 ErpNotification::create([
                     'tenant_id' => $tenantId,
-                    'user_id'   => $userId,
-                    'type'      => 'ai_insight_' . $insight['type'],
-                    'title'     => $insight['title'],
-                    'body'      => $insight['body'],
-                    'data'      => array_merge($insight['data'] ?? [], [
+                    'user_id' => $userId,
+                    'type' => 'ai_insight_' . $insight['type'],
+                    'title' => $insight['title'],
+                    'body' => $insight['body'],
+                    'data' => array_merge($insight['data'] ?? [], [
                         'severity' => $insight['severity'],
-                        'action'   => $insight['action'] ?? null,
+                        'action' => $insight['action'] ?? null,
                     ]),
                 ]);
             }
@@ -129,54 +133,68 @@ class AiInsightService
             ->whereBetween('date', [now()->subDays(13)->toDateString(), now()->subDays(7)->toDateString()])
             ->sum('total');
 
-        if ($lastWeek <= 0 || $thisWeek <= 0) return [];
+        if ($lastWeek <= 0 || $thisWeek <= 0)
+            return [];
 
         $changePercent = (($thisWeek - $lastWeek) / $lastWeek) * 100;
 
-        if (abs($changePercent) < 10) return []; // tidak signifikan
+        if (abs($changePercent) < 10)
+            return []; // tidak signifikan
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
         if ($changePercent <= -15) {
-            return [[
-                'type'     => 'revenue_drop',
-                'severity' => 'critical',
-                'title'    => '📉 Omzet Turun Signifikan',
-                'body'     => sprintf(
-                    'Omzet 7 hari ini %s, turun %.1f%% dibanding 7 hari lalu (%s). Perlu perhatian segera.',
-                    $fmt($thisWeek), abs($changePercent), $fmt($lastWeek)
-                ),
-                'data'     => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
-                'action'   => 'tampilkan tren penjualan 14 hari terakhir',
-            ]];
+            return [
+                [
+                    'type' => 'revenue_drop',
+                    'severity' => 'critical',
+                    'title' => '📉 Omzet Turun Signifikan',
+                    'body' => sprintf(
+                        'Omzet 7 hari ini %s, turun %.1f%% dibanding 7 hari lalu (%s). Perlu perhatian segera.',
+                        $fmt($thisWeek),
+                        abs($changePercent),
+                        $fmt($lastWeek)
+                    ),
+                    'data' => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
+                    'action' => 'tampilkan tren penjualan 14 hari terakhir',
+                ]
+            ];
         }
 
         if ($changePercent <= -10) {
-            return [[
-                'type'     => 'revenue_decline',
-                'severity' => 'warning',
-                'title'    => '⚠️ Omzet Menurun',
-                'body'     => sprintf(
-                    'Omzet 7 hari ini %s, turun %.1f%% vs minggu lalu (%s).',
-                    $fmt($thisWeek), abs($changePercent), $fmt($lastWeek)
-                ),
-                'data'     => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
-                'action'   => 'analisis penyebab penurunan omzet',
-            ]];
+            return [
+                [
+                    'type' => 'revenue_decline',
+                    'severity' => 'warning',
+                    'title' => '⚠️ Omzet Menurun',
+                    'body' => sprintf(
+                        'Omzet 7 hari ini %s, turun %.1f%% vs minggu lalu (%s).',
+                        $fmt($thisWeek),
+                        abs($changePercent),
+                        $fmt($lastWeek)
+                    ),
+                    'data' => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
+                    'action' => 'analisis penyebab penurunan omzet',
+                ]
+            ];
         }
 
         if ($changePercent >= 20) {
-            return [[
-                'type'     => 'revenue_spike',
-                'severity' => 'info',
-                'title'    => '🚀 Omzet Naik Pesat',
-                'body'     => sprintf(
-                    'Omzet 7 hari ini %s, naik %.1f%% vs minggu lalu (%s). Pertahankan momentum!',
-                    $fmt($thisWeek), $changePercent, $fmt($lastWeek)
-                ),
-                'data'     => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
-                'action'   => 'tampilkan produk terlaris minggu ini',
-            ]];
+            return [
+                [
+                    'type' => 'revenue_spike',
+                    'severity' => 'info',
+                    'title' => '🚀 Omzet Naik Pesat',
+                    'body' => sprintf(
+                        'Omzet 7 hari ini %s, naik %.1f%% vs minggu lalu (%s). Pertahankan momentum!',
+                        $fmt($thisWeek),
+                        $changePercent,
+                        $fmt($lastWeek)
+                    ),
+                    'data' => ['this_week' => $thisWeek, 'last_week' => $lastWeek, 'change_percent' => round($changePercent, 1)],
+                    'action' => 'tampilkan produk terlaris minggu ini',
+                ]
+            ];
         }
 
         return [];
@@ -203,12 +221,14 @@ class AiInsightService
             ->whereYear('date', $lastMonth->year)
             ->sum('total');
 
-        if ($lastRevenue <= 0 || $thisRevenue <= 0) return [];
+        if ($lastRevenue <= 0 || $thisRevenue <= 0)
+            return [];
 
         $changePercent = (($thisRevenue - $lastRevenue) / $lastRevenue) * 100;
 
         // Hanya proses jika perubahan signifikan (>= 8%)
-        if (abs($changePercent) < 8) return [];
+        if (abs($changePercent) < 8)
+            return [];
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
@@ -300,62 +320,80 @@ class AiInsightService
         $lastMonthName = $lastMonth->translatedFormat('F Y');
 
         if ($changePercent <= -15) {
-            return [[
-                'type'     => 'monthly_revenue_drop',
-                'severity' => 'critical',
-                'title'    => "📉 Revenue {$monthName} Turun {$this->fmtPct($changePercent)}",
-                'body'     => sprintf(
-                    'Revenue bulan ini %s, turun %.1f%% dibanding %s (%s).%s',
-                    $fmt($thisRevenue), abs($changePercent), $lastMonthName, $fmt($lastRevenue), $causeText
-                ),
-                'data'     => [
-                    'this_month'     => $thisRevenue,
-                    'last_month'     => $lastRevenue,
-                    'change_percent' => round($changePercent, 1),
-                    'this_orders'    => $thisOrders,
-                    'last_orders'    => $lastOrders,
-                    'causes'         => $causes,
-                ],
-                'action'   => 'analisis penyebab penurunan revenue bulan ini',
-            ]];
+            return [
+                [
+                    'type' => 'monthly_revenue_drop',
+                    'severity' => 'critical',
+                    'title' => "📉 Revenue {$monthName} Turun {$this->fmtPct($changePercent)}",
+                    'body' => sprintf(
+                        'Revenue bulan ini %s, turun %.1f%% dibanding %s (%s).%s',
+                        $fmt($thisRevenue),
+                        abs($changePercent),
+                        $lastMonthName,
+                        $fmt($lastRevenue),
+                        $causeText
+                    ),
+                    'data' => [
+                        'this_month' => $thisRevenue,
+                        'last_month' => $lastRevenue,
+                        'change_percent' => round($changePercent, 1),
+                        'this_orders' => $thisOrders,
+                        'last_orders' => $lastOrders,
+                        'causes' => $causes,
+                    ],
+                    'action' => 'analisis penyebab penurunan revenue bulan ini',
+                ]
+            ];
         }
 
         if ($changePercent <= -8) {
-            return [[
-                'type'     => 'monthly_revenue_decline',
-                'severity' => 'warning',
-                'title'    => "⚠️ Revenue {$monthName} Menurun {$this->fmtPct($changePercent)}",
-                'body'     => sprintf(
-                    'Revenue bulan ini %s, turun %.1f%% vs %s (%s).%s',
-                    $fmt($thisRevenue), abs($changePercent), $lastMonthName, $fmt($lastRevenue), $causeText
-                ),
-                'data'     => [
-                    'this_month'     => $thisRevenue,
-                    'last_month'     => $lastRevenue,
-                    'change_percent' => round($changePercent, 1),
-                    'causes'         => $causes,
-                ],
-                'action'   => 'tampilkan perbandingan penjualan bulan ini vs bulan lalu',
-            ]];
+            return [
+                [
+                    'type' => 'monthly_revenue_decline',
+                    'severity' => 'warning',
+                    'title' => "⚠️ Revenue {$monthName} Menurun {$this->fmtPct($changePercent)}",
+                    'body' => sprintf(
+                        'Revenue bulan ini %s, turun %.1f%% vs %s (%s).%s',
+                        $fmt($thisRevenue),
+                        abs($changePercent),
+                        $lastMonthName,
+                        $fmt($lastRevenue),
+                        $causeText
+                    ),
+                    'data' => [
+                        'this_month' => $thisRevenue,
+                        'last_month' => $lastRevenue,
+                        'change_percent' => round($changePercent, 1),
+                        'causes' => $causes,
+                    ],
+                    'action' => 'tampilkan perbandingan penjualan bulan ini vs bulan lalu',
+                ]
+            ];
         }
 
         if ($changePercent >= 15) {
-            return [[
-                'type'     => 'monthly_revenue_growth',
-                'severity' => 'info',
-                'title'    => "🚀 Revenue {$monthName} Naik {$this->fmtPct($changePercent)}",
-                'body'     => sprintf(
-                    'Revenue bulan ini %s, naik %.1f%% vs %s (%s).%s Pertahankan momentum!',
-                    $fmt($thisRevenue), $changePercent, $lastMonthName, $fmt($lastRevenue), $causeText
-                ),
-                'data'     => [
-                    'this_month'     => $thisRevenue,
-                    'last_month'     => $lastRevenue,
-                    'change_percent' => round($changePercent, 1),
-                    'causes'         => $causes,
-                ],
-                'action'   => 'tampilkan produk terlaris bulan ini',
-            ]];
+            return [
+                [
+                    'type' => 'monthly_revenue_growth',
+                    'severity' => 'info',
+                    'title' => "🚀 Revenue {$monthName} Naik {$this->fmtPct($changePercent)}",
+                    'body' => sprintf(
+                        'Revenue bulan ini %s, naik %.1f%% vs %s (%s).%s Pertahankan momentum!',
+                        $fmt($thisRevenue),
+                        $changePercent,
+                        $lastMonthName,
+                        $fmt($lastRevenue),
+                        $causeText
+                    ),
+                    'data' => [
+                        'this_month' => $thisRevenue,
+                        'last_month' => $lastRevenue,
+                        'change_percent' => round($changePercent, 1),
+                        'causes' => $causes,
+                    ],
+                    'action' => 'tampilkan produk terlaris bulan ini',
+                ]
+            ];
         }
 
         return [];
@@ -391,27 +429,28 @@ class AiInsightService
                 ->whereBetween('sales_orders.date', [now()->subDays(14)->toDateString(), now()->toDateString()])
                 ->sum('sales_order_items.quantity') / 14;
 
-            if ($avgDaily <= 0) continue;
+            if ($avgDaily <= 0)
+                continue;
 
             $daysLeft = (int) floor($stock->quantity / $avgDaily);
 
             if ($daysLeft <= 3) {
                 $insights[] = [
-                    'type'     => 'stock_critical_' . $stock->product_id,
+                    'type' => 'stock_critical_' . $stock->product_id,
                     'severity' => 'critical',
-                    'title'    => "🔴 Stok {$stock->product->name} Kritis",
-                    'body'     => "Stok {$stock->product->name} di {$stock->warehouse->name} tinggal {$stock->quantity} {$stock->product->unit}. Berdasarkan rata-rata penjualan, stok akan habis dalam **{$daysLeft} hari**.",
-                    'data'     => ['product_id' => $stock->product_id, 'days_left' => $daysLeft, 'quantity' => $stock->quantity, 'avg_daily' => round($avgDaily, 1)],
-                    'action'   => "buat purchase order untuk {$stock->product->name}",
+                    'title' => "🔴 Stok {$stock->product->name} Kritis",
+                    'body' => "Stok {$stock->product->name} di {$stock->warehouse->name} tinggal {$stock->quantity} {$stock->product->unit}. Berdasarkan rata-rata penjualan, stok akan habis dalam **{$daysLeft} hari**.",
+                    'data' => ['product_id' => $stock->product_id, 'days_left' => $daysLeft, 'quantity' => $stock->quantity, 'avg_daily' => round($avgDaily, 1)],
+                    'action' => "buat purchase order untuk {$stock->product->name}",
                 ];
             } elseif ($daysLeft <= 7) {
                 $insights[] = [
-                    'type'     => 'stock_low_' . $stock->product_id,
+                    'type' => 'stock_low_' . $stock->product_id,
                     'severity' => 'warning',
-                    'title'    => "⚠️ Stok {$stock->product->name} Menipis",
-                    'body'     => "Stok {$stock->product->name} tinggal {$stock->quantity} {$stock->product->unit}. Estimasi habis dalam **{$daysLeft} hari** berdasarkan rata-rata penjualan {$avgDaily} {$stock->product->unit}/hari.",
-                    'data'     => ['product_id' => $stock->product_id, 'days_left' => $daysLeft, 'quantity' => $stock->quantity, 'avg_daily' => round($avgDaily, 1)],
-                    'action'   => "tambah stok {$stock->product->name}",
+                    'title' => "⚠️ Stok {$stock->product->name} Menipis",
+                    'body' => "Stok {$stock->product->name} tinggal {$stock->quantity} {$stock->product->unit}. Estimasi habis dalam **{$daysLeft} hari** berdasarkan rata-rata penjualan {$avgDaily} {$stock->product->unit}/hari.",
+                    'data' => ['product_id' => $stock->product_id, 'days_left' => $daysLeft, 'quantity' => $stock->quantity, 'avg_daily' => round($avgDaily, 1)],
+                    'action' => "tambah stok {$stock->product->name}",
                 ];
             }
         }
@@ -437,11 +476,13 @@ class AiInsightService
             ->whereBetween('date', [now()->subDays(34)->toDateString(), now()->subDays(7)->toDateString()])
             ->sum('amount') / 4;
 
-        if ($avgPrevious <= 0 || $thisWeek <= 0) return [];
+        if ($avgPrevious <= 0 || $thisWeek <= 0)
+            return [];
 
         $changePercent = (($thisWeek - $avgPrevious) / $avgPrevious) * 100;
 
-        if ($changePercent < 30) return []; // tidak signifikan
+        if ($changePercent < 30)
+            return []; // tidak signifikan
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
@@ -459,17 +500,22 @@ class AiInsightService
             ? " Kategori terbesar: {$topCategory->category->name} ({$fmt($topCategory->total)})."
             : '';
 
-        return [[
-            'type'     => 'expense_anomaly',
-            'severity' => $changePercent >= 50 ? 'critical' : 'warning',
-            'title'    => '💸 Lonjakan Pengeluaran Terdeteksi',
-            'body'     => sprintf(
-                'Pengeluaran 7 hari ini %s, naik %.1f%% dari rata-rata mingguan (%s).%s',
-                $fmt($thisWeek), $changePercent, $fmt($avgPrevious), $categoryNote
-            ),
-            'data'     => ['this_week' => $thisWeek, 'avg_previous' => $avgPrevious, 'change_percent' => round($changePercent, 1)],
-            'action'   => 'tampilkan breakdown pengeluaran minggu ini',
-        ]];
+        return [
+            [
+                'type' => 'expense_anomaly',
+                'severity' => $changePercent >= 50 ? 'critical' : 'warning',
+                'title' => '💸 Lonjakan Pengeluaran Terdeteksi',
+                'body' => sprintf(
+                    'Pengeluaran 7 hari ini %s, naik %.1f%% dari rata-rata mingguan (%s).%s',
+                    $fmt($thisWeek),
+                    $changePercent,
+                    $fmt($avgPrevious),
+                    $categoryNote
+                ),
+                'data' => ['this_week' => $thisWeek, 'avg_previous' => $avgPrevious, 'change_percent' => round($changePercent, 1)],
+                'action' => 'tampilkan breakdown pengeluaran minggu ini',
+            ]
+        ];
     }
 
     /**
@@ -491,18 +537,187 @@ class AiInsightService
             ->where('due_date', '<', today())
             ->sum('total');
 
-        if ($overdueCount === 0) return [];
+        if ($overdueCount === 0)
+            return [];
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
-        return [[
-            'type'     => 'overdue_receivables',
-            'severity' => $overdueAmount > 5_000_000 ? 'critical' : 'warning',
-            'title'    => "🔔 {$overdueCount} Piutang Jatuh Tempo",
-            'body'     => "Ada {$overdueCount} tagihan senilai {$fmt($overdueAmount)} yang sudah melewati jatuh tempo. Segera lakukan follow-up ke pelanggan.",
-            'data'     => ['count' => $overdueCount, 'amount' => $overdueAmount],
-            'action'   => 'tampilkan daftar piutang yang sudah jatuh tempo',
-        ]];
+        return [
+            [
+                'type' => 'overdue_receivables',
+                'severity' => $overdueAmount > 5_000_000 ? 'critical' : 'warning',
+                'title' => "🔔 {$overdueCount} Piutang Jatuh Tempo",
+                'body' => "Ada {$overdueCount} tagihan senilai {$fmt($overdueAmount)} yang sudah melewati jatuh tempo. Segera lakukan follow-up ke pelanggan.",
+                'data' => ['count' => $overdueCount, 'amount' => $overdueAmount],
+                'action' => 'tampilkan daftar piutang yang sudah jatuh tempo',
+            ]
+        ];
+    }
+
+    /**
+     * BUG-SALES-004 FIX: Credit limit monitoring - deteksi customer yang mendekati/melebihi limit
+     */
+    private function analyzeCreditLimits(int $tenantId): array
+    {
+        // Get all customers with credit limit set
+        $customers = \App\Models\Customer::where('tenant_id', $tenantId)
+            ->whereNotNull('credit_limit')
+            ->where('credit_limit', '>', 0)
+            ->get();
+
+        if ($customers->isEmpty()) {
+            return [];
+        }
+
+        $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
+        $alerts = [];
+        $criticalCount = 0;
+        $warningCount = 0;
+        $totalAtRisk = 0;
+
+        foreach ($customers as $customer) {
+            $outstanding = $customer->outstandingBalance();
+            $creditLimit = (float) $customer->credit_limit;
+            $usagePercent = $creditLimit > 0 ? ($outstanding / $creditLimit) * 100 : 0;
+
+            // Critical: Already exceeded or >95% used
+            if ($usagePercent >= 95) {
+                $criticalCount++;
+                $totalAtRisk += $outstanding;
+                $alerts[] = [
+                    'type' => 'credit_limit_critical',
+                    'severity' => 'critical',
+                    'title' => "🚨 {$customer->name} - Limit Kredit Terlampaui",
+                    'body' => "Customer {$customer->name} telah menggunakan {$fmt($outstanding)} dari {$fmt($creditLimit)} (" . round($usagePercent, 1) . "%). " .
+                        "Sisa kredit: {$fmt($customer->availableCredit())}. " .
+                        "Sales Order baru akan ditolak otomatis.",
+                    'data' => [
+                        'customer_id' => $customer->id,
+                        'customer_name' => $customer->name,
+                        'credit_limit' => $creditLimit,
+                        'outstanding' => $outstanding,
+                        'usage_percent' => round($usagePercent, 1),
+                        'available' => $customer->availableCredit(),
+                    ],
+                    'action' => 'review credit limit atau hubungi customer untuk pembayaran',
+                ];
+            }
+            // Warning: 80-94% used
+            elseif ($usagePercent >= 80) {
+                $warningCount++;
+                $totalAtRisk += $outstanding;
+                $alerts[] = [
+                    'type' => 'credit_limit_warning',
+                    'severity' => 'warning',
+                    'title' => "⚠️ {$customer->name} - Mendekati Limit Kredit",
+                    'body' => "Customer {$customer->name} telah menggunakan {$fmt($outstanding)} dari {$fmt($creditLimit)} (" . round($usagePercent, 1) . "%). " .
+                        "Sisa kredit: {$fmt($customer->availableCredit())}. " .
+                        "Segera follow-up untuk pembayaran sebelum limit terlampaui.",
+                    'data' => [
+                        'customer_id' => $customer->id,
+                        'customer_name' => $customer->name,
+                        'credit_limit' => $creditLimit,
+                        'outstanding' => $outstanding,
+                        'usage_percent' => round($usagePercent, 1),
+                        'available' => $customer->availableCredit(),
+                    ],
+                    'action' => 'follow-up pembayaran atau pertimbangkan peningkatan limit',
+                ];
+            }
+        }
+
+        if (empty($alerts)) {
+            return [];
+        }
+
+        // Add summary insight
+        $summary = [
+            'type' => 'credit_limit_summary',
+            'severity' => $criticalCount > 0 ? 'critical' : 'warning',
+            'title' => "📊 Credit Limit Monitor: {$criticalCount} Critical, {$warningCount} Warning",
+            'body' => "Total {$criticalCount} customer melebihi batas kredit dan {$warningCount} customer mendekati limit. " .
+                "Total exposure: {$fmt($totalAtRisk)}. " .
+                "Sales Order untuk customer yang melebihi limit akan ditolak otomatis.",
+            'data' => [
+                'critical_count' => $criticalCount,
+                'warning_count' => $warningCount,
+                'total_at_risk' => $totalAtRisk,
+            ],
+            'action' => 'review semua customer dengan credit limit issues',
+        ];
+
+        array_unshift($alerts, $summary);
+
+        return $alerts;
+    }
+
+    /**
+     * BUG-FIN-003 FIX: Currency rate staleness monitoring
+     * 
+     * Detect stale exchange rates that could cause inaccurate multi-currency conversions
+     */
+    private function analyzeCurrencyStaleness(int $tenantId): array
+    {
+        $currencyService = new \App\Services\CurrencyService();
+        $report = $currencyService->getStaleCurrenciesReport($tenantId);
+
+        $fmt = fn($n) => is_numeric($n) ? 'Rp ' . number_format($n, 0, ',', '.') : $n;
+
+        $alerts = [];
+        $criticalCount = count($report['critical']);
+        $warningCount = count($report['warning']);
+
+        // Critical alerts
+        foreach ($report['critical'] as $currency) {
+            $alerts[] = [
+                'type' => 'currency_rate_critical',
+                'severity' => 'critical',
+                'title' => "🚨 Kurs {$currency['currency_code']} KRITIS - Tidak Update {$currency['days_since_update']} Hari",
+                'body' => "Kurs {$currency['currency_name']} ({$currency['currency_code']}) sudah {$currency['days_since_update']} hari tidak diperbarui. " .
+                    "Rate saat ini: {$fmt($currency['rate_to_idr'])}. " .
+                    "Konversi mata uang TIDAK AKURAT dan dapat menyebabkan kesalahan laporan keuangan!",
+                'data' => $currency,
+                'action' => 'update kurs manual di Settings → Currency atau jalankan "Update Currency Rates"',
+            ];
+        }
+
+        // Warning alerts
+        foreach ($report['warning'] as $currency) {
+            $alerts[] = [
+                'type' => 'currency_rate_warning',
+                'severity' => 'warning',
+                'title' => "⚠️ Kurs {$currency['currency_code']} Lama - {$currency['days_since_update']} Hari",
+                'body' => "Kurs {$currency['currency_name']} ({$currency['currency_code']}) sudah {$currency['days_since_update']} hari tidak diperbarui. " .
+                    "Rate saat ini: {$fmt($currency['rate_to_idr'])}. " .
+                    "Segera update untuk menjaga akurasi konversi mata uang.",
+                'data' => $currency,
+                'action' => 'update kurs untuk menjaga akurasi',
+            ];
+        }
+
+        // Summary alert
+        if ($criticalCount > 0 || $warningCount > 0) {
+            $summary = [
+                'type' => 'currency_staleness_summary',
+                'severity' => $criticalCount > 0 ? 'critical' : 'warning',
+                'title' => "💱 Currency Rate Monitor: {$criticalCount} Critical, {$warningCount} Warning",
+                'body' => "Total {$criticalCount} mata uang dengan kurs KRITIS (tidak update >30 hari) dan " .
+                    "{$warningCount} mata uang dengan kurs lama (tidak update >7 hari). " .
+                    "Konversi multi-currency mungkin TIDAK AKURAT. " .
+                    "Update otomatis dijadwalkan setiap hari jam 06:00.",
+                'data' => [
+                    'critical_count' => $criticalCount,
+                    'warning_count' => $warningCount,
+                    'total_affected' => $criticalCount + $warningCount,
+                    'next_scheduled_update' => 'Daily at 06:00',
+                ],
+                'action' => 'review semua currency rates dan update jika diperlukan',
+            ];
+
+            array_unshift($alerts, $summary);
+        }
+
+        return $alerts;
     }
 
     /**
@@ -520,7 +735,8 @@ class AiInsightService
             ->pluck('sales_order_items.product_id')
             ->unique();
 
-        if ($soldLastWeek->isEmpty()) return [];
+        if ($soldLastWeek->isEmpty())
+            return [];
 
         $soldRecently = DB::table('sales_order_items')
             ->join('sales_orders', 'sales_order_items.sales_order_id', '=', 'sales_orders.id')
@@ -532,16 +748,19 @@ class AiInsightService
 
         $stalled = $soldLastWeek->diff($soldRecently);
 
-        if ($stalled->count() < 3) return []; // tidak signifikan
+        if ($stalled->count() < 3)
+            return []; // tidak signifikan
 
-        return [[
-            'type'     => 'sales_stall',
-            'severity' => 'info',
-            'title'    => '📊 Penjualan Beberapa Produk Melambat',
-            'body'     => "{$stalled->count()} produk yang aktif terjual minggu lalu tidak ada transaksi dalam 3 hari terakhir. Mungkin perlu promosi atau cek ketersediaan stok.",
-            'data'     => ['stalled_count' => $stalled->count(), 'product_ids' => $stalled->values()->toArray()],
-            'action'   => 'tampilkan produk yang tidak terjual 3 hari terakhir',
-        ]];
+        return [
+            [
+                'type' => 'sales_stall',
+                'severity' => 'info',
+                'title' => '📊 Penjualan Beberapa Produk Melambat',
+                'body' => "{$stalled->count()} produk yang aktif terjual minggu lalu tidak ada transaksi dalam 3 hari terakhir. Mungkin perlu promosi atau cek ketersediaan stok.",
+                'data' => ['stalled_count' => $stalled->count(), 'product_ids' => $stalled->values()->toArray()],
+                'action' => 'tampilkan produk yang tidak terjual 3 hari terakhir',
+            ]
+        ];
     }
 
     /**
@@ -560,29 +779,32 @@ class AiInsightService
             ->orderByDesc('total_revenue')
             ->first();
 
-        if (!$topProduct || $topProduct->total_revenue <= 0) return [];
+        if (!$topProduct || $topProduct->total_revenue <= 0)
+            return [];
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
-        return [[
-            'type'     => 'top_product',
-            'severity' => 'info',
-            'title'    => "⭐ Produk Terlaris: {$topProduct->name}",
-            'body'     => "{$topProduct->name} menjadi produk terlaris minggu ini dengan {$topProduct->total_qty} unit terjual, menghasilkan {$fmt($topProduct->total_revenue)}.",
-            'data'     => ['product_name' => $topProduct->name, 'qty' => $topProduct->total_qty, 'revenue' => $topProduct->total_revenue],
-            'action'   => "tampilkan detail penjualan {$topProduct->name}",
-        ]];
+        return [
+            [
+                'type' => 'top_product',
+                'severity' => 'info',
+                'title' => "⭐ Produk Terlaris: {$topProduct->name}",
+                'body' => "{$topProduct->name} menjadi produk terlaris minggu ini dengan {$topProduct->total_qty} unit terjual, menghasilkan {$fmt($topProduct->total_revenue)}.",
+                'data' => ['product_name' => $topProduct->name, 'qty' => $topProduct->total_qty, 'revenue' => $topProduct->total_revenue],
+                'action' => "tampilkan detail penjualan {$topProduct->name}",
+            ]
+        ];
     }
 
     // ─── Helpers ──────────────────────────────────────────────────
 
     private function severityOrder(string $severity): int
     {
-        return match($severity) {
+        return match ($severity) {
             'critical' => 0,
-            'warning'  => 1,
-            'info'     => 2,
-            default    => 3,
+            'warning' => 1,
+            'info' => 2,
+            default => 3,
         };
     }
 
@@ -626,10 +848,10 @@ class AiInsightService
         if (!empty($insights)) {
             $lines[] = "**Insight AI:**";
             foreach (array_slice($insights, 0, 5) as $insight) {
-                $icon = match($insight['severity']) {
+                $icon = match ($insight['severity']) {
                     'critical' => '🔴',
-                    'warning'  => '🟡',
-                    default    => '🟢',
+                    'warning' => '🟡',
+                    default => '🟢',
                 };
                 $lines[] = "{$icon} {$insight['title']}";
                 $lines[] = "   {$insight['body']}";
@@ -673,7 +895,7 @@ class AiInsightService
 
         $currentCash = 0;
         if ($cashAccounts->isNotEmpty()) {
-            $debit  = (float) JournalEntryLine::whereIn('account_id', $cashAccounts)
+            $debit = (float) JournalEntryLine::whereIn('account_id', $cashAccounts)
                 ->whereHas('journalEntry', fn($q) => $q->where('tenant_id', $tenantId)->where('status', 'posted'))
                 ->sum('debit');
             $credit = (float) JournalEntryLine::whereIn('account_id', $cashAccounts)
@@ -683,56 +905,71 @@ class AiInsightService
         }
 
         // Jika tidak ada data sama sekali, skip
-        if ($arIncoming <= 0 && $apOutgoing <= 0 && $currentCash <= 0) return [];
+        if ($arIncoming <= 0 && $apOutgoing <= 0 && $currentCash <= 0)
+            return [];
 
         $projectedCash = $currentCash + $arIncoming - $apOutgoing;
-        $netFlow       = $arIncoming - $apOutgoing;
+        $netFlow = $arIncoming - $apOutgoing;
 
         // Hanya alert jika ada risiko
         if ($projectedCash >= 0 && $netFlow >= 0) {
             // Kas aman, tapi beri info jika ada AR/AP signifikan
             if ($arIncoming > 0 || $apOutgoing > 0) {
-                return [[
-                    'type'     => 'cashflow_healthy',
-                    'severity' => 'info',
-                    'title'    => '💧 Proyeksi Arus Kas 30 Hari: Sehat',
-                    'body'     => sprintf(
-                        'Proyeksi kas akhir bulan: %s. AR masuk: %s | AP keluar: %s.',
-                        $fmt($projectedCash), $fmt($arIncoming), $fmt($apOutgoing)
-                    ),
-                    'data'   => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
-                    'action' => 'tampilkan proyeksi arus kas 30 hari',
-                ]];
+                return [
+                    [
+                        'type' => 'cashflow_healthy',
+                        'severity' => 'info',
+                        'title' => '💧 Proyeksi Arus Kas 30 Hari: Sehat',
+                        'body' => sprintf(
+                            'Proyeksi kas akhir bulan: %s. AR masuk: %s | AP keluar: %s.',
+                            $fmt($projectedCash),
+                            $fmt($arIncoming),
+                            $fmt($apOutgoing)
+                        ),
+                        'data' => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
+                        'action' => 'tampilkan proyeksi arus kas 30 hari',
+                    ]
+                ];
             }
             return [];
         }
 
         if ($projectedCash < 0) {
-            return [[
-                'type'     => 'cashflow_deficit',
-                'severity' => 'critical',
-                'title'    => '🚨 Proyeksi Defisit Kas 30 Hari',
-                'body'     => sprintf(
-                    'Proyeksi kas 30 hari ke depan: %s (DEFISIT). Kas saat ini: %s | AR masuk: %s | AP jatuh tempo: %s. Segera tindak lanjuti piutang atau tunda pembayaran.',
-                    $fmt($projectedCash), $fmt($currentCash), $fmt($arIncoming), $fmt($apOutgoing)
-                ),
-                'data'   => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
-                'action' => 'tampilkan daftar piutang dan hutang jatuh tempo 30 hari',
-            ]];
+            return [
+                [
+                    'type' => 'cashflow_deficit',
+                    'severity' => 'critical',
+                    'title' => '🚨 Proyeksi Defisit Kas 30 Hari',
+                    'body' => sprintf(
+                        'Proyeksi kas 30 hari ke depan: %s (DEFISIT). Kas saat ini: %s | AR masuk: %s | AP jatuh tempo: %s. Segera tindak lanjuti piutang atau tunda pembayaran.',
+                        $fmt($projectedCash),
+                        $fmt($currentCash),
+                        $fmt($arIncoming),
+                        $fmt($apOutgoing)
+                    ),
+                    'data' => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
+                    'action' => 'tampilkan daftar piutang dan hutang jatuh tempo 30 hari',
+                ]
+            ];
         }
 
         // Net flow negatif tapi kas masih positif → warning
-        return [[
-            'type'     => 'cashflow_warning',
-            'severity' => 'warning',
-            'title'    => '⚠️ Arus Kas Bersih Negatif 30 Hari',
-            'body'     => sprintf(
-                'AP jatuh tempo (%s) melebihi AR yang akan masuk (%s). Selisih: %s. Kas saat ini masih cukup (%s).',
-                $fmt($apOutgoing), $fmt($arIncoming), $fmt(abs($netFlow)), $fmt($currentCash)
-            ),
-            'data'   => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
-            'action' => 'tampilkan proyeksi arus kas',
-        ]];
+        return [
+            [
+                'type' => 'cashflow_warning',
+                'severity' => 'warning',
+                'title' => '⚠️ Arus Kas Bersih Negatif 30 Hari',
+                'body' => sprintf(
+                    'AP jatuh tempo (%s) melebihi AR yang akan masuk (%s). Selisih: %s. Kas saat ini masih cukup (%s).',
+                    $fmt($apOutgoing),
+                    $fmt($arIncoming),
+                    $fmt(abs($netFlow)),
+                    $fmt($currentCash)
+                ),
+                'data' => compact('currentCash', 'arIncoming', 'apOutgoing', 'projectedCash'),
+                'action' => 'tampilkan proyeksi arus kas',
+            ]
+        ];
     }
 
     /**
@@ -741,42 +978,46 @@ class AiInsightService
      */
     private function analyzeBudgetVariance(int $tenantId): array
     {
-        $period  = now()->format('Y-m');
+        $period = now()->format('Y-m');
         $budgets = Budget::where('tenant_id', $tenantId)
             ->where('period', $period)
             ->where('status', 'active')
             ->where('amount', '>', 0)
             ->get();
 
-        if ($budgets->isEmpty()) return [];
+        if ($budgets->isEmpty())
+            return [];
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
-        $overBudget  = $budgets->filter(fn($b) => $b->realized > $b->amount);
-        $nearLimit   = $budgets->filter(fn($b) => $b->realized <= $b->amount && ($b->realized / $b->amount) >= 0.8);
+        $overBudget = $budgets->filter(fn($b) => $b->realized > $b->amount);
+        $nearLimit = $budgets->filter(fn($b) => $b->realized <= $b->amount && ($b->realized / $b->amount) >= 0.8);
 
         $insights = [];
 
         // Over budget items
         if ($overBudget->isNotEmpty()) {
-            $totalOver    = $overBudget->sum(fn($b) => $b->realized - $b->amount);
-            $worstItem    = $overBudget->sortByDesc(fn($b) => $b->realized - $b->amount)->first();
-            $worstPct     = round($worstItem->realized / $worstItem->amount * 100, 1);
+            $totalOver = $overBudget->sum(fn($b) => $b->realized - $b->amount);
+            $worstItem = $overBudget->sortByDesc(fn($b) => $b->realized - $b->amount)->first();
+            $worstPct = round($worstItem->realized / $worstItem->amount * 100, 1);
 
             $insights[] = [
-                'type'     => 'budget_over',
+                'type' => 'budget_over',
                 'severity' => 'critical',
-                'title'    => "🔴 {$overBudget->count()} Anggaran Over Budget",
-                'body'     => sprintf(
+                'title' => "🔴 {$overBudget->count()} Anggaran Over Budget",
+                'body' => sprintf(
                     '%d item anggaran melebihi batas bulan ini, total kelebihan %s. Terparah: "%s" (%s%% dari anggaran %s).',
-                    $overBudget->count(), $fmt($totalOver),
-                    $worstItem->name, $worstPct, $fmt($worstItem->amount)
+                    $overBudget->count(),
+                    $fmt($totalOver),
+                    $worstItem->name,
+                    $worstPct,
+                    $fmt($worstItem->amount)
                 ),
-                'data'   => [
-                    'over_count'  => $overBudget->count(),
-                    'total_over'  => $totalOver,
-                    'worst_item'  => $worstItem->name,
-                    'worst_pct'   => $worstPct,
+                'data' => [
+                    'over_count' => $overBudget->count(),
+                    'total_over' => $totalOver,
+                    'worst_item' => $worstItem->name,
+                    'worst_pct' => $worstPct,
                 ],
                 'action' => 'tampilkan anggaran yang over budget bulan ini',
             ];
@@ -786,34 +1027,38 @@ class AiInsightService
         if ($nearLimit->isNotEmpty()) {
             $names = $nearLimit->take(3)->pluck('name')->implode(', ');
             $insights[] = [
-                'type'     => 'budget_near_limit',
+                'type' => 'budget_near_limit',
                 'severity' => 'warning',
-                'title'    => "⚠️ {$nearLimit->count()} Anggaran Hampir Habis",
-                'body'     => sprintf(
+                'title' => "⚠️ {$nearLimit->count()} Anggaran Hampir Habis",
+                'body' => sprintf(
                     '%d anggaran sudah terpakai ≥80%%: %s%s. Pertimbangkan revisi anggaran atau penghematan.',
-                    $nearLimit->count(), $names,
+                    $nearLimit->count(),
+                    $names,
                     $nearLimit->count() > 3 ? ', dan lainnya' : ''
                 ),
-                'data'   => ['near_count' => $nearLimit->count(), 'items' => $nearLimit->pluck('name')->toArray()],
+                'data' => ['near_count' => $nearLimit->count(), 'items' => $nearLimit->pluck('name')->toArray()],
                 'action' => 'tampilkan detail anggaran bulan ini',
             ];
         }
 
         // Ringkasan utilisasi keseluruhan
-        $totalBudget   = $budgets->sum('amount');
+        $totalBudget = $budgets->sum('amount');
         $totalRealized = $budgets->sum('realized');
-        $usagePct      = round($totalRealized / $totalBudget * 100, 1);
+        $usagePct = round($totalRealized / $totalBudget * 100, 1);
 
         if ($usagePct >= 90 && $overBudget->isEmpty()) {
             $insights[] = [
-                'type'     => 'budget_high_usage',
+                'type' => 'budget_high_usage',
                 'severity' => 'warning',
-                'title'    => "📊 Utilisasi Anggaran Bulan Ini: {$usagePct}%",
-                'body'     => sprintf(
+                'title' => "📊 Utilisasi Anggaran Bulan Ini: {$usagePct}%",
+                'body' => sprintf(
                     'Total realisasi %s dari anggaran %s (%s%%). Sisa anggaran hanya %s.',
-                    $fmt($totalRealized), $fmt($totalBudget), $usagePct, $fmt($totalBudget - $totalRealized)
+                    $fmt($totalRealized),
+                    $fmt($totalBudget),
+                    $usagePct,
+                    $fmt($totalBudget - $totalRealized)
                 ),
-                'data'   => compact('totalBudget', 'totalRealized', 'usagePct'),
+                'data' => compact('totalBudget', 'totalRealized', 'usagePct'),
                 'action' => 'tampilkan laporan budget vs aktual',
             ];
         }
@@ -840,7 +1085,8 @@ class AiInsightService
             ->where('status', 'paid')
             ->sum('total_net');
 
-        if ($thisPayroll <= 0) return [];
+        if ($thisPayroll <= 0)
+            return [];
 
         $fmt = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
 
@@ -852,14 +1098,16 @@ class AiInsightService
 
             if ($changePct >= 15) {
                 $insights[] = [
-                    'type'     => 'payroll_spike',
+                    'type' => 'payroll_spike',
                     'severity' => 'warning',
-                    'title'    => '💼 Biaya Payroll Naik Signifikan',
-                    'body'     => sprintf(
+                    'title' => '💼 Biaya Payroll Naik Signifikan',
+                    'body' => sprintf(
                         'Payroll bulan ini %s, naik %.1f%% dari bulan lalu (%s). Periksa apakah ada penambahan karyawan atau lembur berlebih.',
-                        $fmt($thisPayroll), $changePct, $fmt($lastPayroll)
+                        $fmt($thisPayroll),
+                        $changePct,
+                        $fmt($lastPayroll)
                     ),
-                    'data'   => ['this_payroll' => $thisPayroll, 'last_payroll' => $lastPayroll, 'change_pct' => round($changePct, 1)],
+                    'data' => ['this_payroll' => $thisPayroll, 'last_payroll' => $lastPayroll, 'change_pct' => round($changePct, 1)],
                     'action' => 'tampilkan detail payroll bulan ini',
                 ];
             }
@@ -878,39 +1126,45 @@ class AiInsightService
             // Rasio > 40% adalah warning, > 60% critical
             if ($payrollRatio >= 60) {
                 $insights[] = [
-                    'type'     => 'payroll_ratio_critical',
+                    'type' => 'payroll_ratio_critical',
                     'severity' => 'critical',
-                    'title'    => "🚨 Rasio Payroll/Pendapatan Sangat Tinggi: {$payrollRatio}%",
-                    'body'     => sprintf(
+                    'title' => "🚨 Rasio Payroll/Pendapatan Sangat Tinggi: {$payrollRatio}%",
+                    'body' => sprintf(
                         'Biaya payroll %s = %.1f%% dari pendapatan %s bulan ini. Rasio ideal < 40%%. Bisnis berisiko merugi.',
-                        $fmt($thisPayroll), $payrollRatio, $fmt($thisRevenue)
+                        $fmt($thisPayroll),
+                        $payrollRatio,
+                        $fmt($thisRevenue)
                     ),
-                    'data'   => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
+                    'data' => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
                     'action' => 'analisis efisiensi biaya karyawan',
                 ];
             } elseif ($payrollRatio >= 40) {
                 $insights[] = [
-                    'type'     => 'payroll_ratio_high',
+                    'type' => 'payroll_ratio_high',
                     'severity' => 'warning',
-                    'title'    => "⚠️ Rasio Payroll/Pendapatan Tinggi: {$payrollRatio}%",
-                    'body'     => sprintf(
+                    'title' => "⚠️ Rasio Payroll/Pendapatan Tinggi: {$payrollRatio}%",
+                    'body' => sprintf(
                         'Biaya payroll %s = %.1f%% dari pendapatan %s. Pertimbangkan optimasi biaya SDM.',
-                        $fmt($thisPayroll), $payrollRatio, $fmt($thisRevenue)
+                        $fmt($thisPayroll),
+                        $payrollRatio,
+                        $fmt($thisRevenue)
                     ),
-                    'data'   => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
+                    'data' => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
                     'action' => 'tampilkan laporan payroll vs pendapatan',
                 ];
             } else {
                 // Rasio sehat — info saja
                 $insights[] = [
-                    'type'     => 'payroll_ratio_healthy',
+                    'type' => 'payroll_ratio_healthy',
                     'severity' => 'info',
-                    'title'    => "✅ Rasio Payroll Sehat: {$payrollRatio}%",
-                    'body'     => sprintf(
+                    'title' => "✅ Rasio Payroll Sehat: {$payrollRatio}%",
+                    'body' => sprintf(
                         'Biaya payroll %s = %.1f%% dari pendapatan %s. Efisiensi SDM dalam batas wajar.',
-                        $fmt($thisPayroll), $payrollRatio, $fmt($thisRevenue)
+                        $fmt($thisPayroll),
+                        $payrollRatio,
+                        $fmt($thisRevenue)
                     ),
-                    'data'   => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
+                    'data' => ['payroll' => $thisPayroll, 'revenue' => $thisRevenue, 'ratio' => $payrollRatio],
                     'action' => 'tampilkan detail payroll',
                 ];
             }
@@ -928,7 +1182,7 @@ class AiInsightService
     private function analyzeGlInsights(int $tenantId): array
     {
         $insights = [];
-        $fmt      = fn($n) => 'Rp ' . number_format(abs($n), 0, ',', '.');
+        $fmt = fn($n) => 'Rp ' . number_format(abs($n), 0, ',', '.');
 
         // ── 1. Cek apakah GL aktif (ada jurnal diposting 7 hari terakhir) ──
         $recentJournals = DB::table('journal_entries')
@@ -944,12 +1198,12 @@ class AiInsightService
 
         if ($totalJournals > 0 && $recentJournals === 0) {
             $insights[] = [
-                'type'     => 'gl_inactive',
+                'type' => 'gl_inactive',
                 'severity' => 'warning',
-                'title'    => '📒 GL Tidak Aktif 7 Hari',
-                'body'     => 'Tidak ada jurnal yang diposting dalam 7 hari terakhir. Pastikan transaksi dicatat dengan benar di General Ledger.',
-                'data'     => ['last_7_days' => 0, 'total_posted' => $totalJournals],
-                'action'   => 'buka daftar jurnal umum',
+                'title' => '📒 GL Tidak Aktif 7 Hari',
+                'body' => 'Tidak ada jurnal yang diposting dalam 7 hari terakhir. Pastikan transaksi dicatat dengan benar di General Ledger.',
+                'data' => ['last_7_days' => 0, 'total_posted' => $totalJournals],
+                'action' => 'buka daftar jurnal umum',
             ];
         }
 
@@ -963,12 +1217,12 @@ class AiInsightService
             $balance = $acc->balance($tenantId);
             if ($balance < 0) {
                 $insights[] = [
-                    'type'     => 'gl_negative_cash_' . $acc->code,
+                    'type' => 'gl_negative_cash_' . $acc->code,
                     'severity' => 'critical',
-                    'title'    => "🔴 Saldo {$acc->name} Negatif",
-                    'body'     => "Akun {$acc->code} - {$acc->name} memiliki saldo negatif: ({$fmt($balance)}). Kemungkinan ada jurnal yang salah atau pembayaran melebihi saldo.",
-                    'data'     => ['account_code' => $acc->code, 'account_name' => $acc->name, 'balance' => $balance],
-                    'action'   => "periksa jurnal akun {$acc->name}",
+                    'title' => "🔴 Saldo {$acc->name} Negatif",
+                    'body' => "Akun {$acc->code} - {$acc->name} memiliki saldo negatif: ({$fmt($balance)}). Kemungkinan ada jurnal yang salah atau pembayaran melebihi saldo.",
+                    'data' => ['account_code' => $acc->code, 'account_name' => $acc->name, 'balance' => $balance],
+                    'action' => "periksa jurnal akun {$acc->name}",
                 ];
             }
         }
@@ -982,19 +1236,23 @@ class AiInsightService
 
         if ($expenseAccounts->isNotEmpty()) {
             $thisMonthExpense = (float) JournalEntryLine::whereIn('account_id', $expenseAccounts)
-                ->whereHas('journalEntry', fn($q) => $q
-                    ->where('tenant_id', $tenantId)
-                    ->where('status', 'posted')
-                    ->whereMonth('date', now()->month)
-                    ->whereYear('date', now()->year)
+                ->whereHas(
+                    'journalEntry',
+                    fn($q) => $q
+                        ->where('tenant_id', $tenantId)
+                        ->where('status', 'posted')
+                        ->whereMonth('date', now()->month)
+                        ->whereYear('date', now()->year)
                 )->sum('debit');
 
             $lastMonthExpense = (float) JournalEntryLine::whereIn('account_id', $expenseAccounts)
-                ->whereHas('journalEntry', fn($q) => $q
-                    ->where('tenant_id', $tenantId)
-                    ->where('status', 'posted')
-                    ->whereMonth('date', now()->subMonth()->month)
-                    ->whereYear('date', now()->subMonth()->year)
+                ->whereHas(
+                    'journalEntry',
+                    fn($q) => $q
+                        ->where('tenant_id', $tenantId)
+                        ->where('status', 'posted')
+                        ->whereMonth('date', now()->subMonth()->month)
+                        ->whereYear('date', now()->subMonth()->year)
                 )->sum('debit');
 
             if ($lastMonthExpense > 0 && $thisMonthExpense > 0) {
@@ -1002,14 +1260,16 @@ class AiInsightService
 
                 if ($changePct >= 30) {
                     $insights[] = [
-                        'type'     => 'gl_expense_spike',
+                        'type' => 'gl_expense_spike',
                         'severity' => $changePct >= 50 ? 'critical' : 'warning',
-                        'title'    => '📈 Lonjakan Beban GL Bulan Ini',
-                        'body'     => sprintf(
+                        'title' => '📈 Lonjakan Beban GL Bulan Ini',
+                        'body' => sprintf(
                             'Total beban dari GL bulan ini %s, naik %.1f%% dari bulan lalu (%s). Periksa jurnal beban untuk memastikan tidak ada posting yang salah.',
-                            $fmt($thisMonthExpense), $changePct, $fmt($lastMonthExpense)
+                            $fmt($thisMonthExpense),
+                            $changePct,
+                            $fmt($lastMonthExpense)
                         ),
-                        'data'   => [
+                        'data' => [
                             'this_month' => $thisMonthExpense,
                             'last_month' => $lastMonthExpense,
                             'change_pct' => round($changePct, 1),
@@ -1029,14 +1289,18 @@ class AiInsightService
         if ($arAccount) {
             $arBalance = $arAccount->balance($tenantId);
 
-            $monthlyRevenue = (float) JournalEntryLine::whereHas('account', fn($q) =>
-                    $q->where('tenant_id', $tenantId)->where('type', 'revenue')
-                )
-                ->whereHas('journalEntry', fn($q) => $q
-                    ->where('tenant_id', $tenantId)
-                    ->where('status', 'posted')
-                    ->whereMonth('date', now()->month)
-                    ->whereYear('date', now()->year)
+            $monthlyRevenue = (float) JournalEntryLine::whereHas(
+                'account',
+                fn($q) =>
+                $q->where('tenant_id', $tenantId)->where('type', 'revenue')
+            )
+                ->whereHas(
+                    'journalEntry',
+                    fn($q) => $q
+                        ->where('tenant_id', $tenantId)
+                        ->where('status', 'posted')
+                        ->whereMonth('date', now()->month)
+                        ->whereYear('date', now()->year)
                 )->sum('credit');
 
             if ($monthlyRevenue > 0 && $arBalance > 0) {
@@ -1044,14 +1308,16 @@ class AiInsightService
 
                 if ($arRatio >= 200) {
                     $insights[] = [
-                        'type'     => 'gl_ar_high',
+                        'type' => 'gl_ar_high',
                         'severity' => 'warning',
-                        'title'    => "📋 Piutang Usaha Sangat Tinggi: {$arRatio}% dari Pendapatan",
-                        'body'     => sprintf(
+                        'title' => "📋 Piutang Usaha Sangat Tinggi: {$arRatio}% dari Pendapatan",
+                        'body' => sprintf(
                             'Saldo piutang usaha di GL: %s = %.1f%% dari pendapatan bulan ini (%s). Koleksi piutang perlu dipercepat.',
-                            $fmt($arBalance), $arRatio, $fmt($monthlyRevenue)
+                            $fmt($arBalance),
+                            $arRatio,
+                            $fmt($monthlyRevenue)
                         ),
-                        'data'   => ['ar_balance' => $arBalance, 'monthly_revenue' => $monthlyRevenue, 'ratio' => $arRatio],
+                        'data' => ['ar_balance' => $arBalance, 'monthly_revenue' => $monthlyRevenue, 'ratio' => $arRatio],
                         'action' => 'tampilkan aging piutang',
                     ];
                 }

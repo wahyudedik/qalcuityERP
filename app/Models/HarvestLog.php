@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HarvestLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'farm_plot_id', 'crop_cycle_id', 'tenant_id', 'user_id',
         'number', 'harvest_date', 'crop_name',

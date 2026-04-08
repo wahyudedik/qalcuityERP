@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <span>🎯 Strategic Sourcing Analytics</span>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Strategic Sourcing Analytics</h1>
             <button onclick="document.getElementById('createOpportunityModal').classList.remove('hidden')"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium">
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium whitespace-nowrap">
                 + New Opportunity
             </button>
         </div>
@@ -38,7 +38,7 @@
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">💡 Identified Opportunities</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Identified Opportunities</h2>
             <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">View All →</a>
         </div>
 
@@ -136,8 +136,8 @@
 
     {{-- Supplier Consolidation Recommendations --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📊 Supplier Consolidation Recommendations
-        </h3>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Supplier Consolidation Recommendations
+        </h2>
 
         <div class="space-y-3">
             <div

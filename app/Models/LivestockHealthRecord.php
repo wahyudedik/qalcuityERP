@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivestockHealthRecord extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'livestock_herd_id', 'tenant_id', 'user_id', 'date', 'type',
         'condition', 'affected_count', 'death_count', 'symptoms',

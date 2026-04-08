@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\BelongsToTenant;
 
 class Product extends Model
 {
-    use SoftDeletes, AuditsChanges;
+    use SoftDeletes, AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -32,10 +33,10 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'price_buy'         => 'decimal:2',
-            'price_sell'        => 'decimal:2',
-            'is_active'         => 'boolean',
-            'has_expiry'        => 'boolean',
+            'price_buy' => 'decimal:2',
+            'price_sell' => 'decimal:2',
+            'is_active' => 'boolean',
+            'has_expiry' => 'boolean',
             'expiry_alert_days' => 'integer',
         ];
     }

@@ -50,8 +50,9 @@ class ReservationService
                 throw new \RuntimeException("Room type not found or inactive.");
             }
 
-            // Check if there's availability for the dates
-            $availableRooms = $this->availabilityService->getAvailableRooms(
+            // BUG-HOTEL-001 FIX: Check availability with pessimistic locking
+            // This prevents race conditions where two requests book same room
+            $availableRooms = $this->availabilityService->getAvailableRoomsLocked(
                 tenantId: $tenantId,
                 checkIn: $checkIn->toDateString(),
                 checkOut: $checkOut->toDateString(),
@@ -105,14 +106,15 @@ class ReservationService
 
             // If specific room was provided, validate and assign
             if (!empty($data['room_id'])) {
-                $isAvailable = $this->availabilityService->isRoomAvailable(
+                // BUG-HOTEL-001 FIX: Re-check availability with lock inside transaction
+                $isAvailable = $this->availabilityService->isRoomAvailableLocked(
                     $data['room_id'],
                     $checkIn->toDateString(),
                     $checkOut->toDateString()
                 );
 
                 if (!$isAvailable) {
-                    throw new \RuntimeException("The specified room is not available for the selected dates.");
+                    throw new \RuntimeException("The specified room is not available for the selected dates. It may have been booked by another request.");
                 }
 
                 // Create reservation_room record

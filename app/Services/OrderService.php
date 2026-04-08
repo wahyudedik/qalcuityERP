@@ -6,6 +6,7 @@ use App\Models\FbOrder;
 use App\Models\FbOrderItem;
 use App\Models\MenuItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
@@ -15,6 +16,14 @@ class OrderService
     public function createOrder(array $data): FbOrder
     {
         return DB::transaction(function () use ($data) {
+            // BUG-FB-001 FIX: Validate ingredient stock before creating order
+            $stockService = new FbRecipeStockService();
+            $stockValidation = $stockService->validateOrderItems($data['items']);
+
+            if (!$stockValidation['valid']) {
+                throw new \Exception($stockValidation['message']);
+            }
+
             $order = FbOrder::create([
                 'tenant_id' => auth()->user()->current_tenant_id,
                 'order_number' => FbOrder::generateOrderNumber($data['order_type']),
@@ -82,6 +91,19 @@ class OrderService
     {
         $order = FbOrder::findOrFail($orderId);
         $order->updateStatus($newStatus);
+
+        // BUG-FB-001 FIX: Deduct ingredient stock when order is completed
+        if ($newStatus === 'completed') {
+            $stockService = new FbRecipeStockService();
+            $deductionResult = $stockService->deductIngredientStock($order);
+
+            if (!$deductionResult['success']) {
+                Log::error('F&B Stock deduction failed', [
+                    'order_id' => $orderId,
+                    'errors' => $deductionResult['errors'],
+                ]);
+            }
+        }
 
         return $order;
     }

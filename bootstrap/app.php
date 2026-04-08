@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ai.rate' => \App\Http\Middleware\RateLimitAiRequests::class,
             'csrf.upload' => \App\Http\Middleware\VerifyCsrfForUploads::class,
             'security.headers' => \App\Http\Middleware\AddSecurityHeaders::class,
+            'file.upload' => \App\Http\Middleware\ValidateFileUpload::class, // SEC-004
         ]);
 
         // CheckTenantActive di-append ke web group agar berjalan di semua request

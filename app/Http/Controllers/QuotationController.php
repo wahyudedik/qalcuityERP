@@ -36,16 +36,16 @@ class QuotationController extends Controller
         $quotations = $query->latest()->paginate(20)->withQueryString();
 
         $stats = [
-            'draft'    => Quotation::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
-            'sent'     => Quotation::where('tenant_id', $this->tid())->where('status', 'sent')->count(),
+            'draft' => Quotation::where('tenant_id', $this->tid())->where('status', 'draft')->count(),
+            'sent' => Quotation::where('tenant_id', $this->tid())->where('status', 'sent')->count(),
             'accepted' => Quotation::where('tenant_id', $this->tid())->where('status', 'accepted')->count(),
-            'expired'  => Quotation::where('tenant_id', $this->tid())->where('status', 'expired')
+            'expired' => Quotation::where('tenant_id', $this->tid())->where('status', 'expired')
                 ->orWhere(fn($q) => $q->where('tenant_id', $this->tid())
                     ->where('status', 'draft')->where('valid_until', '<', today()))->count(),
         ];
 
         $customers = Customer::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
-        $products  = Product::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
 
         return view('quotations.index', compact('quotations', 'stats', 'customers', 'products'));
     }
@@ -54,14 +54,14 @@ class QuotationController extends Controller
     {
         $data = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'valid_days'  => 'required|integer|min:1|max:365',
-            'notes'       => 'nullable|string|max:1000',
-            'discount'    => 'nullable|numeric|min:0',
-            'items'       => 'required|array|min:1',
-            'items.*.product_id'  => 'nullable|exists:products,id',
+            'valid_days' => 'required|integer|min:1|max:365',
+            'notes' => 'nullable|string|max:1000',
+            'discount' => 'nullable|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string|max:255',
-            'items.*.quantity'    => 'required|numeric|min:0.001',
-            'items.*.price'       => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.price' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($data) {
@@ -69,36 +69,36 @@ class QuotationController extends Controller
             $itemsData = [];
 
             foreach ($data['items'] as $item) {
-                $total     = $item['quantity'] * $item['price'];
+                $total = $item['quantity'] * $item['price'];
                 $subtotal += $total;
                 $itemsData[] = [
-                    'product_id'  => $item['product_id'] ?? null,
+                    'product_id' => $item['product_id'] ?? null,
                     'description' => $item['description'],
-                    'quantity'    => $item['quantity'],
-                    'price'       => $item['price'],
-                    'discount'    => 0,
-                    'total'       => $total,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'discount' => 0,
+                    'total' => $total,
                 ];
             }
 
-            $discount   = $data['discount'] ?? 0;
+            $discount = $data['discount'] ?? 0;
             $grandTotal = $subtotal - $discount;
 
             $number = 'QT-' . date('Ymd') . '-' . strtoupper(Str::random(4));
 
             $quotation = Quotation::create([
-                'tenant_id'   => $this->tid(),
+                'tenant_id' => $this->tid(),
                 'customer_id' => $data['customer_id'],
-                'user_id'     => auth()->id(),
-                'number'      => $number,
-                'status'      => 'draft',
-                'date'        => today(),
+                'user_id' => auth()->id(),
+                'number' => $number,
+                'status' => 'draft',
+                'date' => today(),
                 'valid_until' => today()->addDays($data['valid_days']),
-                'subtotal'    => $subtotal,
-                'discount'    => $discount,
-                'tax'         => 0,
-                'total'       => $grandTotal,
-                'notes'       => $data['notes'] ?? null,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'tax' => 0,
+                'total' => $grandTotal,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             foreach ($itemsData as $item) {
@@ -123,44 +123,44 @@ class QuotationController extends Controller
 
         $data = $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'valid_days'  => 'required|integer|min:1|max:365',
-            'notes'       => 'nullable|string|max:1000',
-            'discount'    => 'nullable|numeric|min:0',
-            'items'       => 'required|array|min:1',
-            'items.*.product_id'  => 'nullable|exists:products,id',
+            'valid_days' => 'required|integer|min:1|max:365',
+            'notes' => 'nullable|string|max:1000',
+            'discount' => 'nullable|numeric|min:0',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'nullable|exists:products,id',
             'items.*.description' => 'required|string|max:255',
-            'items.*.quantity'    => 'required|numeric|min:0.001',
-            'items.*.price'       => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.price' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($data, $quotation) {
-            $subtotal  = 0;
+            $subtotal = 0;
             $itemsData = [];
 
             foreach ($data['items'] as $item) {
-                $total     = $item['quantity'] * $item['price'];
+                $total = $item['quantity'] * $item['price'];
                 $subtotal += $total;
                 $itemsData[] = [
                     'quotation_id' => $quotation->id,
-                    'product_id'   => $item['product_id'] ?? null,
-                    'description'  => $item['description'],
-                    'quantity'     => $item['quantity'],
-                    'price'        => $item['price'],
-                    'discount'     => 0,
-                    'total'        => $total,
+                    'product_id' => $item['product_id'] ?? null,
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'discount' => 0,
+                    'total' => $total,
                 ];
             }
 
-            $discount   = $data['discount'] ?? 0;
+            $discount = $data['discount'] ?? 0;
             $grandTotal = $subtotal - $discount;
 
             $quotation->update([
                 'customer_id' => $data['customer_id'],
                 'valid_until' => $quotation->date->addDays($data['valid_days']),
-                'subtotal'    => $subtotal,
-                'discount'    => $discount,
-                'total'       => $grandTotal,
-                'notes'       => $data['notes'] ?? null,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $grandTotal,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             $quotation->items()->delete();
@@ -191,33 +191,43 @@ class QuotationController extends Controller
             return back()->with('error', 'Penawaran yang ditolak atau kadaluarsa tidak bisa dikonversi.');
         }
 
+        // BUG-SALES-004 FIX: Check credit limit before converting to SO
+        $customer = $quotation->customer;
+        if ($customer && $customer->wouldExceedCreditLimit($quotation->total)) {
+            $available = number_format($customer->availableCredit(), 0, ',', '.');
+            return back()->withErrors([
+                'credit_limit' => "Batas kredit pelanggan terlampaui. Kredit tersedia: Rp {$available}. " .
+                    "Silakan hubungi finance untuk peningkatan limit atau minta pembayaran DP."
+            ])->withInput();
+        }
+
         DB::transaction(function () use ($quotation) {
             $quotation->load('items');
 
             $so = SalesOrder::create([
-                'tenant_id'    => $this->tid(),
-                'customer_id'  => $quotation->customer_id,
-                'user_id'      => auth()->id(),
+                'tenant_id' => $this->tid(),
+                'customer_id' => $quotation->customer_id,
+                'user_id' => auth()->id(),
                 'quotation_id' => $quotation->id,
-                'number'       => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
-                'status'       => 'confirmed',
-                'date'         => today(),
-                'subtotal'     => $quotation->subtotal,
-                'discount'     => $quotation->discount,
-                'tax'          => $quotation->tax,
-                'total'        => $quotation->total,
-                'notes'        => $quotation->notes,
+                'number' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+                'status' => 'confirmed',
+                'date' => today(),
+                'subtotal' => $quotation->subtotal,
+                'discount' => $quotation->discount,
+                'tax' => $quotation->tax,
+                'total' => $quotation->total,
+                'notes' => $quotation->notes,
                 'payment_type' => 'cash',
             ]);
 
             foreach ($quotation->items as $item) {
                 SalesOrderItem::create([
                     'sales_order_id' => $so->id,
-                    'product_id'     => $item->product_id,
-                    'quantity'       => $item->quantity,
-                    'price'          => $item->price,
-                    'discount'       => $item->discount,
-                    'total'          => $item->total,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'discount' => $item->discount,
+                    'total' => $item->total,
                 ]);
             }
 

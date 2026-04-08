@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LivestockHerd extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'farm_plot_id', 'code', 'name', 'animal_type', 'breed',
         'initial_count', 'current_count', 'entry_date', 'entry_age_days',

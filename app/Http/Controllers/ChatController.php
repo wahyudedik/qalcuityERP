@@ -83,7 +83,13 @@ class ChatController extends Controller
         }
 
         // OPTIMIZATION 2: Cache layer untuk query repetitif
-        $cacheKey = $this->cacheService->generateCacheKey($tenantId ?? 0, $user->id, $request->message);
+        // ✅ FIX: Include session_id untuk cache key yang lebih unik
+        $cacheKey = $this->cacheService->generateCacheKey(
+            $tenantId ?? 0,
+            $user->id,
+            $request->message,
+            $session->id // ✅ Session context untuk mencegah collision
+        );
         $cachedResponse = $this->cacheService->get($cacheKey);
 
         if ($cachedResponse !== null) {
@@ -120,24 +126,6 @@ class ChatController extends Controller
                 Log::error('ChatController (no-tenant) error: ' . $e->getMessage());
                 return response()->json(['session_id' => $session->id, 'message' => 'Terjadi kesalahan pada sistem AI.'], 500);
             }
-        }
-
-        // OPTIMIZATION 2: Check cache untuk query repetitif
-        $cacheKey = $this->cacheService->generateCacheKey($tenantId, $user->id, $request->message);
-        $cachedResponse = $this->cacheService->get($cacheKey);
-
-        if ($cachedResponse !== null) {
-            $this->sessionManager->saveModelMessage($session, $cachedResponse['text'], $cachedResponse['model']);
-
-            return response()->json([
-                'session_id' => $session->id,
-                'session_title' => $session->title,
-                'message' => $cachedResponse['text'],
-                'model' => $cachedResponse['model'],
-                'actions' => $cachedResponse['actions'] ?? [],
-                'cached' => true,
-                'quota' => $tenantId ? $this->quota->status($tenantId) : null,
-            ]);
         }
 
         $registry = new ToolRegistry($tenantId, $user->id);
@@ -303,10 +291,10 @@ class ChatController extends Controller
             history: $history,
             toolDeclarations: $toolDeclarations,
             onChunk: function ($chunk, $index, $total) use ($session, $tenantId, $user) {
-                // Optional: Log progress atau update session
+                // BUG-AI-005 FIX: Save partial response on final chunk or disconnect
                 if ($index === $total - 1) {
                     // Final chunk - save to session
-                    // Note: Full text should be saved by the streaming service caller
+                    // Note: Full text is saved by complete event handler
                 }
             }
         );
@@ -1062,7 +1050,13 @@ class ChatController extends Controller
                 $history = $this->sessionManager->getHistory($session);
 
                 // Check cache first
-                $cacheKey = $this->cacheService->generateCacheKey($tenantId ?? 0, $user->id, $msgData['message']);
+                // ✅ FIX: Include session_id untuk cache key yang lebih unik
+                $cacheKey = $this->cacheService->generateCacheKey(
+                    $tenantId ?? 0,
+                    $user->id,
+                    $msgData['message'],
+                    $session->id // ✅ Session context
+                );
                 $cached = $this->cacheService->get($cacheKey);
 
                 if ($cached !== null) {

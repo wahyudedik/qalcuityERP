@@ -1,5 +1,9 @@
 <x-app-layout>
-    <x-slot name="header">📋 Species & Grading Catalog</x-slot>
+    <x-slot name="header">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Species & Grading Catalog</h1>
+        </div>
+    </x-slot>
 
     @if (session('success'))
         <div
@@ -17,7 +21,8 @@
                 🐟 Spesies Ikan
             </button>
             <button @click="tab = 'grades'; window.location.href = '?tab=grades'"
-                :class="tab === 'grades' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500 dark:text-slate-400'"
+                :class="tab === 'grades' ? 'border-b-2 border-purple-600 text-purple-600' :
+                    'text-gray-500 dark:text-slate-400'"
                 class="flex-1 px-4 py-3 text-sm font-medium transition">
                 ⭐ Grade Kualitas
             </button>
@@ -214,7 +219,8 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
+                        <label
+                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
                         <select name="category" class="{{ $cls }}">
                             <option value="marine">Laut</option>
                             <option value="freshwater">Air Tawar</option>

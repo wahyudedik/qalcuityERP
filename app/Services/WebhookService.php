@@ -116,6 +116,10 @@ class WebhookService
      */
     public function deliver(WebhookSubscription $subscription, string $event, array $payload, int $attempt = 1): WebhookDelivery
     {
+        // SEC-003: Add timestamp and nonce for replay attack protection
+        $timestamp = now()->getTimestamp();
+        $nonce = \Illuminate\Support\Str::uuid()->toString();
+
         $body = json_encode([
             'id' => \Illuminate\Support\Str::uuid()->toString(),
             'event' => $event,
@@ -129,10 +133,15 @@ class WebhookService
             'User-Agent' => 'QalcuityERP-Webhook/1.0',
             'X-Qalcuity-Event' => $event,
             'X-Qalcuity-Attempt' => (string) $attempt,
+            // SEC-003: Replay protection headers
+            'X-Qalcuity-Timestamp' => (string) $timestamp,
+            'X-Qalcuity-Nonce' => $nonce,
         ];
 
         if ($subscription->secret) {
-            $headers['X-Qalcuity-Signature'] = 'sha256=' . hash_hmac('sha256', $body, $subscription->secret);
+            // SEC-003: Signature includes timestamp and nonce
+            $signaturePayload = "{$timestamp}.{$nonce}.{$body}";
+            $headers['X-Qalcuity-Signature'] = 'sha256=' . hash_hmac('sha256', $signaturePayload, $subscription->secret);
         }
 
         $delivery = WebhookDelivery::create([

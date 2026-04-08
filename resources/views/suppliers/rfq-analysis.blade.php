@@ -40,7 +40,7 @@
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">🏆 Supplier Rankings (Scored)</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Supplier Rankings (Scored)</h2>
         </div>
 
         @if (count($analysis['scored_responses']) === 0)
@@ -65,6 +65,17 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                                 Lead Time</th>
+                            {{-- BUG-PO-003 FIX: Added new evaluation criteria columns --}}
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden lg:table-cell">
+                                Rating</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden xl:table-cell">
+                                Delivery</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden xl:table-cell">
+                                Payment</th>
+                            {{-- End BUG-PO-003 FIX --}}
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
                                 Price Score</th>
@@ -116,6 +127,39 @@
                                 </td>
                                 <td class="px-6 py-4 text-gray-700 dark:text-slate-300">{{ $response->lead_time_days }}
                                     days</td>
+                                {{-- BUG-PO-003 FIX: Added new evaluation criteria cells --}}
+                                <td class="px-6 py-4 hidden lg:table-cell">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
+                                            <div class="bg-yellow-600 h-2 rounded-full"
+                                                style="width: {{ $scoredResponse['supplier_rating_score'] }}%"></div>
+                                        </div>
+                                        <span
+                                            class="text-xs font-medium">{{ number_format($scoredResponse['supplier_rating_score'], 0) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 hidden xl:table-cell">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
+                                            <div class="bg-orange-600 h-2 rounded-full"
+                                                style="width: {{ $scoredResponse['delivery_performance_score'] }}%">
+                                            </div>
+                                        </div>
+                                        <span
+                                            class="text-xs font-medium">{{ number_format($scoredResponse['delivery_performance_score'], 0) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 hidden xl:table-cell">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
+                                            <div class="bg-teal-600 h-2 rounded-full"
+                                                style="width: {{ $scoredResponse['payment_terms_score'] }}%"></div>
+                                        </div>
+                                        <span
+                                            class="text-xs font-medium">{{ number_format($scoredResponse['payment_terms_score'], 0) }}</span>
+                                    </div>
+                                </td>
+                                {{-- End BUG-PO-003 FIX --}}
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-16">
@@ -167,13 +211,14 @@
 
     {{-- Scoring Methodology --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📊 Scoring Methodology</h3>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Scoring Methodology</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {{-- BUG-PO-003 FIX: Updated from 3 to 5 criteria with new weights --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div class="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-2xl">💰</span>
-                    <h4 class="font-medium text-gray-900 dark:text-white">Price Score (50%)</h4>
+                    <h4 class="font-medium text-gray-900 dark:text-white">Price Score (40%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
                     Lower prices receive higher scores. Calculated as ratio to lowest quoted price.
@@ -184,7 +229,7 @@
                 class="p-4 bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 rounded-lg">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-2xl">⏱️</span>
-                    <h4 class="font-medium text-gray-900 dark:text-white">Lead Time Score (30%)</h4>
+                    <h4 class="font-medium text-gray-900 dark:text-white">Lead Time Score (25%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
                     Shorter lead times are better. Compared against average lead time of all responses.
@@ -192,20 +237,42 @@
             </div>
 
             <div
-                class="p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-lg">
+                class="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">✅</span>
-                    <h4 class="font-medium text-gray-900 dark:text-white">Base Participation (20%)</h4>
+                    <span class="text-2xl">⭐</span>
+                    <h4 class="font-medium text-gray-900 dark:text-white">Supplier Rating (15%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
-                    All participating suppliers receive base score for responding to RFQ.
+                    Based on historical scorecard ratings (quality, delivery, cost, service metrics).
+                </p>
+            </div>
+
+            <div
+                class="p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-lg">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">🚚</span>
+                    <h4 class="font-medium text-gray-900 dark:text-white">Delivery Performance (10%)</h4>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-slate-400">
+                    On-time delivery track record from historical purchase order data.
+                </p>
+            </div>
+
+            <div class="p-4 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 rounded-lg">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">💳</span>
+                    <h4 class="font-medium text-gray-900 dark:text-white">Payment Terms (10%)</h4>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-slate-400">
+                    Better payment terms score higher (NET 60+ best, COD excellent).
                 </p>
             </div>
         </div>
 
         <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <p class="text-xs text-gray-600 dark:text-slate-400 font-mono">
-                Overall Score = (Price Score × 0.50) + (Lead Time Score × 0.30) + 20
+                Overall Score = (Price × 0.40) + (Lead Time × 0.25) + (Rating × 0.15) + (Delivery × 0.10) + (Payment ×
+                0.10)
             </p>
         </div>
     </div>

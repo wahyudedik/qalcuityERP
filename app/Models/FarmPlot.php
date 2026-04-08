@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FarmPlot extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'code', 'name', 'area_size', 'area_unit',
         'location', 'soil_type', 'irrigation_type', 'ownership', 'rent_cost',

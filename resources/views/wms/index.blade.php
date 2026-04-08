@@ -199,7 +199,7 @@
     <div id="modal-bulk" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">⚡ Bulk Create Bin</h3>
+                <h2 class="font-semibold text-gray-900 dark:text-white">Bulk Create Bin</h2>
                 <button onclick="document.getElementById('modal-bulk').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>

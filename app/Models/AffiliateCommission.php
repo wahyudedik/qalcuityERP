@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AffiliateCommission extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'affiliate_id', 'tenant_id', 'subscription_payment_id',
         'plan_name', 'payment_amount', 'commission_rate', 'commission_amount',

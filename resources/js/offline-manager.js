@@ -108,6 +108,9 @@ class OfflineQueueManager {
                 retry_count: 0,
                 max_retries: mutation.max_retries || 5,
                 csrf_token: document.querySelector('meta[name="csrf-token"]')?.content,
+                // BUG-OFF-001 FIX: Add timestamp for conflict detection
+                offline_timestamp: new Date().toISOString(),
+                local_id: mutation.local_id || null,
                 on_success_callback: mutation.onSuccess ? mutation.onSuccess.toString() : null,
                 on_error_callback: mutation.onError ? mutation.onError.toString() : null,
             };
@@ -240,10 +243,13 @@ class OfflineQueueManager {
      */
     async processMutation(mutation) {
         try {
+            // BUG-OFF-002 FIX: Refresh CSRF token before sync to avoid stale token
+            const csrfToken = await this.getFreshCsrfToken();
+
             const headers = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': mutation.csrf_token,
+                'X-CSRF-TOKEN': csrfToken, // Use fresh token, not stored one
                 'X-Offline-Sync': '1',
             };
 
@@ -259,6 +265,18 @@ class OfflineQueueManager {
 
                 const result = await response.json().catch(() => ({}));
 
+                // BUG-OFF-001 FIX: Check for conflict warnings
+                if (result.conflict_warning) {
+                    console.warn(`[OfflineQueue] Conflict warning: ${result.conflict_warning}`);
+                    this.notifyListeners({
+                        type: 'CONFLICT_WARNING',
+                        id: mutation.id,
+                        module: mutation.module,
+                        warning: result.conflict_warning,
+                        result,
+                    });
+                }
+
                 this.notifyListeners({
                     type: 'MUTATION_SUCCESS',
                     id: mutation.id,
@@ -267,6 +285,61 @@ class OfflineQueueManager {
                 });
 
                 return true;
+            } else if (response.status === 409) {
+                // BUG-OFF-001 FIX: Conflict detected
+                console.warn(`[OfflineQueue] Conflict detected for mutation #${mutation.id}`);
+                const result = await response.json().catch(() => ({}));
+
+                await this.markAsFailed(mutation.id, `Conflict: ${result.error || 'Conflict detected'}`);
+
+                this.notifyListeners({
+                    type: 'CONFLICT_DETECTED',
+                    id: mutation.id,
+                    module: mutation.module,
+                    conflict_id: result.conflict_id,
+                    strategy: result.strategy,
+                    error: result.error,
+                });
+
+                return false;
+            } else if (response.status === 419) {
+                // BUG-OFF-002 FIX: CSRF token expired, retry with fresh token
+                console.warn(`[OfflineQueue] CSRF token expired for mutation #${mutation.id}, retrying...`);
+
+                // Get fresh token and retry
+                const freshToken = await this.getFreshCsrfToken();
+
+                const retryResponse = await fetch(mutation.url, {
+                    method: mutation.method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': freshToken,
+                        'X-Offline-Sync': '1',
+                    },
+                    body: mutation.body ? JSON.stringify(mutation.body) : undefined,
+                });
+
+                if (retryResponse.ok) {
+                    await this.removeFromQueue(mutation.id);
+                    const result = await retryResponse.json().catch(() => ({}));
+
+                    this.notifyListeners({
+                        type: 'MUTATION_SUCCESS',
+                        id: mutation.id,
+                        module: mutation.module,
+                        result,
+                        retried: true,
+                        reason: 'csrf_token_expired',
+                    });
+
+                    return true;
+                } else {
+                    // Still failed after retry
+                    console.error(`[OfflineQueue] Mutation #${mutation.id} failed after CSRF retry`);
+                    await this.markAsFailed(mutation.id, 'CSRF retry failed');
+                    return false;
+                }
             } else if (response.status === 422) {
                 // Validation error - don't retry
                 console.warn(`[OfflineQueue] Validation error for mutation #${mutation.id}`);
@@ -538,6 +611,74 @@ class OfflineQueueManager {
         if (!this.db) {
             await this.init();
         }
+    }
+
+    /**
+     * BUG-OFF-002 FIX: Get fresh CSRF token from server
+     * Prevents sync failures due to expired tokens
+     * 
+     * @returns {Promise<string>} Fresh CSRF token
+     */
+    async getFreshCsrfToken() {
+        try {
+            // Try to get from meta tag first (might be refreshed by server)
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (metaToken) {
+                return metaToken;
+            }
+
+            // If not available, fetch a new one from server
+            const response = await fetch('/api/csrf-token', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const token = data.csrf_token;
+
+                // Update meta tag for future use
+                let metaTag = document.querySelector('meta[name="csrf-token"]');
+                if (metaTag) {
+                    metaTag.setAttribute('content', token);
+                } else {
+                    metaTag = document.createElement('meta');
+                    metaTag.name = 'csrf-token';
+                    metaTag.content = token;
+                    document.head.appendChild(metaTag);
+                }
+
+                console.log('[OfflineQueue] CSRF token refreshed');
+                return token;
+            }
+
+            // Fallback to stored token (might fail)
+            console.warn('[OfflineQueue] Could not refresh CSRF token, using stored token');
+            return this.getLastStoredToken();
+
+        } catch (error) {
+            console.error('[OfflineQueue] Error refreshing CSRF token:', error);
+            // Fallback to last stored token
+            return this.getLastStoredToken();
+        }
+    }
+
+    /**
+     * Get last stored CSRF token from pending mutations
+     * @returns {string|null} CSRF token or null
+     */
+    async getLastStoredToken() {
+        try {
+            const pending = await this.getPendingMutations();
+            if (pending.length > 0) {
+                return pending[0].csrf_token || null;
+            }
+        } catch (error) {
+            console.error('[OfflineQueue] Error getting stored token:', error);
+        }
+        return null;
     }
 
     /**

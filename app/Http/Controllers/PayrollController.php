@@ -17,7 +17,9 @@ use Illuminate\Http\Request;
 
 class PayrollController extends Controller
 {
-    public function __construct(private PayrollGlService $glService) {}
+    public function __construct(private PayrollGlService $glService)
+    {
+    }
 
     private function tenantId(): int
     {
@@ -26,11 +28,11 @@ class PayrollController extends Controller
 
     public function index(Request $request)
     {
-        $tid    = $this->tenantId();
+        $tid = $this->tenantId();
         $period = $request->period ?? now()->format('Y-m');
 
         $runs = PayrollRun::where('tenant_id', $tid)->orderByDesc('period')->get();
-        $run  = PayrollRun::where('tenant_id', $tid)->where('period', $period)
+        $run = PayrollRun::where('tenant_id', $tid)->where('period', $period)
             ->with(['journalEntry', 'paymentJournalEntry'])
             ->first();
 
@@ -46,145 +48,171 @@ class PayrollController extends Controller
     public function process(Request $request)
     {
         $data = $request->validate([
-            'period'       => 'required|date_format:Y-m',
+            'period' => 'required|date_format:Y-m',
             'working_days' => 'required|integer|min:1|max:31',
             'include_bpjs' => 'boolean',
         ]);
 
-        $tid         = $this->tenantId();
-        $period      = $data['period'];
+        $tid = $this->tenantId();
+        $period = $data['period'];
         $workingDays = $data['working_days'];
         $includeBpjs = $request->boolean('include_bpjs', true);
 
+        // BUG-HRM-001 FIX: Check for existing payroll run with proper status validation
         $existing = PayrollRun::where('tenant_id', $tid)->where('period', $period)->first();
-        if ($existing && $existing->status !== 'draft') {
-            return back()->withErrors(['period' => "Penggajian periode {$period} sudah diproses."]);
+
+        if ($existing) {
+            // Prevent re-processing if already processed or paid
+            if (in_array($existing->status, ['processed', 'paid'])) {
+                return back()->withErrors([
+                    'period' => "Penggajian periode {$period} sudah diproses (status: {$existing->status}). " .
+                        "Tidak dapat memproses ulang untuk menghindari double payment."
+                ]);
+            }
+
+            // Allow continuing draft payroll
+            if ($existing->status !== 'draft') {
+                return back()->withErrors([
+                    'period' => "Penggajian periode {$period} memiliki status tidak valid: {$existing->status}."
+                ]);
+            }
         }
 
         $run = $existing ?? PayrollRun::create([
-            'tenant_id'    => $tid,
-            'period'       => $period,
-            'status'       => 'draft',
+            'tenant_id' => $tid,
+            'period' => $period,
+            'status' => 'draft',
             'processed_by' => auth()->id(),
         ]);
 
         $employees = Employee::where('tenant_id', $tid)->where('status', 'active')->whereNotNull('salary')->get();
 
-        [$year, $month] = explode('-', $period);
-        $totalGross = $totalDeductions = $totalNet = 0;
+        // BUG-HRM-001 FIX: Wrap entire payroll processing in transaction
+        // This prevents partial processing and overtime double-counting
+        \Illuminate\Support\Facades\DB::transaction(function () use ($run, $employees, $period, $workingDays, $includeBpjs, $tid) {
+            [$year, $month] = explode('-', $period);
+            $totalGross = $totalDeductions = $totalNet = 0;
 
-        foreach ($employees as $emp) {
-            $attendance = Attendance::where('tenant_id', $tid)
-                ->where('employee_id', $emp->id)
-                ->whereYear('date', $year)->whereMonth('date', $month)
-                ->selectRaw('status, count(*) as cnt')->groupBy('status')
-                ->pluck('cnt', 'status');
+            foreach ($employees as $emp) {
+                $attendance = Attendance::where('tenant_id', $tid)
+                    ->where('employee_id', $emp->id)
+                    ->whereYear('date', $year)->whereMonth('date', $month)
+                    ->selectRaw('status, count(*) as cnt')->groupBy('status')
+                    ->pluck('cnt', 'status');
 
-            $presentDays = ($attendance['present'] ?? 0) + ($attendance['late'] ?? 0);
-            $absentDays  = $attendance['absent'] ?? 0;
-            $lateDays    = $attendance['late'] ?? 0;
-            $baseSalary  = (float) $emp->salary;
+                $presentDays = ($attendance['present'] ?? 0) + ($attendance['late'] ?? 0);
+                $absentDays = $attendance['absent'] ?? 0;
+                $lateDays = $attendance['late'] ?? 0;
+                $baseSalary = (float) $emp->salary;
 
-            // Overtime pay: sum approved lembur bulan ini yang belum masuk payroll
-            $overtimePay = OvertimeRequest::where('tenant_id', $tid)
-                ->where('employee_id', $emp->id)
-                ->where('status', 'approved')
-                ->where('included_in_payroll', false)
-                ->whereYear('date', $year)->whereMonth('date', $month)
-                ->sum('overtime_pay');
+                // Overtime pay: sum approved lembur bulan ini yang belum masuk payroll
+                $overtimePay = OvertimeRequest::where('tenant_id', $tid)
+                    ->where('employee_id', $emp->id)
+                    ->where('status', 'approved')
+                    ->where('included_in_payroll', false)
+                    ->whereYear('date', $year)->whereMonth('date', $month)
+                    ->sum('overtime_pay');
 
-            $dailyRate    = $baseSalary / $workingDays;
-            $deductAbsent = $dailyRate * $absentDays;
-            $deductLate   = ($dailyRate / 8) * $lateDays;
+                $dailyRate = $baseSalary / $workingDays;
+                $deductAbsent = $dailyRate * $absentDays;
+                $deductLate = ($dailyRate / 8) * $lateDays;
 
-            // Salary components (tunjangan & potongan fleksibel)
-            $empComponents = EmployeeSalaryComponent::where('employee_id', $emp->id)
-                ->where('is_active', true)
-                ->where(fn($q) => $q->whereNull('effective_from')->orWhere('effective_from', '<=', now()))
-                ->where(fn($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', now()))
-                ->with('component')
-                ->get();
+                // Salary components (tunjangan & potongan fleksibel)
+                $empComponents = EmployeeSalaryComponent::where('employee_id', $emp->id)
+                    ->where('is_active', true)
+                    ->where(fn($q) => $q->whereNull('effective_from')->orWhere('effective_from', '<=', now()))
+                    ->where(fn($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', now()))
+                    ->with('component')
+                    ->get();
 
-            $totalAllowances  = 0;
-            $totalCompDeduct  = 0;
-            $componentSnapshots = [];
+                $totalAllowances = 0;
+                $totalCompDeduct = 0;
+                $componentSnapshots = [];
 
-            foreach ($empComponents as $ec) {
-                $comp = $ec->component;
-                if (!$comp || !$comp->is_active) continue;
+                foreach ($empComponents as $ec) {
+                    $comp = $ec->component;
+                    if (!$comp || !$comp->is_active)
+                        continue;
 
-                $amount = $comp->calc_type === 'percent_base'
-                    ? round($baseSalary * $ec->amount / 100)
-                    : $ec->amount;
+                    $amount = $comp->calc_type === 'percent_base'
+                        ? round($baseSalary * $ec->amount / 100)
+                        : $ec->amount;
 
-                $componentSnapshots[] = [
-                    'salary_component_id' => $comp->id,
-                    'name'                => $comp->name,
-                    'type'                => $comp->type,
-                    'amount'              => $amount,
-                ];
+                    $componentSnapshots[] = [
+                        'salary_component_id' => $comp->id,
+                        'name' => $comp->name,
+                        'type' => $comp->type,
+                        'amount' => $amount,
+                    ];
 
-                if ($comp->type === 'allowance') {
-                    $totalAllowances += $amount;
-                } else {
-                    $totalCompDeduct += $amount;
+                    if ($comp->type === 'allowance') {
+                        $totalAllowances += $amount;
+                    } else {
+                        $totalCompDeduct += $amount;
+                    }
                 }
+
+                $grossSalary = $baseSalary + $totalAllowances + $overtimePay - $deductAbsent - $deductLate - $totalCompDeduct;
+
+                $bpjs = $includeBpjs ? round($grossSalary * 0.03) : 0;
+                $pkp = max(0, ($grossSalary * 12) - 54000000);
+                $pph21 = round(($pkp <= 60000000 ? $pkp * 0.05 : 3000000 + ($pkp - 60000000) * 0.15) / 12);
+                $net = $grossSalary - $bpjs - $pph21;
+
+                $payrollItem = PayrollItem::updateOrCreate(
+                    ['tenant_id' => $tid, 'payroll_run_id' => $run->id, 'employee_id' => $emp->id],
+                    [
+                        'base_salary' => $baseSalary,
+                        'working_days' => $workingDays,
+                        'present_days' => $presentDays,
+                        'absent_days' => $absentDays,
+                        'late_days' => $lateDays,
+                        'allowances' => $totalAllowances,
+                        'overtime_pay' => $overtimePay,
+                        'deduction_absent' => $deductAbsent,
+                        'deduction_late' => $deductLate,
+                        'deduction_other' => $totalCompDeduct,
+                        'gross_salary' => $grossSalary,
+                        'bpjs_employee' => $bpjs,
+                        'tax_pph21' => $pph21,
+                        'net_salary' => $net,
+                        'status' => 'pending',
+                    ]
+                );
+
+                // Snapshot komponen ke payroll_item_components
+                PayrollItemComponent::where('payroll_item_id', $payrollItem->id)->delete();
+                foreach ($componentSnapshots as $snap) {
+                    PayrollItemComponent::create(array_merge($snap, ['payroll_item_id' => $payrollItem->id]));
+                }
+
+                // BUG-HRM-001 FIX: Mark overtime AFTER payroll item saved (inside transaction)
+                // This prevents overtime being marked if payroll processing fails
+                OvertimeRequest::where('tenant_id', $tid)
+                    ->where('employee_id', $emp->id)
+                    ->where('status', 'approved')
+                    ->where('included_in_payroll', false)
+                    ->whereYear('date', $year)->whereMonth('date', $month)
+                    ->update(['included_in_payroll' => true, 'payroll_period' => $period]);
+
+                $totalGross += $grossSalary;
+                $totalDeductions += $bpjs + $pph21 + $deductAbsent + $deductLate;
+                $totalNet += $net;
             }
 
-            $grossSalary = $baseSalary + $totalAllowances + $overtimePay - $deductAbsent - $deductLate - $totalCompDeduct;
+            // Update payroll run with totals
+            $run->update([
+                'status' => 'processed',
+                'total_gross' => $totalGross,
+                'total_deductions' => $totalDeductions,
+                'total_net' => $totalNet,
+                'processed_at' => now(),
+            ]);
+        });
 
-            $bpjs  = $includeBpjs ? round($grossSalary * 0.03) : 0;
-            $pkp   = max(0, ($grossSalary * 12) - 54000000);
-            $pph21 = round(($pkp <= 60000000 ? $pkp * 0.05 : 3000000 + ($pkp - 60000000) * 0.15) / 12);
-            $net   = $grossSalary - $bpjs - $pph21;
-
-            $payrollItem = PayrollItem::updateOrCreate(
-                ['tenant_id' => $tid, 'payroll_run_id' => $run->id, 'employee_id' => $emp->id],
-                [
-                    'base_salary'      => $baseSalary,
-                    'working_days'     => $workingDays,
-                    'present_days'     => $presentDays,
-                    'absent_days'      => $absentDays,
-                    'late_days'        => $lateDays,
-                    'allowances'       => $totalAllowances,
-                    'overtime_pay'     => $overtimePay,
-                    'deduction_absent' => $deductAbsent,
-                    'deduction_late'   => $deductLate,
-                    'deduction_other'  => $totalCompDeduct,
-                    'gross_salary'     => $grossSalary,
-                    'bpjs_employee'    => $bpjs,
-                    'tax_pph21'        => $pph21,
-                    'net_salary'       => $net,
-                    'status'           => 'pending',
-                ]
-            );
-
-            // Snapshot komponen ke payroll_item_components
-            PayrollItemComponent::where('payroll_item_id', $payrollItem->id)->delete();
-            foreach ($componentSnapshots as $snap) {
-                PayrollItemComponent::create(array_merge($snap, ['payroll_item_id' => $payrollItem->id]));
-            }
-
-            // Mark overtime requests as included in this payroll
-            OvertimeRequest::where('tenant_id', $tid)
-                ->where('employee_id', $emp->id)
-                ->where('status', 'approved')
-                ->where('included_in_payroll', false)
-                ->whereYear('date', $year)->whereMonth('date', $month)
-                ->update(['included_in_payroll' => true, 'payroll_period' => $period]);
-
-            $totalGross      += $grossSalary;
-            $totalDeductions += $bpjs + $pph21 + $deductAbsent + $deductLate;
-            $totalNet        += $net;
-        }
-
-        $run->update([
-            'status'           => 'processed',
-            'total_gross'      => $totalGross,
-            'total_deductions' => $totalDeductions,
-            'total_net'        => $totalNet,
-            'processed_at'     => now(),
-        ]);
+        // Reload run after transaction
+        $run->refresh();
+        $employees = Employee::where('tenant_id', $tid)->where('status', 'active')->whereNotNull('salary')->get();
 
         // ── GL Reconciliation — buat jurnal akuntansi otomatis ────
         $glWarning = null;
@@ -203,11 +231,11 @@ class PayrollController extends Controller
 
             ErpNotification::create([
                 'tenant_id' => $tid,
-                'user_id'   => $admin->id,
-                'type'      => 'payroll_processed',
-                'title'     => '💰 Penggajian Diproses',
-                'body'      => "Penggajian periode {$period} untuk {$employees->count()} karyawan berhasil diproses. Total: Rp " . number_format($totalNet, 0, ',', '.'),
-                'data'      => ['payroll_run_id' => $run->id, 'period' => $period],
+                'user_id' => $admin->id,
+                'type' => 'payroll_processed',
+                'title' => '💰 Penggajian Diproses',
+                'body' => "Penggajian periode {$period} untuk {$employees->count()} karyawan berhasil diproses. Total: Rp " . number_format($run->total_net, 0, ',', '.'),
+                'data' => ['payroll_run_id' => $run->id, 'period' => $period],
             ]);
         }
 
@@ -218,7 +246,31 @@ class PayrollController extends Controller
     public function markPaid(PayrollRun $run)
     {
         abort_unless($run->tenant_id === $this->tenantId(), 403);
+
+        // BUG-HRM-001 FIX: Prevent double marking as paid
+        if ($run->status === 'paid') {
+            return back()->with('info', "Penggajian periode {$run->period} sudah ditandai sebagai dibayar pada {$run->paid_at->format('d/m/Y H:i')}.");
+        }
+
         abort_unless($run->status === 'processed', 403, 'Hanya payroll berstatus processed yang bisa ditandai dibayar.');
+
+        // BUG-HRM-001 FIX: Check if payment journal already exists
+        if ($run->payment_journal_entry_id) {
+            $paymentJournal = $run->paymentJournalEntry;
+            if ($paymentJournal && $paymentJournal->status === 'posted') {
+                \Illuminate\Support\Facades\Log::warning('Potential duplicate payroll payment attempt', [
+                    'payroll_run_id' => $run->id,
+                    'period' => $run->period,
+                    'existing_journal' => $paymentJournal->number,
+                    'user_id' => auth()->id(),
+                ]);
+
+                return back()->withErrors([
+                    'error' => "Jurnal pembayaran sudah ada ({$paymentJournal->number}). " .
+                        "Jika ini kesalahan, silakan reverse jurnal terlebih dahulu."
+                ]);
+            }
+        }
 
         $run->update(['status' => 'paid', 'paid_at' => now(), 'paid_by' => auth()->id()]);
         PayrollItem::where('payroll_run_id', $run->id)->update(['status' => 'paid']);

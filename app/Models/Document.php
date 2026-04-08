@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Document extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'uploaded_by', 'title', 'file_name', 'file_path',
         'file_type', 'file_size', 'category', 'related_type', 'related_id',

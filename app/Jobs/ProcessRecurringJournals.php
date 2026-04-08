@@ -28,27 +28,45 @@ class ProcessRecurringJournals implements ShouldQueue
             ->each(function (RecurringJournal $recurring) use ($today) {
                 try {
                     DB::transaction(function () use ($recurring, $today) {
-                        $period = AccountingPeriod::findForDate($recurring->tenant_id, $today->toDateString());
+                        $date = $today->toDateString();
+
+                        // BUG-FIN-002 FIX: Check period lock before auto-creating journal
+                        $periodLockService = app(\App\Services\PeriodLockService::class);
+                        if ($periodLockService->isLocked($recurring->tenant_id, $date)) {
+                            $lockInfo = $periodLockService->getLockInfo($recurring->tenant_id, $date);
+                            Log::warning(
+                                "Recurring journal skipped: Periode {$lockInfo} sudah dikunci. " .
+                                "RecurringJournal ID: {$recurring->id}, Date: {$date}"
+                            );
+                            // Skip this run, update next_run_date
+                            $recurring->update([
+                                'last_run_date' => $today,
+                                'next_run_date' => $recurring->calculateNextRun(),
+                            ]);
+                            return;
+                        }
+
+                        $period = AccountingPeriod::findForDate($recurring->tenant_id, $date);
 
                         $journal = JournalEntry::create([
-                            'tenant_id'           => $recurring->tenant_id,
-                            'period_id'           => $period?->id,
-                            'user_id'             => $recurring->user_id,
-                            'number'              => JournalEntry::generateNumber($recurring->tenant_id, 'JRE'),
-                            'date'                => $today,
-                            'description'         => $recurring->name . ' (Otomatis)',
-                            'currency_code'       => 'IDR',
-                            'currency_rate'       => 1,
-                            'status'              => 'draft',
-                            'is_recurring'        => true,
-                            'recurring_journal_id'=> $recurring->id,
+                            'tenant_id' => $recurring->tenant_id,
+                            'period_id' => $period?->id,
+                            'user_id' => $recurring->user_id,
+                            'number' => JournalEntry::generateNumber($recurring->tenant_id, 'JRE'),
+                            'date' => $today,
+                            'description' => $recurring->name . ' (Otomatis)',
+                            'currency_code' => 'IDR',
+                            'currency_rate' => 1,
+                            'status' => 'draft',
+                            'is_recurring' => true,
+                            'recurring_journal_id' => $recurring->id,
                         ]);
 
                         foreach ($recurring->lines as $line) {
                             $journal->lines()->create([
-                                'account_id'  => $line['account_id'],
-                                'debit'       => (float)($line['debit'] ?? 0),
-                                'credit'      => (float)($line['credit'] ?? 0),
+                                'account_id' => $line['account_id'],
+                                'debit' => (float) ($line['debit'] ?? 0),
+                                'credit' => (float) ($line['credit'] ?? 0),
                                 'description' => $line['description'] ?? $recurring->name,
                             ]);
                         }

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MarketplaceSyncLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'channel_id',
@@ -18,6 +21,9 @@ class MarketplaceSyncLog extends Model
         'next_retry_at',
         'payload',
         'response',
+        'sync_id', // BUG-API-003 FIX: Track sync batch ID
+        'data_before', // BUG-API-003 FIX: Store data before sync
+        'data_after', // BUG-API-003 FIX: Store data after sync
     ];
 
     protected $casts = [

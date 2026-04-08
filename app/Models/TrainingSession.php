@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TrainingSession extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'training_program_id', 'start_date', 'end_date',
         'location', 'trainer', 'max_participants', 'status', 'notes',

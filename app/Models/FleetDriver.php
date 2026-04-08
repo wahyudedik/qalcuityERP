@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FleetDriver extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'employee_id', 'name', 'license_number',
         'license_type', 'license_expiry', 'phone', 'status',

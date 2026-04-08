@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PeriodBackup extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'type', 'label', 'period_start', 'period_end',
         'file_path', 'file_size', 'status', 'summary', 'error_message',

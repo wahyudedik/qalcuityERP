@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'user_id', 'customer_id', 'number', 'name', 'description',
         'type', 'status', 'start_date', 'end_date',

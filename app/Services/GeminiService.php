@@ -27,10 +27,33 @@ class GeminiService
 
     public function __construct()
     {
-        $this->client = \Gemini::factory()->withApiKey(config('gemini.api_key'))->make();
+        $apiKey = config('gemini.api_key');
+
+        // BUG-AI-003 FIX: Validate API key exists before creating client
+        if (empty($apiKey)) {
+            $message = 'Gemini API key tidak dikonfigurasi. Silakan tambah GEMINI_API_KEY di file .env atau pengaturan Admin → AI Settings.';
+            Log::error('GeminiService: ' . $message);
+            throw new \RuntimeException($message, 500);
+        }
+
+        try {
+            $this->client = \Gemini::factory()->withApiKey($apiKey)->make();
+        } catch (\Throwable $e) {
+            // BUG-AI-003 FIX: Clear error message when API key is invalid
+            $message = 'Gemini API key tidak valid. Error: ' . $e->getMessage() . '. Periksa GEMINI_API_KEY di .env atau pengaturan Admin → AI Settings.';
+            Log::error('GeminiService: ' . $message, ['error' => $e->getMessage()]);
+            throw new \RuntimeException($message, 500);
+        }
+
         $this->models = config('gemini.fallback_models');
         $this->rateLimitCodes = config('gemini.rate_limit_codes', [429, 503, 500]);
         $this->activeModel = config('gemini.model');
+
+        // BUG-AI-003 FIX: Validate fallback models configured
+        if (empty($this->models)) {
+            Log::warning('GeminiService: No fallback models configured. Using default model only.');
+            $this->models = [$this->activeModel];
+        }
     }
 
     /** Inject konteks bisnis tenant ke system prompt */
@@ -994,17 +1017,43 @@ PROMPT,
                 return ['text' => $result, 'model' => $model];
 
             } catch (\Throwable $e) {
+                // BUG-AI-003 FIX: Differentiate error types for clear user messages
+                if ($this->isApiKeyError($e)) {
+                    Log::error("GeminiService: Invalid API key on [{$model}]. Check GEMINI_API_KEY configuration.");
+                    throw new \RuntimeException(
+                        'Gemini API key tidak valid. Silakan periksa pengaturan API key di Admin → AI Settings atau file .env.',
+                        401
+                    );
+                }
+
                 if ($this->isRateLimitError($e)) {
                     Log::warning("GeminiService: rate limit on [{$model}], trying next...");
                     continue;
                 }
-                // Log error tapi jangan expose detail ke user
-                Log::error("GeminiService error on [{$model}]: " . $e->getMessage());
-                throw $e;
+
+                if ($this->isQuotaExceededError($e)) {
+                    Log::error("GeminiService: Quota exceeded on [{$model}]. Billing may need to be enabled.");
+                    throw new \RuntimeException(
+                        'Kuota Gemini API telah habis. Silakan upgrade billing account atau tunggu reset kuota besok.',
+                        429
+                    );
+                }
+
+                // BUG-AI-003 FIX: Log error with context and user-friendly message
+                Log::error("GeminiService error on [{$model}]: " . $e->getMessage(), [
+                    'model' => $model,
+                    'error_code' => $e->getCode(),
+                    'error_type' => get_class($e),
+                ]);
+
+                throw new \RuntimeException(
+                    'Gagal terhubung ke Gemini AI. Error: ' . $this->getUserFriendlyError($e),
+                    503
+                );
             }
         }
 
-        throw new \RuntimeException('All Gemini models are rate-limited or unavailable.');
+        throw new \RuntimeException('Semua model Gemini AI sedang tidak tersedia (rate-limited atau down). Silakan coba beberapa saat lagi.');
     }
 
     protected function buildModelQueue(): array
@@ -1114,6 +1163,84 @@ PROMPT,
                 return true;
         }
         return false;
+    }
+
+    /**
+     * BUG-AI-003 FIX: Detect API key related errors
+     */
+    protected function isApiKeyError(\Throwable $e): bool
+    {
+        $message = strtolower($e->getMessage());
+        $code = $e->getCode();
+
+        // HTTP 401 or 403 usually means invalid API key
+        if (in_array($code, [401, 403])) {
+            return true;
+        }
+
+        foreach ([
+            'api key',
+            'api_key',
+            'apikey',
+            'invalid key',
+            'invalid api',
+            'unauthorized',
+            'forbidden',
+            'permission denied',
+            'authentication',
+            'not authorized',
+        ] as $kw) {
+            if (str_contains($message, $kw)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * BUG-AI-003 FIX: Detect quota exceeded errors (different from rate limit)
+     */
+    protected function isQuotaExceededError(\Throwable $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        foreach ([
+            'quota exceeded',
+            'billing not enabled',
+            'billing required',
+            'payment required',
+            'exceeded quota',
+            'limit exceeded',
+        ] as $kw) {
+            if (str_contains($message, $kw)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * BUG-AI-003 FIX: Get user-friendly error message
+     */
+    protected function getUserFriendlyError(\Throwable $e): string
+    {
+        $message = strtolower($e->getMessage());
+        $code = $e->getCode();
+
+        // Timeout errors
+        if ($code === 0 && str_contains($message, 'timed out')) {
+            return 'Koneksi ke Gemini AI timeout. Silakan coba lagi.';
+        }
+
+        // Network errors
+        if (str_contains($message, 'connection') || str_contains($message, 'network')) {
+            return 'Gagal terhubung ke server Gemini. Periksa koneksi internet Anda.';
+        }
+
+        // Default: return generic message
+        return 'Terjadi kesalahan saat memproses permintaan. Silakan coba lagi.';
     }
 
     public function getActiveModel(): string

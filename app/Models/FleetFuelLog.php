@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FleetFuelLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'vehicle_id', 'driver_id', 'user_id',
         'date', 'odometer', 'fuel_type', 'liters', 'price_per_liter',

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class ApprovalRequest extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'workflow_id', 'requested_by', 'approved_by',
         'model_type', 'model_id', 'status', 'amount',

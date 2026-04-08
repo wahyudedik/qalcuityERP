@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RatePlan extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
@@ -116,6 +119,106 @@ class RatePlan extends Model
         }
 
         return true;
+    }
+
+    /**
+     * BUG-HOTEL-004 FIX: Check if this rate plan overlaps with another rate plan
+     * 
+     * @param RatePlan $other The other rate plan to check against
+     * @return bool True if there is an overlap
+     */
+    public function overlapsWith(RatePlan $other): bool
+    {
+        // Different room types can have overlapping dates (that's fine)
+        if ($this->room_type_id !== $other->room_type_id) {
+            return false;
+        }
+
+        // Same rate plan (no self-comparison)
+        if ($this->id === $other->id) {
+            return false;
+        }
+
+        // If either has no date range, they overlap (infinite range)
+        if (!$this->valid_from && !$this->valid_to) {
+            return true;
+        }
+
+        if (!$other->valid_from && !$other->valid_to) {
+            return true;
+        }
+
+        // Check date overlap logic
+        // Two ranges [A, B] and [C, D] overlap if: A <= D AND C <= B
+        $thisStart = $this->valid_from ?? now()->subYears(10);
+        $thisEnd = $this->valid_to ?? now()->addYears(10);
+        $otherStart = $other->valid_from ?? now()->subYears(10);
+        $otherEnd = $other->valid_to ?? now()->addYears(10);
+
+        return $thisStart <= $otherEnd && $otherStart <= $thisEnd;
+    }
+
+    /**
+     * BUG-HOTEL-004 FIX: Find all overlapping rate plans for the same room type
+     * 
+     * @param int $tenantId Tenant ID
+     * @param int $roomTypeId Room type ID
+     * @param string|null $validFrom Start date
+     * @param string|null $validTo End date
+     * @param int|null $excludeId Exclude specific rate plan ID (for updates)
+     * @return \Illuminate\Support\Collection Collection of overlapping rate plans
+     */
+    public static function findOverlapping(
+        int $tenantId,
+        int $roomTypeId,
+        ?string $validFrom = null,
+        ?string $validTo = null,
+        ?int $excludeId = null
+    ): \Illuminate\Support\Collection {
+        // If no date range specified, it overlaps with everything
+        if (!$validFrom && !$validTo) {
+            $query = self::where('tenant_id', $tenantId)
+                ->where('room_type_id', $roomTypeId)
+                ->where('is_active', true);
+        } else {
+            // Check for date overlap
+            // Overlap condition: (start1 <= end2) AND (start2 <= end1)
+            $query = self::where('tenant_id', $tenantId)
+                ->where('room_type_id', $roomTypeId)
+                ->where('is_active', true)
+                ->where(function ($q) use ($validFrom, $validTo) {
+                    // Case 1: Other plan has no date range (infinite)
+                    $q->where(function ($q2) {
+                        $q2->whereNull('valid_from')
+                            ->whereNull('valid_to');
+                    })
+                        // Case 2: Date ranges overlap
+                        ->orWhere(function ($q2) use ($validFrom, $validTo) {
+                        if ($validFrom) {
+                            // Other's end >= our start
+                            $q2->where(function ($q3) use ($validFrom) {
+                                $q3->whereNull('valid_to')
+                                    ->orWhere('valid_to', '>=', $validFrom);
+                            });
+                        }
+
+                        if ($validTo) {
+                            // Other's start <= our end
+                            $q2->where(function ($q3) use ($validTo) {
+                                $q3->whereNull('valid_from')
+                                    ->orWhere('valid_from', '<=', $validTo);
+                            });
+                        }
+                    });
+                });
+        }
+
+        // Exclude specific ID (useful for updates)
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->get();
     }
 
     /**

@@ -19,8 +19,9 @@ class RoomAvailabilityService
 {
     /**
      * Reservation statuses that block room availability.
+     * BUG-HOTEL-001 FIX: Added 'pending' to prevent double booking during pending state
      */
-    public const BLOCKING_STATUSES = ['confirmed', 'checked_in'];
+    public const BLOCKING_STATUSES = ['pending', 'confirmed', 'checked_in'];
 
     /**
      * Get availability summary for date range, optionally filtered by room type.
@@ -92,7 +93,7 @@ class RoomAvailabilityService
     /**
      * Check if a specific room is available for given dates.
      * Excludes a specific reservation (for edit scenarios).
-     * Checks against reservations with status in ['confirmed','checked_in'].
+     * Checks against reservations with status in ['pending','confirmed','checked_in'].
      *
      * @param int $roomId
      * @param string $checkIn
@@ -112,6 +113,61 @@ class RoomAvailabilityService
         // Check if room exists and is active
         $room = Room::find($roomId);
         if (!$room || !$room->is_active) {
+            return false;
+        }
+
+        // Check for conflicts via room_id directly on reservation
+        $conflictingReservation = Reservation::where('room_id', $roomId)
+            ->whereIn('status', self::BLOCKING_STATUSES)
+            ->where('check_in_date', '<', $checkOutDate)
+            ->where('check_out_date', '>', $checkInDate)
+            ->when($excludeReservationId, fn($q) => $q->where('id', '!=', $excludeReservationId))
+            ->exists();
+
+        if ($conflictingReservation) {
+            return false;
+        }
+
+        // Check for conflicts via reservation_rooms
+        $conflictingReservationRoom = ReservationRoom::whereHas('reservation', function ($q) {
+            $q->whereIn('status', self::BLOCKING_STATUSES);
+        })
+            ->where('room_id', $roomId)
+            ->where('check_in_date', '<', $checkOutDate)
+            ->where('check_out_date', '>', $checkInDate)
+            ->when($excludeReservationId, fn($q) => $q->where('reservation_id', '!=', $excludeReservationId))
+            ->exists();
+
+        return !$conflictingReservationRoom;
+    }
+
+    /**
+     * BUG-HOTEL-001 FIX: Check if room is available with pessimistic locking.
+     * This must be called inside a DB::transaction to be effective.
+     * Locks the room row to prevent concurrent bookings.
+     *
+     * @param int $roomId
+     * @param string $checkIn
+     * @param string $checkOut
+     * @param int|null $excludeReservationId
+     * @return bool
+     */
+    public function isRoomAvailableLocked(
+        int $roomId,
+        string $checkIn,
+        string $checkOut,
+        ?int $excludeReservationId = null
+    ): bool {
+        $checkInDate = Carbon::parse($checkIn);
+        $checkOutDate = Carbon::parse($checkOut);
+
+        // BUG-HOTEL-001 FIX: Lock the room row to prevent race conditions
+        $room = Room::where('id', $roomId)
+            ->where('is_active', true)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$room || !$room->is_active || $room->status !== 'available') {
             return false;
         }
 
@@ -170,6 +226,45 @@ class RoomAvailabilityService
         }
 
         $rooms = $roomsQuery->get();
+
+        // Filter out rooms with conflicts
+        return $rooms->filter(function ($room) use ($checkIn, $checkOut) {
+            return $this->isRoomAvailable($room->id, $checkIn, $checkOut);
+        })->values();
+    }
+
+    /**
+     * BUG-HOTEL-001 FIX: Get available rooms with pessimistic locking.
+     * This prevents race conditions by locking rooms during the check.
+     * Must be called inside a DB::transaction.
+     *
+     * @param int $tenantId
+     * @param string $checkIn
+     * @param string $checkOut
+     * @param int|null $roomTypeId
+     * @return Collection
+     */
+    public function getAvailableRoomsLocked(
+        int $tenantId,
+        string $checkIn,
+        string $checkOut,
+        ?int $roomTypeId = null
+    ): Collection {
+        $checkInDate = Carbon::parse($checkIn);
+        $checkOutDate = Carbon::parse($checkOut);
+
+        // Get all available and active rooms WITH LOCK
+        $roomsQuery = Room::where('tenant_id', $tenantId)
+            ->where('status', 'available')
+            ->where('is_active', true)
+            ->with('roomType');
+
+        if ($roomTypeId) {
+            $roomsQuery->where('room_type_id', $roomTypeId);
+        }
+
+        // BUG-HOTEL-001 FIX: Lock rooms to prevent concurrent booking
+        $rooms = $roomsQuery->lockForUpdate()->get();
 
         // Filter out rooms with conflicts
         return $rooms->filter(function ($room) use ($checkIn, $checkOut) {

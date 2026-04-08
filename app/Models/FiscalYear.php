@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FiscalYear extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'name', 'start_date', 'end_date',
         'status', 'closed_by', 'closed_at', 'locked_by', 'locked_at', 'notes',

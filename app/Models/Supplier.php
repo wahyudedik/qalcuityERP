@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Supplier extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
@@ -38,5 +41,11 @@ class Supplier extends Model
     public function purchaseOrders(): HasMany
     {
         return $this->hasMany(PurchaseOrder::class);
+    }
+
+    // BUG-PO-003 FIX: Add scorecards relationship for supplier rating evaluation
+    public function scorecards(): HasMany
+    {
+        return $this->hasMany(SupplierScorecard::class);
     }
 }

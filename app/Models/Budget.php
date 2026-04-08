@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 
 class Budget extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'name',

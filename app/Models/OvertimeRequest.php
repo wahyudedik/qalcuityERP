@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OvertimeRequest extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'employee_id', 'date', 'start_time', 'end_time',
         'duration_minutes', 'reason', 'status', 'approved_by', 'approved_at',

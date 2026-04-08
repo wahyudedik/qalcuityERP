@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivestockVaccination extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'livestock_herd_id', 'tenant_id', 'user_id', 'vaccine_name',
         'scheduled_date', 'administered_date', 'dose_age_days', 'dose_method',

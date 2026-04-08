@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
     protected $appends = ['housekeeping_stats'];

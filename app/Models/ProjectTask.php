@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProjectTask extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'project_id', 'tenant_id', 'assigned_to', 'name', 'description',
         'status', 'progress_method', 'target_volume', 'actual_volume', 'volume_unit',

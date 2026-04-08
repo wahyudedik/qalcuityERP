@@ -1,5 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">📊 Supplier Scorecard Dashboard</x-slot>
+    <x-slot name="header">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Supplier Scorecard Dashboard</h1>
+            <button type="button" onclick="document.getElementById('generateModal').classList.remove('hidden')"
+                class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition whitespace-nowrap">
+                Generate Scorecards
+            </button>
+        </div>
+    </x-slot>
 
     {{-- Period Selector --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 mb-6">
@@ -14,7 +22,7 @@
                 </select>
                 <button type="button" onclick="document.getElementById('generateModal').classList.remove('hidden')"
                     class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-                    🔄 Generate Scorecards
+                    Generate Scorecards
                 </button>
             </div>
         </form>
@@ -55,7 +63,7 @@
     {{-- Performance by Category --}}
     @if (count($dashboard['by_category']) > 0)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📈 Performance by Category</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Performance by Category</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 @foreach ($dashboard['by_category'] as $category => $stats)
                     <div class="p-4 bg-gray-50 dark:bg-[#0f172a] rounded-xl">
@@ -71,7 +79,7 @@
     {{-- Supplier Scorecards Table --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">🏆 Supplier Scorecards</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Supplier Scorecards</h2>
             <div class="flex gap-2">
                 <input type="text" placeholder="Search supplier..."
                     class="px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white w-48">
@@ -174,7 +182,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md p-6">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🔄 Generate Scorecards</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Generate Scorecards</h2>
                 <button onclick="document.getElementById('generateModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>
@@ -189,7 +197,8 @@
                         <option value="yearly">Yearly</option>
                     </select>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-slate-400">This will generate/update scorecards for all active
+                <p class="text-xs text-gray-500 dark:text-slate-400">This will generate/update scorecards for all
+                    active
                     suppliers based on their performance data.</p>
                 <div class="flex gap-3 pt-2">
                     <button type="submit"

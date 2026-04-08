@@ -11,6 +11,8 @@ class ChatSessionManager
 {
     // Batas history yang dikirim ke Gemini (hemat token)
     const MAX_HISTORY_MESSAGES = 20;
+    // Batas maksimum messages yang disimpan per session (hard limit)
+    const MAX_MESSAGES_PER_SESSION = 100;
     // Estimasi token per karakter (rough estimate)
     const CHARS_PER_TOKEN = 4;
 
@@ -22,48 +24,70 @@ class ChatSessionManager
                 ->where('is_active', true)
                 ->first();
 
-            if ($session) return $session;
+            if ($session)
+                return $session;
         }
 
         return ChatSession::create([
             'tenant_id' => $user->tenant_id,  // null untuk super_admin, itu OK
-            'user_id'   => $user->id,
-            'title'     => null,
+            'user_id' => $user->id,
+            'title' => null,
             'is_active' => true,
         ]);
     }
 
     /**
      * Ambil history yang sudah dipangkas untuk efisiensi token.
+     * BUG-AI-001 FIX: Database-level limit to prevent memory exhaustion
      * Strategi: ambil N pesan terakhir, selalu sertakan pesan pertama sebagai konteks awal.
      */
     public function getHistory(ChatSession $session): array
     {
-        $messages = $session->messages()
-            ->orderBy('id')
-            ->get(['role', 'content']);
+        // BUG-AI-001 FIX: Get total count first (cheap query)
+        $totalMessages = $session->messages()->count();
 
-        if ($messages->count() <= self::MAX_HISTORY_MESSAGES) {
-            return $messages->map(fn($m) => ['role' => $m->role, 'text' => $m->content])->toArray();
+        // If session has too many messages, warn about truncation
+        if ($totalMessages > self::MAX_MESSAGES_PER_SESSION) {
+            \Log::warning('Chat session exceeds max messages, truncating history', [
+                'session_id' => $session->id,
+                'total_messages' => $totalMessages,
+                'max_allowed' => self::MAX_MESSAGES_PER_SESSION,
+            ]);
         }
 
-        // Ambil pesan pertama (konteks awal) + N pesan terakhir
-        $first  = $messages->first();
-        $recent = $messages->slice(-self::MAX_HISTORY_MESSAGES + 1);
+        // BUG-AI-001 FIX: Only load messages we actually need
+        if ($totalMessages <= self::MAX_HISTORY_MESSAGES) {
+            // Small session: load all messages
+            $messages = $session->messages()
+                ->orderBy('id')
+                ->get(['id', 'role', 'content']);
+        } else {
+            // Large session: load first message + last N messages only
+            $firstMessage = $session->messages()
+                ->orderBy('id')
+                ->first(['id', 'role', 'content']);
 
-        return collect([$first])
-            ->merge($recent)
-            ->unique('id')
-            ->map(fn($m) => ['role' => $m->role, 'text' => $m->content])
-            ->values()
-            ->toArray();
+            $recentMessages = $session->messages()
+                ->orderByDesc('id')
+                ->limit(self::MAX_HISTORY_MESSAGES - 1) // -1 because we include first
+                ->get(['id', 'role', 'content'])
+                ->sortBy('id'); // Re-sort by ascending ID
+
+            // Merge first + recent, avoiding duplicates
+            $messages = collect([$firstMessage])
+                ->merge($recentMessages)
+                ->unique('id')
+                ->values();
+        }
+
+        return $messages->map(fn($m) => ['role' => $m->role, 'text' => $m->content])->toArray();
     }
 
     public function saveUserMessage(ChatSession $session, string $content): ChatMessage
     {
         return $session->messages()->create([
-            'role'        => 'user',
-            'content'     => $content,
+            'role' => 'user',
+            'content' => $content,
             'token_count' => $this->estimateTokens($content),
         ]);
     }
@@ -77,10 +101,10 @@ class ChatSessionManager
         $tokens = $this->estimateTokens($content);
 
         $message = $session->messages()->create([
-            'role'           => 'model',
-            'content'        => $content,
-            'model_used'     => $model,
-            'token_count'    => $tokens,
+            'role' => 'model',
+            'content' => $content,
+            'model_used' => $model,
+            'token_count' => $tokens,
             'function_calls' => !empty($functionCalls) ? $functionCalls : null,
         ]);
 
@@ -101,6 +125,9 @@ class ChatSessionManager
             }
         }
 
+        // BUG-AI-001 FIX: Auto-purge old messages if session exceeds limit
+        $this->purgeOldMessagesIfNeeded($session);
+
         // Rekam pola aksi ke AI memory (Task 52)
         if (!empty($functionCalls) && $session->user_id && $session->tenant_id) {
             $this->recordActionsToMemory($session->tenant_id, $session->user_id, $functionCalls);
@@ -118,7 +145,7 @@ class ChatSessionManager
             $memoryService = app(AiMemoryService::class);
             foreach ($functionCalls as $call) {
                 $toolName = $call['tool'] ?? '';
-                $args     = $call['args'] ?? [];
+                $args = $call['args'] ?? [];
 
                 // Rekam metode pembayaran
                 if (!empty($args['payment_method'])) {
@@ -139,7 +166,7 @@ class ChatSessionManager
                 // Rekam supplier yang sering digunakan
                 if (!empty($args['supplier_name'])) {
                     $memoryService->recordAction($tenantId, $userId, 'frequent_suppliers', [
-                        'value'        => $args['supplier_name'],
+                        'value' => $args['supplier_name'],
                         'product_name' => $args['product_name'] ?? null,
                     ]);
                 }
@@ -187,6 +214,51 @@ class ChatSessionManager
     public function deleteSession(ChatSession $session): void
     {
         $session->update(['is_active' => false]);
+    }
+
+    /**
+     * BUG-AI-001 FIX: Auto-purge old messages when session exceeds limit.
+     * Keeps first message (for context) + latest N messages.
+     */
+    protected function purgeOldMessagesIfNeeded(ChatSession $session): void
+    {
+        $totalMessages = $session->messages()->count();
+
+        if ($totalMessages <= self::MAX_MESSAGES_PER_SESSION) {
+            return; // No purge needed
+        }
+
+        try {
+            // Keep: first message + latest (MAX_MESSAGES_PER_SESSION - 1) messages
+            $messagesToKeep = self::MAX_MESSAGES_PER_SESSION - 1;
+
+            // Get IDs of messages to delete (exclude first and latest N)
+            $firstMessageId = $session->messages()->orderBy('id')->value('id');
+
+            $messageIdsToDelete = $session->messages()
+                ->where('id', '!=', $firstMessageId)
+                ->orderByDesc('id')
+                ->offset($messagesToKeep) // Skip latest N messages
+                ->pluck('id');
+
+            if ($messageIdsToDelete->isNotEmpty()) {
+                $deletedCount = $session->messages()
+                    ->whereIn('id', $messageIdsToDelete)
+                    ->delete();
+
+                \Log::info('Auto-purged old chat messages', [
+                    'session_id' => $session->id,
+                    'deleted_count' => $deletedCount,
+                    'remaining_count' => $session->messages()->count(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Don't let purge errors break the chat flow
+            \Log::error('Failed to purge old chat messages', [
+                'session_id' => $session->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function estimateTokens(string $text): int

@@ -12,12 +12,23 @@ use Illuminate\Support\Facades\Log;
 
 class AgricultureController extends Controller
 {
-    public function __construct(
-        protected WeatherIntegrationService $weatherService,
-        protected PestDetectionService $pestService,
-        protected IrrigationAutomationService $irrigationService,
-        protected MarketPriceMonitorService $priceService,
-    ) {
+    protected WeatherIntegrationService $weatherService;
+    protected PestDetectionService $pestService;
+    protected IrrigationAutomationService $irrigationService;
+    protected MarketPriceMonitorService $priceService;
+
+    /**
+     * Constructor - Inject services dengan tenant_id dari user yang login
+     */
+    public function __construct()
+    {
+        $tenantId = auth()->user()?->tenant_id;
+
+        // Inject tenant_id ke semua services
+        $this->weatherService = app(WeatherIntegrationService::class, ['tenantId' => $tenantId]);
+        $this->pestService = app(PestDetectionService::class, ['tenantId' => $tenantId]);
+        $this->irrigationService = app(IrrigationAutomationService::class, ['tenantId' => $tenantId]);
+        $this->priceService = app(MarketPriceMonitorService::class, ['tenantId' => $tenantId]);
     }
 
     /**

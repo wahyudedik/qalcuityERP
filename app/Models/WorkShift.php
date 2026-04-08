@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkShift extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'name', 'color', 'start_time', 'end_time',
         'break_minutes', 'crosses_midnight', 'description', 'is_active',

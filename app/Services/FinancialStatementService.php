@@ -27,22 +27,22 @@ class FinancialStatementService
     {
         $accounts = $this->getAccountBalances($tenantId, null, $asOf);
 
-        $assets      = $accounts->where('type', 'asset');
+        $assets = $accounts->where('type', 'asset');
         $liabilities = $accounts->where('type', 'liability');
-        $equity      = $accounts->where('type', 'equity');
+        $equity = $accounts->where('type', 'equity');
 
-        $currentAssets    = $assets->filter(fn($a) => $a['code'] >= '1100' && $a['code'] < '1200');
+        $currentAssets = $assets->filter(fn($a) => $a['code'] >= '1100' && $a['code'] < '1200');
         $nonCurrentAssets = $assets->filter(fn($a) => $a['code'] >= '1200');
-        $currentLiab      = $liabilities->filter(fn($a) => $a['code'] >= '2100' && $a['code'] < '2200');
-        $longTermLiab     = $liabilities->filter(fn($a) => $a['code'] >= '2200');
+        $currentLiab = $liabilities->filter(fn($a) => $a['code'] >= '2100' && $a['code'] < '2200');
+        $longTermLiab = $liabilities->filter(fn($a) => $a['code'] >= '2200');
 
-        $totalAssets      = $assets->sum('balance');
+        $totalAssets = $assets->sum('balance');
         $totalLiabilities = $liabilities->sum('balance');
-        $totalEquity      = $equity->sum('balance');
+        $totalEquity = $equity->sum('balance');
 
         // Net income from revenue - expense (already in $accounts)
-        $revenue   = $accounts->where('type', 'revenue')->sum('balance');
-        $expense   = $accounts->where('type', 'expense')->sum('balance');
+        $revenue = $accounts->where('type', 'revenue')->sum('balance');
+        $expense = $accounts->where('type', 'expense')->sum('balance');
         $netIncome = $revenue - $expense;
 
         $totalLiabEquity = $totalLiabilities + $totalEquity + $netIncome;
@@ -51,26 +51,26 @@ class FinancialStatementService
         $integrity = $this->checkGlIntegrity($tenantId, $asOf);
 
         return [
-            'as_of'         => $asOf,
-            'assets'        => [
-                'current'     => $currentAssets->values(),
+            'as_of' => $asOf,
+            'assets' => [
+                'current' => $currentAssets->values(),
                 'non_current' => $nonCurrentAssets->values(),
-                'total'       => $totalAssets,
+                'total' => $totalAssets,
             ],
-            'liabilities'   => [
-                'current'   => $currentLiab->values(),
+            'liabilities' => [
+                'current' => $currentLiab->values(),
                 'long_term' => $longTermLiab->values(),
-                'total'     => $totalLiabilities,
+                'total' => $totalLiabilities,
             ],
-            'equity'        => [
+            'equity' => [
                 'items' => $equity->values(),
                 'total' => $totalEquity,
             ],
-            'net_income'    => $netIncome,
-            'total_l_e'     => $totalLiabEquity,
-            'total_assets'  => $totalAssets,
-            'is_balanced'   => abs($totalAssets - $totalLiabEquity) < 1,
-            'gl_integrity'  => $integrity,
+            'net_income' => $netIncome,
+            'total_l_e' => $totalLiabEquity,
+            'total_assets' => $totalAssets,
+            'is_balanced' => abs($totalAssets - $totalLiabEquity) < 1,
+            'gl_integrity' => $integrity,
         ];
     }
 
@@ -80,31 +80,31 @@ class FinancialStatementService
     {
         $accounts = $this->getAccountBalances($tenantId, $from, $to);
 
-        $revenue  = $accounts->where('type', 'revenue');
+        $revenue = $accounts->where('type', 'revenue');
         $expenses = $accounts->where('type', 'expense');
 
-        $cogs  = $expenses->filter(fn($a) => $a['code'] >= '5100' && $a['code'] < '5200');
-        $opex  = $expenses->filter(fn($a) => $a['code'] >= '5200' && $a['code'] < '5300');
+        $cogs = $expenses->filter(fn($a) => $a['code'] >= '5100' && $a['code'] < '5200');
+        $opex = $expenses->filter(fn($a) => $a['code'] >= '5200' && $a['code'] < '5300');
         $other = $expenses->filter(fn($a) => $a['code'] >= '5300');
 
         $totalRevenue = $revenue->sum('balance');
-        $totalCogs    = $cogs->sum('balance');
-        $grossProfit  = $totalRevenue - $totalCogs;
-        $totalOpex    = $opex->sum('balance');
-        $opIncome     = $grossProfit - $totalOpex;
-        $totalOther   = $other->sum('balance');
-        $netIncome    = $opIncome - $totalOther;
+        $totalCogs = $cogs->sum('balance');
+        $grossProfit = $totalRevenue - $totalCogs;
+        $totalOpex = $opex->sum('balance');
+        $opIncome = $grossProfit - $totalOpex;
+        $totalOther = $other->sum('balance');
+        $netIncome = $opIncome - $totalOther;
 
         return [
-            'from'             => $from,
-            'to'               => $to,
-            'revenue'          => ['items' => $revenue->values(),  'total' => $totalRevenue],
-            'cogs'             => ['items' => $cogs->values(),     'total' => $totalCogs],
-            'gross_profit'     => $grossProfit,
-            'opex'             => ['items' => $opex->values(),     'total' => $totalOpex],
+            'from' => $from,
+            'to' => $to,
+            'revenue' => ['items' => $revenue->values(), 'total' => $totalRevenue],
+            'cogs' => ['items' => $cogs->values(), 'total' => $totalCogs],
+            'gross_profit' => $grossProfit,
+            'opex' => ['items' => $opex->values(), 'total' => $totalOpex],
             'operating_income' => $opIncome,
-            'other_expense'    => ['items' => $other->values(),    'total' => $totalOther],
-            'net_income'       => $netIncome,
+            'other_expense' => ['items' => $other->values(), 'total' => $totalOther],
+            'net_income' => $netIncome,
         ];
     }
 
@@ -131,19 +131,19 @@ class FinancialStatementService
         $netChange = $operatingTotal + $investingTotal + $financingTotal;
 
         return [
-            'from'         => $from,
-            'to'           => $to,
-            'operating'    => [
-                'net_income'     => $netIncome,
+            'from' => $from,
+            'to' => $to,
+            'operating' => [
+                'net_income' => $netIncome,
                 'wc_adjustments' => $wcChanges['items'],
-                'total'          => $operatingTotal,
+                'total' => $operatingTotal,
             ],
-            'investing'    => ['items' => $investingItems, 'total' => $investingTotal],
-            'financing'    => ['items' => $financingItems, 'total' => $financingTotal],
-            'net_change'   => $netChange,
+            'investing' => ['items' => $investingItems, 'total' => $investingTotal],
+            'financing' => ['items' => $financingItems, 'total' => $financingTotal],
+            'net_change' => $netChange,
             'opening_cash' => $openingCash,
             'closing_cash' => $closingCash,
-            'reconciled'   => abs(($openingCash + $netChange) - $closingCash) < 1,
+            'reconciled' => abs(($openingCash + $netChange) - $closingCash) < 1,
         ];
     }
 
@@ -163,14 +163,15 @@ class FinancialStatementService
             ->get()
             ->keyBy('id');
 
-        if ($coaMap->isEmpty()) return collect();
+        if ($coaMap->isEmpty())
+            return collect();
 
         // 2. Single aggregate query: SUM debit/credit grouped by account_id
         $sums = JournalEntryLine::select(
-                'journal_entry_lines.account_id',
-                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
-                DB::raw('SUM(journal_entry_lines.credit) as total_credit')
-            )
+            'journal_entry_lines.account_id',
+            DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+            DB::raw('SUM(journal_entry_lines.credit) as total_credit')
+        )
             ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.status', 'posted')
@@ -183,20 +184,20 @@ class FinancialStatementService
 
         // 3. Map to result array
         return $coaMap->map(function ($acc) use ($sums) {
-            $row    = $sums[$acc->id] ?? null;
-            $debit  = (float) ($row?->total_debit ?? 0);
+            $row = $sums[$acc->id] ?? null;
+            $debit = (float) ($row?->total_debit ?? 0);
             $credit = (float) ($row?->total_credit ?? 0);
             $balance = $acc->normal_balance === 'debit' ? $debit - $credit : $credit - $debit;
 
             return [
-                'id'             => $acc->id,
-                'code'           => $acc->code,
-                'name'           => $acc->name,
-                'type'           => $acc->type,
+                'id' => $acc->id,
+                'code' => $acc->code,
+                'name' => $acc->name,
+                'type' => $acc->type,
                 'normal_balance' => $acc->normal_balance,
-                'debit'          => $debit,
-                'credit'         => $credit,
-                'balance'        => $balance,
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance' => $balance,
             ];
         })->filter(fn($a) => abs($a['balance']) > 0.001);
     }
@@ -206,7 +207,7 @@ class FinancialStatementService
     {
         $accounts = $this->getAccountBalances($tenantId, $from, $to);
         return $accounts->where('type', 'revenue')->sum('balance')
-             - $accounts->where('type', 'expense')->sum('balance');
+            - $accounts->where('type', 'expense')->sum('balance');
     }
 
     /** Cash + Bank balance (codes 1101, 1102) — single query */
@@ -216,12 +217,13 @@ class FinancialStatementService
             ->whereIn('code', ['1101', '1102'])
             ->pluck('id');
 
-        if ($cashAccountIds->isEmpty()) return 0;
+        if ($cashAccountIds->isEmpty())
+            return 0;
 
         $row = JournalEntryLine::select(
-                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
-                DB::raw('SUM(journal_entry_lines.credit) as total_credit')
-            )
+            DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+            DB::raw('SUM(journal_entry_lines.credit) as total_credit')
+        )
             ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.status', 'posted')
@@ -242,13 +244,14 @@ class FinancialStatementService
         $items = [];
 
         // Batch: get balances for all WC accounts at both dates
-        $wcCodes = ['1103','1104','1105','1106','1107','2101','2102','2103','2104','2105','2106','2107','5204'];
+        $wcCodes = ['1103', '1104', '1105', '1106', '1107', '2101', '2102', '2103', '2104', '2105', '2106', '2107', '5204'];
         $wcAccounts = ChartOfAccount::where('tenant_id', $tenantId)
             ->whereIn('code', $wcCodes)
             ->get()
             ->keyBy('code');
 
-        if ($wcAccounts->isEmpty()) return ['items' => [], 'total' => 0];
+        if ($wcAccounts->isEmpty())
+            return ['items' => [], 'total' => 0];
 
         // Get balances at prevDate (single query)
         $prevBalances = $this->batchAccountBalances($tenantId, $wcAccounts->pluck('id'), null, $prevDate);
@@ -256,28 +259,32 @@ class FinancialStatementService
         $currBalances = $this->batchAccountBalances($tenantId, $wcAccounts->pluck('id'), null, $to);
 
         // Current assets (non-cash): increase = cash outflow (negative)
-        foreach (['1103','1104','1105','1106','1107'] as $code) {
+        foreach (['1103', '1104', '1105', '1106', '1107'] as $code) {
             $acc = $wcAccounts[$code] ?? null;
-            if (!$acc) continue;
+            if (!$acc)
+                continue;
 
-            $prev   = (float) ($prevBalances[$acc->id] ?? 0);
-            $curr   = (float) ($currBalances[$acc->id] ?? 0);
+            $prev = (float) ($prevBalances[$acc->id] ?? 0);
+            $curr = (float) ($currBalances[$acc->id] ?? 0);
             $change = $curr - $prev;
 
-            if (abs($change) < 0.01) continue;
+            if (abs($change) < 0.01)
+                continue;
             $items[] = ['label' => 'Perubahan ' . $acc->name, 'amount' => -$change];
         }
 
         // Current liabilities: increase = cash inflow (positive)
-        foreach (['2101','2102','2103','2104','2105','2106','2107'] as $code) {
+        foreach (['2101', '2102', '2103', '2104', '2105', '2106', '2107'] as $code) {
             $acc = $wcAccounts[$code] ?? null;
-            if (!$acc) continue;
+            if (!$acc)
+                continue;
 
-            $prev   = (float) ($prevBalances[$acc->id] ?? 0);
-            $curr   = (float) ($currBalances[$acc->id] ?? 0);
+            $prev = (float) ($prevBalances[$acc->id] ?? 0);
+            $curr = (float) ($currBalances[$acc->id] ?? 0);
             $change = $curr - $prev;
 
-            if (abs($change) < 0.01) continue;
+            if (abs($change) < 0.01)
+                continue;
             $items[] = ['label' => 'Perubahan ' . $acc->name, 'amount' => $change];
         }
 
@@ -308,7 +315,7 @@ class FinancialStatementService
 
             if (abs($change) > 0.01) {
                 $items[] = [
-                    'label'  => $change > 0 ? 'Pembelian Aset Tetap' : 'Penjualan/Pelepasan Aset Tetap',
+                    'label' => $change > 0 ? 'Pembelian Aset Tetap' : 'Penjualan/Pelepasan Aset Tetap',
                     'amount' => -$change,
                 ];
             }
@@ -327,7 +334,8 @@ class FinancialStatementService
 
         foreach ($codes as $code => $label) {
             $acc = ChartOfAccount::where('tenant_id', $tenantId)->where('code', $code)->first();
-            if (!$acc) continue;
+            if (!$acc)
+                continue;
 
             $prev = $this->batchAccountBalances($tenantId, collect([$acc->id]), null, $prevDate);
             $curr = $this->batchAccountBalances($tenantId, collect([$acc->id]), null, $to);
@@ -347,13 +355,14 @@ class FinancialStatementService
      */
     private function batchAccountBalances(int $tenantId, Collection $accountIds, ?string $from, string $to): array
     {
-        if ($accountIds->isEmpty()) return [];
+        if ($accountIds->isEmpty())
+            return [];
 
         $rows = JournalEntryLine::select(
-                'journal_entry_lines.account_id',
-                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
-                DB::raw('SUM(journal_entry_lines.credit) as total_credit')
-            )
+            'journal_entry_lines.account_id',
+            DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+            DB::raw('SUM(journal_entry_lines.credit) as total_credit')
+        )
             ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.status', 'posted')
@@ -363,13 +372,18 @@ class FinancialStatementService
             ->groupBy('journal_entry_lines.account_id')
             ->get();
 
-        $coaMap = ChartOfAccount::whereIn('id', $accountIds)->get()->keyBy('id');
+        // BUG-REP-003 FIX: Scope ChartOfAccount by tenant_id to prevent cross-tenant data leak
+        $coaMap = ChartOfAccount::where('tenant_id', $tenantId)
+            ->whereIn('id', $accountIds)
+            ->get()
+            ->keyBy('id');
 
         $result = [];
         foreach ($rows as $row) {
             $acc = $coaMap[$row->account_id] ?? null;
-            if (!$acc) continue;
-            $debit  = (float) $row->total_debit;
+            if (!$acc)
+                continue;
+            $debit = (float) $row->total_debit;
             $credit = (float) $row->total_credit;
             $result[$row->account_id] = $acc->normal_balance === 'debit' ? $debit - $credit : $credit - $debit;
         }
@@ -385,18 +399,18 @@ class FinancialStatementService
     {
         // Check: total debit = total credit across all posted journals
         $totals = JournalEntryLine::select(
-                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
-                DB::raw('SUM(journal_entry_lines.credit) as total_credit')
-            )
+            DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+            DB::raw('SUM(journal_entry_lines.credit) as total_credit')
+        )
             ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.status', 'posted')
             ->whereDate('journal_entries.date', '<=', $asOf)
             ->first();
 
-        $totalDebit  = (float) ($totals?->total_debit ?? 0);
+        $totalDebit = (float) ($totals?->total_debit ?? 0);
         $totalCredit = (float) ($totals?->total_credit ?? 0);
-        $diff        = abs($totalDebit - $totalCredit);
+        $diff = abs($totalDebit - $totalCredit);
 
         // Find unbalanced journals (if any)
         $unbalancedCount = 0;
@@ -409,12 +423,12 @@ class FinancialStatementService
         }
 
         return [
-            'total_debit'     => $totalDebit,
-            'total_credit'    => $totalCredit,
-            'difference'      => $diff,
-            'is_balanced'     => $diff < 0.01,
-            'unbalanced_count'=> $unbalancedCount,
-            'journal_count'   => JournalEntry::where('tenant_id', $tenantId)->where('status', 'posted')->whereDate('date', '<=', $asOf)->count(),
+            'total_debit' => $totalDebit,
+            'total_credit' => $totalCredit,
+            'difference' => $diff,
+            'is_balanced' => $diff < 0.01,
+            'unbalanced_count' => $unbalancedCount,
+            'journal_count' => JournalEntry::where('tenant_id', $tenantId)->where('status', 'posted')->whereDate('date', '<=', $asOf)->count(),
         ];
     }
 }

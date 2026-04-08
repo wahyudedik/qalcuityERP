@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Writeoff extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'requested_by', 'approved_by', 'number', 'type',
         'reference_type', 'reference_id', 'reference_number',

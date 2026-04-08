@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class LoyaltyProgram extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'name', 'points_per_idr', 'idr_per_point',
         'min_redeem_points', 'expiry_days', 'is_active',

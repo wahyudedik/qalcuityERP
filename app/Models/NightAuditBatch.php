@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class NightAuditBatch extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
@@ -26,8 +29,14 @@ class NightAuditBatch extends Model
         'occupied_rooms',
         'occupancy_rate',
         'total_room_revenue',
+        'room_charges_posted',
+        'room_charges_posted_at',
         'total_fb_revenue',
+        'fb_revenue_posted',
+        'fb_revenue_posted_at',
         'total_other_revenue',
+        'minibar_charges_posted',
+        'minibar_charges_posted_at',
         'total_revenue',
         'adr',
         'revpar',
@@ -44,8 +53,14 @@ class NightAuditBatch extends Model
             'occupied_rooms' => 'integer',
             'occupancy_rate' => 'decimal:2',
             'total_room_revenue' => 'decimal:2',
+            'room_charges_posted' => 'boolean',
+            'room_charges_posted_at' => 'datetime',
             'total_fb_revenue' => 'decimal:2',
+            'fb_revenue_posted' => 'boolean',
+            'fb_revenue_posted_at' => 'datetime',
             'total_other_revenue' => 'decimal:2',
+            'minibar_charges_posted' => 'boolean',
+            'minibar_charges_posted_at' => 'datetime',
             'total_revenue' => 'decimal:2',
             'adr' => 'decimal:2',
             'revpar' => 'decimal:2',
@@ -86,6 +101,61 @@ class NightAuditBatch extends Model
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
+    }
+
+    /**
+     * BUG-HOTEL-002 FIX: Check if all required steps are completed
+     */
+    public function areAllStepsCompleted(): bool
+    {
+        return $this->room_charges_posted
+            && $this->fb_revenue_posted
+            && $this->minibar_charges_posted;
+    }
+
+    /**
+     * BUG-HOTEL-002 FIX: Get list of pending steps
+     */
+    public function getPendingSteps(): array
+    {
+        $pending = [];
+
+        if (!$this->room_charges_posted) {
+            $pending[] = 'Room charges posting';
+        }
+
+        if (!$this->fb_revenue_posted) {
+            $pending[] = 'F&B revenue posting';
+        }
+
+        if (!$this->minibar_charges_posted) {
+            $pending[] = 'Minibar charges posting';
+        }
+
+        return $pending;
+    }
+
+    /**
+     * BUG-HOTEL-002 FIX: Get completion progress
+     */
+    public function getCompletionProgress(): array
+    {
+        $totalSteps = 3;
+        $completedSteps = 0;
+
+        if ($this->room_charges_posted)
+            $completedSteps++;
+        if ($this->fb_revenue_posted)
+            $completedSteps++;
+        if ($this->minibar_charges_posted)
+            $completedSteps++;
+
+        return [
+            'total_steps' => $totalSteps,
+            'completed_steps' => $completedSteps,
+            'percentage' => round(($completedSteps / $totalSteps) * 100, 2),
+            'pending_steps' => $this->getPendingSteps(),
+        ];
     }
 
     /**

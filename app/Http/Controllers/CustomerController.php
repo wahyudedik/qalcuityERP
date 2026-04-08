@@ -17,7 +17,7 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = Customer::where('tenant_id', $tid);
 
         if ($request->search) {
@@ -37,23 +37,101 @@ class CustomerController extends Controller
         $customers = $query->orderBy('name')->paginate(20)->withQueryString();
 
         $stats = [
-            'total'    => Customer::where('tenant_id', $tid)->count(),
-            'active'   => Customer::where('tenant_id', $tid)->where('is_active', true)->count(),
+            'total' => Customer::where('tenant_id', $tid)->count(),
+            'active' => Customer::where('tenant_id', $tid)->where('is_active', true)->count(),
             'inactive' => Customer::where('tenant_id', $tid)->where('is_active', false)->count(),
         ];
 
         return view('customers.index', compact('customers', 'stats'));
     }
 
+    /**
+     * Bulk operations for customers
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:delete,activate,deactivate,update_credit_limit',
+            'customer_ids' => 'required|array|min:1',
+            'customer_ids.*' => 'exists:customers,id',
+            'credit_limit' => 'nullable|numeric|min:0',
+        ]);
+
+        $tenantId = $this->tenantId();
+        $customerIds = $request->customer_ids;
+        $action = $request->action;
+        $affected = 0;
+
+        // Verify all customers belong to tenant
+        $customers = Customer::where('tenant_id', $tenantId)
+            ->whereIn('id', $customerIds)
+            ->get();
+
+        if ($customers->count() !== count($customerIds)) {
+            return back()->withErrors(['error' => 'Beberapa customer tidak valid atau bukan milik tenant Anda.']);
+        }
+
+        try {
+            switch ($action) {
+                case 'delete':
+                    $affected = Customer::where('tenant_id', $tenantId)
+                        ->whereIn('id', $customerIds)
+                        ->delete();
+                    break;
+
+                case 'activate':
+                    $affected = Customer::where('tenant_id', $tenantId)
+                        ->whereIn('id', $customerIds)
+                        ->update(['is_active' => true]);
+                    break;
+
+                case 'deactivate':
+                    $affected = Customer::where('tenant_id', $tenantId)
+                        ->whereIn('id', $customerIds)
+                        ->update(['is_active' => false]);
+                    break;
+
+                case 'update_credit_limit':
+                    $affected = Customer::where('tenant_id', $tenantId)
+                        ->whereIn('id', $customerIds)
+                        ->update(['credit_limit' => $request->credit_limit]);
+                    break;
+            }
+
+            // Log activity
+            ActivityLog::create([
+                'tenant_id' => $tenantId,
+                'user_id' => auth()->id(),
+                'action' => "bulk_{$action}",
+                'description' => "Bulk {$action} performed on {$affected} customers",
+                'metadata' => [
+                    'customer_ids' => $customerIds,
+                    'count' => $affected,
+                ],
+            ]);
+
+            $actionLabels = [
+                'delete' => 'dihapus',
+                'activate' => 'diaktifkan',
+                'deactivate' => 'dinonaktifkan',
+                'update_credit_limit' => 'diperbarui credit limitnya',
+            ];
+
+            return back()->with('success', "Berhasil: {$affected} customer {$actionLabels[$action]}");
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal melakukan bulk action: ' . $e->getMessage()]);
+        }
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'company'      => 'nullable|string|max:255',
-            'email'        => 'nullable|email|max:255',
-            'phone'        => 'nullable|string|max:20',
-            'address'      => 'nullable|string',
-            'npwp'         => 'nullable|string|max:30',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'npwp' => 'nullable|string|max:30',
             'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
@@ -80,14 +158,14 @@ class CustomerController extends Controller
         abort_unless($customer->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'company'      => 'nullable|string|max:255',
-            'email'        => 'nullable|email|max:255',
-            'phone'        => 'nullable|string|max:20',
-            'address'      => 'nullable|string',
-            'npwp'         => 'nullable|string|max:30',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'npwp' => 'nullable|string|max:30',
             'credit_limit' => 'nullable|numeric|min:0',
-            'is_active'    => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $old = $customer->getOriginal();

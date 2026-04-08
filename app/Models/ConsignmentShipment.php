@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ConsignmentShipment extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'number', 'partner_id', 'warehouse_id',
         'ship_date', 'status', 'total_cost', 'total_retail',

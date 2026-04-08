@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AffiliateReferral extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['affiliate_id', 'tenant_id', 'referred_at', 'source'];
 
     protected function casts(): array

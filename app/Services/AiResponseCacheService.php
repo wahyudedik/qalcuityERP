@@ -28,14 +28,20 @@ class AiResponseCacheService
     protected const LONG_TTL = 86400; // 24 jam
 
     /**
-     * Generate cache key berdasarkan tenant, user, dan pesan
+     * Generate cache key berdasarkan tenant, user, session, dan pesan
+     * 
+     * ✅ FIX: Sekarang termasuk session_id untuk memastikan cache unik per conversation
      */
-    public function generateCacheKey(int $tenantId, int $userId, string $message): string
+    public function generateCacheKey(int $tenantId, int $userId, string $message, ?int $sessionId = null): string
     {
         // Normalisasi pesan untuk konsistensi key
         $normalizedMessage = $this->normalizeMessage($message);
 
-        return self::CACHE_PREFIX . md5("{$tenantId}:{$userId}:{$normalizedMessage}");
+        // ✅ PENTING: Include session_id jika ada untuk mencegah cache collision
+        // User bisa punya multiple sessions dengan pesan yang sama tapi context berbeda
+        $sessionIdPart = $sessionId ? ":{$sessionId}" : ':no_session';
+
+        return self::CACHE_PREFIX . md5("{$tenantId}:{$userId}{$sessionIdPart}:{$normalizedMessage}");
     }
 
     /**

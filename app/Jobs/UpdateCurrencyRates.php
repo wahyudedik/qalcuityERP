@@ -19,7 +19,7 @@ class UpdateCurrencyRates implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
     public int $timeout = 60;
 
     public function handle(): void
@@ -33,7 +33,8 @@ class UpdateCurrencyRates implements ShouldQueue
             ->unique()
             ->values();
 
-        if ($codes->isEmpty()) return;
+        if ($codes->isEmpty())
+            return;
 
         // Gunakan exchangerate-api.com (free tier, no key needed for basic)
         // Fallback: frankfurter.app (open source, no key)
@@ -41,40 +42,73 @@ class UpdateCurrencyRates implements ShouldQueue
 
         if (empty($rates)) {
             Log::warning('UpdateCurrencyRates: gagal mengambil data kurs.');
+
+            // BUG-FIN-003 FIX: Send notification if rate update fails
+            $this->notifyRateUpdateFailure($codes);
             return;
         }
 
-        $today   = now()->toDateString();
+        $today = now()->toDateString();
         $updated = 0;
+        $updatedCodes = [];
 
         // Update semua currency records yang cocok
         Currency::where('is_base', false)
             ->where('is_active', true)
             ->whereIn('code', array_keys($rates))
             ->get()
-            ->each(function (Currency $currency) use ($rates, $today, &$updated) {
+            ->each(function (Currency $currency) use ($rates, $today, &$updated, &$updatedCodes) {
                 $newRate = $rates[$currency->code] ?? null;
-                if (!$newRate || $newRate <= 0) return;
+                if (!$newRate || $newRate <= 0)
+                    return;
+
+                $oldRate = $currency->rate_to_idr;
 
                 $currency->update([
-                    'rate_to_idr'    => $newRate,
-                    'rate_updated_at'=> now(),
+                    'rate_to_idr' => $newRate,
+                    'rate_updated_at' => now(),
                 ]);
+
+                $updatedCodes[] = $currency->code;
 
                 // Simpan histori (satu record per hari per kode per tenant)
                 CurrencyRateHistory::firstOrCreate(
                     [
-                        'tenant_id'     => $currency->tenant_id,
+                        'tenant_id' => $currency->tenant_id,
                         'currency_code' => $currency->code,
-                        'date'          => $today,
+                        'date' => $today,
                     ],
                     ['rate_to_idr' => $newRate]
                 );
 
                 $updated++;
+
+                // Log rate changes
+                $changePercent = $oldRate > 0 ? (($newRate - $oldRate) / $oldRate) * 100 : 0;
+                Log::info("UpdateCurrencyRates: {$currency->code} updated", [
+                    'old_rate' => $oldRate,
+                    'new_rate' => $newRate,
+                    'change_percent' => round($changePercent, 2),
+                ]);
             });
 
+        // BUG-FIN-003 FIX: Bust cache for updated currencies
+        if (!empty($updatedCodes)) {
+            $currencyService = new \App\Services\CurrencyService();
+            $currencyService->bustAllCaches($updatedCodes);
+
+            Log::info("UpdateCurrencyRates: Cache busted for updated currencies", [
+                'currencies' => $updatedCodes,
+                'count' => count($updatedCodes),
+            ]);
+        }
+
         Log::info("UpdateCurrencyRates: updated={$updated} currencies date={$today}");
+
+        // Notify success if currencies were updated
+        if ($updated > 0) {
+            $this->notifyRateUpdateSuccess($updated, $today);
+        }
     }
 
     /**
@@ -91,7 +125,7 @@ class UpdateCurrencyRates implements ShouldQueue
             $response = Http::timeout(15)
                 ->get('https://api.frankfurter.app/latest', [
                     'from' => 'IDR',
-                    'to'   => $symbols,
+                    'to' => $symbols,
                 ]);
 
             if (!$response->successful()) {
@@ -99,7 +133,7 @@ class UpdateCurrencyRates implements ShouldQueue
                 return [];
             }
 
-            $data  = $response->json('rates') ?? [];
+            $data = $response->json('rates') ?? [];
             $rates = [];
 
             foreach ($data as $code => $idrToForeign) {
@@ -114,6 +148,75 @@ class UpdateCurrencyRates implements ShouldQueue
         } catch (\Throwable $e) {
             Log::error('UpdateCurrencyRates fetch error: ' . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * BUG-FIN-003 FIX: Notify admin when rate update succeeds
+     */
+    private function notifyRateUpdateSuccess(int $updatedCount, string $date): void
+    {
+        // Get all admin users from all tenants
+        $tenants = Tenant::all();
+
+        foreach ($tenants as $tenant) {
+            $adminUsers = User::where('tenant_id', $tenant->id)
+                ->where(function ($q) {
+                    $q->where('role', 'admin')
+                        ->orWhere('role', 'finance_manager')
+                        ->orWhere('is_admin', true);
+                })
+                ->get();
+
+            foreach ($adminUsers as $user) {
+                ErpNotification::create([
+                    'tenant_id' => $tenant->id,
+                    'user_id' => $user->id,
+                    'type' => 'currency_rate_updated',
+                    'title' => '💱 Kurs Mata Uang Diperbarui',
+                    'message' => "Kurs {$updatedCount} mata uang berhasil diperbarui untuk tanggal {$date}.",
+                    'data' => [
+                        'updated_count' => $updatedCount,
+                        'date' => $date,
+                    ],
+                    'is_read' => false,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * BUG-FIN-003 FIX: Notify admin when rate update fails
+     */
+    private function notifyRateUpdateFailure(array $currencyCodes): void
+    {
+        // Get all admin users from all tenants
+        $tenants = Tenant::all();
+
+        foreach ($tenants as $tenant) {
+            $adminUsers = User::where('tenant_id', $tenant->id)
+                ->where(function ($q) {
+                    $q->where('role', 'admin')
+                        ->orWhere('role', 'finance_manager')
+                        ->orWhere('is_admin', true);
+                })
+                ->get();
+
+            foreach ($adminUsers as $user) {
+                ErpNotification::create([
+                    'tenant_id' => $tenant->id,
+                    'user_id' => $user->id,
+                    'type' => 'currency_rate_update_failed',
+                    'title' => '⚠️ Gagal Update Kurs Mata Uang',
+                    'message' => "Gagal memperbarui kurs mata uang. Kurs saat ini mungkin sudah tidak akurat. " .
+                        "Silakan update manual di Settings → Currency.",
+                    'data' => [
+                        'affected_currencies' => $currencyCodes,
+                        'failed_at' => now()->format('Y-m-d H:i:s'),
+                    ],
+                    'is_read' => false,
+                ]);
+            }
         }
     }
 }

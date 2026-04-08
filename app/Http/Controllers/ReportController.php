@@ -37,11 +37,31 @@ class ReportController extends Controller
         return $tenantId;
     }
 
+    /**
+     * BUG-REP-001 FIX: Validate date range for reports
+     * 
+     * @param Request $request
+     * @return void
+     */
+    protected function validateDateRange(Request $request): void
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ], [
+            'start_date.required' => 'Tanggal awal wajib diisi.',
+            'start_date.date' => 'Format tanggal awal tidak valid. Gunakan: YYYY-MM-DD',
+            'end_date.required' => 'Tanggal akhir wajib diisi.',
+            'end_date.date' => 'Format tanggal akhir tidak valid. Gunakan: YYYY-MM-DD',
+            'end_date.after_or_equal' => 'Tanggal akhir harus sama dengan atau setelah tanggal awal.',
+        ]);
+    }
+
     // ─── Excel Exports ────────────────────────────────────────────
 
     public function exportSalesExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
 
         $tenantId = $this->requireTenantId($request);
         $filename = 'laporan-penjualan-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
@@ -54,7 +74,7 @@ class ReportController extends Controller
 
     public function exportFinanceExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
 
         $tenantId = $this->requireTenantId($request);
         $filename = 'laporan-keuangan-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
@@ -77,10 +97,10 @@ class ReportController extends Controller
 
     public function exportSalesPdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
 
         $tenantId = $this->requireTenantId($request);
-        $orders   = SalesOrder::with(['customer', 'user'])
+        $orders = SalesOrder::with(['customer', 'user'])
             ->where('tenant_id', $tenantId)
             ->whereBetween('date', [$request->start_date, $request->end_date])
             ->orderBy('date')
@@ -89,17 +109,17 @@ class ReportController extends Controller
         $totalRevenue = $orders->whereNotIn('status', ['cancelled'])->sum('total');
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Penjualan',
+            'title' => 'Laporan Penjualan',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => $request->start_date . ' s/d ' . $request->end_date,
-            'summary'     => [
+            'period' => $request->start_date . ' s/d ' . $request->end_date,
+            'summary' => [
                 ['label' => 'Total Order', 'value' => $orders->count()],
                 ['label' => 'Total Pendapatan', 'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.')],
                 ['label' => 'Order Selesai', 'value' => $orders->where('status', 'delivered')->count()],
                 ['label' => 'Order Dibatalkan', 'value' => $orders->where('status', 'cancelled')->count()],
             ],
             'headers' => ['No. Order', 'Tanggal', 'Pelanggan', 'Status', 'Total'],
-            'rows'    => $orders->map(fn($o) => [
+            'rows' => $orders->map(fn($o) => [
                 $o->number,
                 $o->date->format('d/m/Y'),
                 $o->customer?->name ?? '(Walk-in)',
@@ -113,29 +133,29 @@ class ReportController extends Controller
 
     public function exportFinancePdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
 
-        $tenantId     = $this->requireTenantId($request);
+        $tenantId = $this->requireTenantId($request);
         $transactions = Transaction::with('category')
             ->where('tenant_id', $tenantId)
             ->whereBetween('date', [$request->start_date, $request->end_date])
             ->orderBy('date')
             ->get();
 
-        $income  = $transactions->where('type', 'income')->sum('amount');
+        $income = $transactions->where('type', 'income')->sum('amount');
         $expense = $transactions->where('type', 'expense')->sum('amount');
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Keuangan',
+            'title' => 'Laporan Keuangan',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => $request->start_date . ' s/d ' . $request->end_date,
-            'summary'     => [
+            'period' => $request->start_date . ' s/d ' . $request->end_date,
+            'summary' => [
                 ['label' => 'Total Pemasukan', 'value' => 'Rp ' . number_format($income, 0, ',', '.')],
                 ['label' => 'Total Pengeluaran', 'value' => 'Rp ' . number_format($expense, 0, ',', '.')],
                 ['label' => 'Profit/Rugi', 'value' => 'Rp ' . number_format($income - $expense, 0, ',', '.')],
             ],
             'headers' => ['No. Transaksi', 'Tanggal', 'Tipe', 'Kategori', 'Keterangan', 'Nominal'],
-            'rows'    => $transactions->map(fn($t) => [
+            'rows' => $transactions->map(fn($t) => [
                 $t->number,
                 $t->date->format('d/m/Y'),
                 strtoupper($t->type),
@@ -151,7 +171,7 @@ class ReportController extends Controller
     public function exportInventoryPdf(Request $request)
     {
         $tenantId = $this->requireTenantId($request);
-        $stocks   = ProductStock::with(['product', 'warehouse'])
+        $stocks = ProductStock::with(['product', 'warehouse'])
             ->whereHas('product', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
             ->join('products', 'product_stocks.product_id', '=', 'products.id')
             ->select('product_stocks.*')
@@ -161,16 +181,16 @@ class ReportController extends Controller
         $lowCount = $stocks->filter(fn($s) => $s->quantity <= $s->product->stock_min)->count();
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Inventori',
+            'title' => 'Laporan Inventori',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => 'Per ' . now()->format('d M Y'),
-            'summary'     => [
+            'period' => 'Per ' . now()->format('d M Y'),
+            'summary' => [
                 ['label' => 'Total Item', 'value' => $stocks->count()],
                 ['label' => 'Stok Menipis', 'value' => $lowCount],
                 ['label' => 'Stok Aman', 'value' => $stocks->count() - $lowCount],
             ],
             'headers' => ['Produk', 'SKU', 'Gudang', 'Satuan', 'Stok', 'Min', 'Status'],
-            'rows'    => $stocks->map(fn($s) => [
+            'rows' => $stocks->map(fn($s) => [
                 $s->product->name,
                 $s->product->sku ?? '-',
                 $s->warehouse->name,
@@ -188,7 +208,7 @@ class ReportController extends Controller
 
     public function exportHrmExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
         $filename = 'laporan-kehadiran-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
         return Excel::download(new HrmReportExport($tenantId, $request->start_date, $request->end_date), $filename);
@@ -196,7 +216,7 @@ class ReportController extends Controller
 
     public function exportHrmPdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
 
         $attendances = Attendance::with(['employee'])
@@ -208,17 +228,17 @@ class ReportController extends Controller
         $byStatus = $attendances->groupBy('status')->map->count();
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Kehadiran Karyawan',
+            'title' => 'Laporan Kehadiran Karyawan',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => $request->start_date . ' s/d ' . $request->end_date,
-            'summary'     => [
-                ['label' => 'Total Hadir',    'value' => $byStatus->get('present', 0)],
-                ['label' => 'Terlambat',      'value' => $byStatus->get('late', 0)],
-                ['label' => 'Absen',          'value' => $byStatus->get('absent', 0)],
-                ['label' => 'Izin/Sakit',     'value' => ($byStatus->get('leave', 0) + $byStatus->get('sick', 0))],
+            'period' => $request->start_date . ' s/d ' . $request->end_date,
+            'summary' => [
+                ['label' => 'Total Hadir', 'value' => $byStatus->get('present', 0)],
+                ['label' => 'Terlambat', 'value' => $byStatus->get('late', 0)],
+                ['label' => 'Absen', 'value' => $byStatus->get('absent', 0)],
+                ['label' => 'Izin/Sakit', 'value' => ($byStatus->get('leave', 0) + $byStatus->get('sick', 0))],
             ],
             'headers' => ['Tanggal', 'Karyawan', 'Posisi', 'Status', 'Check In', 'Check Out'],
-            'rows'    => $attendances->map(fn($a) => [
+            'rows' => $attendances->map(fn($a) => [
                 $a->date->format('d/m/Y'),
                 $a->employee->name,
                 $a->employee->position ?? '-',
@@ -235,7 +255,7 @@ class ReportController extends Controller
 
     public function exportReceivablesExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
         $filename = 'laporan-piutang-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
         return Excel::download(new ReceivablesReportExport($tenantId, $request->start_date, $request->end_date), $filename);
@@ -243,7 +263,7 @@ class ReportController extends Controller
 
     public function exportReceivablesPdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
 
         $invoices = Invoice::with(['customer'])
@@ -253,21 +273,21 @@ class ReportController extends Controller
             ->get();
 
         $totalAmount = $invoices->sum('total_amount');
-        $totalPaid   = $invoices->sum('paid_amount');
-        $overdue     = $invoices->filter(fn($i) => $i->status !== 'paid' && $i->due_date < now())->count();
+        $totalPaid = $invoices->sum('paid_amount');
+        $overdue = $invoices->filter(fn($i) => $i->status !== 'paid' && $i->due_date < now())->count();
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Piutang',
+            'title' => 'Laporan Piutang',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => $request->start_date . ' s/d ' . $request->end_date,
-            'summary'     => [
-                ['label' => 'Total Tagihan',  'value' => 'Rp ' . number_format($totalAmount, 0, ',', '.')],
-                ['label' => 'Sudah Dibayar',  'value' => 'Rp ' . number_format($totalPaid, 0, ',', '.')],
-                ['label' => 'Belum Dibayar',  'value' => 'Rp ' . number_format($totalAmount - $totalPaid, 0, ',', '.')],
-                ['label' => 'Jatuh Tempo',    'value' => $overdue . ' invoice'],
+            'period' => $request->start_date . ' s/d ' . $request->end_date,
+            'summary' => [
+                ['label' => 'Total Tagihan', 'value' => 'Rp ' . number_format($totalAmount, 0, ',', '.')],
+                ['label' => 'Sudah Dibayar', 'value' => 'Rp ' . number_format($totalPaid, 0, ',', '.')],
+                ['label' => 'Belum Dibayar', 'value' => 'Rp ' . number_format($totalAmount - $totalPaid, 0, ',', '.')],
+                ['label' => 'Jatuh Tempo', 'value' => $overdue . ' invoice'],
             ],
             'headers' => ['No. Invoice', 'Customer', 'Jumlah', 'Terbayar', 'Sisa', 'Jatuh Tempo', 'Status'],
-            'rows'    => $invoices->map(fn($i) => [
+            'rows' => $invoices->map(fn($i) => [
                 $i->number,
                 $i->customer?->name ?? '-',
                 'Rp ' . number_format($i->total_amount, 0, ',', '.'),
@@ -285,8 +305,8 @@ class ReportController extends Controller
 
     public function exportIncomeStatementExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
-        $tenantId   = $this->requireTenantId($request);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
+        $tenantId = $this->requireTenantId($request);
         $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
 
         return Excel::download(
@@ -300,7 +320,7 @@ class ReportController extends Controller
     public function exportPayrollExcel(Request $request)
     {
         $request->validate(['period' => 'required|date_format:Y-m']);
-        $tenantId   = $this->requireTenantId($request);
+        $tenantId = $this->requireTenantId($request);
         $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
 
         return Excel::download(
@@ -313,7 +333,7 @@ class ReportController extends Controller
 
     public function exportAgingExcel(Request $request)
     {
-        $tenantId   = $this->requireTenantId($request);
+        $tenantId = $this->requireTenantId($request);
         $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
 
         return Excel::download(
@@ -326,13 +346,13 @@ class ReportController extends Controller
 
     public function exportProfitLossPdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
 
         $start = Carbon::parse($request->start_date);
-        $end   = Carbon::parse($request->end_date);
+        $end = Carbon::parse($request->end_date);
 
-        $income  = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
+        $income = Transaction::where('tenant_id', $tenantId)->where('type', 'income')
             ->whereBetween('date', [$start, $end])->sum('amount');
         $expense = Transaction::where('tenant_id', $tenantId)->where('type', 'expense')
             ->whereBetween('date', [$start, $end])->sum('amount');
@@ -348,17 +368,17 @@ class ReportController extends Controller
         $profit = $income - $expense;
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'title'       => 'Laporan Laba Rugi',
+            'title' => 'Laporan Laba Rugi',
             'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'      => $start->format('d M Y') . ' s/d ' . $end->format('d M Y'),
-            'summary'     => [
-                ['label' => 'Total Pendapatan',  'value' => 'Rp ' . number_format($income, 0, ',', '.')],
+            'period' => $start->format('d M Y') . ' s/d ' . $end->format('d M Y'),
+            'summary' => [
+                ['label' => 'Total Pendapatan', 'value' => 'Rp ' . number_format($income, 0, ',', '.')],
                 ['label' => 'Total Pengeluaran', 'value' => 'Rp ' . number_format($expense, 0, ',', '.')],
-                ['label' => 'Laba / Rugi Bersih','value' => 'Rp ' . number_format($profit, 0, ',', '.')],
-                ['label' => 'Status',             'value' => $profit >= 0 ? 'LABA' : 'RUGI'],
+                ['label' => 'Laba / Rugi Bersih', 'value' => 'Rp ' . number_format($profit, 0, ',', '.')],
+                ['label' => 'Status', 'value' => $profit >= 0 ? 'LABA' : 'RUGI'],
             ],
             'headers' => ['Kategori Biaya', 'Total', 'Persentase'],
-            'rows'    => $expenseByCategory->map(fn($r) => [
+            'rows' => $expenseByCategory->map(fn($r) => [
                 $r->category,
                 'Rp ' . number_format($r->total, 0, ',', '.'),
                 $expense > 0 ? round(($r->total / $expense) * 100, 1) . '%' : '0%',
@@ -373,9 +393,9 @@ class ReportController extends Controller
     public function exportBalanceSheetExcel(Request $request)
     {
         $request->validate(['as_of' => 'required|date']);
-        $tenantId   = $this->requireTenantId($request);
+        $tenantId = $this->requireTenantId($request);
         $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
-        $filename   = 'neraca-' . $request->as_of . '.xlsx';
+        $filename = 'neraca-' . $request->as_of . '.xlsx';
 
         return Excel::download(
             new BalanceSheetExport($tenantId, $request->as_of, $tenantName),
@@ -387,12 +407,12 @@ class ReportController extends Controller
     {
         $request->validate(['as_of' => 'required|date']);
         $tenantId = $this->requireTenantId($request);
-        $asOf     = $request->as_of;
-        $data     = app(FinancialStatementService::class)->balanceSheet($tenantId, $asOf);
-        $tenant   = $request->user()->tenant;
+        $asOf = $request->as_of;
+        $data = app(FinancialStatementService::class)->balanceSheet($tenantId, $asOf);
+        $tenant = $request->user()->tenant;
 
         $pdf = Pdf::loadView('accounting.pdf.balance-sheet', compact('data', 'asOf', 'tenant'))
-                   ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'portrait');
 
         return $pdf->download('neraca-' . $asOf . '.pdf');
     }
@@ -401,10 +421,10 @@ class ReportController extends Controller
 
     public function exportCashFlowExcel(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
-        $tenantId   = $this->requireTenantId($request);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
+        $tenantId = $this->requireTenantId($request);
         $tenantName = $request->user()->tenant?->name ?? 'Qalcuity ERP';
-        $filename   = 'arus-kas-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
+        $filename = 'arus-kas-' . $request->start_date . '-sd-' . $request->end_date . '.xlsx';
 
         return Excel::download(
             new CashFlowExport($tenantId, $request->start_date, $request->end_date, $tenantName),
@@ -414,15 +434,15 @@ class ReportController extends Controller
 
     public function exportCashFlowPdf(Request $request)
     {
-        $request->validate(['start_date' => 'required|date', 'end_date' => 'required|date|after_or_equal:start_date']);
+        $this->validateDateRange($request); // BUG-REP-001 FIX
         $tenantId = $this->requireTenantId($request);
-        $from     = $request->start_date;
-        $to       = $request->end_date;
-        $data     = app(FinancialStatementService::class)->cashFlowStatement($tenantId, $from, $to);
-        $tenant   = $request->user()->tenant;
+        $from = $request->start_date;
+        $to = $request->end_date;
+        $data = app(FinancialStatementService::class)->cashFlowStatement($tenantId, $from, $to);
+        $tenant = $request->user()->tenant;
 
         $pdf = Pdf::loadView('accounting.pdf.cash-flow', compact('data', 'from', 'to', 'tenant'))
-                   ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'portrait');
 
         return $pdf->download('arus-kas-' . $from . '-sd-' . $to . '.pdf');
     }
@@ -446,8 +466,8 @@ class ReportController extends Controller
     public function cashFlowProjection(Request $request)
     {
         $tenantId = $this->requireTenantId($request);
-        $days     = (int) $request->get('days', 90);
-        $days     = in_array($days, [30, 60, 90]) ? $days : 90;
+        $days = (int) $request->get('days', 90);
+        $days = in_array($days, [30, 60, 90]) ? $days : 90;
 
         $data = app(CashFlowProjectionService::class)->project($tenantId, $days);
 
@@ -457,26 +477,26 @@ class ReportController extends Controller
     public function cashFlowProjectionData(Request $request)
     {
         $tenantId = $this->requireTenantId($request);
-        $days     = (int) $request->get('days', 90);
-        $days     = in_array($days, [30, 60, 90]) ? $days : 90;
+        $days = (int) $request->get('days', 90);
+        $days = in_array($days, [30, 60, 90]) ? $days : 90;
 
         $data = app(CashFlowProjectionService::class)->project($tenantId, $days);
 
         // Return chart-friendly arrays
-        $labels   = array_keys($data['daily']);
+        $labels = array_keys($data['daily']);
         $balances = array_column(array_values($data['daily']), 'balance');
-        $inflows  = array_column(array_values($data['daily']), 'inflow');
+        $inflows = array_column(array_values($data['daily']), 'inflow');
         $outflows = array_column(array_values($data['daily']), 'outflow');
 
         return response()->json([
-            'labels'   => $labels,
+            'labels' => $labels,
             'balances' => $balances,
-            'inflows'  => $inflows,
+            'inflows' => $inflows,
             'outflows' => $outflows,
-            'weeks'    => $data['weeks'],
-            'alerts'   => $data['alerts'],
-            'totals'   => $data['totals'],
-            'opening'  => $data['opening_balance'],
+            'weeks' => $data['weeks'],
+            'alerts' => $data['alerts'],
+            'totals' => $data['totals'],
+            'opening' => $data['opening_balance'],
         ]);
     }
 
@@ -484,7 +504,7 @@ class ReportController extends Controller
     {
         $request->validate(['period' => 'required|string|regex:/^\d{4}-\d{2}$/']);
         $tenantId = $this->requireTenantId($request);
-        $period   = $request->period;
+        $period = $request->period;
 
         $budgets = Budget::where('tenant_id', $tenantId)
             ->where('period', $period)
@@ -493,19 +513,19 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get();
 
-        $totalBudget   = $budgets->sum('amount');
+        $totalBudget = $budgets->sum('amount');
         $totalRealized = $budgets->sum('realized');
-        $overCount     = $budgets->filter(fn($b) => $b->realized > $b->amount)->count();
-        $usagePct      = $totalBudget > 0 ? round($totalRealized / $totalBudget * 100, 1) : 0;
+        $overCount = $budgets->filter(fn($b) => $b->realized > $b->amount)->count();
+        $usagePct = $totalBudget > 0 ? round($totalRealized / $totalBudget * 100, 1) : 0;
 
         $pdf = Pdf::loadView('reports.budget-pdf', [
-            'tenant_name'    => $request->user()->tenant?->name ?? 'Qalcuity ERP',
-            'period'         => $period,
-            'budgets'        => $budgets,
-            'total_budget'   => $totalBudget,
+            'tenant_name' => $request->user()->tenant?->name ?? 'Qalcuity ERP',
+            'period' => $period,
+            'budgets' => $budgets,
+            'total_budget' => $totalBudget,
             'total_realized' => $totalRealized,
-            'over_count'     => $overCount,
-            'usage_pct'      => $usagePct,
+            'over_count' => $overCount,
+            'usage_pct' => $usagePct,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('budget-vs-aktual-' . $period . '.pdf');

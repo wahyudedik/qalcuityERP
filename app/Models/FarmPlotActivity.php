@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FarmPlotActivity extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'farm_plot_id', 'tenant_id', 'user_id', 'activity_type', 'date',
         'description', 'input_product', 'input_quantity', 'input_unit',

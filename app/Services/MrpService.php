@@ -78,23 +78,23 @@ class MrpService
 
         $results = [];
         foreach ($aggregated as $pid => $item) {
-            $onHand    = (float) ($stocks[$pid] ?? 0);
-            $onOrder   = (float) ($pendingPo[$pid] ?? 0);
+            $onHand = (float) ($stocks[$pid] ?? 0);
+            $onOrder = (float) ($pendingPo[$pid] ?? 0);
             $otherDemand = (float) ($pendingWoDemand[$pid] ?? 0);
             $available = $onHand + $onOrder - $otherDemand;
-            $shortage  = max(0, $item['quantity'] - $available);
+            $shortage = max(0, $item['quantity'] - $available);
 
             $results[] = [
-                'product_id'   => $pid,
+                'product_id' => $pid,
                 'product_name' => $products[$pid] ?? "Product #{$pid}",
-                'unit'         => $item['unit'],
-                'required'     => round($item['quantity'], 3),
-                'on_hand'      => round($onHand, 3),
-                'on_order'     => round($onOrder, 3),
+                'unit' => $item['unit'],
+                'required' => round($item['quantity'], 3),
+                'on_hand' => round($onHand, 3),
+                'on_order' => round($onOrder, 3),
                 'other_demand' => round($otherDemand, 3),
-                'available'    => round($available, 3),
-                'shortage'     => round($shortage, 3),
-                'level'        => $item['level'],
+                'available' => round($available, 3),
+                'shortage' => round($shortage, 3),
+                'level' => $item['level'],
             ];
         }
 
@@ -116,7 +116,8 @@ class MrpService
         $allRequirements = [];
 
         foreach ($workOrders as $wo) {
-            if (!$wo->bom) continue;
+            if (!$wo->bom)
+                continue;
             $exploded = $this->explodeCached($wo->bom, $wo->target_quantity);
             foreach ($exploded as $item) {
                 $pid = $item['product_id'];
@@ -132,7 +133,8 @@ class MrpService
 
         // Same stock/PO check as single calculate
         $productIds = array_keys($allRequirements);
-        if (empty($productIds)) return [];
+        if (empty($productIds))
+            return [];
 
         $stocks = ProductStock::whereIn('product_id', $productIds)
             ->whereHas('warehouse', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
@@ -153,21 +155,21 @@ class MrpService
 
         $results = [];
         foreach ($allRequirements as $pid => $item) {
-            $onHand   = (float) ($stocks[$pid] ?? 0);
-            $onOrder  = (float) ($pendingPo[$pid] ?? 0);
+            $onHand = (float) ($stocks[$pid] ?? 0);
+            $onOrder = (float) ($pendingPo[$pid] ?? 0);
             $available = $onHand + $onOrder;
-            $shortage  = max(0, $item['quantity'] - $available);
+            $shortage = max(0, $item['quantity'] - $available);
 
             $results[] = [
-                'product_id'   => $pid,
+                'product_id' => $pid,
                 'product_name' => $products[$pid] ?? "Product #{$pid}",
-                'unit'         => $item['unit'],
-                'required'     => round($item['quantity'], 3),
-                'on_hand'      => round($onHand, 3),
-                'on_order'     => round($onOrder, 3),
-                'available'    => round($available, 3),
-                'shortage'     => round($shortage, 3),
-                'wo_refs'      => $item['wo_refs'],
+                'unit' => $item['unit'],
+                'required' => round($item['quantity'], 3),
+                'on_hand' => round($onHand, 3),
+                'on_order' => round($onOrder, 3),
+                'available' => round($available, 3),
+                'shortage' => round($shortage, 3),
+                'wo_refs' => $item['wo_refs'],
             ];
         }
 
@@ -213,8 +215,8 @@ class MrpService
 
         // Pre-load all product data in one query to avoid N+1 inside the transaction
         $allProductIds = array_keys($aggregated);
-        $productMap    = Product::whereIn('id', $allProductIds)->get()->keyBy('id');
-        $stockMap      = ProductStock::where('warehouse_id', $warehouse->id)
+        $productMap = Product::whereIn('id', $allProductIds)->get()->keyBy('id');
+        $stockMap = ProductStock::where('warehouse_id', $warehouse->id)
             ->whereIn('product_id', $allProductIds)
             ->get()->keyBy('product_id');
 
@@ -222,11 +224,19 @@ class MrpService
         $consumed = [];
         $shortages = [];
 
-        DB::transaction(function () use ($aggregated, $warehouse, $wo, $tenantId, $productMap, $stockMap, &$totalMaterialCost, &$consumed, &$shortages) {
+        DB::transaction(function () use ($aggregated, $warehouse, $wo, $tenantId, $productMap, &$totalMaterialCost, &$consumed, &$shortages) {
+            // BUG-INV-001 FIX: Re-query with pessimistic locking inside transaction
+            $allProductIds = array_keys($aggregated);
+            $lockedStocks = ProductStock::where('warehouse_id', $warehouse->id)
+                ->whereIn('product_id', $allProductIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('product_id');
+
             foreach ($aggregated as $pid => $item) {
-                $stock      = $stockMap[$pid] ?? null;
+                $stock = $lockedStocks[$pid] ?? null;
                 $currentQty = $stock ? (float) $stock->quantity : 0;
-                $product    = $productMap[$pid] ?? null;
+                $product = $productMap[$pid] ?? null;
 
                 if ($currentQty < $item['quantity']) {
                     $shortages[] = ($product->name ?? "#{$pid}") . " (butuh {$item['quantity']}, stok {$currentQty})";
@@ -234,47 +244,56 @@ class MrpService
                 }
 
                 $consumeQty = min($item['quantity'], $currentQty);
-                if ($consumeQty <= 0) continue;
+                if ($consumeQty <= 0)
+                    continue;
 
                 $before = $currentQty;
+
+                // BUG-INV-001 FIX: Atomic update with condition
                 if ($stock) {
-                    $stock->decrement('quantity', $consumeQty);
+                    $updated = ProductStock::where('id', $stock->id)
+                        ->where('quantity', '>=', $consumeQty)
+                        ->decrement('quantity', $consumeQty);
+
+                    if (!$updated) {
+                        throw new \Exception("Failed to consume material for product {$pid}");
+                    }
                 }
 
                 StockMovement::create([
-                    'tenant_id'       => $tenantId,
-                    'product_id'      => $pid,
-                    'warehouse_id'    => $warehouse->id,
-                    'user_id'         => auth()->id(),
-                    'type'            => 'out',
-                    'quantity'        => $consumeQty,
+                    'tenant_id' => $tenantId,
+                    'product_id' => $pid,
+                    'warehouse_id' => $warehouse->id,
+                    'user_id' => auth()->id(),
+                    'type' => 'out',
+                    'quantity' => $consumeQty,
                     'quantity_before' => $before,
-                    'quantity_after'  => $before - $consumeQty,
-                    'reference'       => $wo->number,
-                    'notes'           => "Konsumsi material produksi {$wo->number}",
+                    'quantity_after' => $before - $consumeQty,
+                    'reference' => $wo->number,
+                    'notes' => "Konsumsi material produksi {$wo->number}",
                 ]);
 
-                $unitCost           = $product->price_buy ?? 0;
+                $unitCost = $product->price_buy ?? 0;
                 $totalMaterialCost += $unitCost * $consumeQty;
 
                 $consumed[] = [
                     'product_id' => $pid,
-                    'name'       => $product->name ?? "#{$pid}",
-                    'quantity'   => $consumeQty,
-                    'cost'       => $unitCost * $consumeQty,
+                    'name' => $product->name ?? "#{$pid}",
+                    'quantity' => $consumeQty,
+                    'cost' => $unitCost * $consumeQty,
                 ];
             }
 
             $wo->update([
                 'materials_consumed' => true,
-                'material_cost'      => $totalMaterialCost,
+                'material_cost' => $totalMaterialCost,
             ]);
         });
 
         return [
-            'success'       => true,
-            'consumed'      => $consumed,
-            'shortages'     => $shortages,
+            'success' => true,
+            'consumed' => $consumed,
+            'shortages' => $shortages,
             'material_cost' => $totalMaterialCost,
         ];
     }
@@ -298,7 +317,8 @@ class MrpService
             ->get();
 
         foreach ($wos as $wo) {
-            if (!$wo->bom) continue;
+            if (!$wo->bom)
+                continue;
             foreach ($this->explodeCached($wo->bom, $wo->target_quantity) as $item) {
                 if (isset($productSet[$item['product_id']])) {
                     $demand[$item['product_id']] = ($demand[$item['product_id']] ?? 0) + $item['quantity'];

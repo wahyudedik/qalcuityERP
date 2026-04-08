@@ -41,8 +41,20 @@
                             @csrf @method('PATCH')
                             <select name="status"
                                 class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
+                                @php
+                                    // BUG-SALES-001 FIX: Only show valid transitions
+                                    $validTransitions = [
+                                        'pending' => ['confirmed', 'cancelled'],
+                                        'confirmed' => ['processing', 'cancelled'],
+                                        'processing' => ['shipped', 'cancelled'],
+                                        'shipped' => ['completed', 'cancelled'],
+                                        'completed' => [],
+                                        'cancelled' => [],
+                                    ];
+                                    $allowedStatuses = $validTransitions[$salesOrder->status] ?? [];
+                                @endphp
                                 @foreach (['pending', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'] as $s)
-                                    @if ($s !== $salesOrder->status)
+                                    @if (in_array($s, $allowedStatuses))
                                         <option value="{{ $s }}">{{ ucfirst($s) }}</option>
                                     @endif
                                 @endforeach

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'user_id',
@@ -28,7 +30,7 @@ class Transaction extends Model
     protected function casts(): array
     {
         return [
-            'date'   => 'date',
+            'date' => 'date',
             'amount' => 'decimal:2',
         ];
     }

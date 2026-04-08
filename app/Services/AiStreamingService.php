@@ -11,6 +11,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * 
  * Menyediakan response streaming untuk AI chat agar UX lebih smooth.
  * User dapat melihat respons muncul secara bertahap (typewriter effect).
+ * 
+ * BUG-AI-005 FIX: Added comprehensive error handling for:
+ * - Client disconnect detection
+ * - Partial response recovery
+ * - Proper cleanup on error
+ * - Graceful degradation
  */
 class AiStreamingService
 {
@@ -36,10 +42,27 @@ class AiStreamingService
         array $toolDeclarations = [],
         ?callable $onChunk = null
     ): StreamedResponse {
-        return response()->stream(function () use ($message, $history, $toolDeclarations, $onChunk) {
+        // Track accumulated text for error recovery
+        $accumulatedText = '';
+        $model = 'unknown';
+        $functionCalls = [];
+
+        return response()->stream(function () use ($message, $history, $toolDeclarations, $onChunk, &$accumulatedText, &$model, &$functionCalls) {
             try {
+                // BUG-AI-005 FIX: Check if client disconnected before starting
+                if (connection_aborted()) {
+                    Log::warning('AiStreamingService: Client disconnected before streaming started');
+                    return;
+                }
+
                 // Send initial event
                 $this->sendEvent('start', ['message' => 'Processing your request...']);
+
+                // BUG-AI-005 FIX: Check connection after initial event
+                if (connection_aborted()) {
+                    Log::warning('AiStreamingService: Client disconnected after start event');
+                    return;
+                }
 
                 // Call Gemini API
                 $response = $this->gemini->chatWithTools(
@@ -54,13 +77,13 @@ class AiStreamingService
 
                 // If there are function calls, execute them
                 if (!empty($functionCalls)) {
-                    $this->sendEvent('function_calls', [
-                        'calls' => $functionCalls,
-                        'count' => count($functionCalls),
-                    ]);
-
-                    // Note: Function execution should be handled by the caller
-                    // This is just to notify the client
+                    // BUG-AI-005 FIX: Check connection before sending function calls
+                    if (!connection_aborted()) {
+                        $this->sendEvent('function_calls', [
+                            'calls' => $functionCalls,
+                            'count' => count($functionCalls),
+                        ]);
+                    }
                 }
 
                 // Stream text in chunks for typewriter effect
@@ -70,7 +93,27 @@ class AiStreamingService
                     $chunks = array_chunk($words, $chunkSize);
 
                     foreach ($chunks as $index => $chunk) {
+                        // BUG-AI-005 FIX: Check if client disconnected before each chunk
+                        if (connection_aborted()) {
+                            Log::warning('AiStreamingService: Client disconnected during streaming', [
+                                'chunks_sent' => $index,
+                                'chunks_total' => count($chunks),
+                                'accumulated_text_length' => strlen($accumulatedText),
+                            ]);
+
+                            // Send partial complete event with accumulated text
+                            $this->sendEvent('partial', [
+                                'full_text' => $accumulatedText,
+                                'model' => $model,
+                                'function_calls' => $functionCalls,
+                                'disconnected' => true,
+                                'message' => 'Connection lost. Partial response saved.',
+                            ]);
+                            return;
+                        }
+
                         $chunkText = implode(' ', $chunk);
+                        $accumulatedText .= ($accumulatedText ? ' ' : '') . $chunkText;
 
                         $this->sendEvent('chunk', [
                             'text' => $chunkText,
@@ -79,10 +122,18 @@ class AiStreamingService
                         ]);
 
                         // Flush and sleep for smooth streaming
-                        if (ob_get_level() > 0) {
-                            ob_flush();
+                        try {
+                            if (ob_get_level() > 0) {
+                                ob_flush();
+                            }
+                            flush();
+                        } catch (\Throwable $e) {
+                            // BUG-AI-005 FIX: Flush failed, client likely disconnected
+                            Log::warning('AiStreamingService: Flush failed, client may have disconnected', [
+                                'error' => $e->getMessage(),
+                            ]);
+                            return;
                         }
-                        flush();
 
                         // Small delay for typewriter effect (adjust as needed)
                         usleep(50000); // 50ms
@@ -94,55 +145,96 @@ class AiStreamingService
                     }
                 }
 
-                // Send final event
-                $this->sendEvent('complete', [
-                    'full_text' => $text,
-                    'model' => $model,
-                    'function_calls' => $functionCalls,
-                ]);
+                // BUG-AI-005 FIX: Final connection check before complete event
+                if (!connection_aborted()) {
+                    // Send final event
+                    $this->sendEvent('complete', [
+                        'full_text' => $text,
+                        'model' => $model,
+                        'function_calls' => $functionCalls,
+                    ]);
+                }
 
             } catch (\Throwable $e) {
                 Log::error('AiStreamingService: Streaming failed', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
+                    'accumulated_text_length' => strlen($accumulatedText),
                 ]);
 
-                $this->sendEvent('error', [
-                    'message' => 'Terjadi kesalahan saat memproses permintaan Anda.',
-                    'details' => app()->isLocal() ? $e->getMessage() : null,
-                ]);
+                // BUG-AI-005 FIX: Send error event with accumulated text for recovery
+                if (!connection_aborted()) {
+                    $this->sendEvent('error', [
+                        'message' => 'Terjadi kesalahan saat memproses permintaan Anda.',
+                        'details' => app()->isLocal() ? $e->getMessage() : null,
+                        'accumulated_text' => $accumulatedText, // Allow partial recovery
+                        'model' => $model,
+                        'function_calls' => $functionCalls,
+                    ]);
+                }
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no', // Disable nginx buffering
             'Connection' => 'keep-alive',
+            // BUG-AI-005 FIX: Add headers for better connection handling
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
     /**
      * Send SSE event
+     * 
+     * BUG-AI-005 FIX: Added connection check and error handling
      */
     protected function sendEvent(string $event, array $data): void
     {
-        $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        try {
+            $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        echo "event: {$event}\n";
-        echo "data: {$jsonData}\n\n";
+            if ($jsonData === false) {
+                Log::error('AiStreamingService: Failed to encode JSON for event', [
+                    'event' => $event,
+                    'json_error' => json_last_error_msg(),
+                ]);
+                return;
+            }
 
-        if (ob_get_level() > 0) {
-            ob_flush();
+            echo "event: {$event}\n";
+            echo "data: {$jsonData}\n\n";
+
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+            flush();
+        } catch (\Throwable $e) {
+            // BUG-AI-005 FIX: Log send event failures
+            Log::warning('AiStreamingService: Failed to send event', [
+                'event' => $event,
+                'error' => $e->getMessage(),
+            ]);
         }
-        flush();
     }
 
     /**
      * Stream simple text response (without tools)
+     * 
+     * BUG-AI-005 FIX: Added disconnect detection and error handling
      */
     public function streamSimpleResponse(string $message, array $history = []): StreamedResponse
     {
-        return response()->stream(function () use ($message, $history) {
+        $accumulatedText = '';
+        $model = 'unknown';
+
+        return response()->stream(function () use ($message, $history, &$accumulatedText, &$model) {
             try {
+                // BUG-AI-005 FIX: Check connection before starting
+                if (connection_aborted()) {
+                    Log::warning('AiStreamingService: Client disconnected before simple streaming started');
+                    return;
+                }
+
                 $this->sendEvent('start', ['message' => 'Processing...']);
 
                 $response = $this->gemini->chat(
@@ -157,38 +249,74 @@ class AiStreamingService
                 $chunks = str_split($text, 50); // 50 chars per chunk
 
                 foreach ($chunks as $index => $chunk) {
+                    // BUG-AI-005 FIX: Check connection before each chunk
+                    if (connection_aborted()) {
+                        Log::warning('AiStreamingService: Client disconnected during simple streaming', [
+                            'chunks_sent' => $index,
+                            'chunks_total' => count($chunks),
+                        ]);
+
+                        // Send partial complete
+                        $this->sendEvent('partial', [
+                            'full_text' => $accumulatedText,
+                            'model' => $model,
+                            'disconnected' => true,
+                        ]);
+                        return;
+                    }
+
+                    $accumulatedText .= $chunk;
+
                     $this->sendEvent('chunk', [
                         'text' => $chunk,
                         'progress' => round(($index + 1) / count($chunks) * 100, 2),
                         'is_final' => ($index === count($chunks) - 1),
                     ]);
 
-                    if (ob_get_level() > 0) {
-                        ob_flush();
+                    try {
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
+                    } catch (\Throwable $e) {
+                        Log::warning('AiStreamingService: Flush failed in simple streaming', [
+                            'error' => $e->getMessage(),
+                        ]);
+                        return;
                     }
-                    flush();
+
                     usleep(30000); // 30ms
                 }
 
-                $this->sendEvent('complete', [
-                    'full_text' => $text,
-                    'model' => $model,
-                ]);
+                // BUG-AI-005 FIX: Final connection check
+                if (!connection_aborted()) {
+                    $this->sendEvent('complete', [
+                        'full_text' => $text,
+                        'model' => $model,
+                    ]);
+                }
 
             } catch (\Throwable $e) {
                 Log::error('AiStreamingService: Simple streaming failed', [
                     'error' => $e->getMessage(),
+                    'accumulated_text_length' => strlen($accumulatedText),
                 ]);
 
-                $this->sendEvent('error', [
-                    'message' => 'Terjadi kesalahan.',
-                ]);
+                // BUG-AI-005 FIX: Send error with accumulated text
+                if (!connection_aborted()) {
+                    $this->sendEvent('error', [
+                        'message' => 'Terjadi kesalahan.',
+                        'accumulated_text' => $accumulatedText,
+                        'model' => $model,
+                    ]);
+                }
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
             'Connection' => 'keep-alive',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 

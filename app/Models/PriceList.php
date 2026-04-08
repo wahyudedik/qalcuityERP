@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PriceList extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'name', 'code', 'type', 'description',
         'valid_from', 'valid_until', 'is_active',

@@ -4,11 +4,17 @@ namespace App\Services\Security;
 
 use App\Models\Permission;
 use App\Models\Role;
+use Illuminate\Support\Facades\Cache;
 
 class PermissionService
 {
     /**
-     * Check if user has permission
+     * Cache TTL in minutes
+     */
+    const CACHE_TTL = 5;
+
+    /**
+     * Check if user has permission (CACHED)
      */
     public function hasPermission($user, string $permission): bool
     {
@@ -24,8 +30,13 @@ class PermissionService
             return false;
         }
 
-        // Check if role has permission
-        return $role->permissions()->where('name', $permission)->exists();
+        // Check cache first
+        $cacheKey = "role_perms:{$role->id}";
+        $rolePermissions = Cache::remember($cacheKey, now()->addMinutes(self::CACHE_TTL), function () use ($role) {
+            return $role->permissions()->pluck('name')->toArray();
+        });
+
+        return in_array($permission, $rolePermissions);
     }
 
     /**
@@ -70,7 +81,7 @@ class PermissionService
     }
 
     /**
-     * Assign permission to role
+     * Assign permission to role (with cache invalidation)
      */
     public function assignPermissionToRole(int $roleId, int $permissionId): bool
     {
@@ -79,6 +90,9 @@ class PermissionService
             $permission = Permission::findOrFail($permissionId);
 
             $role->permissions()->syncWithoutDetaching([$permissionId]);
+
+            // Invalidate cache for this role
+            $this->clearRolePermissionCache($roleId);
 
             return true;
         } catch (\Exception $e) {
@@ -93,7 +107,7 @@ class PermissionService
     }
 
     /**
-     * Remove permission from role
+     * Remove permission from role (with cache invalidation)
      */
     public function removePermissionFromRole(int $roleId, int $permissionId): bool
     {
@@ -102,6 +116,9 @@ class PermissionService
             $permission = Permission::findOrFail($permissionId);
 
             $role->permissions()->detach([$permissionId]);
+
+            // Invalidate cache for this role
+            $this->clearRolePermissionCache($roleId);
 
             return true;
         } catch (\Exception $e) {
@@ -116,13 +133,16 @@ class PermissionService
     }
 
     /**
-     * Sync role permissions
+     * Sync role permissions (with cache invalidation)
      */
     public function syncRolePermissions(int $roleId, array $permissionIds): bool
     {
         try {
             $role = Role::findOrFail($roleId);
             $role->permissions()->sync($permissionIds);
+
+            // Invalidate cache for this role
+            $this->clearRolePermissionCache($roleId);
 
             return true;
         } catch (\Exception $e) {
@@ -136,32 +156,35 @@ class PermissionService
     }
 
     /**
-     * Get all permissions grouped by category
+     * Get all permissions grouped by category (CACHED)
      */
     public function getGroupedPermissions(): array
     {
-        return Permission::all()
-            ->groupBy('group')
-            ->map(function ($permissions) {
-                return $permissions->map(function ($permission) {
-                    return [
-                        'id' => $permission->id,
-                        'name' => $permission->name,
-                        'description' => $permission->description,
-                    ];
-                });
-            })
-            ->toArray();
+        return Cache::remember('permissions_grouped', now()->addMinutes(self::CACHE_TTL), function () {
+            return Permission::all()
+                ->groupBy('group')
+                ->map(function ($permissions) {
+                    return $permissions->map(function ($permission) {
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                            'description' => $permission->description,
+                        ];
+                    });
+                })
+                ->toArray();
+        });
     }
 
     /**
-     * Get role permissions
+     * Get role permissions (CACHED)
      */
     public function getRolePermissions(int $roleId): array
     {
-        $role = Role::with('permissions')->findOrFail($roleId);
-
-        return $role->permissions->pluck('name')->toArray();
+        return Cache::remember("role_perms_list:{$roleId}", now()->addMinutes(self::CACHE_TTL), function () use ($roleId) {
+            $role = Role::with('permissions')->findOrFail($roleId);
+            return $role->permissions->pluck('name')->toArray();
+        });
     }
 
     /**
@@ -223,5 +246,31 @@ class PermissionService
                 ]
             );
         }
+
+        // Invalidate cache after seeding
+        $this->clearAllPermissionCache();
+    }
+
+    /**
+     * Clear permission cache for specific role
+     * Call this after modifying role permissions
+     */
+    public function clearRolePermissionCache(int $roleId): void
+    {
+        Cache::forget("role_perms:{$roleId}");
+        Cache::forget("role_perms_list:{$roleId}");
+    }
+
+    /**
+     * Clear all permission cache
+     * Call this after bulk permission changes or seeding
+     */
+    public function clearAllPermissionCache(): void
+    {
+        Cache::forget('permissions_grouped');
+
+        // Clear all role permission caches (pattern match not supported in Laravel cache)
+        // In production, use cache tags for better invalidation:
+        // Cache::tags(['role_permissions'])->flush();
     }
 }

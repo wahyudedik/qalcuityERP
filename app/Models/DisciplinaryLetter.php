@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DisciplinaryLetter extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'employee_id', 'level', 'letter_number', 'issued_date',
         'valid_until', 'violation_type', 'violation_description', 'corrective_action',

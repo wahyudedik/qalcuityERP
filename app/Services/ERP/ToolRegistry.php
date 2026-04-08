@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Log;
 
 class ToolRegistry
 {
+    // BUG-AI-002 FIX: Static cache to prevent unnecessary object creation
+    protected static array $registryCache = [];
+    protected static array $toolsCache = [];
+    protected static array $executorsCache = [];
+
     protected int $tenantId;
     protected int $userId;
     protected array $tools = [];
@@ -20,51 +25,75 @@ class ToolRegistry
         $this->userId = $userId;
         $this->validator = new AiCommandValidator();
 
-        $instances = [
-            new InventoryTools($tenantId, $userId),
-            new SalesTools($tenantId, $userId),
-            new PosTools($tenantId, $userId),
-            new PurchasingTools($tenantId, $userId),
-            new HrmTools($tenantId, $userId),
-            new FinanceTools($tenantId, $userId),
-            new OnboardingTools($tenantId, $userId),
-            new DashboardTools($tenantId, $userId),
-            new ReceivableTools($tenantId, $userId),
-            new RecipeTools($tenantId, $userId),
-            new ProductionTools($tenantId, $userId),
-            new ProjectTools($tenantId, $userId),
-            new WarehouseTools($tenantId, $userId),
-            new ReportTools($tenantId, $userId),
-            new AssetTools($tenantId, $userId),
-            new PayrollTools($tenantId, $userId),
-            new CrmTools($tenantId, $userId),
-            new BudgetTools($tenantId, $userId),
-            new DocumentTools($tenantId, $userId),
-            new CurrencyTools($tenantId, $userId),
-            new TaxTools($tenantId, $userId),
-            new LoyaltyTools($tenantId, $userId),
-            new ShippingTools($tenantId, $userId),
-            new BankTools($tenantId, $userId),
-            new BotTools($tenantId, $userId),
-            new NotificationTools($tenantId, $userId),
-            new ReminderTools($tenantId, $userId),
-            new SmartQueryTools($tenantId, $userId),
-            new ForecastTools($tenantId, $userId),
-            new BulkTools($tenantId, $userId),
-            new WhatsAppTools($tenantId, $userId),
-            new DocumentGeneratorTools($tenantId, $userId),
-            new AppGuideTools($tenantId, $userId),
-            new ConcreteMixTools($tenantId, $userId),
-            new FarmTools($tenantId, $userId),
-            new AdvisorTools($tenantId, $userId),
+        // BUG-AI-002 FIX: Use cache key based on tenant+user
+        $cacheKey = "{$tenantId}:{$userId}";
+
+        // Check if tools are already cached for this tenant+user
+        if (isset(self::$toolsCache[$cacheKey]) && isset(self::$executorsCache[$cacheKey])) {
+            $this->tools = self::$toolsCache[$cacheKey];
+            $this->executors = self::$executorsCache[$cacheKey];
+            return; // Skip expensive object creation!
+        }
+
+        // Tool class definitions (lightweight, just class names)
+        $toolClasses = [
+            InventoryTools::class,
+            SalesTools::class,
+            PosTools::class,
+            PurchasingTools::class,
+            HrmTools::class,
+            FinanceTools::class,
+            OnboardingTools::class,
+            DashboardTools::class,
+            ReceivableTools::class,
+            RecipeTools::class,
+            ProductionTools::class,
+            ProjectTools::class,
+            WarehouseTools::class,
+            ReportTools::class,
+            AssetTools::class,
+            PayrollTools::class,
+            CrmTools::class,
+            BudgetTools::class,
+            DocumentTools::class,
+            CurrencyTools::class,
+            TaxTools::class,
+            LoyaltyTools::class,
+            ShippingTools::class,
+            BankTools::class,
+            BotTools::class,
+            NotificationTools::class,
+            ReminderTools::class,
+            SmartQueryTools::class,
+            ForecastTools::class,
+            BulkTools::class,
+            WhatsAppTools::class,
+            DocumentGeneratorTools::class,
+            AppGuideTools::class,
+            ConcreteMixTools::class,
+            FarmTools::class,
+            AdvisorTools::class,
         ];
 
-        foreach ($instances as $instance) {
+        // Instantiate and cache tools
+        $tools = [];
+        $executors = [];
+
+        foreach ($toolClasses as $toolClass) {
+            // Create instance only once per tenant+user
+            $instance = new $toolClass($tenantId, $userId);
+
             foreach ($instance::definitions() as $def) {
-                $this->tools[$def['name']] = $def;
-                $this->executors[$def['name']] = $instance;
+                $tools[$def['name']] = $def;
+                $executors[$def['name']] = $instance;
             }
         }
+
+        // Cache for this tenant+user combination
+        $this->tools = $tools;
+        $this->executors = $executors;
+        self::$toolsCache[$cacheKey] = $tools;
+        self::$executorsCache[$cacheKey] = $executors;
     }
 
     /**
@@ -257,5 +286,36 @@ class ToolRegistry
         ];
 
         return in_array($toolName, $writeTools);
+    }
+
+    /**
+     * BUG-AI-002 FIX: Clear static cache (useful for testing/memory management)
+     */
+    public static function clearCache(): void
+    {
+        self::$registryCache = [];
+        self::$toolsCache = [];
+        self::$executorsCache = [];
+    }
+
+    /**
+     * BUG-AI-002 FIX: Get cache statistics for monitoring
+     */
+    public static function getCacheStats(): array
+    {
+        return [
+            'cached_registries' => count(self::$toolsCache),
+            'cached_keys' => array_keys(self::$toolsCache),
+            'memory_usage' => strlen(serialize(self::$toolsCache)) + strlen(serialize(self::$executorsCache)),
+        ];
+    }
+
+    /**
+     * BUG-AI-002 FIX: Check if registry is cached for tenant+user
+     */
+    public static function isCached(int $tenantId, int $userId): bool
+    {
+        $cacheKey = "{$tenantId}:{$userId}";
+        return isset(self::$toolsCache[$cacheKey]);
     }
 }

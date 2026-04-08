@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PerformanceReview extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'employee_id', 'reviewer_id', 'period', 'period_type',
         'score_work_quality', 'score_productivity', 'score_teamwork',

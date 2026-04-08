@@ -254,6 +254,14 @@ Route::middleware('auth')->group(function () {
         // Seasonal Trend Analysis
         Route::get('/seasonal-trends', [\App\Http\Controllers\Analytics\AnalyticsDashboardController::class, 'seasonalTrends'])->name('seasonal-trends');
 
+        // Advanced Analytics Dashboard (NEW)
+        Route::get('/advanced', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'index'])->name('advanced');
+        Route::get('/predictive', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'predictiveAnalytics'])->name('predictive');
+        Route::get('/report-builder', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'reportBuilder'])->name('report-builder');
+        Route::post('/generate-report', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'generateReport'])->name('generate-report');
+        Route::get('/scheduled-reports', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'scheduledReports'])->name('scheduled-reports');
+        Route::post('/scheduled-reports', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'createScheduledReport'])->name('create-scheduled-report');
+
         // API Endpoint
         Route::get('/api/all', [\App\Http\Controllers\Analytics\AnalyticsDashboardController::class, 'apiGetAllAnalytics'])->name('api.all');
     });
@@ -335,6 +343,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [SuperAdminSystemSettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SuperAdminSystemSettingsController::class, 'update'])->name('settings.update');
         Route::post('/settings/test-mail', [SuperAdminSystemSettingsController::class, 'testMail'])->name('settings.test-mail');
+        Route::post('/settings/test-gemini-api-key', [SuperAdminSystemSettingsController::class, 'testGeminiApiKey'])->name('settings.test-gemini-api-key');
         Route::post('/settings/regenerate-vapid', [SuperAdminSystemSettingsController::class, 'regenerateVapid'])->name('settings.regenerate-vapid');
     });
 
@@ -401,6 +410,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\ModuleSettingsController::class, 'index'])->name('index');
         Route::put('/', [\App\Http\Controllers\ModuleSettingsController::class, 'update'])->name('update');
         Route::get('/recommend', [\App\Http\Controllers\ModuleSettingsController::class, 'recommend'])->name('recommend');
+
+        // BUG-SET-002 FIX: Additional endpoints for module cleanup
+        Route::post('/analyze-impact', [\App\Http\Controllers\ModuleSettingsController::class, 'analyzeImpact'])->name('analyze-impact');
+        Route::get('/cleanup-summary', [\App\Http\Controllers\ModuleSettingsController::class, 'cleanupSummary'])->name('cleanup-summary');
+        Route::post('/restore-data', [\App\Http\Controllers\ModuleSettingsController::class, 'restoreData'])->name('restore-data');
     });
 
     // Company Profile (admin only)
@@ -665,7 +679,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // HRM
-    Route::prefix('hrm')->name('hrm.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('hrm')->name('hrm.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [HrmController::class, 'index'])->name('index');
         Route::post('/', [HrmController::class, 'store'])->name('store');
         Route::put('/{employee}', [HrmController::class, 'update'])->name('update');
@@ -790,7 +804,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Purchasing (admin + manager only)
-    Route::prefix('purchasing')->name('purchasing.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('purchasing')->name('purchasing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         // Redirect lama ke /suppliers baru
         Route::get('/suppliers', fn() => redirect()->route('suppliers.index'))->name('suppliers');
         Route::post('/suppliers', fn() => redirect()->route('suppliers.index'))->name('suppliers.store');
@@ -802,6 +816,13 @@ Route::middleware('auth')->group(function () {
         // Task 35: State machine actions
         Route::post('/orders/{order}/post', [PurchasingController::class, 'postOrder'])->name('orders.post');
         Route::post('/orders/{order}/cancel', [PurchasingController::class, 'cancelOrder'])->name('orders.cancel');
+        // BUG-PO-001 FIX: Approval workflow routes
+        Route::post('/orders/{order}/request-approval', [PurchasingController::class, 'requestApproval'])->name('orders.request-approval');
+        Route::post('/orders/{order}/approve', [PurchasingController::class, 'approveOrder'])->name('orders.approve');
+        Route::post('/orders/{order}/reject', [PurchasingController::class, 'rejectOrder'])->name('orders.reject');
+        Route::get('/orders/{order}/approval-history', [PurchasingController::class, 'getApprovalHistory'])->name('orders.approval-history');
+        // BUG-PO-002 FIX: Get remaining quantities
+        Route::get('/orders/{order}/remaining-quantities', [PurchasingController::class, 'getPoRemainingQuantities'])->name('orders.remaining-quantities');
         // Purchase Requisition
         Route::get('/requisitions', [PurchasingController::class, 'requisitions'])->name('requisitions');
         Route::post('/requisitions', [PurchasingController::class, 'storeRequisition'])->name('requisitions.store');
@@ -830,16 +851,18 @@ Route::middleware('auth')->group(function () {
     });
 
     // Supplier Scorecard & Performance Management
-    Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth'])->group(function () {
+    Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth', 'tenant.isolation'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'index'])->name('scorecards.index');
-        Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail');
-        Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
-        Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
 
-        // Strategic Sourcing
+        // Strategic Sourcing - MUST be before /{id} route
         Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
         Route::post('/opportunities', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'createOpportunity'])->name('opportunities.create');
         Route::post('/opportunities/{id}/status', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'updateOpportunityStatus'])->name('opportunities.update-status');
+
+        // Supplier detail - MUST be after specific routes
+        Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail');
+        Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
+        Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
 
         // RFQ Analysis
         Route::get('/rfq/{id}/analysis', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'analyzeRfq'])->name('rfq.analysis');
@@ -849,7 +872,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Printing Industry Module
-    Route::prefix('printing')->name('printing.')->middleware(['auth'])->group(function () {
+    Route::prefix('printing')->name('printing.')->middleware(['auth', 'tenant.isolation'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'index'])->name('dashboard');
         Route::get('/create', [\App\Http\Controllers\Printing\PrintJobController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'store'])->name('store');
@@ -872,7 +895,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Tour & Travel Module
-    Route::prefix('tour-travel')->name('tour-travel.')->middleware(['auth'])->group(function () {
+    Route::prefix('tour-travel')->name('tour-travel.')->middleware(['auth', 'tenant.isolation'])->group(function () {
         // Tour Packages
         Route::prefix('packages')->name('packages.')->group(function () {
             Route::get('/', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'index'])->name('index');
@@ -901,7 +924,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Livestock Enhancement Module (Dairy, Poultry, Breeding, Waste)
-    Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middleware(['auth'])->group(function () {
+    Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middleware(['auth', 'tenant.isolation'])->group(function () {
         // Dairy Management
         Route::prefix('dairy')->name('dairy.')->group(function () {
             Route::get('/milk-records', [\App\Http\Controllers\Livestock\DairyController::class, 'milkRecords'])->name('milk-records');
@@ -936,7 +959,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Cosmetic Formula Management Module
-    Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth'])->group(function () {
+    Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth', 'tenant.isolation'])->group(function () {
         // Formula Management
         Route::prefix('formulas')->name('formulas.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'index'])->name('index');
@@ -1102,6 +1125,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('customers')->name('customers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
+        Route::post('/bulk-action', [\App\Http\Controllers\CustomerController::class, 'bulkAction'])->name('bulk-action');
         Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
         Route::patch('/{customer}/toggle', [\App\Http\Controllers\CustomerController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
@@ -1111,9 +1135,18 @@ Route::middleware('auth')->group(function () {
     Route::prefix('products')->name('products.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
+        Route::post('/bulk-action', [\App\Http\Controllers\ProductController::class, 'bulkAction'])->name('bulk-action');
         Route::put('/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
         Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Product Categories (master data)
+    Route::prefix('categories')->name('categories.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\ProductCategoryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ProductCategoryController::class, 'store'])->name('store');
+        Route::put('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'destroy'])->name('destroy');
     });
 
     // Warehouses (master data)
@@ -1154,6 +1187,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{lead}/stage-drag', [CrmController::class, 'updateStageDrag'])->name('stage-drag');
         Route::post('/{lead}/activity', [CrmController::class, 'logActivity'])->name('activity');
         Route::post('/{lead}/convert-customer', [CrmController::class, 'convertToCustomer'])->name('convert-customer');
+        // BUG-CRM-001 FIX: Check duplicates before conversion
+        Route::get('/{lead}/check-duplicates', [CrmController::class, 'checkLeadDuplicates'])->name('check-duplicates');
         Route::delete('/{lead}', [CrmController::class, 'destroy'])->name('destroy');
         // AI
         Route::get('/ai/score-all', [CrmAiController::class, 'scoreAll'])->name('ai.score-all')->middleware('ai.quota');
@@ -1185,7 +1220,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Budget vs Actual (admin + manager only)
-    Route::prefix('budget')->name('budget.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('budget')->name('budget.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [BudgetController::class, 'index'])->name('index');
         Route::post('/', [BudgetController::class, 'store'])->name('store');
         Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
@@ -1196,16 +1231,19 @@ Route::middleware('auth')->group(function () {
     });
 
     // Loyalty Program (admin + manager only)
-    Route::prefix('loyalty')->name('loyalty.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('loyalty')->name('loyalty.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [LoyaltyController::class, 'index'])->name('index');
         Route::post('/program', [LoyaltyController::class, 'saveProgram'])->name('program.save');
         Route::post('/add-points', [LoyaltyController::class, 'addPoints'])->name('add-points');
         Route::post('/redeem', [LoyaltyController::class, 'redeemPoints'])->name('redeem');
         Route::get('/customer/{customer}/transactions', [LoyaltyController::class, 'transactions'])->name('transactions');
+        // BUG-CRM-003 FIX: Balance check and recalculation endpoints
+        Route::get('/customer/{customer}/balance', [LoyaltyController::class, 'getBalance'])->name('balance');
+        Route::post('/customer/{customer}/recalculate', [LoyaltyController::class, 'recalculateBalance'])->name('recalculate');
     });
 
     // Payroll
-    Route::prefix('payroll')->name('payroll.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('payroll')->name('payroll.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [PayrollController::class, 'index'])->name('index');
         Route::post('/process', [PayrollController::class, 'process'])->name('process');
         Route::patch('/{run}/paid', [PayrollController::class, 'markPaid'])->name('paid');
@@ -1332,7 +1370,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Manufacturing (BOM, Work Centers, MRP)
-    Route::prefix('manufacturing')->name('manufacturing.')->middleware('role:admin,manager,gudang')->group(function () {
+    Route::prefix('manufacturing')->name('manufacturing.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
         Route::get('/bom', [ManufacturingController::class, 'bom'])->name('bom')->middleware('permission:manufacturing,view');
         Route::post('/bom', [ManufacturingController::class, 'storeBom'])->name('bom.store')->middleware('permission:manufacturing,create');
         Route::put('/bom/{bom}', [ManufacturingController::class, 'updateBom'])->name('bom.update')->middleware('permission:manufacturing,edit');
@@ -1391,7 +1429,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Fleet Management
-    Route::prefix('fleet')->name('fleet.')->middleware('role:admin,manager,gudang')->group(function () {
+    Route::prefix('fleet')->name('fleet.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
         Route::get('/', [FleetController::class, 'index'])->name('index')->middleware('permission:fleet,view');
         Route::post('/vehicles', [FleetController::class, 'storeVehicle'])->name('vehicles.store')->middleware('permission:fleet,create');
         Route::put('/vehicles/{fleetVehicle}', [FleetController::class, 'updateVehicle'])->name('vehicles.update')->middleware('permission:fleet,edit');
@@ -1412,7 +1450,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Contract Management
-    Route::prefix('contracts')->name('contracts.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('contracts')->name('contracts.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [ContractController::class, 'index'])->name('index')->middleware('permission:contracts,view');
         Route::post('/', [ContractController::class, 'store'])->name('store')->middleware('permission:contracts,create');
         Route::get('/templates', [ContractController::class, 'templates'])->name('templates')->middleware('permission:contracts,view');
@@ -1429,7 +1467,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Landed Cost
-    Route::prefix('landed-cost')->name('landed-cost.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('landed-cost')->name('landed-cost.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [LandedCostController::class, 'index'])->name('index')->middleware('permission:landed_cost,view');
         Route::post('/', [LandedCostController::class, 'store'])->name('store')->middleware('permission:landed_cost,create');
         Route::get('/{landedCost}', [LandedCostController::class, 'show'])->name('show')->middleware('permission:landed_cost,view');
@@ -1440,7 +1478,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Consignment
-    Route::prefix('consignment')->name('consignment.')->middleware('role:admin,manager,gudang')->group(function () {
+    Route::prefix('consignment')->name('consignment.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [ConsignmentController::class, 'index'])->name('index')->middleware('permission:consignment,view');
         Route::post('/shipments', [ConsignmentController::class, 'storeShipment'])->name('shipments.store')->middleware('permission:consignment,create');
         Route::get('/shipments/{consignmentShipment}', [ConsignmentController::class, 'show'])->name('shipments.show')->middleware('permission:consignment,view');
@@ -1453,7 +1491,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Commission Management
-    Route::prefix('commission')->name('commission.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('commission')->name('commission.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [CommissionController::class, 'index'])->name('index')->middleware('permission:commission,view');
         Route::post('/calculate', [CommissionController::class, 'calculate'])->name('calculate')->middleware('permission:commission,create');
         Route::post('/targets', [CommissionController::class, 'storeTarget'])->name('targets.store')->middleware('permission:commission,create');
@@ -1465,7 +1503,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Helpdesk / Ticketing
-    Route::prefix('helpdesk')->name('helpdesk.')->middleware('role:admin,manager,staff')->group(function () {
+    Route::prefix('helpdesk')->name('helpdesk.')->middleware(['role:admin,manager,staff', 'tenant.isolation'])->group(function () {
         Route::get('/', [HelpdeskController::class, 'index'])->name('index')->middleware('permission:helpdesk,view');
         Route::post('/', [HelpdeskController::class, 'store'])->name('store')->middleware('permission:helpdesk,create');
         Route::get('/knowledge-base', [HelpdeskController::class, 'knowledgeBase'])->name('kb')->middleware('permission:helpdesk,view');
@@ -1478,7 +1516,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Project Billing
-    Route::prefix('project-billing')->name('project-billing.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('project-billing')->name('project-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [ProjectBillingController::class, 'index'])->name('index')->middleware('permission:project_billing,view');
         Route::get('/{project}', [ProjectBillingController::class, 'show'])->name('show')->middleware('permission:project_billing,view');
         Route::post('/{project}/config', [ProjectBillingController::class, 'saveConfig'])->name('config')->middleware('permission:project_billing,edit');
@@ -1492,7 +1530,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Subscription Billing
-    Route::prefix('subscription-billing')->name('subscription-billing.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('subscription-billing')->name('subscription-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [SubscriptionBillingController::class, 'index'])->name('index')->middleware('permission:subscription_billing,view');
         Route::post('/', [SubscriptionBillingController::class, 'store'])->name('store')->middleware('permission:subscription_billing,create');
         Route::get('/plans', [SubscriptionBillingController::class, 'plans'])->name('plans')->middleware('permission:subscription_billing,view');
@@ -1509,7 +1547,7 @@ Route::middleware('auth')->group(function () {
         ->middleware(['role:admin,manager', 'permission:reports,view']);
 
     // Quotations (Penawaran Harga)
-    Route::prefix('quotations')->name('quotations.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('quotations')->name('quotations.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [QuotationController::class, 'index'])->name('index');
         Route::post('/', [QuotationController::class, 'store'])->name('store');
         Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
@@ -1535,7 +1573,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // General Ledger & Accounting (admin + manager only)
-    Route::prefix('accounting')->name('accounting.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('accounting')->name('accounting.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         // Chart of Accounts
         Route::get('/coa', [AccountingController::class, 'coa'])->name('coa');
         Route::post('/coa', [AccountingController::class, 'storeCoa'])->name('coa.store');
@@ -1582,7 +1620,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Journal Entries (admin + manager only)
-    Route::prefix('journals')->name('journals.')->middleware('role:admin,manager')->group(function () {
+    Route::prefix('journals')->name('journals.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
         Route::get('/', [JournalController::class, 'index'])->name('index');
         Route::get('/create', [JournalController::class, 'create'])->name('create');
         Route::post('/', [JournalController::class, 'store'])->name('store');
@@ -1810,7 +1848,7 @@ Route::middleware('auth')->group(function () {
     // =============================================
     // HOTEL PMS MODULE
     // =============================================
-    Route::prefix('hotel')->name('hotel.')->group(function () {
+    Route::prefix('hotel')->name('hotel.')->middleware('tenant.isolation')->group(function () {
         // Dashboard
         Route::get('/', [App\Http\Controllers\Hotel\HotelDashboardController::class, 'index'])->name('dashboard');
 
@@ -2089,6 +2127,8 @@ Route::middleware('auth')->group(function () {
             Route::post('batch/{id}/post-minibar', [App\Http\Controllers\Hotel\NightAuditController::class, 'postMinibarCharges'])->name('post-minibar');
             Route::post('batch/{id}/calculate-occupancy', [App\Http\Controllers\Hotel\NightAuditController::class, 'calculateOccupancy'])->name('calculate-occupancy');
             Route::post('batch/{id}/complete', [App\Http\Controllers\Hotel\NightAuditController::class, 'completeAudit'])->name('complete');
+            Route::post('batch/{id}/retry', [App\Http\Controllers\Hotel\NightAuditController::class, 'retryFailedAudit'])->name('retry');
+            Route::post('batch/{id}/cancel', [App\Http\Controllers\Hotel\NightAuditController::class, 'cancelAudit'])->name('cancel');
 
             // Revenue Postings
             Route::get('revenue-postings', [App\Http\Controllers\Hotel\NightAuditController::class, 'revenuePostings'])->name('revenue-postings');
@@ -2151,7 +2191,7 @@ Route::post('/webhook/xendit', [\App\Http\Controllers\PaymentGatewayController::
     ->middleware(['webhook.verify:xendit', 'throttle:webhook-inbound']);
 
 // ── Telecom Module - Device Management ──────────────────────────────────────
-Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // Dashboard
     Route::get('dashboard', [TelecomDashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/device-status', [TelecomDashboardController::class, 'getDeviceStatus'])->name('dashboard.device-status');
@@ -2203,7 +2243,7 @@ Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified'])->gr
 });
 
 // ── F&B Industry Workflows ──────────────────────────────────────────────────
-Route::prefix('fnb')->name('fnb.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('fnb')->name('fnb.')->middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
 
     // Table Management & Reservations
     Route::prefix('tables')->name('tables.')->group(function () {
@@ -2224,6 +2264,10 @@ Route::prefix('fnb')->name('fnb.')->middleware(['auth', 'verified'])->group(func
         Route::patch('tickets/{ticket}/priority', [\App\Http\Controllers\Fnb\KitchenDisplayController::class, 'updatePriority'])->name('tickets.priority');
         Route::post('tickets/{ticket}/notes', [\App\Http\Controllers\Fnb\KitchenDisplayController::class, 'addChefNotes'])->name('tickets.notes');
         Route::get('stats', [\App\Http\Controllers\Fnb\KitchenDisplayController::class, 'getStats'])->name('stats');
+
+        // BUG-FB-002 FIX: Ticket validation and cleanup endpoints
+        Route::post('validate-tickets', [\App\Http\Controllers\Fnb\KitchenDisplayController::class, 'validateTickets'])->name('validate-tickets');
+        Route::post('cleanup-duplicates', [\App\Http\Controllers\Fnb\KitchenDisplayController::class, 'cleanupDuplicates'])->name('cleanup-duplicates');
     });
 
     // Recipe Cost Calculator
@@ -2252,7 +2296,7 @@ Route::prefix('fnb')->name('fnb.')->middleware(['auth', 'verified'])->group(func
 });
 
 // ── Construction Industry Workflows ─────────────────────────────────────────
-Route::prefix('construction')->name('construction.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('construction')->name('construction.')->middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
 
     // Gantt Chart & Project Timeline
     Route::prefix('gantt')->name('gantt.')->group(function () {
@@ -2309,7 +2353,7 @@ Route::prefix('construction')->name('construction.')->middleware(['auth', 'verif
 });
 
 // ── Agriculture Industry Workflows ─────────────────────────────────────────
-Route::prefix('agriculture')->name('agriculture.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('agriculture')->name('agriculture.')->middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // Dashboard
     Route::get('/', [\App\Http\Controllers\AgricultureController::class, 'dashboard'])->name('dashboard');
 
@@ -2735,7 +2779,7 @@ Route::prefix('marketplace')->name('marketplace.')->middleware(['auth'])->group(
 // ==========================================
 
 // Fisheries View Routes (Blade Templates)
-Route::prefix('fisheries')->name('fisheries.')->middleware(['auth'])->group(function () {
+Route::prefix('fisheries')->name('fisheries.')->middleware(['auth', 'tenant.isolation'])->group(function () {
     // Main Dashboard
     Route::get('/', [\App\Http\Controllers\Fisheries\FisheriesViewController::class, 'index'])->name('index');
 
@@ -2762,7 +2806,7 @@ Route::prefix('fisheries')->name('fisheries.')->middleware(['auth'])->group(func
 });
 
 // Fisheries API Routes
-Route::prefix('fisheries')->name('fisheries.api.')->middleware(['auth'])->group(function () {
+Route::prefix('fisheries')->name('fisheries.api.')->middleware(['auth', 'tenant.isolation'])->group(function () {
 
     // Cold Chain Management
     Route::prefix('cold-chain')->name('cold-chain.')->group(function () {
@@ -2894,4 +2938,85 @@ Route::prefix('marketplace')->name('marketplace.')->middleware(['auth'])->group(
         Route::post('/subscriptions/{id}/upgrade', [\App\Http\Controllers\Marketplace\MarketplaceController::class, 'upgradePlan'])->name('subscriptions.upgrade');
         Route::get('/subscription', [\App\Http\Controllers\Marketplace\MarketplaceController::class, 'getSubscription'])->name('subscription.current');
     });
+});
+
+// ============================================
+// CUSTOMER PORTAL ROUTES
+// ============================================
+Route::prefix('portal')->name('customer-portal.')->middleware('auth')->group(function () {
+    // Dashboard
+    Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'index'])->name('dashboard');
+
+    // Orders
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'orders'])->name('index');
+        Route::get('/{order}', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'showOrder'])->name('show');
+    });
+
+    // Invoices
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'invoices'])->name('index');
+        Route::get('/{invoice}', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'showInvoice'])->name('show');
+        Route::get('/{invoice}/download', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'downloadInvoice'])->name('download');
+    });
+
+    // Profile
+    Route::post('/profile', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/password', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'changePassword'])->name('password.change');
+
+    // Support Tickets
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'tickets'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'createTicket'])->name('store');
+        Route::get('/{ticket}', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'showTicket'])->name('show');
+        Route::post('/{ticket}/reply', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'replyTicket'])->name('reply');
+    });
+});
+
+// ==========================================
+// Integration Marketplace Routes
+// ==========================================
+Route::middleware(['auth', 'tenant'])->prefix('integrations')->name('integrations.')->group(function () {
+    // Main Routes
+    Route::get('/', [\App\Http\Controllers\Integrations\IntegrationController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Integrations\IntegrationController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Integrations\IntegrationController::class, 'store'])->name('store');
+
+    // Integration Detail Routes
+    Route::prefix('{integration}')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Integrations\IntegrationController::class, 'show'])->name('show');
+        Route::get('/setup', [\App\Http\Controllers\Integrations\IntegrationController::class, 'setup'])->name('setup');
+        Route::patch('/update', [\App\Http\Controllers\Integrations\IntegrationController::class, 'update'])->name('update');
+        Route::delete('/', [\App\Http\Controllers\Integrations\IntegrationController::class, 'destroy'])->name('destroy');
+
+        // Actions
+        Route::post('/test-connection', [\App\Http\Controllers\Integrations\IntegrationController::class, 'testConnection'])->name('test-connection');
+        Route::post('/sync', [\App\Http\Controllers\Integrations\IntegrationController::class, 'sync'])->name('sync');
+        Route::post('/activate', [\App\Http\Controllers\Integrations\IntegrationController::class, 'activate'])->name('activate');
+        Route::post('/deactivate', [\App\Http\Controllers\Integrations\IntegrationController::class, 'deactivate'])->name('deactivate');
+        Route::post('/register-webhooks', [\App\Http\Controllers\Integrations\IntegrationController::class, 'registerWebhooks'])->name('register-webhooks');
+
+        // Stats & History
+        Route::get('/sync-history', [\App\Http\Controllers\Integrations\IntegrationController::class, 'syncHistory'])->name('sync-history');
+        Route::get('/sync-stats', [\App\Http\Controllers\Integrations\IntegrationController::class, 'syncStats'])->name('sync-stats');
+    });
+
+    // OAuth Routes
+    Route::prefix('oauth')->name('oauth.')->group(function () {
+        Route::get('/{provider}/start', [\App\Http\Controllers\Integrations\OAuthController::class, 'startOAuth'])->name('start');
+        Route::get('/{provider}/callback', [\App\Http\Controllers\Integrations\OAuthController::class, 'handleCallback'])->name('callback');
+        Route::post('/{integration}/woocommerce/complete', [\App\Http\Controllers\Integrations\OAuthController::class, 'completeWooCommerceSetup'])->name('woocommerce.complete');
+        Route::post('/{integration}/disconnect', [\App\Http\Controllers\Integrations\OAuthController::class, 'disconnect'])->name('disconnect');
+        Route::post('/{integration}/refresh-token', [\App\Http\Controllers\Integrations\OAuthController::class, 'refreshToken'])->name('refresh-token');
+    });
+
+    // Webhook Logs
+    Route::get('/webhook-logs', [\App\Http\Controllers\Integrations\IntegrationController::class, 'webhookLogs'])->name('webhook-logs');
+});
+
+// Webhook Endpoints (Public - No Auth Required)
+Route::prefix('api/integrations/webhooks')->name('api.integrations.webhooks.')->group(function () {
+    Route::post('/shopify', [\App\Http\Controllers\Integrations\WebhookController::class, 'handleShopify'])->name('shopify');
+    Route::post('/woocommerce', [\App\Http\Controllers\Integrations\WebhookController::class, 'handleWooCommerce'])->name('woocommerce');
+    Route::post('/test', [\App\Http\Controllers\Integrations\WebhookController::class, 'test'])->name('test');
 });

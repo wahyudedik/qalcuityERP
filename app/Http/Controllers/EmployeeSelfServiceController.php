@@ -34,7 +34,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function dashboard()
     {
-        $user     = auth()->user();
+        $user = auth()->user();
         $employee = $this->myEmployee();
 
         if (!$employee) {
@@ -42,11 +42,11 @@ class EmployeeSelfServiceController extends Controller
         }
 
         // Cuti
-        $leaveQuota    = 12;
-        $leaveUsed     = LeaveRequest::where('employee_id', $employee->id)
+        $leaveQuota = 12;
+        $leaveUsed = LeaveRequest::where('employee_id', $employee->id)
             ->where('type', 'annual')->where('status', 'approved')
             ->whereYear('start_date', now()->year)->sum('days');
-        $leavePending  = LeaveRequest::where('employee_id', $employee->id)->where('status', 'pending')->count();
+        $leavePending = LeaveRequest::where('employee_id', $employee->id)->where('status', 'pending')->count();
 
         // Absensi bulan ini
         $monthStats = Attendance::where('employee_id', $employee->id)
@@ -71,9 +71,15 @@ class EmployeeSelfServiceController extends Controller
             ->orderByDesc('submitted_at')->first();
 
         return view('self-service.dashboard', compact(
-            'employee', 'leaveQuota', 'leaveUsed', 'leavePending',
-            'monthStats', 'todayAttendance', 'latestPayslip',
-            'overtimePending', 'latestReview'
+            'employee',
+            'leaveQuota',
+            'leaveUsed',
+            'leavePending',
+            'monthStats',
+            'todayAttendance',
+            'latestPayslip',
+            'overtimePending',
+            'latestReview'
         ));
     }
 
@@ -82,21 +88,21 @@ class EmployeeSelfServiceController extends Controller
     public function profile()
     {
         $employee = $this->myEmployee();
-        $user     = auth()->user();
+        $user = auth()->user();
         return view('self-service.profile', compact('employee', 'user'));
     }
 
     public function updateProfile(Request $request)
     {
-        $user     = auth()->user();
+        $user = auth()->user();
         $employee = $this->myEmployee();
 
         $data = $request->validate([
-            'name'         => 'required|string|max:255',
-            'phone'        => 'nullable|string|max:20',
-            'address'      => 'nullable|string|max:500',
-            'avatar'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'password'     => 'nullable|string|min:8|confirmed',
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         // Update User
@@ -105,7 +111,8 @@ class EmployeeSelfServiceController extends Controller
             $userUpdate['password'] = Hash::make($data['password']);
         }
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) Storage::disk('public')->delete($user->avatar);
+            if ($user->avatar)
+                Storage::disk('public')->delete($user->avatar);
             $userUpdate['avatar'] = $request->file('avatar')->store("avatars/{$user->tenant_id}", 'public');
         }
         $user->update($userUpdate);
@@ -113,7 +120,7 @@ class EmployeeSelfServiceController extends Controller
         // Update Employee record jika ada
         if ($employee) {
             $employee->update([
-                'phone'   => $data['phone'] ?? $employee->phone,
+                'phone' => $data['phone'] ?? $employee->phone,
                 'address' => $data['address'] ?? $employee->address,
             ]);
         }
@@ -135,15 +142,14 @@ class EmployeeSelfServiceController extends Controller
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        $usedDays = LeaveRequest::where('employee_id', $employee->id)
-            ->where('type', 'annual')
-            ->where('status', 'approved')
-            ->whereYear('start_date', now()->year)
-            ->sum('days');
+        // BUG-HRM-003 FIX: Use accurate leave balance calculation
+        $leaveService = new \App\Services\LeaveBalanceService();
+        $leaveBalance = $leaveService->calculateLeaveBalance($employee);
 
-        $quota = 12; // default annual leave quota
+        $quota = $leaveBalance['total_available'];
+        $usedDays = $leaveBalance['used'];
 
-        return view('self-service.leave', compact('employee', 'leaves', 'quota', 'usedDays'));
+        return view('self-service.leave', compact('employee', 'leaves', 'quota', 'usedDays', 'leaveBalance'));
     }
 
     public function leaveStore(Request $request)
@@ -152,38 +158,40 @@ class EmployeeSelfServiceController extends Controller
         abort_unless($employee, 403, 'Akun Anda belum terhubung ke data karyawan.');
 
         $data = $request->validate([
-            'type'       => 'required|in:annual,sick,maternity,paternity,unpaid,other',
+            'type' => 'required|in:annual,sick,maternity,paternity,unpaid,other',
             'start_date' => 'required|date|after_or_equal:today',
-            'end_date'   => 'required|date|after_or_equal:start_date',
-            'reason'     => 'nullable|string|max:500',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $start = \Carbon\Carbon::parse($data['start_date']);
-        $end   = \Carbon\Carbon::parse($data['end_date']);
-        $days  = $start->diffInWeekdays($end) + 1;
+        $end = \Carbon\Carbon::parse($data['end_date']);
+        $days = $start->diffInWeekdays($end) + 1;
 
-        // Cek sisa kuota cuti tahunan
+        // BUG-HRM-003 FIX: Check leave balance with pro-rata calculation
         if ($data['type'] === 'annual') {
-            $used = LeaveRequest::where('employee_id', $employee->id)
-                ->where('type', 'annual')
-                ->where('status', 'approved')
-                ->whereYear('start_date', now()->year)
-                ->sum('days');
+            $leaveService = new \App\Services\LeaveBalanceService();
+            $balanceCheck = $leaveService->checkLeaveBalance($employee, $days);
 
-            if (($used + $days) > 12) {
-                return back()->withErrors(['quota' => "Sisa kuota cuti tahunan Anda tidak mencukupi. Sisa: " . max(0, 12 - $used) . " hari."]);
+            if (!$balanceCheck['has_enough']) {
+                return back()->withErrors([
+                    'quota' => "Sisa kuota cuti tahunan tidak mencukupi. " .
+                        "Tersedia: {$balanceCheck['available']} hari, " .
+                        "Dibutuhkan: {$days} hari. " .
+                        "Kurang: {$balanceCheck['shortage']} hari."
+                ]);
             }
         }
 
         LeaveRequest::create([
-            'tenant_id'   => $employee->tenant_id,
+            'tenant_id' => $employee->tenant_id,
             'employee_id' => $employee->id,
-            'type'        => $data['type'],
-            'start_date'  => $data['start_date'],
-            'end_date'    => $data['end_date'],
-            'days'        => $days,
-            'reason'      => $data['reason'] ?? null,
-            'status'      => 'pending',
+            'type' => $data['type'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'days' => $days,
+            'reason' => $data['reason'] ?? null,
+            'status' => 'pending',
         ]);
 
         return back()->with('success', "Pengajuan cuti {$days} hari berhasil dikirim. Menunggu persetujuan.");
@@ -242,16 +250,15 @@ class EmployeeSelfServiceController extends Controller
             return back()->withErrors(['clock' => 'Anda sudah clock in hari ini.']);
         }
 
-        $now       = now();
-        $workStart = \Carbon\Carbon::today()->setTimeFromTimeString('08:00:00');
-        $status    = $now->gt($workStart->addMinutes(15)) ? 'late' : 'present';
+        // BUG-HRM-002 FIX: Use timezone-aware time and employee's shift
+        $attendanceService = new \App\Services\AttendanceService();
+        $result = $attendanceService->clockIn($employee);
 
-        Attendance::updateOrCreate(
-            ['tenant_id' => $employee->tenant_id, 'employee_id' => $employee->id, 'date' => today()],
-            ['check_in' => $now->format('H:i:s'), 'status' => $status]
-        );
+        if ($result['error']) {
+            return back()->withErrors(['clock' => $result['message']]);
+        }
 
-        return back()->with('success', 'Clock in berhasil pukul ' . $now->format('H:i') . '.');
+        return back()->with('success', $result['message']);
     }
 
     public function clockOut(Request $request)

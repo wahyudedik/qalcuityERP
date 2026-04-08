@@ -15,7 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class CheckAiQuota
 {
-    public function __construct(private AiQuotaService $quota) {}
+    public function __construct(private AiQuotaService $quota)
+    {
+    }
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -28,19 +30,41 @@ class CheckAiQuota
 
         $tenantId = $user->tenant_id;
 
-        if (!$this->quota->isAllowed($tenantId)) {
-            $status = $this->quota->status($tenantId);
-            $message = "Kuota AI bulan ini sudah habis ({$status['used']}/{$status['limit']} pesan). "
-                . "Upgrade paket untuk mendapatkan lebih banyak akses AI.";
+        try {
+            if (!$this->quota->isAllowed($tenantId)) {
+                $status = $this->quota->status($tenantId);
+                $message = "Kuota AI bulan ini sudah habis ({$status['used']}/{$status['limit']} pesan). "
+                    . "Upgrade paket untuk mendapatkan lebih banyak akses AI.";
+
+                if ($request->expectsJson() || $request->is('*/ai/*') || $request->is('chat/*')) {
+                    return response()->json([
+                        'error' => 'quota_exceeded',
+                        'message' => $message,
+                        'quota_exceeded' => true,
+                        'used' => $status['used'],
+                        'limit' => $status['limit'],
+                    ], 429);
+                }
+
+                return back()->with('error', $message);
+            }
+        } catch (\Throwable $e) {
+            // BUG-AI-004 FIX: If quota check itself fails, log and DENY access
+            // This is safer than allowing unlimited usage
+            \Illuminate\Support\Facades\Log::error('CheckAiQuota: Quota check failed, denying access', [
+                'tenant_id' => $tenantId,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $message = 'Sistem sedang mengalami gangguan. Silakan coba beberapa saat lagi.';
 
             if ($request->expectsJson() || $request->is('*/ai/*') || $request->is('chat/*')) {
                 return response()->json([
-                    'error'          => 'quota_exceeded',
-                    'message'        => $message,
-                    'quota_exceeded' => true,
-                    'used'           => $status['used'],
-                    'limit'          => $status['limit'],
-                ], 429);
+                    'error' => 'service_unavailable',
+                    'message' => $message,
+                ], 503);
             }
 
             return back()->with('error', $message);

@@ -34,6 +34,48 @@ class KitchenDisplayController extends Controller
     }
 
     /**
+     * BUG-FB-002 FIX: Validate and cleanup duplicate tickets
+     */
+    public function validateTickets(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $orderId = $request->input('order_id');
+
+        if (!$orderId) {
+            return response()->json(['error' => 'order_id required'], 400);
+        }
+
+        $order = \App\Models\FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
+        $ticketService = new \App\Services\KitchenTicketService();
+
+        // Validate ticket count
+        $validation = $ticketService->validateTicketCount($order);
+
+        return response()->json($validation);
+    }
+
+    /**
+     * BUG-FB-002 FIX: Cleanup duplicate tickets
+     */
+    public function cleanupDuplicates(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $orderId = $request->input('order_id');
+
+        if (!$orderId) {
+            return response()->json(['error' => 'order_id required'], 400);
+        }
+
+        $order = \App\Models\FbOrder::where('tenant_id', $tenantId)->findOrFail($orderId);
+        $ticketService = new \App\Services\KitchenTicketService();
+
+        // Cleanup duplicates
+        $result = $ticketService->cleanupDuplicateTickets($order);
+
+        return response()->json($result);
+    }
+
+    /**
      * Start preparing ticket
      */
     public function startTicket(KitchenOrderTicket $ticket)

@@ -156,7 +156,7 @@
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">📊 Riwayat Kualitas Air</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Riwayat Kualitas Air</h2>
             <button onclick="document.getElementById('addWaterQualityModal').classList.remove('hidden')"
                 class="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
                 ➕ Log Baru
@@ -246,7 +246,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🍽️ Riwayat Pemberian Pakan</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Riwayat Pemberian Pakan</h2>
             </div>
 
             <div class="divide-y divide-gray-200 dark:divide-white/5">
@@ -369,7 +369,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md p-6">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🍽️ Catat Pemberian Pakan</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Catat Pemberian Pakan</h2>
                 <button onclick="document.getElementById('addFeedingModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>

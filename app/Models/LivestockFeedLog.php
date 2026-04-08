@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LivestockFeedLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'livestock_herd_id', 'tenant_id', 'user_id', 'date',
         'feed_type', 'quantity_kg', 'cost', 'population_at_feeding',

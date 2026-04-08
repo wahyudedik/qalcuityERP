@@ -1,11 +1,14 @@
 <?php
 namespace App\Models;
+
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarehouseBin extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['warehouse_id','zone_id','tenant_id','code','aisle','rack','shelf','max_capacity','bin_type','is_active'];
     protected function casts(): array { return ['is_active'=>'boolean','max_capacity'=>'integer']; }
     public function warehouse(): BelongsTo { return $this->belongsTo(Warehouse::class); }

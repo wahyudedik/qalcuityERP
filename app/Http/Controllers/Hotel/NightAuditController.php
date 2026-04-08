@@ -145,10 +145,20 @@ class NightAuditController extends Controller
 
     /**
      * Complete the audit batch
+     * BUG-HOTEL-002 FIX: Added validation before completion
      */
     public function completeAudit(int $batchId)
     {
         $batch = NightAuditBatch::findOrFail($batchId);
+
+        // BUG-HOTEL-002 FIX: Check if batch is in valid state
+        if ($batch->status === 'completed') {
+            return back()->with('error', 'Audit batch sudah completed. Tidak dapat complete ulang.');
+        }
+
+        if ($batch->status === 'failed') {
+            return back()->with('error', 'Audit batch failed. Silakan retry atau create batch baru.');
+        }
 
         try {
             $this->auditService->completeAudit($batch);
@@ -156,7 +166,108 @@ class NightAuditController extends Controller
             return redirect()->route('hotel.night-audit.index')
                 ->with('success', 'Night audit completed successfully');
         } catch (\Exception $e) {
+            // BUG-HOTEL-002 FIX: Log error details for debugging
+            \Log::error('Night audit completion failed', [
+                'batch_id' => $batchId,
+                'batch_number' => $batch->batch_number,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return back()->with('error', 'Failed to complete audit: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Retry failed audit batch
+     * BUG-HOTEL-002 FIX: Allow retry of failed audits
+     */
+    public function retryFailedAudit(int $batchId)
+    {
+        $batch = NightAuditBatch::findOrFail($batchId);
+
+        if ($batch->status !== 'failed' && $batch->status !== 'in_progress') {
+            return back()->with('error', 'Hanya batch yang failed atau in_progress yang dapat di-retry.');
+        }
+
+        try {
+            DB::transaction(function () use ($batch) {
+                // Reset batch status to in_progress
+                $batch->update([
+                    'status' => 'in_progress',
+                    'notes' => null,
+                ]);
+
+                NightAuditLog::logSuccess(
+                    'retry_audit',
+                    "Retrying failed audit batch: {$batch->batch_number}",
+                    auth()->id(),
+                    $batch->id
+                );
+            });
+
+            return redirect()->route('hotel.night-audit.batch', $batch->id)
+                ->with('success', 'Audit batch berhasil di-reset. Silakan lanjutkan processing.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to retry audit: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel audit batch and rollback postings
+     * BUG-HOTEL-002 FIX: Allow cancellation with rollback
+     */
+    public function cancelAudit(int $batchId)
+    {
+        $batch = NightAuditBatch::findOrFail($batchId);
+
+        if ($batch->status === 'completed') {
+            return back()->with('error', 'Completed audit tidak dapat dicancel. Gunakan void untuk reversal.');
+        }
+
+        try {
+            DB::transaction(function () use ($batch) {
+                // Void all revenue postings in this batch
+                $postingsCount = $batch->revenuePostings()
+                    ->where('status', 'posted')
+                    ->count();
+
+                if ($postingsCount > 0) {
+                    $batch->revenuePostings()
+                        ->where('status', 'posted')
+                        ->update([
+                            'status' => 'voided',
+                            'void_reason' => 'Audit batch cancelled',
+                            'voided_at' => now(),
+                            'voided_by' => auth()->id(),
+                        ]);
+
+                    // Reset minibar transactions billing status
+                    \App\Models\MinibarTransaction::where('tenant_id', $batch->tenant_id)
+                        ->whereDate('consumption_date', $batch->audit_date)
+                        ->where('billing_status', 'billed')
+                        ->update(['billing_status' => 'pending']);
+                }
+
+                // Mark batch as cancelled
+                $batch->update([
+                    'status' => 'cancelled',
+                    'notes' => 'Cancelled by user - all postings voided',
+                ]);
+
+                NightAuditLog::logSuccess(
+                    'cancel_audit',
+                    "Cancelled audit batch: {$batch->batch_number}. Voided {$postingsCount} postings.",
+                    auth()->id(),
+                    $batch->id,
+                    ['voided_postings' => $postingsCount]
+                );
+            });
+
+            return redirect()->route('hotel.night-audit.index')
+                ->with('success', 'Audit batch cancelled. Semua postings telah di-void.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to cancel audit: ' . $e->getMessage());
         }
     }
 

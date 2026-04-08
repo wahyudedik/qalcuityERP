@@ -19,7 +19,8 @@ class CheckInOutService
 {
     public function __construct(
         private RoomAvailabilityService $availabilityService,
-        private HousekeepingService $housekeepingService
+        private HousekeepingService $housekeepingService,
+        private HousekeepingStatusService $housekeepingStatusService // BUG-HOTEL-003 FIX
     ) {
     }
 
@@ -204,22 +205,15 @@ class CheckInOutService
                 ->where('room_id', $room->id)
                 ->update(['status' => 'checked_out']);
 
-            // Update room status to 'cleaning'
-            $room->update(['status' => 'cleaning']);
-
-            // Auto-create housekeeping task for checkout cleaning
-            $this->housekeepingService->createCleaningTask(
-                $room->id,
-                'checkout_clean',
-                'normal',
-                null,
-                "Auto-generated after check-out of reservation {$reservation->reservation_number}"
-            );
+            // BUG-HOTEL-003 FIX: Mark room as dirty (not cleaning!)
+            // Room must go through proper cleaning workflow: dirty → cleaning → clean → available
+            $this->housekeepingStatusService->markRoomDirty($room, 'checkout');
 
             Log::info('Check-out processed', [
                 'reservation_id' => $reservationId,
                 'room_id' => $room->id,
                 'room_number' => $room->number,
+                'room_status_after_checkout' => 'dirty',
                 'guest_id' => $reservation->guest_id,
                 'total_charges' => $charges['grand_total'],
             ]);

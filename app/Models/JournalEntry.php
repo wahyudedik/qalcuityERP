@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Models\AccountingPeriod;
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JournalEntry extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -33,10 +35,10 @@ class JournalEntry extends Model
     ];
 
     protected $casts = [
-        'date'          => 'date',
-        'posted_at'     => 'datetime',
+        'date' => 'date',
+        'posted_at' => 'datetime',
         'currency_rate' => 'float',
-        'is_recurring'  => 'boolean',
+        'is_recurring' => 'boolean',
     ];
 
     public function tenant(): BelongsTo
@@ -74,14 +76,42 @@ class JournalEntry extends Model
         return abs($this->totalDebit() - $this->totalCredit()) < 0.01;
     }
 
+    /**
+     * BUG-FIN-001 FIX: Validate journal balance with detailed error message
+     * @throws \RuntimeException if journal is not balanced
+     */
+    public function validateBalance(): void
+    {
+        $debit = $this->totalDebit();
+        $credit = $this->totalCredit();
+        $diff = abs($debit - $credit);
+
+        if ($diff >= 0.01) {
+            throw new \RuntimeException(
+                "Jurnal tidak balance: Debit = {$debit}, Credit = {$credit}, Selisih = {$diff}. " .
+                "Total debit harus sama dengan total credit."
+            );
+        }
+
+        // Additional validation: must have at least one debit and one credit
+        $hasDebit = $this->lines()->where('debit', '>', 0)->exists();
+        $hasCredit = $this->lines()->where('credit', '>', 0)->exists();
+
+        if (!$hasDebit || !$hasCredit) {
+            throw new \RuntimeException(
+                "Jurnal harus memiliki minimal 1 baris debit dan 1 baris credit."
+            );
+        }
+    }
+
     /** Post jurnal — ubah status ke posted */
     public function post(int $userId): void
     {
-        if (! $this->isBalanced()) {
-            throw new \RuntimeException('Jurnal tidak balance: debit != credit.');
-        }
+        // BUG-FIN-001 FIX: Validate balance before posting
+        $this->validateBalance();
+
         $this->update([
-            'status'    => 'posted',
+            'status' => 'posted',
             'posted_by' => $userId,
             'posted_at' => now(),
         ]);
@@ -91,25 +121,25 @@ class JournalEntry extends Model
     public function reverse(int $userId, string $date): self
     {
         $reversal = self::create([
-            'tenant_id'    => $this->tenant_id,
-            'period_id'    => AccountingPeriod::findForDate($this->tenant_id, $date)?->id,
-            'user_id'      => $userId,
-            'number'       => self::generateNumber($this->tenant_id, 'JRV'),
-            'date'         => $date,
-            'description'  => 'Pembalik: ' . $this->description,
-            'reference'    => $this->number,
+            'tenant_id' => $this->tenant_id,
+            'period_id' => AccountingPeriod::findForDate($this->tenant_id, $date)?->id,
+            'user_id' => $userId,
+            'number' => self::generateNumber($this->tenant_id, 'JRV'),
+            'date' => $date,
+            'description' => 'Pembalik: ' . $this->description,
+            'reference' => $this->number,
             'reference_type' => 'reversal',
-            'reference_id'   => $this->id,
-            'currency_code'  => $this->currency_code,
-            'currency_rate'  => $this->currency_rate,
-            'status'         => 'draft',
+            'reference_id' => $this->id,
+            'currency_code' => $this->currency_code,
+            'currency_rate' => $this->currency_rate,
+            'status' => 'draft',
         ]);
 
         foreach ($this->lines as $line) {
             $reversal->lines()->create([
-                'account_id'  => $line->account_id,
-                'debit'       => $line->credit,  // swap
-                'credit'      => $line->debit,   // swap
+                'account_id' => $line->account_id,
+                'debit' => $line->credit,  // swap
+                'credit' => $line->debit,   // swap
                 'description' => $line->description,
             ]);
         }
@@ -123,8 +153,8 @@ class JournalEntry extends Model
     public static function generateNumber(int $tenantId, string $prefix = 'JE'): string
     {
         $docType = match ($prefix) {
-            'JRV'   => 'jrv',
-            'AUTO'  => 'je',
+            'JRV' => 'jrv',
+            'AUTO' => 'je',
             default => 'je',
         };
 

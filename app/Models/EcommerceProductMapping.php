@@ -2,40 +2,86 @@
 
 namespace App\Models;
 
-use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 
 class EcommerceProductMapping extends Model
 {
-    use AuditsChanges;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
-        'channel_id',
         'product_id',
+        'channel_id',
+        'external_id',
         'external_sku',
-        'external_product_id',
-        'external_url',
-        'price_override',
+        'external_variant_id',
         'is_active',
-        'last_stock_sync_at',
-        'last_price_sync_at',
+        'metadata',
+        'last_synced_at',
     ];
 
     protected $casts = [
-        'price_override'      => 'decimal:2',
-        'is_active'           => 'boolean',
-        'last_stock_sync_at'  => 'datetime',
-        'last_price_sync_at'  => 'datetime',
+        'is_active' => 'boolean',
+        'metadata' => 'array',
+        'last_synced_at' => 'datetime',
     ];
 
-    public function channel()
-    {
-        return $this->belongsTo(EcommerceChannel::class, 'channel_id');
-    }
-
+    /**
+     * Relationships
+     */
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function channel()
+    {
+        return $this->belongsTo(Integration::class, 'channel_id');
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Scopes
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByChannel($query, int $channelId)
+    {
+        return $query->where('channel_id', $channelId);
+    }
+
+    /**
+     * Mark as synced
+     */
+    public function markAsSynced(): void
+    {
+        $this->update(['last_synced_at' => now()]);
+    }
+
+    /**
+     * Deactivate mapping
+     */
+    public function deactivate(): void
+    {
+        $this->update(['is_active' => false]);
+    }
+
+    /**
+     * Update external ID
+     */
+    public function updateExternalId(string $externalId): void
+    {
+        $this->update([
+            'external_id' => $externalId,
+            'last_synced_at' => now(),
+        ]);
     }
 }

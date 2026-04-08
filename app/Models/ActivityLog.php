@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
+    use BelongsToTenant;
     /**
      * Thread-local AI context flag.
      * Set to true before any AI-driven CRUD operations so that record() tags

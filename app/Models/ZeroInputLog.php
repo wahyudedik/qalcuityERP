@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ZeroInputLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'user_id', 'channel', 'status',
         'mapped_module', 'extracted_data', 'user_corrected_data',

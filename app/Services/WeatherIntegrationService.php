@@ -13,11 +13,23 @@ class WeatherIntegrationService
     protected string $apiKey;
     protected string $baseUrl;
 
+    /**
+     * Constructor - Pastikan selalu mendapat tenant_id
+     * 
+     * @param int|null $tenantId Tenant ID (opsional, akan fallback ke auth user jika null)
+     */
     public function __construct(protected ?int $tenantId = null)
     {
+        // Jika tenant_id tidak dipassing, coba ambil dari user yang login
+        if (!$this->tenantId) {
+            $this->tenantId = auth()->user()?->tenant_id;
+        }
+
         // Read weather API key from tenant DB settings, fallback to config/.env
-        $this->apiKey = ($tenantId ? TenantApiSetting::get($tenantId, 'weather_api_key') : null)
+        // PENTING: Setiap tenant bisa punya API key sendiri via TenantApiSetting
+        $this->apiKey = ($this->tenantId ? TenantApiSetting::get($this->tenantId, 'weather_api_key') : null)
             ?? config('services.weather.api_key', env('WEATHER_API_KEY', ''));
+
         $this->baseUrl = 'https://api.openweathermap.org/data/2.5';
     }
 

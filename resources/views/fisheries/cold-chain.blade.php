@@ -1,5 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">❄️ Cold Chain Management</x-slot>
+    <x-slot name="header">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Cold Chain Management</h1>
+            <button onclick="document.getElementById('addColdStorageModal').classList.remove('hidden')"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
+                + Add Cold Storage
+            </button>
+        </div>
+    </x-slot>
 
     @if (session('success'))
         <div
@@ -122,7 +130,8 @@
                                     <div>
                                         <label
                                             class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Suhu
-                                            (°C)</label>
+                                            (°C)
+                                        </label>
                                         <input type="number" name="temperature" required step="0.1"
                                             placeholder="-18.5"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
@@ -232,7 +241,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">❄️ Tambah Cold Storage Unit</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Tambah Cold Storage Unit</h2>
                 <button onclick="document.getElementById('addUnitModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>

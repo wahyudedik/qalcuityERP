@@ -57,8 +57,8 @@
     {{-- Performance Trend Chart --}}
     @if (count($report['scorecards']) > 1)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📈 Performance Trend
-                ({{ count($report['scorecards']) }} Months)</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Performance Trend
+                ({{ count($report['scorecards']) }} Months)</h2>
 
             <div class="h-64 flex items-end gap-2">
                 @php
@@ -90,7 +90,7 @@
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">📋 Score History</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Score History</h2>
         </div>
 
         @if (count($report['scorecards']) === 0)
@@ -212,11 +212,11 @@
         $report['scorecards']->last() &&
             ($report['scorecards']->last()->strengths || $report['scorecards']->last()->areas_for_improvement))
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📝 Assessment Notes</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Assessment Notes</h2>
 
             @if ($report['scorecards']->last()->strengths)
                 <div class="mb-4">
-                    <h4 class="text-sm font-medium text-green-600 dark:text-green-400 mb-2">✅ Strengths</h4>
+                    <h4 class="text-sm font-medium text-green-600 dark:text-green-400 mb-2">Strengths</h4>
                     <p class="text-sm text-gray-700 dark:text-slate-300">{{ $report['scorecards']->last()->strengths }}
                     </p>
                 </div>
@@ -224,7 +224,7 @@
 
             @if ($report['scorecards']->last()->areas_for_improvement)
                 <div>
-                    <h4 class="text-sm font-medium text-orange-600 dark:text-orange-400 mb-2">⚠️ Areas for Improvement
+                    <h4 class="text-sm font-medium text-orange-600 dark:text-orange-400 mb-2">Areas for Improvement
                     </h4>
                     <p class="text-sm text-gray-700 dark:text-slate-300">
                         {{ $report['scorecards']->last()->areas_for_improvement }}</p>

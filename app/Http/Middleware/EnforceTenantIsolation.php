@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Services\Security\AuditLogService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,15 +14,30 @@ use Symfony\Component\HttpFoundation\Response;
  * - Inject tenant_id ke semua query via Model::creating/updating observer
  * - Validasi route model binding yang punya tenant_id field
  * - Blokir akses jika tenant_id tidak cocok
+ * - Audit log ketika SuperAdmin akses tenant data (compliance)
  */
 class EnforceTenantIsolation
 {
+    protected AuditLogService $auditService;
+
+    public function __construct(AuditLogService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        // Super admin & guest tidak perlu isolasi
-        if (!$user || $user->isSuperAdmin() || !$user->tenant_id) {
+        // Super admin bypass dengan audit trail
+        if ($user && $user->isSuperAdmin()) {
+            // Log superadmin access untuk compliance
+            $this->logSuperAdminAccess($user, $request);
+            return $next($request);
+        }
+
+        // Guest tidak perlu isolasi
+        if (!$user || !$user->tenant_id) {
             return $next($request);
         }
 
@@ -126,10 +142,12 @@ class EnforceTenantIsolation
 
         // Cek semua route parameters yang merupakan Eloquent model
         foreach ($request->route()->parameters() as $param) {
-            if (!is_object($param)) continue;
+            if (!is_object($param))
+                continue;
 
             $modelClass = get_class($param);
-            if (!in_array($modelClass, $tenantModels)) continue;
+            if (!in_array($modelClass, $tenantModels))
+                continue;
 
             // Model punya tenant_id tapi tidak cocok → 403
             if (isset($param->tenant_id) && (int) $param->tenant_id !== (int) $tenantId) {
@@ -138,5 +156,70 @@ class EnforceTenantIsolation
         }
 
         return $next($request);
+    }
+
+    /**
+     * Log ketika SuperAdmin mengakses tenant data (compliance requirement)
+     */
+    protected function logSuperAdminAccess($user, Request $request): void
+    {
+        // Hanya log jika ada tenant context dari route
+        $routeTenantId = $request->route('tenant')
+            ?? $request->route('tenant_id')
+            ?? $request->input('tenant_id');
+
+        if (!$routeTenantId) {
+            return; // Tidak ada tenant spesifik, tidak perlu log
+        }
+
+        // Get target tenant info
+        $targetTenant = \App\Models\Tenant::find($routeTenantId);
+        if (!$targetTenant) {
+            return;
+        }
+
+        // Log dengan rate limiting (max 1 log per tenant per 5 menit)
+        $cacheKey = "superadmin_audit_{$user->id}_{$routeTenantId}";
+        $lastLogged = cache()->get($cacheKey);
+
+        if ($lastLogged && now()->diffInMinutes($lastLogged) < 5) {
+            return; // Sudah log dalam 5 menit terakhir
+        }
+
+        // Set cache untuk 5 menit
+        cache()->put($cacheKey, now(), 300);
+
+        // Log ke audit trail
+        try {
+            $this->auditService->logEvent([
+                'tenant_id' => (int) $routeTenantId,
+                'user_id' => $user->id,
+                'event_type' => 'superadmin_tenant_access',
+                'model_type' => 'Tenant',
+                'model_id' => $routeTenantId,
+                'metadata' => [
+                    'superadmin_id' => $user->id,
+                    'superadmin_name' => $user->name,
+                    'superadmin_email' => $user->email,
+                    'target_tenant_id' => (int) $routeTenantId,
+                    'target_tenant_name' => $targetTenant->name,
+                    'target_tenant_company' => $targetTenant->company_name ?? null,
+                    'route' => $request->route()->getName(),
+                    'url' => $request->fullUrl(),
+                    'method' => $request->method(),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'reason' => 'SuperAdmin accessing tenant data for monitoring/support',
+                ],
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            // Jangan ganggu request jika audit log gagal
+            \Log::warning('Failed to log superadmin access', [
+                'user_id' => $user->id,
+                'tenant_id' => $routeTenantId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
 
 class EcommerceChannel extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
 
     protected array $auditExclude = ['api_key', 'api_secret', 'access_token', 'refresh_token'];
 

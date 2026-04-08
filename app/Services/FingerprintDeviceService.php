@@ -212,11 +212,15 @@ class FingerprintDeviceService
 
     /**
      * Process attendance log to attendance record
+     * 
+     * BUG-HRM-002 FIX: Use timezone-aware processing
      */
     public function processToAttendance(FingerprintAttendanceLog $log, Employee $employee): void
     {
-        $date = $log->scan_time->toDateString();
-        $time = $log->scan_time->toTimeString();
+        // BUG-HRM-002 FIX: Use tenant timezone
+        $scanTime = $log->scan_time->timezone($this->getTenantTimezone($employee->tenant_id));
+        $date = $scanTime->toDateString();
+        $time = $scanTime->toTimeString();
 
         $attendance = Attendance::firstOrNew([
             'tenant_id' => $employee->tenant_id,
@@ -226,7 +230,17 @@ class FingerprintDeviceService
 
         if ($log->scan_type === 'check_in' && !$attendance->check_in) {
             $attendance->check_in = $time;
-            $attendance->status = 'present';
+
+            // BUG-HRM-002 FIX: Determine status based on shift
+            $attendanceService = new \App\Services\AttendanceService();
+            $shift = $attendanceService->getEmployeeShift($employee, $date);
+            $attendance->status = $attendanceService->determineAttendanceStatus(
+                $employee,
+                $shift,
+                $scanTime
+            );
+
+            $attendance->shift_id = $shift?->id;
         } elseif ($log->scan_type === 'check_out' && !$attendance->check_out) {
             $attendance->check_out = $time;
 
@@ -235,6 +249,16 @@ class FingerprintDeviceService
                 $checkIn = Carbon::parse("{$date} {$attendance->check_in}");
                 $checkOut = Carbon::parse("{$date} {$attendance->check_out}");
                 $attendance->work_minutes = $checkIn->diffInMinutes($checkOut);
+
+                // Calculate overtime
+                $shift = $attendanceService->getEmployeeShift($employee, $date) ?? $shift;
+                if ($shift) {
+                    $attendance->overtime_minutes = $attendanceService->calculateOvertime(
+                        $shift,
+                        $attendance->check_in,
+                        $attendance->check_out
+                    );
+                }
             }
         }
 
@@ -245,6 +269,14 @@ class FingerprintDeviceService
             'is_processed' => true,
             'processed_at' => now(),
         ]);
+    }
+
+    /**
+     * BUG-HRM-002 FIX: Get tenant timezone
+     */
+    private function getTenantTimezone(int $tenantId): string
+    {
+        return config('app.timezone', 'Asia/Jakarta');
     }
 
     /**

@@ -15,6 +15,7 @@ use App\Models\TaxRate;
 use App\Models\Warehouse;
 use App\Services\GlPostingService;
 use App\Services\TaxService;
+use App\Services\TransactionStateMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,6 +23,14 @@ use Illuminate\Support\Str;
 class SalesOrderController extends Controller
 {
     use \App\Traits\DispatchesWebhooks;
+
+    protected TransactionStateMachine $stateMachine;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->stateMachine = app(TransactionStateMachine::class);
+    }
 
     private function tid(): int
     {
@@ -86,6 +95,9 @@ class SalesOrderController extends Controller
             'due_date' => 'nullable|date|required_if:payment_type,credit',
             'warehouse_id' => 'required|exists:warehouses,id',
             'tax_rate_id' => 'nullable|exists:tax_rates,id',
+            'tax_rate_ids' => 'nullable|array', // BUG-FIN-004: Support multiple tax rates
+            'tax_rate_ids.*' => 'exists:tax_rates,id',
+            'tax_inclusive' => 'nullable|boolean', // BUG-FIN-004: Tax-inclusive pricing flag
             'discount' => 'nullable|numeric|min:0',
             'shipping_address' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
@@ -146,11 +158,30 @@ class SalesOrderController extends Controller
             }
 
             $discount = $data['discount'] ?? 0;
-            $taxAmount = 0;
+
+            // BUG-FIN-004 FIX: Use comprehensive tax calculation service
+            $taxService = new \App\Services\TaxCalculationService();
+
+            // Support multiple tax rates (e.g., PPN + PPh 23)
+            $taxRateIds = [];
             if (!empty($data['tax_rate_id'])) {
-                $taxAmount = (new TaxService())->calculate($subtotal - $discount, (int) $data['tax_rate_id']);
+                // Single tax rate (backward compatibility)
+                $taxRateIds = [(int) $data['tax_rate_id']];
+            } elseif (!empty($data['tax_rate_ids'])) {
+                // Multiple tax rates (new feature)
+                $taxRateIds = array_map('intval', (array) $data['tax_rate_ids']);
             }
-            $total = $subtotal - $discount + $taxAmount;
+
+            $taxCalculation = $taxService->calculateAllTaxes(
+                subtotal: $subtotal,
+                discount: $discount,
+                taxRateIds: $taxRateIds,
+                taxInclusive: $data['tax_inclusive'] ?? false
+            );
+
+            $taxAmount = $taxCalculation['total_tax'];
+            $withholdingAmount = $taxCalculation['total_withholding'];
+            $total = $taxCalculation['grand_total'];
 
             // Multi-currency: resolve rate to IDR
             $currCode = $data['currency_code'] ?? 'IDR';
@@ -169,6 +200,8 @@ class SalesOrderController extends Controller
                 'tax_rate_id' => $data['tax_rate_id'] ?? null,
                 'tax_amount' => $taxAmount,
                 'tax' => $taxAmount,
+                'withholding_tax_amount' => $withholdingAmount ?? 0, // BUG-FIN-004: Store withholding tax
+                'tax_inclusive' => $data['tax_inclusive'] ?? false, // BUG-FIN-004: Store tax-inclusive flag
                 'total' => $total,
                 'payment_type' => $data['payment_type'],
                 'due_date' => $data['due_date'] ?? null,
@@ -257,6 +290,9 @@ class SalesOrderController extends Controller
             'status' => 'required|in:pending,confirmed,processing,shipped,completed,cancelled',
         ]);
 
+        // BUG-SALES-001 FIX: Validate status transition
+        $this->validateSalesOrderStatusTransition($salesOrder, $data['status']);
+
         $old = $salesOrder->status;
         $salesOrder->update(['status' => $data['status']]);
 
@@ -279,6 +315,72 @@ class SalesOrderController extends Controller
         }
 
         return back()->with('success', "Status SO {$salesOrder->number} diperbarui ke {$data['status']}.");
+    }
+
+    /**
+     * BUG-SALES-001 FIX: Validate Sales Order status transition
+     * 
+     * Valid flow:
+     * pending → confirmed → processing → shipped → completed
+     * Any status → cancelled (with restrictions)
+     * 
+     * Invalid transitions:
+     * - cancelled → anything (terminal state)
+     * - completed → anything (terminal state)
+     * - Skip steps (e.g., pending → delivered)
+     */
+    protected function validateSalesOrderStatusTransition(SalesOrder $order, string $newStatus): void
+    {
+        // Define valid transitions
+        $validTransitions = [
+            'pending' => ['confirmed', 'cancelled'],
+            'confirmed' => ['processing', 'cancelled'],
+            'processing' => ['shipped', 'cancelled'],
+            'shipped' => ['completed', 'cancelled'],
+            'completed' => [], // Terminal state - no transitions allowed
+            'cancelled' => [], // Terminal state - no transitions allowed
+        ];
+
+        $currentStatus = $order->status;
+
+        // Check if current status is known
+        if (!isset($validTransitions[$currentStatus])) {
+            throw new \RuntimeException("Status saat ini tidak valid: {$currentStatus}");
+        }
+
+        // Check if transition is allowed
+        $allowedTransitions = $validTransitions[$currentStatus];
+
+        if (empty($allowedTransitions)) {
+            throw new \RuntimeException(
+                "Status '{$currentStatus}' adalah status final. Tidak bisa diubah ke '{$newStatus}'."
+            );
+        }
+
+        if (!in_array($newStatus, $allowedTransitions)) {
+            $allowedList = implode(', ', $allowedTransitions);
+            throw new \RuntimeException(
+                "Transisi status dari '{$currentStatus}' ke '{$newStatus}' tidak diizinkan. " .
+                "Transisi yang valid: {$allowedList}"
+            );
+        }
+
+        // Additional validation for cancelled status
+        if ($newStatus === 'cancelled') {
+            // Check if already has invoice
+            if ($order->invoices()->where('status', '!=', 'cancelled')->exists()) {
+                throw new \RuntimeException(
+                    "Sales Order tidak bisa dibatalkan karena sudah memiliki invoice aktif."
+                );
+            }
+
+            // Check if already delivered/shipped
+            if (in_array($order->status, ['shipped', 'completed'])) {
+                throw new \RuntimeException(
+                    "Sales Order yang sudah dikirim/selesai tidak bisa dibatalkan."
+                );
+            }
+        }
     }
 
     public function createInvoice(SalesOrder $salesOrder)

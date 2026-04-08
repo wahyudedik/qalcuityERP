@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductionOutput extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'work_order_id', 'tenant_id', 'user_id',
         'good_qty', 'reject_qty', 'reject_reason', 'notes',

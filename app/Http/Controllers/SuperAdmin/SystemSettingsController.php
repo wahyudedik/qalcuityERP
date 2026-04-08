@@ -7,6 +7,7 @@ use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
+use Gemini\Client as GeminiClient;
 
 class SystemSettingsController extends Controller
 {
@@ -145,6 +146,87 @@ class SystemSettingsController extends Controller
             return back()->with('success', "Test email berhasil dikirim ke {$request->test_email}.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal kirim email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * BUG-AI-003 FIX: Test Gemini API Key connection
+     */
+    public function testGeminiApiKey(Request $request)
+    {
+        try {
+            // Get API key from request or database
+            $apiKey = $request->input('gemini_api_key');
+
+            // If not in request, get from database
+            if (empty($apiKey)) {
+                $apiKey = SystemSetting::get('gemini_api_key');
+            }
+
+            // Validate API key exists
+            if (empty($apiKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gemini API key tidak ditemukan. Silakan simpan API key terlebih dahulu di pengaturan.',
+                    'details' => null,
+                ], 400);
+            }
+
+            // Test API key by making a simple request
+            $client = \Gemini::factory()->withApiKey($apiKey)->make();
+            $model = config('gemini.model', 'gemini-2.0-flash');
+
+            // Make a simple test request
+            $response = $client->geminiPro()->generateContent('Test connection - respond with: OK');
+            $text = $response->text();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gemini API key berhasil divalidasi! Koneksi aktif.',
+                'details' => [
+                    'model' => $model,
+                    'response' => substr($text, 0, 100),
+                    'api_key_prefix' => substr($apiKey, 0, 10) . '...',
+                ],
+            ]);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            // HTTP error (401, 403, 429, etc.)
+            $statusCode = $e->getResponse()->getStatusCode();
+            $errorBody = $e->getResponse()->getBody()->getContents();
+
+            $errorMessage = match ($statusCode) {
+                401 => 'API key tidak valid (Unauthorized). Periksa kembali API key Anda.',
+                403 => 'API key tidak memiliki akses (Forbidden). Pastikan billing aktif di Google Cloud Console.',
+                429 => 'Kuota API telah habis (Rate Limited). Tunggu reset kuota atau upgrade billing.',
+                default => 'Error HTTP ' . $statusCode . ': ' . $errorBody,
+            };
+
+            \Log::error('Gemini API Key Test Failed', [
+                'status' => $statusCode,
+                'error' => $errorBody,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+                'details' => [
+                    'status_code' => $statusCode,
+                    'error' => $errorBody,
+                ],
+            ], $statusCode);
+
+        } catch (\Throwable $e) {
+            \Log::error('Gemini API Key Test Failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal test API key: ' . $e->getMessage(),
+                'details' => null,
+            ], 500);
         }
     }
 

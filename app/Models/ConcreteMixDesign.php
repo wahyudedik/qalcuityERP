@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConcreteMixDesign extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'grade', 'name', 'target_strength', 'strength_unit',
         'slump_min', 'slump_max', 'water_cement_ratio',

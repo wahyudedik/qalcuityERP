@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ErpNotification extends Model
 {
+    use BelongsToTenant;
     protected $table = 'erp_notifications';
 
     protected $fillable = ['tenant_id', 'user_id', 'type', 'module', 'title', 'body', 'data', 'read_at'];

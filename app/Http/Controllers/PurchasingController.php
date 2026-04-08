@@ -49,16 +49,16 @@ class PurchasingController extends Controller
         $number = app(DocumentNumberService::class)->generate($po->tenant_id, 'ap', 'AP');
 
         $payable = Payable::create([
-            'tenant_id'         => $po->tenant_id,
+            'tenant_id' => $po->tenant_id,
             'purchase_order_id' => $po->id,
-            'supplier_id'       => $po->supplier_id,
-            'number'            => $number,
-            'total_amount'      => (float) $po->total,
-            'paid_amount'       => 0,
-            'remaining_amount'  => (float) $po->total,
-            'status'            => 'unpaid',
-            'due_date'          => $po->due_date ?? $po->date?->addDays(30) ?? today()->addDays(30),
-            'notes'             => "Hutang dari PO {$po->number}",
+            'supplier_id' => $po->supplier_id,
+            'number' => $number,
+            'total_amount' => (float) $po->total,
+            'paid_amount' => 0,
+            'remaining_amount' => (float) $po->total,
+            'status' => 'unpaid',
+            'due_date' => $po->due_date ?? $po->date?->addDays(30) ?? today()->addDays(30),
+            'notes' => "Hutang dari PO {$po->number}",
         ]);
 
         ActivityLog::record(
@@ -74,7 +74,7 @@ class PurchasingController extends Controller
 
     public function suppliers(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = Supplier::where('tenant_id', $tid);
 
         if ($request->search) {
@@ -90,10 +90,10 @@ class PurchasingController extends Controller
     public function storeSupplier(Request $request)
     {
         $data = $request->validate([
-            'name'    => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
-            'phone'   => 'nullable|string|max:20',
-            'email'   => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
         ]);
 
@@ -115,11 +115,11 @@ class PurchasingController extends Controller
         abort_unless($supplier->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'      => 'required|string|max:255',
-            'company'   => 'nullable|string|max:255',
-            'phone'     => 'nullable|string|max:20',
-            'email'     => 'nullable|email|max:255',
-            'address'   => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
@@ -132,7 +132,7 @@ class PurchasingController extends Controller
 
     public function orders(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = PurchaseOrder::where('tenant_id', $tid)->with(['supplier', 'warehouse']);
 
         if ($request->status) {
@@ -144,10 +144,10 @@ class PurchasingController extends Controller
                 ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%$s%")));
         }
 
-        $orders     = $query->latest('date')->paginate(20)->withQueryString();
-        $suppliers  = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $orders = $query->latest('date')->paginate(20)->withQueryString();
+        $suppliers = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
-        $products   = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
 
         return view('purchasing.orders', compact('orders', 'suppliers', 'warehouses', 'products'));
     }
@@ -155,19 +155,19 @@ class PurchasingController extends Controller
     public function storeOrder(Request $request)
     {
         $data = $request->validate([
-            'supplier_id'   => 'required|exists:suppliers,id',
-            'warehouse_id'  => 'required|exists:warehouses,id',
-            'date'          => 'required|date',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'date' => 'required|date',
             'expected_date' => 'nullable|date',
-            'payment_type'  => 'required|in:cash,credit',
-            'notes'         => 'nullable|string',
-            'items'         => 'required|array|min:1',
+            'payment_type' => 'required|in:cash,credit',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1',
-            'items.*.price'      => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
         ]);
 
-        $tid      = $this->tenantId();
+        $tid = $this->tenantId();
 
         // Cek period lock
         app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, $data['date'], 'Purchase Order');
@@ -176,37 +176,37 @@ class PurchasingController extends Controller
         $itemsData = [];
 
         foreach ($data['items'] as $item) {
-            $total     = $item['price'] * $item['quantity'];
+            $total = $item['price'] * $item['quantity'];
             $subtotal += $total;
             $itemsData[] = [
-                'product_id'        => $item['product_id'],
-                'quantity_ordered'  => $item['quantity'],
+                'product_id' => $item['product_id'],
+                'quantity_ordered' => $item['quantity'],
                 'quantity_received' => 0,
-                'price'             => $item['price'],
-                'total'             => $total,
+                'price' => $item['price'],
+                'total' => $total,
             ];
         }
 
         // Task 37: Nomor sequential via DocumentNumberService
         $numberSvc = app(DocumentNumberService::class);
-        $poNumber  = $numberSvc->generate($tid, 'po');
+        $poNumber = $numberSvc->generate($tid, 'po');
 
         $po = PurchaseOrder::create([
-            'tenant_id'    => $tid,
-            'supplier_id'  => $data['supplier_id'],
-            'user_id'      => auth()->id(),
+            'tenant_id' => $tid,
+            'supplier_id' => $data['supplier_id'],
+            'user_id' => auth()->id(),
             'warehouse_id' => $data['warehouse_id'],
-            'number'       => $poNumber,
+            'number' => $poNumber,
             'doc_sequence' => (int) substr($poNumber, strrpos($poNumber, '-') + 1),
-            'doc_year'     => date('Y'),
-            'status'       => 'draft',
+            'doc_year' => date('Y'),
+            'status' => 'draft',
             'posting_status' => 'draft',  // Task 35
-            'date'         => $data['date'],
-            'expected_date'=> $data['expected_date'] ?? null,
-            'subtotal'     => $subtotal,
-            'total'        => $subtotal,
+            'date' => $data['date'],
+            'expected_date' => $data['expected_date'] ?? null,
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
             'payment_type' => $data['payment_type'],
-            'notes'        => $data['notes'] ?? null,
+            'notes' => $data['notes'] ?? null,
         ]);
 
         $po->items()->createMany($itemsData);
@@ -221,12 +221,12 @@ class PurchasingController extends Controller
     {
         abort_unless($order->tenant_id === $this->tenantId(), 403);
 
-        $data      = $request->validate(['status' => 'required|in:draft,sent,partial,received,cancelled']);
+        $data = $request->validate(['status' => 'required|in:draft,sent,partial,received,cancelled']);
         $oldStatus = $order->status;
 
         // Task 35: Cek apakah boleh ubah status operasional
         // Status operasional (sent/partial/received) hanya bisa diubah jika sudah posted
-        if (in_array($data['status'], ['sent', 'partial', 'received']) && ! $order->isPosted()) {
+        if (in_array($data['status'], ['sent', 'partial', 'received']) && !$order->isPosted()) {
             return back()->with('error', 'PO harus diposting terlebih dahulu sebelum bisa diproses.');
         }
 
@@ -239,14 +239,14 @@ class PurchasingController extends Controller
             $this->createPayableForPo($order->fresh());
 
             $glResult = app(GlPostingService::class)->postPurchaseReceived(
-                tenantId:    $order->tenant_id,
-                userId:      auth()->id(),
-                poNumber:    $order->number,
-                poId:        $order->id,
-                total:       (float) $order->total,
-                taxAmount:   (float) ($order->tax_amount ?? 0),
+                tenantId: $order->tenant_id,
+                userId: auth()->id(),
+                poNumber: $order->number,
+                poId: $order->id,
+                total: (float) $order->total,
+                taxAmount: (float) ($order->tax_amount ?? 0),
                 paymentType: $order->payment_type ?? 'credit',
-                date:        today()->toDateString(),
+                date: today()->toDateString(),
             );
             if ($glResult->isFailed()) {
                 return back()->with('success', "Status PO {$order->number} diperbarui.")
@@ -269,6 +269,90 @@ class PurchasingController extends Controller
         }
 
         return back()->with('success', "PO {$order->number} berhasil diposting.");
+    }
+
+    // BUG-PO-001 FIX: Approval endpoints
+    public function requestApproval(PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        if ($order->posting_status !== 'draft') {
+            return back()->with('error', 'Hanya PO draft yang bisa diajukan untuk approval.');
+        }
+
+        try {
+            $approvalRequest = app(\App\Services\PoApprovalService::class)->createApprovalRequest($order);
+            return back()->with('success', "PO {$order->number} diajukan untuk approval.");
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function approveOrder(Request $request, PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        $data = $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        $result = app(\App\Services\PoApprovalService::class)->approvePo(
+            auth()->user(),
+            $order,
+            $data['notes'] ?? null
+        );
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function rejectOrder(Request $request, PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        $data = $request->validate([
+            'reason' => 'required|string',
+        ]);
+
+        $result = app(\App\Services\PoApprovalService::class)->rejectPo(
+            auth()->user(),
+            $order,
+            $data['reason']
+        );
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function getApprovalHistory(PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        $history = app(\App\Services\PoApprovalService::class)->getApprovalHistory($order);
+
+        return response()->json([
+            'success' => true,
+            'data' => $history,
+        ]);
+    }
+
+    // BUG-PO-002 FIX: Get remaining quantities for PO items
+    public function getPoRemainingQuantities(PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        $summary = app(\App\Services\GoodsReceiptValidationService::class)->getReceiptSummary($order);
+
+        return response()->json([
+            'success' => true,
+            'data' => $summary,
+        ]);
     }
 
     public function destroyOrder(PurchaseOrder $order)
@@ -308,18 +392,19 @@ class PurchasingController extends Controller
 
     public function requisitions(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = PurchaseRequisition::where('tenant_id', $tid)->with('requester');
 
-        if ($request->status) $query->where('status', $request->status);
+        if ($request->status)
+            $query->where('status', $request->status);
 
         $requisitions = $query->latest()->paginate(20)->withQueryString();
-        $products     = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
 
         $stats = [
-            'pending'  => PurchaseRequisition::where('tenant_id', $tid)->where('status', 'pending')->count(),
+            'pending' => PurchaseRequisition::where('tenant_id', $tid)->where('status', 'pending')->count(),
             'approved' => PurchaseRequisition::where('tenant_id', $tid)->where('status', 'approved')->count(),
-            'total'    => PurchaseRequisition::where('tenant_id', $tid)->count(),
+            'total' => PurchaseRequisition::where('tenant_id', $tid)->count(),
         ];
 
         return view('purchasing.requisitions', compact('requisitions', 'products', 'stats'));
@@ -328,44 +413,44 @@ class PurchasingController extends Controller
     public function storeRequisition(Request $request)
     {
         $data = $request->validate([
-            'department'    => 'nullable|string|max:100',
+            'department' => 'nullable|string|max:100',
             'required_date' => 'nullable|date',
-            'purpose'       => 'nullable|string|max:500',
-            'items'         => 'required|array|min:1',
-            'items.*.description'     => 'required|string|max:255',
-            'items.*.product_id'      => 'nullable|exists:products,id',
-            'items.*.quantity'        => 'required|numeric|min:0.01',
-            'items.*.unit'            => 'nullable|string|max:20',
+            'purpose' => 'nullable|string|max:500',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.product_id' => 'nullable|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit' => 'nullable|string|max:20',
             'items.*.estimated_price' => 'nullable|numeric|min:0',
         ]);
 
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         // Task 37: Nomor sequential
         $total = 0;
         $itemsData = [];
         foreach ($data['items'] as $item) {
             $price = (float) ($item['estimated_price'] ?? 0);
-            $qty   = (float) $item['quantity'];
-            $sub   = $price * $qty;
+            $qty = (float) $item['quantity'];
+            $sub = $price * $qty;
             $total += $sub;
             $itemsData[] = [
-                'product_id'      => $item['product_id'] ?? null,
-                'description'     => $item['description'],
-                'quantity'        => $qty,
-                'unit'            => $item['unit'] ?? null,
+                'product_id' => $item['product_id'] ?? null,
+                'description' => $item['description'],
+                'quantity' => $qty,
+                'unit' => $item['unit'] ?? null,
                 'estimated_price' => $price,
                 'estimated_total' => $sub,
             ];
         }
 
         $pr = PurchaseRequisition::create([
-            'tenant_id'       => $tid,
-            'requested_by'    => auth()->id(),
-            'number'          => app(DocumentNumberService::class)->generate($tid, 'pr'),
-            'department'      => $data['department'] ?? null,
-            'required_date'   => $data['required_date'] ?? null,
-            'purpose'         => $data['purpose'] ?? null,
-            'status'          => 'pending',
+            'tenant_id' => $tid,
+            'requested_by' => auth()->id(),
+            'number' => app(DocumentNumberService::class)->generate($tid, 'pr'),
+            'department' => $data['department'] ?? null,
+            'required_date' => $data['required_date'] ?? null,
+            'purpose' => $data['purpose'] ?? null,
+            'status' => 'pending',
             'estimated_total' => $total,
         ]);
 
@@ -381,14 +466,14 @@ class PurchasingController extends Controller
         abort_unless($requisition->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'action'           => 'required|in:approved,rejected',
+            'action' => 'required|in:approved,rejected',
             'rejection_reason' => 'required_if:action,rejected|nullable|string|max:300',
         ]);
 
         $requisition->update([
-            'status'           => $data['action'],
-            'approved_by'      => auth()->id(),
-            'approved_at'      => now(),
+            'status' => $data['action'],
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
             'rejection_reason' => $data['rejection_reason'] ?? null,
         ]);
 
@@ -404,35 +489,35 @@ class PurchasingController extends Controller
         abort_unless($requisition->status === 'approved', 403, 'Hanya PR yang sudah disetujui yang bisa dikonversi.');
 
         $data = $request->validate([
-            'supplier_id'  => 'required|exists:suppliers,id',
+            'supplier_id' => 'required|exists:suppliers,id',
             'warehouse_id' => 'required|exists:warehouses,id',
-            'date'         => 'required|date',
+            'date' => 'required|date',
             'payment_type' => 'required|in:cash,credit',
         ]);
 
         $tid = $this->tenantId();
 
         $po = PurchaseOrder::create([
-            'tenant_id'                => $tid,
-            'supplier_id'              => $data['supplier_id'],
-            'user_id'                  => auth()->id(),
-            'warehouse_id'             => $data['warehouse_id'],
-            'purchase_requisition_id'  => $requisition->id,
-            'number'                   => 'PO-' . strtoupper(Str::random(8)),
-            'status'                   => 'draft',
-            'date'                     => $data['date'],
-            'subtotal'                 => $requisition->estimated_total,
-            'total'                    => $requisition->estimated_total,
-            'payment_type'             => $data['payment_type'],
+            'tenant_id' => $tid,
+            'supplier_id' => $data['supplier_id'],
+            'user_id' => auth()->id(),
+            'warehouse_id' => $data['warehouse_id'],
+            'purchase_requisition_id' => $requisition->id,
+            'number' => 'PO-' . strtoupper(Str::random(8)),
+            'status' => 'draft',
+            'date' => $data['date'],
+            'subtotal' => $requisition->estimated_total,
+            'total' => $requisition->estimated_total,
+            'payment_type' => $data['payment_type'],
         ]);
 
         foreach ($requisition->items as $item) {
             $po->items()->create([
-                'product_id'        => $item->product_id,
-                'quantity_ordered'  => $item->quantity,
+                'product_id' => $item->product_id,
+                'quantity_ordered' => $item->quantity,
                 'quantity_received' => 0,
-                'price'             => $item->estimated_price,
-                'total'             => $item->estimated_total,
+                'price' => $item->estimated_price,
+                'total' => $item->estimated_total,
             ]);
         }
 
@@ -448,14 +533,14 @@ class PurchasingController extends Controller
 
     public function rfqs(Request $request)
     {
-        $tid  = $this->tenantId();
+        $tid = $this->tenantId();
         $rfqs = Rfq::where('tenant_id', $tid)
             ->with(['creator', 'responses.supplier'])
             ->latest()
             ->paginate(20);
 
-        $suppliers    = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
-        $products     = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $suppliers = Supplier::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
+        $products = Product::where('tenant_id', $tid)->where('is_active', true)->orderBy('name')->get();
         $requisitions = PurchaseRequisition::where('tenant_id', $tid)->where('status', 'approved')->get();
 
         return view('purchasing.rfq', compact('rfqs', 'suppliers', 'products', 'requisitions'));
@@ -465,34 +550,34 @@ class PurchasingController extends Controller
     {
         $data = $request->validate([
             'purchase_requisition_id' => 'nullable|exists:purchase_requisitions,id',
-            'issue_date'              => 'required|date',
-            'deadline'                => 'required|date|after_or_equal:issue_date',
-            'notes'                   => 'nullable|string|max:500',
-            'items'                   => 'required|array|min:1',
-            'items.*.description'     => 'required|string|max:255',
-            'items.*.product_id'      => 'nullable|exists:products,id',
-            'items.*.quantity'        => 'required|numeric|min:0.01',
-            'items.*.unit'            => 'nullable|string|max:20',
+            'issue_date' => 'required|date',
+            'deadline' => 'required|date|after_or_equal:issue_date',
+            'notes' => 'nullable|string|max:500',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.product_id' => 'nullable|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit' => 'nullable|string|max:20',
         ]);
 
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
 
         $rfq = Rfq::create([
-            'tenant_id'               => $tid,
+            'tenant_id' => $tid,
             'purchase_requisition_id' => $data['purchase_requisition_id'] ?? null,
-            'created_by'              => auth()->id(),
-            'number'                  => app(DocumentNumberService::class)->generate($tid, 'rfq'),
-            'issue_date'              => $data['issue_date'],
-            'deadline'                => $data['deadline'],
-            'notes'                   => $data['notes'] ?? null,
-            'status'                  => 'open',
+            'created_by' => auth()->id(),
+            'number' => app(DocumentNumberService::class)->generate($tid, 'rfq'),
+            'issue_date' => $data['issue_date'],
+            'deadline' => $data['deadline'],
+            'notes' => $data['notes'] ?? null,
+            'status' => 'open',
         ]);
 
         $rfq->items()->createMany(array_map(fn($i) => [
-            'product_id'  => $i['product_id'] ?? null,
+            'product_id' => $i['product_id'] ?? null,
             'description' => $i['description'],
-            'quantity'    => $i['quantity'],
-            'unit'        => $i['unit'] ?? null,
+            'quantity' => $i['quantity'],
+            'unit' => $i['unit'] ?? null,
         ], $data['items']));
 
         ActivityLog::record('rfq_created', "RFQ dibuat: {$rfq->number}", $rfq);
@@ -505,12 +590,12 @@ class PurchasingController extends Controller
         abort_unless($rfq->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'supplier_id'   => 'required|exists:suppliers,id',
+            'supplier_id' => 'required|exists:suppliers,id',
             'response_date' => 'required|date',
-            'total_price'   => 'required|numeric|min:0',
+            'total_price' => 'required|numeric|min:0',
             'delivery_days' => 'nullable|integer|min:1',
             'payment_terms' => 'nullable|string|max:100',
-            'notes'         => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         RfqResponse::updateOrCreate(
@@ -544,25 +629,25 @@ class PurchasingController extends Controller
 
         $data = $request->validate([
             'warehouse_id' => 'required|exists:warehouses,id',
-            'date'         => 'required|date',
+            'date' => 'required|date',
             'payment_type' => 'required|in:cash,credit',
         ]);
 
         $tid = $this->tenantId();
 
         $po = PurchaseOrder::create([
-            'tenant_id'               => $tid,
-            'supplier_id'             => $selected->supplier_id,
-            'user_id'                 => auth()->id(),
-            'warehouse_id'            => $data['warehouse_id'],
-            'rfq_id'                  => $rfq->id,
+            'tenant_id' => $tid,
+            'supplier_id' => $selected->supplier_id,
+            'user_id' => auth()->id(),
+            'warehouse_id' => $data['warehouse_id'],
+            'rfq_id' => $rfq->id,
             'purchase_requisition_id' => $rfq->purchase_requisition_id,
-            'number'                  => 'PO-' . strtoupper(Str::random(8)),
-            'status'                  => 'draft',
-            'date'                    => $data['date'],
-            'subtotal'                => $selected->total_price,
-            'total'                   => $selected->total_price,
-            'payment_type'            => $data['payment_type'],
+            'number' => 'PO-' . strtoupper(Str::random(8)),
+            'status' => 'draft',
+            'date' => $data['date'],
+            'subtotal' => $selected->total_price,
+            'total' => $selected->total_price,
+            'payment_type' => $data['payment_type'],
         ]);
 
         // Create PO items from RFQ items using selected response item_prices
@@ -571,11 +656,11 @@ class PurchasingController extends Controller
             $priceData = $itemPrices->firstWhere('rfq_item_id', $rfqItem->id);
             $unitPrice = (float) ($priceData['unit_price'] ?? 0);
             $po->items()->create([
-                'product_id'        => $rfqItem->product_id,
-                'quantity_ordered'  => $rfqItem->quantity,
+                'product_id' => $rfqItem->product_id,
+                'quantity_ordered' => $rfqItem->quantity,
                 'quantity_received' => 0,
-                'price'             => $unitPrice,
-                'total'             => $unitPrice * $rfqItem->quantity,
+                'price' => $unitPrice,
+                'total' => $unitPrice * $rfqItem->quantity,
             ]);
         }
 
@@ -591,7 +676,7 @@ class PurchasingController extends Controller
 
     public function goodsReceipts(Request $request)
     {
-        $tid      = $this->tenantId();
+        $tid = $this->tenantId();
         $receipts = GoodsReceipt::where('tenant_id', $tid)
             ->with(['purchaseOrder.supplier', 'warehouse'])
             ->latest('receipt_date')
@@ -612,32 +697,46 @@ class PurchasingController extends Controller
     {
         $data = $request->validate([
             'purchase_order_id' => 'required|exists:purchase_orders,id',
-            'warehouse_id'      => 'required|exists:warehouses,id',
-            'receipt_date'      => 'required|date',
-            'delivery_note'     => 'nullable|string|max:100',
-            'notes'             => 'nullable|string|max:500',
-            'items'             => 'required|array|min:1',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'receipt_date' => 'required|date',
+            'delivery_note' => 'nullable|string|max:100',
+            'notes' => 'nullable|string|max:500',
+            'items' => 'required|array|min:1',
             'items.*.purchase_order_item_id' => 'required|exists:purchase_order_items,id',
-            'items.*.product_id'             => 'required|exists:products,id',
-            'items.*.quantity_received'      => 'required|numeric|min:0',
-            'items.*.quantity_accepted'      => 'required|numeric|min:0',
-            'items.*.quantity_rejected'      => 'nullable|numeric|min:0',
-            'items.*.rejection_reason'       => 'nullable|string|max:255',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity_received' => 'required|numeric|min:0',
+            'items.*.quantity_accepted' => 'required|numeric|min:0',
+            'items.*.quantity_rejected' => 'nullable|numeric|min:0',
+            'items.*.rejection_reason' => 'nullable|string|max:255',
         ]);
 
         $tid = $this->tenantId();
-        $po  = PurchaseOrder::where('tenant_id', $tid)->findOrFail($data['purchase_order_id']);
+        $po = PurchaseOrder::where('tenant_id', $tid)->findOrFail($data['purchase_order_id']);
+
+        // BUG-PO-002 FIX: Validate against over-acceptance
+        $validation = app(\App\Services\GoodsReceiptValidationService::class)->validateReceipt($po, $data['items']);
+
+        if (!$validation['valid']) {
+            $errorMessages = collect($validation['errors'])->map(function ($error) {
+                if (isset($error['product_name'])) {
+                    return "{$error['product_name']}: {$error['error']} (Ordered: {$error['ordered']}, Already Received: {$error['already_received']}, Remaining: {$error['remaining']}, Attempted: {$error['attempted']})";
+                }
+                return $error['error'];
+            })->toArray();
+
+            return back()->with('error', 'Validation failed: ' . implode(' | ', $errorMessages));
+        }
 
         $gr = GoodsReceipt::create([
-            'tenant_id'         => $tid,
+            'tenant_id' => $tid,
             'purchase_order_id' => $po->id,
-            'warehouse_id'      => $data['warehouse_id'],
-            'received_by'       => auth()->id(),
-            'number'            => app(DocumentNumberService::class)->generate($tid, 'gr'),
-            'receipt_date'      => $data['receipt_date'],
-            'delivery_note'     => $data['delivery_note'] ?? null,
-            'status'            => 'confirmed',
-            'notes'             => $data['notes'] ?? null,
+            'warehouse_id' => $data['warehouse_id'],
+            'received_by' => auth()->id(),
+            'number' => app(DocumentNumberService::class)->generate($tid, 'gr'),
+            'receipt_date' => $data['receipt_date'],
+            'delivery_note' => $data['delivery_note'] ?? null,
+            'status' => 'confirmed',
+            'notes' => $data['notes'] ?? null,
         ]);
 
         $costing = app(InventoryCostingService::class);
@@ -645,11 +744,11 @@ class PurchasingController extends Controller
         foreach ($data['items'] as $item) {
             $gr->items()->create([
                 'purchase_order_item_id' => $item['purchase_order_item_id'],
-                'product_id'             => $item['product_id'],
-                'quantity_received'      => $item['quantity_received'],
-                'quantity_accepted'      => $item['quantity_accepted'],
-                'quantity_rejected'      => $item['quantity_rejected'] ?? 0,
-                'rejection_reason'       => $item['rejection_reason'] ?? null,
+                'product_id' => $item['product_id'],
+                'quantity_received' => $item['quantity_received'],
+                'quantity_accepted' => $item['quantity_accepted'],
+                'quantity_rejected' => $item['quantity_rejected'] ?? 0,
+                'rejection_reason' => $item['rejection_reason'] ?? null,
             ]);
 
             // Update PO item received qty
@@ -684,14 +783,14 @@ class PurchasingController extends Controller
             $this->createPayableForPo($po->fresh());
 
             $glResult = app(GlPostingService::class)->postPurchaseReceived(
-                tenantId:    $tid,
-                userId:      auth()->id(),
-                poNumber:    $po->number,
-                poId:        $po->id,
-                total:       (float) $po->total,
-                taxAmount:   (float) ($po->tax_amount ?? 0),
+                tenantId: $tid,
+                userId: auth()->id(),
+                poNumber: $po->number,
+                poId: $po->id,
+                total: (float) $po->total,
+                taxAmount: (float) ($po->tax_amount ?? 0),
                 paymentType: $po->payment_type ?? 'credit',
-                date:        $data['receipt_date'],
+                date: $data['receipt_date'],
             );
             if ($glResult->isFailed()) {
                 return back()->with('success', "Goods Receipt {$gr->number} berhasil dicatat.")
@@ -724,29 +823,29 @@ class PurchasingController extends Controller
 
         // Compute matching status for each PO
         $matchingData = $orders->map(function (PurchaseOrder $po) {
-            $poTotal  = (float) $po->total;
-            $grTotal  = $po->goodsReceipts->where('status', 'confirmed')
+            $poTotal = (float) $po->total;
+            $grTotal = $po->goodsReceipts->where('status', 'confirmed')
                 ->flatMap->items->sum(fn($i) => $i->quantity_accepted * ($po->items->firstWhere('id', $i->purchase_order_item_id)?->price ?? 0));
             $invTotal = $po->payable->sum('amount');
 
             $poQty = $po->items->sum('quantity_ordered');
             $grQty = $po->goodsReceipts->where('status', 'confirmed')->flatMap->items->sum('quantity_accepted');
 
-            $poMatch  = true; // PO is the reference
-            $grMatch  = $poQty > 0 && abs($grQty - $poQty) / $poQty <= 0.02; // ±2% tolerance
+            $poMatch = true; // PO is the reference
+            $grMatch = $poQty > 0 && abs($grQty - $poQty) / $poQty <= 0.02; // ±2% tolerance
             $invMatch = $poTotal > 0 && abs($invTotal - $poTotal) / $poTotal <= 0.02;
 
             return [
-                'po'        => $po,
-                'po_total'  => $poTotal,
-                'gr_total'  => $grTotal,
+                'po' => $po,
+                'po_total' => $poTotal,
+                'gr_total' => $grTotal,
                 'inv_total' => $invTotal,
-                'gr_qty'    => $grQty,
-                'po_qty'    => $poQty,
-                'po_match'  => $poMatch,
-                'gr_match'  => $grMatch,
+                'gr_qty' => $grQty,
+                'po_qty' => $poQty,
+                'po_match' => $poMatch,
+                'gr_match' => $grMatch,
                 'inv_match' => $invMatch,
-                'status'    => $poMatch && $grMatch && $invMatch ? 'matched' : ($grMatch ? 'partial' : 'unmatched'),
+                'status' => $poMatch && $grMatch && $invMatch ? 'matched' : ($grMatch ? 'partial' : 'unmatched'),
             ];
         });
 

@@ -14,39 +14,9 @@ class KitchenDisplayService
      */
     public function createTicketsFromOrder(FbOrder $order): array
     {
-        $tickets = [];
-
-        // Group items by station (kitchen station)
-        $itemsByStation = $this->groupItemsByStation($order);
-
-        foreach ($itemsByStation as $station => $items) {
-            $ticket = KitchenOrderTicket::create([
-                'tenant_id' => $order->tenant_id,
-                'fb_order_id' => $order->id,
-                'ticket_number' => KitchenOrderTicket::generateTicketNumber(),
-                'station' => $station,
-                'status' => 'pending',
-                'priority' => $this->determinePriority($order),
-                'estimated_time' => $this->calculateEstimatedTime($items),
-                'chef_notes' => $order->special_instructions,
-            ]);
-
-            // Create ticket items
-            foreach ($items as $item) {
-                KitchenOrderItem::create([
-                    'tenant_id' => $order->tenant_id,
-                    'ticket_id' => $ticket->id,
-                    'menu_item_id' => $item['menu_item_id'],
-                    'quantity' => $item['quantity'],
-                    'special_instructions' => $item['special_instructions'] ?? null,
-                    'modifiers' => $item['modifiers'] ?? [],
-                ]);
-            }
-
-            $tickets[] = $ticket->load('items.menuItem');
-        }
-
-        return $tickets;
+        // BUG-FB-002 FIX: Use idempotent ticket service to prevent duplicates
+        $ticketService = new KitchenTicketService();
+        return $ticketService->createTicketsForOrder($order);
     }
 
     /**

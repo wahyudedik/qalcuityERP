@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FbOrder extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
     protected $fillable = [
@@ -82,6 +85,11 @@ class FbOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(FbOrderItem::class, 'order_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(FbPayment::class, 'fb_order_id');
     }
 
     /**

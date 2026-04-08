@@ -923,6 +923,15 @@ class GlPostingService
                     return GlPostingResult::failed($msg);
                 }
 
+                // BUG-FIN-002 FIX: Check period lock before creating journal
+                $periodLockService = app(\App\Services\PeriodLockService::class);
+                if ($periodLockService->isLocked($tenantId, $date)) {
+                    $lockInfo = $periodLockService->getLockInfo($tenantId, $date);
+                    $msg = "Periode {$lockInfo} sudah dikunci. Tidak dapat membuat jurnal untuk tanggal {$date}.";
+                    Log::warning("GL Auto-Post: {$msg} Ref: {$refType} {$reference}");
+                    return GlPostingResult::failed($msg);
+                }
+
                 // Find accounting period
                 $period = AccountingPeriod::findForDate($tenantId, $date);
 

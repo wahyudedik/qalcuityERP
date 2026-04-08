@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectBillingConfig extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'project_id', 'tenant_id', 'billing_type', 'hourly_rate',
         'retainer_amount', 'retainer_cycle', 'fixed_price',

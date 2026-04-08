@@ -29,6 +29,7 @@ return new class extends Migration {
             $table->decimal('multiplier', 5, 2)->default(1.0); // poin multiplier
             $table->string('color')->nullable();
             $table->timestamps();
+            $table->index('tenant_id');
         });
 
         Schema::create('loyalty_points', function (Blueprint $table) {

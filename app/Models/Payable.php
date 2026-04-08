@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Payable extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'purchase_order_id', 'supplier_id', 'number',
         'total_amount', 'paid_amount', 'remaining_amount', 'status', 'due_date', 'notes',

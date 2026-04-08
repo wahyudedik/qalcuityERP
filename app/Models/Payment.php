@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Payment extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -26,7 +28,7 @@ class Payment extends Model
     {
         return [
             'payment_date' => 'date',
-            'amount'       => 'decimal:2',
+            'amount' => 'decimal:2',
         ];
     }
 

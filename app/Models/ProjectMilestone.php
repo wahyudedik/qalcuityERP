@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectMilestone extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'project_id', 'tenant_id', 'name', 'description', 'amount',
         'percentage', 'due_date', 'status', 'completed_by',

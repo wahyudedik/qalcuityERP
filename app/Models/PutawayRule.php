@@ -1,10 +1,13 @@
 <?php
 namespace App\Models;
+
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PutawayRule extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['tenant_id','warehouse_id','product_category','product_id','zone_id','bin_id','priority','is_active'];
     protected function casts(): array { return ['is_active'=>'boolean']; }
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }

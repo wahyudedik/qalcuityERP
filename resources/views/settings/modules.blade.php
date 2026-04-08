@@ -24,9 +24,65 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('settings.modules.update') }}">
+        <form method="POST" action="{{ route('settings.modules.update') }}" id="module-form">
             @csrf
             @method('PUT')
+
+            {{-- BUG-SET-002 FIX: Cleanup Strategy Selector --}}
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Strategi Cleanup Data</h2>
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                            Pilih bagaimana data modul yang dinonaktifkan akan ditangani.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label
+                        class="relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition
+                        {{ old('cleanup_strategy', 'keep') === 'keep' ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-200 dark:border-white/10 hover:border-gray-300' }}"
+                        onclick="selectStrategy('keep')">
+                        <input type="radio" name="cleanup_strategy" value="keep" class="sr-only"
+                            {{ old('cleanup_strategy', 'keep') === 'keep' ? 'checked' : '' }}>
+                        <div class="text-2xl">💾</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm text-gray-900 dark:text-white">Simpan Data</div>
+                            <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Data tetap di database, hanya hide
+                                dari UI</div>
+                        </div>
+                    </label>
+
+                    <label
+                        class="relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition
+                        {{ old('cleanup_strategy') === 'archive' ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-200 dark:border-white/10 hover:border-gray-300' }}"
+                        onclick="selectStrategy('archive')">
+                        <input type="radio" name="cleanup_strategy" value="archive" class="sr-only"
+                            {{ old('cleanup_strategy') === 'archive' ? 'checked' : '' }}>
+                        <div class="text-2xl">📦</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm text-gray-900 dark:text-white">Archive Data</div>
+                            <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Pindah ke tabel archive, bisa
+                                di-restore</div>
+                        </div>
+                    </label>
+
+                    <label
+                        class="relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition
+                        {{ old('cleanup_strategy') === 'soft_delete' ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-200 dark:border-white/10 hover:border-gray-300' }}"
+                        onclick="selectStrategy('soft_delete')">
+                        <input type="radio" name="cleanup_strategy" value="soft_delete" class="sr-only"
+                            {{ old('cleanup_strategy') === 'soft_delete' ? 'checked' : '' }}>
+                        <div class="text-2xl">🗑️</div>
+                        <div class="flex-1">
+                            <div class="font-medium text-sm text-gray-900 dark:text-white">Soft Delete</div>
+                            <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Mark as deleted, tetap bisa
+                                di-restore</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
 
             @php
                 $groups = [
@@ -84,7 +140,8 @@
                                     onchange="updateCard(this)">
                                 <span class="text-2xl shrink-0">{{ $m['icon'] }}</span>
                                 <div class="flex-1 min-w-0">
-                                    <div class="font-medium text-sm text-gray-900 dark:text-white">{{ $m['label'] }}</div>
+                                    <div class="font-medium text-sm text-gray-900 dark:text-white">{{ $m['label'] }}
+                                    </div>
                                     <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $m['desc'] }}</div>
                                 </div>
                                 <div class="shrink-0">
@@ -122,6 +179,25 @@
     </div>
 
     <script>
+        // BUG-SET-002 FIX: Strategy selector
+        function selectStrategy(strategy) {
+            document.querySelectorAll('input[name="cleanup_strategy"]').forEach(radio => {
+                radio.checked = radio.value === strategy;
+            });
+
+            // Update UI
+            document.querySelectorAll('[onclick^="selectStrategy"]').forEach(label => {
+                const isSelected = label.getAttribute('onclick').includes(strategy);
+                if (isSelected) {
+                    label.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+                    label.classList.remove('border-gray-200', 'dark:border-white/10');
+                } else {
+                    label.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+                    label.classList.add('border-gray-200', 'dark:border-white/10');
+                }
+            });
+        }
+
         function updateCard(checkbox) {
             const label = checkbox.closest('label');
             const track = label.querySelector('.toggle-track');
@@ -160,5 +236,24 @@
                 }
             });
         }
+
+        // BUG-SET-002 FIX: Show impact analysis on form submit
+        document.getElementById('module-form').addEventListener('submit', function(e) {
+            const checkedModules = Array.from(document.querySelectorAll('.module-checkbox:checked'))
+                .map(cb => cb.value);
+
+            const currentModules = @json($enabled);
+            const disabledModules = currentModules.filter(m => !checkedModules.includes(m));
+
+            if (disabledModules.length > 0) {
+                const message = `Anda akan menonaktifkan ${disabledModules.length} modul:\n` +
+                    disabledModules.map(m => `• ${m}`).join('\n') +
+                    '\n\nData akan ditangani sesuai strategi yang dipilih.';
+
+                if (!confirm(message)) {
+                    e.preventDefault();
+                }
+            }
+        });
     </script>
 @endsection

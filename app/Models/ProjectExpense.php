@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectExpense extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'project_id', 'tenant_id', 'user_id',
         'category', 'description', 'amount', 'date', 'reference', 'notes',

@@ -54,6 +54,10 @@ class ManufacturingController extends Controller
             'lines.*.child_bom_id' => 'nullable|exists:boms,id',
         ]);
 
+        // BUG-MFG-001 FIX: Validate no circular references before creating
+        // Note: BOM belum ada, jadi kita validate struktur lines saja
+        $this->validateBomLinesForCircularReference(null, $data['lines']);
+
         DB::transaction(function () use ($data) {
             $bom = Bom::create([
                 'tenant_id' => $this->tid(),
@@ -80,6 +84,9 @@ class ManufacturingController extends Controller
         return back()->with('success', 'BOM berhasil dibuat.');
     }
 
+    /**
+     * BUG-MFG-001 FIX: Added circular reference validation before save
+     */
     public function updateBom(Request $request, Bom $bom)
     {
         abort_if($bom->tenant_id !== $this->tid(), 403);
@@ -96,6 +103,9 @@ class ManufacturingController extends Controller
             'lines.*.unit' => 'required|string|max:20',
             'lines.*.child_bom_id' => 'nullable|exists:boms,id',
         ]);
+
+        // BUG-MFG-001 FIX: Validate no circular references before saving
+        $this->validateBomCircularReference($bom->id, $data['lines']);
 
         DB::transaction(function () use ($bom, $data) {
             $bom->update([
@@ -127,6 +137,125 @@ class ManufacturingController extends Controller
         abort_if($bom->tenant_id !== $this->tid(), 403);
         $bom->delete();
         return back()->with('success', 'BOM berhasil dihapus.');
+    }
+
+    /**
+     * BUG-MFG-001 FIX: Validate BOM for circular references
+     */
+    private function validateBomCircularReference(int $bomId, array $lines): void
+    {
+        // Extract child_bom_ids from lines
+        $childBomIds = array_filter(
+            array_column($lines, 'child_bom_id'),
+            fn($id) => $id !== null
+        );
+
+        if (empty($childBomIds)) {
+            return; // No child BOMs, no circular reference possible
+        }
+
+        // Check each child BOM for circular reference
+        foreach ($childBomIds as $childBomId) {
+            // Check self-reference
+            if ($childBomId == $bomId) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], [
+                        'lines' => "BOM tidak boleh refer ke dirinya sendiri (BOM #{$bomId})."
+                    ])
+                );
+            }
+
+            // Check if child BOM eventually references back to parent
+            if ($this->createsCircularReference($bomId, $childBomId, [$bomId])) {
+                $childBom = Bom::find($childBomId);
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], [
+                        'lines' => "Circular reference terdeteksi! BOM #{$bomId} → ... → BOM #{$childBomId} ({$childBom->name}) → BOM #{$bomId}."
+                    ])
+                );
+            }
+        }
+    }
+
+    /**
+     * BUG-MFG-001 FIX: Check if adding childBomId to parentBomId creates circular reference
+     */
+    private function createsCircularReference(int $parentBomId, int $childBomId, array $visitedIds): bool
+    {
+        if (in_array($childBomId, $visitedIds)) {
+            return true;
+        }
+
+        $visitedIds[] = $childBomId;
+
+        // Get all child BOMs of this child
+        $childBom = Bom::with('lines')->find($childBomId);
+        if (!$childBom) {
+            return false;
+        }
+
+        foreach ($childBom->lines as $line) {
+            if ($line->child_bom_id) {
+                if ($line->child_bom_id == $parentBomId) {
+                    return true; // Direct circular reference found
+                }
+
+                if (in_array($line->child_bom_id, $visitedIds)) {
+                    continue; // Already visited, skip
+                }
+
+                // Recurse
+                if ($this->createsCircularReference($parentBomId, $line->child_bom_id, $visitedIds)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * BUG-MFG-001 FIX: Validate BOM lines for circular references (for new BOMs)
+     */
+    private function validateBomLinesForCircularReference(?int $bomId, array $lines): void
+    {
+        // Extract child_bom_ids from lines
+        $childBomIds = array_filter(
+            array_column($lines, 'child_bom_id'),
+            fn($id) => $id !== null
+        );
+
+        if (empty($childBomIds)) {
+            return; // No child BOMs
+        }
+
+        // Check each child BOM
+        foreach ($childBomIds as $childBomId) {
+            // For new BOMs, we can't check circular reference yet
+            // But we can validate that child BOM exists and is active
+            $childBom = Bom::where('id', $childBomId)
+                ->where('tenant_id', $this->tid())
+                ->where('is_active', true)
+                ->first();
+
+            if (!$childBom) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], [
+                        'lines' => "Child BOM #{$childBomId} tidak ditemukan atau tidak aktif."
+                    ])
+                );
+            }
+
+            // Check if child BOM references itself
+            $childBomLines = $childBom->lines()->where('child_bom_id', $childBomId)->exists();
+            if ($childBomLines) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], [
+                        'lines' => "Child BOM #{$childBomId} ({$childBom->name}) sudah memiliki circular reference internal."
+                    ])
+                );
+            }
+        }
     }
 
     // ── Work Centers ──────────────────────────────────────────────

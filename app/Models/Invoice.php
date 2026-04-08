@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -45,15 +48,15 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'due_date'         => 'date',
-            'total_amount'     => 'decimal:2',
-            'paid_amount'      => 'decimal:2',
+            'due_date' => 'date',
+            'total_amount' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
             'remaining_amount' => 'decimal:2',
-            'subtotal_amount'  => 'decimal:2',
-            'tax_amount'       => 'decimal:2',
-            'currency_rate'    => 'float',
-            'posted_at'        => 'datetime',
-            'cancelled_at'     => 'datetime',
+            'subtotal_amount' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'currency_rate' => 'float',
+            'posted_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -73,11 +76,11 @@ class Invoice extends Model
     public function postingStatusLabel(): string
     {
         return match ($this->posting_status ?? 'draft') {
-            'draft'     => 'Draft',
-            'posted'    => 'Diposting',
+            'draft' => 'Draft',
+            'posted' => 'Diposting',
             'cancelled' => 'Dibatalkan',
-            'voided'    => 'Dibatalkan (Void)',
-            default     => ucfirst($this->posting_status ?? 'draft'),
+            'voided' => 'Dibatalkan (Void)',
+            default => ucfirst($this->posting_status ?? 'draft'),
         };
     }
 
@@ -85,11 +88,11 @@ class Invoice extends Model
     public function postingStatusColor(): string
     {
         return match ($this->posting_status ?? 'draft') {
-            'draft'     => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
-            'posted'    => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+            'draft' => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
+            'posted' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
             'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-            'voided'    => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
-            default     => 'bg-gray-100 text-gray-500',
+            'voided' => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
+            default => 'bg-gray-100 text-gray-500',
         };
     }
 
@@ -138,12 +141,17 @@ class Invoice extends Model
     /** Aging bucket: 0-30, 31-60, 61-90, 90+ hari */
     public function agingBucket(): string
     {
-        if ($this->status === 'paid') return 'paid';
+        if ($this->status === 'paid')
+            return 'paid';
         $days = $this->daysOverdue();
-        if ($days <= 0)  return 'current';
-        if ($days <= 30) return '1-30';
-        if ($days <= 60) return '31-60';
-        if ($days <= 90) return '61-90';
+        if ($days <= 0)
+            return 'current';
+        if ($days <= 30)
+            return '1-30';
+        if ($days <= 60)
+            return '31-60';
+        if ($days <= 90)
+            return '61-90';
         return '90+';
     }
 
@@ -156,12 +164,12 @@ class Invoice extends Model
         $paid = $this->payments()->sum('amount');
         $paid = min($paid, $this->total_amount); // tidak boleh melebihi total
 
-        $this->paid_amount      = $paid;
+        $this->paid_amount = $paid;
         $this->remaining_amount = $this->total_amount - $paid;
-        $this->status           = match (true) {
-            $paid <= 0                          => 'unpaid',
-            $paid >= $this->total_amount        => 'paid',
-            default                             => 'partial',
+        $this->status = match (true) {
+            $paid <= 0 => 'unpaid',
+            $paid >= $this->total_amount => 'paid',
+            default => 'partial',
         };
         $this->save();
     }

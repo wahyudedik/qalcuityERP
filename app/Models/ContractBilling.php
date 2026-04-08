@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContractBilling extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'contract_id', 'tenant_id', 'billing_date', 'period_start',
         'period_end', 'amount', 'status', 'invoice_id',

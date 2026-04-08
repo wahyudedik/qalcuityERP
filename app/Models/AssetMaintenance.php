@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class AssetMaintenance extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'asset_id', 'type', 'description', 'scheduled_date',
         'completed_date', 'cost', 'vendor', 'status', 'notes',

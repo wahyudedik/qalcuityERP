@@ -209,6 +209,14 @@ Schedule::command('reminders:process')
 
 // ─── Cleanup ──────────────────────────────────────────────────────────────────
 
+// Clean up expired API tokens — setiap hari jam 02:30 untuk keamanan
+Schedule::command('api:cleanup-tokens --older-than=30')
+    ->dailyAt('02:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/api-token-cleanup.log'))
+    ->name('api-cleanup-tokens-daily');
+
 // Hapus chat sessions tidak aktif lebih dari 90 hari — setiap minggu Minggu jam 02:00
 Schedule::call(function () {
     $deleted = ChatSession::where('is_active', false)
@@ -357,3 +365,56 @@ Schedule::command('cleanup:old-data')
     ->dailyAt('05:00')
     ->name('cleanup-old-data')
     ->withoutOverlapping();
+
+// ─── SCHEDULED REPORTS ──────────────────────────────────────────────────────
+
+// Process scheduled reports — setiap jam
+Schedule::command('reports:process-scheduled')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('process-scheduled-reports');
+
+// ─── INTEGRATION MARKETPLACE ─────────────────────────────────────────────
+
+// Retry failed webhook deliveries — setiap 5 menit
+Schedule::job(new \App\Jobs\Integrations\RetryWebhookDeliveriesJob())
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('integration-retry-webhooks');
+
+// Auto-sync integrations based on frequency — setiap jam
+Schedule::call(function () {
+    \App\Models\Integration::where('status', 'active')
+        ->where('sync_frequency', 'hourly')
+        ->where(function ($query) {
+            $query->whereNull('next_sync_at')
+                ->orWhere('next_sync_at', '<=', now());
+        })
+        ->each(function ($integration) {
+            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
+            \App\Jobs\Integrations\SyncOrdersJob::dispatch($integration);
+            \App\Jobs\Integrations\SyncInventoryJob::dispatch($integration);
+        });
+})->hourly()->name('integration-auto-sync-hourly')->withoutOverlapping();
+
+// Daily sync for integrations — setiap hari jam 01:00
+Schedule::call(function () {
+    \App\Models\Integration::where('status', 'active')
+        ->where('sync_frequency', 'daily')
+        ->where(function ($query) {
+            $query->whereNull('next_sync_at')
+                ->orWhere('next_sync_at', '<=', now());
+        })
+        ->each(function ($integration) {
+            \App\Jobs\Integrations\SyncProductsJob::dispatch($integration);
+        });
+})->dailyAt('01:00')->name('integration-auto-sync-daily')->withoutOverlapping();
+
+// Cleanup old webhook deliveries — setiap hari jam 03:00
+Schedule::call(function () {
+    $service = new \App\Services\Integrations\WebhookDeliveryService();
+    $deleted = $service->cleanupOldDeliveries(30);
+    \Illuminate\Support\Facades\Log::info("Integration cleanup: deleted {$deleted} old webhook deliveries");
+})->dailyAt('03:00')->name('integration-cleanup-webhooks')->withoutOverlapping();

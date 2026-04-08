@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GoodsReceipt extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'purchase_order_id', 'warehouse_id', 'received_by',
         'number', 'receipt_date', 'delivery_note', 'status', 'notes',

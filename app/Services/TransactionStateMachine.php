@@ -34,8 +34,8 @@ class TransactionStateMachine
 
     /** Transisi yang diizinkan untuk Invoice.posting_status */
     private const INVOICE_TRANSITIONS = [
-        'draft'   => ['posted', 'cancelled'],
-        'posted'  => ['cancelled', 'voided'],
+        'draft' => ['posted', 'cancelled'],
+        'posted' => ['cancelled', 'voided'],
         // partial_paid dan paid dikelola via payment, bukan manual
     ];
 
@@ -49,8 +49,8 @@ class TransactionStateMachine
 
         $invoice->update([
             'posting_status' => 'posted',
-            'posted_by'      => $userId,
-            'posted_at'      => now(),
+            'posted_by' => $userId,
+            'posted_at' => now(),
         ]);
 
         ActivityLog::record(
@@ -74,10 +74,10 @@ class TransactionStateMachine
 
         $invoice->update([
             'posting_status' => 'cancelled',
-            'cancelled_by'   => $userId,
-            'cancelled_at'   => now(),
-            'cancel_reason'  => $reason,
-            'status'         => 'cancelled',
+            'cancelled_by' => $userId,
+            'cancelled_at' => now(),
+            'cancel_reason' => $reason,
+            'status' => 'cancelled',
         ]);
 
         ActivityLog::record(
@@ -101,10 +101,10 @@ class TransactionStateMachine
 
         $invoice->update([
             'posting_status' => 'voided',
-            'cancelled_by'   => $userId,
-            'cancelled_at'   => now(),
-            'cancel_reason'  => $reason,
-            'status'         => 'voided',
+            'cancelled_by' => $userId,
+            'cancelled_at' => now(),
+            'cancel_reason' => $reason,
+            'status' => 'voided',
         ]);
 
         ActivityLog::record(
@@ -117,27 +117,35 @@ class TransactionStateMachine
     // ── Purchase Order ────────────────────────────────────────────
 
     private const PO_TRANSITIONS = [
-        'draft'    => ['posted', 'cancelled'],
-        'posted'   => ['cancelled'],
+        'draft' => ['posted', 'cancelled'],
+        'posted' => ['cancelled'],
     ];
 
     /**
      * Post PO: draft → posted
+     * BUG-PO-001 FIX: Enforce approval workflow before posting
      * Setelah posted, PO bisa dikirim ke supplier (status: sent).
      */
     public function postPurchaseOrder(PurchaseOrder $po, int $userId): void
     {
+        // BUG-PO-001 FIX: Check if approval is required and obtained
+        $approvalCheck = app(\App\Services\PoApprovalService::class)->canPost($po);
+
+        if (!$approvalCheck['can_post']) {
+            throw new \RuntimeException("Cannot post PO: {$approvalCheck['reason']}");
+        }
+
         $this->assertTransition($po->posting_status, 'posted', self::PO_TRANSITIONS, 'Purchase Order');
 
         $po->update([
             'posting_status' => 'posted',
-            'posted_by'      => $userId,
-            'posted_at'      => now(),
+            'posted_by' => $userId,
+            'posted_at' => now(),
         ]);
 
         ActivityLog::record(
             'po_posted',
-            "PO {$po->number} diposting oleh user #{$userId}",
+            "PO {$po->number} diposting oleh user #{$userId}" . (isset($approvalCheck['approval']) ? ' (Approved)' : ''),
             $po
         );
     }
@@ -156,8 +164,8 @@ class TransactionStateMachine
 
         $po->update([
             'posting_status' => 'cancelled',
-            'status'         => 'cancelled',
-            'cancel_reason'  => $reason,
+            'status' => 'cancelled',
+            'cancel_reason' => $reason,
         ]);
 
         ActivityLog::record(
@@ -170,7 +178,7 @@ class TransactionStateMachine
     // ── Sales Order ───────────────────────────────────────────────
 
     private const SO_TRANSITIONS = [
-        'draft'  => ['posted', 'cancelled'],
+        'draft' => ['posted', 'cancelled'],
         'posted' => ['cancelled'],
     ];
 
@@ -180,8 +188,8 @@ class TransactionStateMachine
 
         $so->update([
             'posting_status' => 'posted',
-            'posted_by'      => $userId,
-            'posted_at'      => now(),
+            'posted_by' => $userId,
+            'posted_at' => now(),
         ]);
 
         ActivityLog::record(
@@ -197,8 +205,8 @@ class TransactionStateMachine
 
         $so->update([
             'posting_status' => 'cancelled',
-            'status'         => 'cancelled',
-            'cancel_reason'  => $reason,
+            'status' => 'cancelled',
+            'cancel_reason' => $reason,
         ]);
 
         ActivityLog::record(
@@ -233,23 +241,23 @@ class TransactionStateMachine
      * Dipanggil sebelum update pada transaksi yang sudah posted.
      */
     public function createRevision(
-        Model  $model,
-        int    $userId,
+        Model $model,
+        int $userId,
         string $reason,
-        int    $tenantId
+        int $tenantId
     ): TransactionRevision {
         $lastRevision = TransactionRevision::where('model_type', get_class($model))
             ->where('model_id', $model->id)
             ->max('revision') ?? 0;
 
         return TransactionRevision::create([
-            'tenant_id'       => $tenantId,
-            'model_type'      => get_class($model),
-            'model_id'        => $model->id,
-            'revision'        => $lastRevision + 1,
-            'reason'          => $reason,
+            'tenant_id' => $tenantId,
+            'model_type' => get_class($model),
+            'model_id' => $model->id,
+            'revision' => $lastRevision + 1,
+            'reason' => $reason,
             'snapshot_before' => $model->toArray(),
-            'created_by'      => $userId,
+            'created_by' => $userId,
         ]);
     }
 
@@ -260,7 +268,7 @@ class TransactionStateMachine
     {
         $revision->update([
             'snapshot_after' => $model->fresh()->toArray(),
-            'finalized_at'   => now(),
+            'finalized_at' => now(),
         ]);
     }
 
@@ -274,12 +282,12 @@ class TransactionStateMachine
     private function assertTransition(
         string $currentStatus,
         string $targetStatus,
-        array  $transitions,
+        array $transitions,
         string $label
     ): void {
         $allowed = $transitions[$currentStatus] ?? [];
 
-        if (! in_array($targetStatus, $allowed)) {
+        if (!in_array($targetStatus, $allowed)) {
             throw new \RuntimeException(
                 "{$label} tidak bisa berpindah dari status '{$currentStatus}' ke '{$targetStatus}'. " .
                 "Transisi yang diizinkan: " . implode(', ', $allowed ?: ['tidak ada'])

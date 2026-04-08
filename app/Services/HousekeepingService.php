@@ -118,6 +118,12 @@ class HousekeepingService
         $task->start($userId);
         $task->room?->incrementCleaningCount();
 
+        // BUG-HOTEL-003 FIX: Update room status to cleaning
+        if ($task->room && $task->room->status === 'dirty') {
+            $statusService = new HousekeepingStatusService();
+            $statusService->startCleaning($task->room, $task);
+        }
+
         ActivityLog::record(
             'task_started',
             "Housekeeping task #{$task->id} started",
@@ -137,9 +143,15 @@ class HousekeepingService
 
         $task->complete($checklist, $notes);
 
-        // Update room status based on task type
+        // BUG-HOTEL-003 FIX: Use proper status transition service
         if (in_array($task->type, ['checkout_clean', 'stay_clean', 'deep_clean'])) {
-            $task->room?->updateStatus('clean');
+            $statusService = new HousekeepingStatusService();
+            $statusService->completeCleaning(
+                $task->room,
+                $task,
+                $checklist,
+                $notes
+            );
         }
 
         ActivityLog::record(

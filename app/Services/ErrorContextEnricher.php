@@ -95,29 +95,53 @@ class ErrorContextEnricher
     }
 
     /**
-     * Get tenant context
+     * Get tenant context - PENTING: Selalu capture tenant_id untuk debugging
      */
     protected static function getTenantContext(): array
     {
-        if (!auth()->check() || !method_exists(auth()->user(), 'tenant')) {
-            return [];
+        $tenantId = null;
+        $tenantData = [];
+
+        // Strategy 1: Get from authenticated user
+        if (auth()->check()) {
+            $user = auth()->user();
+            $tenantId = $user->tenant_id ?? null;
+
+            if ($tenantId && method_exists($user, 'tenant')) {
+                $tenant = $user->tenant;
+                if ($tenant) {
+                    $tenantData = [
+                        'id' => $tenant->id,
+                        'name' => $tenant->name ?? null,
+                        'subdomain' => $tenant->subdomain ?? null,
+                        'plan' => $tenant->plan ?? null,
+                        'is_active' => $tenant->is_active ?? null,
+                        'subscription_status' => $tenant->subscription_status ?? null,
+                    ];
+                }
+            }
         }
 
-        $tenant = auth()->user()->tenant;
-
-        if (!$tenant) {
-            return [];
+        // Strategy 2: Fallback - get from route parameter
+        if (!$tenantId && request()) {
+            $tenantId = request()->route('tenant')
+                ?? request()->route('tenant_id')
+                ?? request()->input('tenant_id');
         }
 
+        // Strategy 3: Fallback - get from request header (for API calls)
+        if (!$tenantId && request()) {
+            $tenantId = request()->header('X-Tenant-ID')
+                ?? request()->header('X-Tenant');
+        }
+
+        // Jika tidak ada tenant_id, tetap return array dengan tenant_id = null
+        // agar SuperAdmin tahu ini error dari system-level atau guest user
         return [
-            'tenant' => [
-                'id' => $tenant->id,
-                'name' => $tenant->name ?? null,
-                'subdomain' => $tenant->subdomain ?? null,
-                'plan' => $tenant->plan ?? null,
-                'is_active' => $tenant->is_active ?? null,
-                'subscription_status' => $tenant->subscription_status ?? null,
-            ],
+            'tenant' => array_merge([
+                'id' => $tenantId ? (int) $tenantId : null,
+                'source' => $tenantId ? (auth()->check() ? 'user' : 'request') : 'none',
+            ], $tenantData),
         ];
     }
 
@@ -200,7 +224,7 @@ class ErrorContextEnricher
     }
 
     /**
-     * Log enriched context to database
+     * Log enriched context to database - PASTIKAN tenant_id selalu terisi
      */
     public static function logToDatabase(
         \Throwable $exception,
@@ -208,6 +232,9 @@ class ErrorContextEnricher
         string $type = 'exception'
     ): ErrorLog {
         $enrichedContext = self::enrich($exception);
+
+        // ✅ PENTING: Resolve tenant_id dari berbagai source dengan prioritas
+        $tenantId = self::resolveTenantId();
 
         // Check for similar recent errors (within last hour)
         $similarError = ErrorLog::where('exception_class', get_class($exception))
@@ -221,13 +248,13 @@ class ErrorContextEnricher
             return $similarError;
         }
 
-        // Create new error log
+        // Create new error log dengan tenant_id yang sudah di-resolve
         return ErrorLog::create([
             'level' => $level,
             'type' => $type,
             'message' => $exception->getMessage(),
             'stack_trace' => $exception->getTraceAsString(),
-            'tenant_id' => auth()->check() ? auth()->user()->tenant_id : null,
+            'tenant_id' => $tenantId, // ✅ Selalu terisi (bisa null jika memang system-wide error)
             'user_id' => auth()->id(),
             'url' => request()->fullUrl() ?? null,
             'ip_address' => request()->ip() ?? null,
@@ -239,5 +266,54 @@ class ErrorContextEnricher
             'line' => $exception->getLine(),
             'method' => request()->method() ?? null,
         ]);
+    }
+
+    /**
+     * Resolve tenant_id dari berbagai source dengan prioritas
+     * 
+     * Priority:
+     * 1. Authenticated user's tenant_id
+     * 2. Route parameter (tenant atau tenant_id)
+     * 3. Request input/header
+     * 4. Context dari exception (jika ada)
+     */
+    protected static function resolveTenantId(): ?int
+    {
+        // Priority 1: Authenticated user
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->tenant_id) {
+                return (int) $user->tenant_id;
+            }
+        }
+
+        // Priority 2: Route parameters
+        if (request()) {
+            $routeTenantId = request()->route('tenant')
+                ?? request()->route('tenant_id');
+
+            if ($routeTenantId) {
+                return (int) $routeTenantId;
+            }
+        }
+
+        // Priority 3: Request input/header (untuk API calls)
+        if (request()) {
+            $headerTenantId = request()->header('X-Tenant-ID')
+                ?? request()->header('X-Tenant')
+                ?? request()->input('tenant_id');
+
+            if ($headerTenantId) {
+                return (int) $headerTenantId;
+            }
+        }
+
+        // Priority 4: Check if exception context has tenant_id
+        // (untuk case custom exceptions yang pass tenant_id)
+        // Ini bisa di-expand jika diperlukan
+
+        // Return null jika memang tidak ada tenant context
+        // (system-wide error, CLI command, atau guest user)
+        return null;
     }
 }

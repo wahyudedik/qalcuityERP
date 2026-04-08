@@ -16,7 +16,7 @@ class CrmController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = CrmLead::where('tenant_id', $tid)->with('assignedUser');
 
         if ($request->stage) {
@@ -54,21 +54,21 @@ class CrmController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'                => 'required|string|max:255',
-            'company'             => 'nullable|string|max:255',
-            'phone'               => 'nullable|string|max:20',
-            'email'               => 'nullable|email|max:255',
-            'source'              => 'nullable|in:referral,website,cold_call,social_media,exhibition',
-            'product_interest'    => 'nullable|string|max:255',
-            'estimated_value'     => 'nullable|numeric|min:0',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'source' => 'nullable|in:referral,website,cold_call,social_media,exhibition',
+            'product_interest' => 'nullable|string|max:255',
+            'estimated_value' => 'nullable|numeric|min:0',
             'expected_close_date' => 'nullable|date',
-            'notes'               => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $lead = CrmLead::create([
-            'tenant_id'   => $this->tenantId(),
+            'tenant_id' => $this->tenantId(),
             'assigned_to' => auth()->id(),
-            'stage'       => 'new',
+            'stage' => 'new',
             'probability' => 10,
             'last_contact_at' => now(),
         ] + $data);
@@ -83,9 +83,9 @@ class CrmController extends Controller
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'stage'       => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'stage' => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost',
             'probability' => 'nullable|integer|min:0|max:100',
-            'notes'       => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $prob = $data['probability'] ?? match ($data['stage']) {
@@ -94,9 +94,9 @@ class CrmController extends Controller
         };
 
         $lead->update([
-            'stage'           => $data['stage'],
-            'probability'     => $prob,
-            'notes'           => $data['notes'] ?? $lead->notes,
+            'stage' => $data['stage'],
+            'probability' => $prob,
+            'notes' => $data['notes'] ?? $lead->notes,
             'last_contact_at' => now(),
         ]);
 
@@ -108,16 +108,16 @@ class CrmController extends Controller
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'type'           => 'required|in:call,email,meeting,whatsapp,demo,proposal',
-            'description'    => 'required|string',
-            'outcome'        => 'nullable|in:interested,not_interested,follow_up,closed',
+            'type' => 'required|in:call,email,meeting,whatsapp,demo,proposal',
+            'description' => 'required|string',
+            'outcome' => 'nullable|in:interested,not_interested,follow_up,closed',
             'next_follow_up' => 'nullable|date',
         ]);
 
         CrmActivity::create([
             'tenant_id' => $this->tenantId(),
-            'lead_id'   => $lead->id,
-            'user_id'   => auth()->id(),
+            'lead_id' => $lead->id,
+            'user_id' => auth()->id(),
         ] + $data);
 
         $lead->update(['last_contact_at' => now()]);
@@ -125,52 +125,61 @@ class CrmController extends Controller
         return back()->with('success', 'Aktivitas berhasil dicatat.');
     }
 
-    public function convertToCustomer(CrmLead $lead)
+    public function convertToCustomer(Request $request, CrmLead $lead)
     {
         abort_unless($lead->tenant_id === $this->tenantId(), 403);
 
-        if ($lead->stage !== 'won') {
-            return back()->with('error', 'Hanya lead dengan stage "Won" yang bisa dikonversi menjadi customer.');
-        }
-
-        $tid = $this->tenantId();
-
-        // Cek apakah sudah pernah dikonversi (email atau nama+company sama)
-        $existing = \App\Models\Customer::where('tenant_id', $tid)
-            ->where(function ($q) use ($lead) {
-                if ($lead->email) {
-                    $q->where('email', $lead->email);
-                } else {
-                    $q->where('name', $lead->name)
-                      ->when($lead->company, fn($q2) => $q2->where('company', $lead->company));
-                }
-            })->first();
-
-        if ($existing) {
-            return back()->with('error', "Customer \"{$existing->name}\" sudah ada. Lead ini mungkin sudah pernah dikonversi.");
-        }
-
-        $customer = \App\Models\Customer::create([
-            'tenant_id' => $tid,
-            'name'      => $lead->name,
-            'company'   => $lead->company,
-            'phone'     => $lead->phone,
-            'email'     => $lead->email,
-            'is_active' => true,
+        $data = $request->validate([
+            'force_create' => 'nullable|boolean',
+            'link_to_customer_id' => 'nullable|exists:customers,id',
         ]);
 
-        // Tandai lead sudah dikonversi
-        $lead->update(['converted_to_customer_id' => $customer->id]);
+        $conversionService = app(\App\Services\LeadConversionService::class);
+
+        $result = $conversionService->convertLead(
+            $lead,
+            $data['force_create'] ?? false,
+            $data['link_to_customer_id'] ?? null
+        );
+
+        if (!$result['success']) {
+            if (isset($result['already_converted'])) {
+                return back()->with('error', $result['message']);
+            }
+
+            if (isset($result['has_duplicates']) && $result['has_duplicates']) {
+                // Return with duplicates info for user review
+                return back()
+                    ->with('warning', $result['message'])
+                    ->with('duplicates', $result['duplicates'])
+                    ->with('lead_id', $lead->id);
+            }
+
+            return back()->with('error', $result['message']);
+        }
 
         ActivityLog::record(
             'lead_converted',
-            "Lead \"{$lead->name}\" dikonversi menjadi Customer #{$customer->id}",
-            $customer,
+            $result['message'],
+            $result['customer'],
             [],
-            $customer->toArray()
+            $result['customer']->toArray()
         );
 
-        return back()->with('success', "Lead \"{$lead->name}\" berhasil dikonversi menjadi customer.");
+        return back()->with('success', $result['message']);
+    }
+
+    // BUG-CRM-001 FIX: API endpoint to check for duplicates before conversion
+    public function checkLeadDuplicates(CrmLead $lead)
+    {
+        abort_unless($lead->tenant_id === $this->tenantId(), 403);
+
+        $result = app(\App\Services\LeadConversionService::class)->checkForDuplicates($lead);
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
     }
 
     public function destroy(CrmLead $lead)
@@ -186,7 +195,7 @@ class CrmController extends Controller
         $tid = $this->tenantId();
 
         $stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
-        $leads  = CrmLead::where('tenant_id', $tid)
+        $leads = CrmLead::where('tenant_id', $tid)
             ->with(['activities' => fn($q) => $q->latest()->limit(1)])
             ->orderByDesc('estimated_value')
             ->get()
@@ -197,7 +206,7 @@ class CrmController extends Controller
             ->selectRaw('stage, count(*) as count, sum(estimated_value) as total_value')
             ->groupBy('stage')->get()->keyBy('stage');
 
-        $wonThisMonth  = CrmLead::where('tenant_id', $tid)->where('stage', 'won')
+        $wonThisMonth = CrmLead::where('tenant_id', $tid)->where('stage', 'won')
             ->whereMonth('updated_at', now()->month)->sum('estimated_value');
         $followUpToday = CrmLead::where('tenant_id', $tid)
             ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))

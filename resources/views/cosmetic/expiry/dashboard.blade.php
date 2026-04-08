@@ -54,7 +54,7 @@
 
         <!-- Alerts by Severity -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">📊 Alerts by Severity</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Alerts by Severity</h2>
             <div class="grid grid-cols-4 gap-4">
                 <div class="p-4 bg-blue-50 rounded-lg">
                     <p class="text-sm text-blue-600">Info</p>

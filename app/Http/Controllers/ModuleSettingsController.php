@@ -2,42 +2,131 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ModuleCleanupService; // BUG-SET-002 FIX
 use App\Services\ModuleRecommendationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ModuleSettingsController extends Controller
 {
     public function index()
     {
-        $tenant  = auth()->user()->tenant;
+        $tenant = auth()->user()->tenant;
         $enabled = $tenant->enabledModules();
 
         return view('settings.modules', [
-            'tenant'   => $tenant,
-            'enabled'  => $enabled,
-            'meta'     => ModuleRecommendationService::MODULE_META,
-            'all'      => ModuleRecommendationService::ALL_MODULES,
+            'tenant' => $tenant,
+            'enabled' => $enabled,
+            'meta' => ModuleRecommendationService::MODULE_META,
+            'all' => ModuleRecommendationService::ALL_MODULES,
         ]);
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'modules'   => ['nullable', 'array'],
+            'modules' => ['nullable', 'array'],
             'modules.*' => ['string', 'in:' . implode(',', ModuleRecommendationService::ALL_MODULES)],
+            // BUG-SET-002 FIX: Cleanup strategy for disabled modules
+            'cleanup_strategy' => ['nullable', 'in:keep,archive,soft_delete'],
         ]);
 
         $tenant = auth()->user()->tenant;
-        $tenant->update(['enabled_modules' => $request->input('modules', [])]);
+        $oldModules = $tenant->enabledModules();
+        $newModules = $request->input('modules', []);
+        $cleanupStrategy = $request->input('cleanup_strategy', 'keep');
 
-        return back()->with('success', 'Pengaturan modul berhasil disimpan.');
+        // BUG-SET-002 FIX: Detect disabled modules and cleanup
+        $disabledModules = array_diff($oldModules, $newModules);
+        $cleanupResults = [];
+
+        if (!empty($disabledModules)) {
+            $cleanupService = app(ModuleCleanupService::class);
+
+            foreach ($disabledModules as $module) {
+                // Analyze impact first
+                $impact = $cleanupService->analyzeImpact($tenant->id, $module);
+
+                // Log the cleanup action
+                Log::info('BUG-SET-002: Module disabled', [
+                    'tenant_id' => $tenant->id,
+                    'module' => $module,
+                    'strategy' => $cleanupStrategy,
+                    'records_affected' => $impact['total_records'],
+                ]);
+
+                // Perform cleanup if there's data
+                if ($impact['total_records'] > 0) {
+                    $result = $cleanupService->cleanupModule($tenant->id, $module, $cleanupStrategy);
+                    $cleanupResults[$module] = $result;
+                }
+            }
+        }
+
+        // Update enabled modules
+        $tenant->update(['enabled_modules' => $newModules]);
+
+        $message = 'Pengaturan modul berhasil disimpan.';
+        if (!empty($disabledModules)) {
+            $message .= ' Modul dinonaktifkan: ' . implode(', ', $disabledModules) . '.';
+            if (!empty($cleanupResults)) {
+                $message .= ' Data telah di-' . $cleanupStrategy . '.';
+            }
+        }
+
+        return back()->with('success', $message);
     }
 
     /** AJAX: get AI recommendation for an industry */
     public function recommend(Request $request)
     {
         $industry = $request->input('industry', 'other');
-        $svc      = new ModuleRecommendationService();
+        $svc = new ModuleRecommendationService();
         return response()->json($svc->recommend($industry));
+    }
+
+    // BUG-SET-002 FIX: Analyze impact before disabling module
+    public function analyzeImpact(Request $request)
+    {
+        $request->validate([
+            'module' => 'required|string|in:' . implode(',', ModuleRecommendationService::ALL_MODULES),
+        ]);
+
+        $tenant = auth()->user()->tenant;
+        $cleanupService = app(ModuleCleanupService::class);
+        $impact = $cleanupService->analyzeImpact($tenant->id, $request->module);
+
+        return response()->json($impact);
+    }
+
+    // BUG-SET-002 FIX: Get cleanup summary for dashboard
+    public function cleanupSummary()
+    {
+        $tenant = auth()->user()->tenant;
+        $cleanupService = app(ModuleCleanupService::class);
+        $summary = $cleanupService->getTenantCleanupSummary($tenant->id);
+
+        return response()->json($summary);
+    }
+
+    // BUG-SET-002 FIX: Restore archived data when re-enabling module
+    public function restoreData(Request $request)
+    {
+        $request->validate([
+            'module' => 'required|string|in:' . implode(',', ModuleRecommendationService::ALL_MODULES),
+        ]);
+
+        $tenant = auth()->user()->tenant;
+        $cleanupService = app(ModuleCleanupService::class);
+        $result = $cleanupService->restoreArchivedData($tenant->id, $request->module);
+
+        if ($result['success']) {
+            return back()->with(
+                'success',
+                "Data modul {$request->module} berhasil dipulihkan ({$result['records_restored']} records)."
+            );
+        }
+
+        return back()->with('error', 'Gagal memulihkan data: ' . implode(', ', $result['errors']));
     }
 }

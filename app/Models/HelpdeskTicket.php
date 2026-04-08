@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HelpdeskTicket extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'ticket_number', 'subject', 'description',
         'customer_id', 'contact_name', 'contact_email', 'contact_phone',

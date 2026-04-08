@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -34,6 +37,9 @@ class SalesOrder extends Model
         'currency_rate',
         'tax_rate_id',
         'tax_amount',
+        // BUG-FIN-004: Withholding tax and tax-inclusive pricing
+        'withholding_tax_amount',
+        'tax_inclusive',
         // Task 35: State machine
         'posting_status',
         'posted_by',
@@ -55,6 +61,11 @@ class SalesOrder extends Model
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
             'tax' => 'decimal:2',
+            'total' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            // BUG-FIN-004: Withholding tax casting
+            'withholding_tax_amount' => 'decimal:2',
+            'tax_inclusive' => 'boolean',
             'total' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'currency_rate' => 'float',

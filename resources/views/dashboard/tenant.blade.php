@@ -1022,7 +1022,7 @@
                 <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">${a.description}</p>
                 <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">${a.age}</p>
             </div>
-            <button onclick="acknowledgeAnomaly(${a.id}, this)" class="text-xs text-gray-400 hover:text-green-400 transition shrink-0 font-medium" title="Tandai sudah ditinjau">✓ Tinjau</button>
+            <button onclick="acknowledgeAnomaly(${a.id}, this)" class="text-xs text-gray-400 hover:text-green-400 transition shrink-0 font-medium" title="Tandai sudah ditinjau">Tinjau</button>
         </div>`;
             }
 

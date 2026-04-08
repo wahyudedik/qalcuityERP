@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\OfflineConflictResolutionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class OfflineSyncController extends Controller
 {
+    protected $conflictResolutionService;
+
+    public function __construct(OfflineConflictResolutionService $conflictResolutionService)
+    {
+        $this->conflictResolutionService = $conflictResolutionService;
+    }
     /**
      * Get sync status and statistics
      * GET /api/offline/status
@@ -51,6 +58,8 @@ class OfflineSyncController extends Controller
             'mutations.*.method' => 'required|string|in:POST,PUT,PATCH,DELETE',
             'mutations.*.body' => 'nullable|array',
             'mutations.*.module' => 'required|string',
+            'mutations.*.offline_timestamp' => 'nullable|string',
+            'mutations.*.local_id' => 'nullable|string',
         ]);
 
         try {
@@ -61,9 +70,28 @@ class OfflineSyncController extends Controller
             $results = [];
             $synced = 0;
             $failed = 0;
+            $conflicts = 0;
 
             foreach ($mutations as $index => $mutation) {
                 try {
+                    // BUG-OFF-001 FIX: Check for conflicts before applying
+                    $conflictCheck = $this->conflictResolutionService->checkAndResolveConflict($mutation);
+
+                    if ($conflictCheck['has_conflict'] && !$conflictCheck['apply']) {
+                        // BUG-OFF-001 FIX: Conflict detected, don't apply
+                        $results[] = [
+                            'index' => $index,
+                            'success' => false,
+                            'conflict' => true,
+                            'conflict_id' => $conflictCheck['conflict_id'] ?? null,
+                            'strategy' => $conflictCheck['strategy'],
+                            'error' => 'Conflict detected - manual resolution required',
+                        ];
+
+                        $conflicts++;
+                        continue;
+                    }
+
                     // Route to appropriate handler based on module
                     $result = $this->processMutation($mutation, $user, $tenantId);
 
@@ -71,6 +99,7 @@ class OfflineSyncController extends Controller
                         'index' => $index,
                         'success' => true,
                         'data' => $result,
+                        'conflict_warning' => $conflictCheck['warning'] ?? null,
                     ];
 
                     $synced++;
@@ -91,10 +120,11 @@ class OfflineSyncController extends Controller
                 }
             }
 
-            Log::info('Bulk sync completed', [
+            Log::info('BUG-OFF-001: Bulk sync completed', [
                 'total' => count($mutations),
                 'synced' => $synced,
                 'failed' => $failed,
+                'conflicts' => $conflicts,
                 'user_id' => $user->id,
                 'tenant_id' => $tenantId,
             ]);
@@ -103,6 +133,7 @@ class OfflineSyncController extends Controller
                 'success' => true,
                 'synced' => $synced,
                 'failed' => $failed,
+                'conflicts' => $conflicts,
                 'results' => $results,
             ]);
 
@@ -275,6 +306,94 @@ class OfflineSyncController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update cache',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending conflicts
+     * GET /api/offline/conflicts
+     */
+    public function getConflicts(Request $request)
+    {
+        try {
+            $conflicts = $this->conflictResolutionService->getPendingConflicts();
+            $statistics = $this->conflictResolutionService->getStatistics();
+
+            return response()->json([
+                'success' => true,
+                'conflicts' => $conflicts,
+                'statistics' => $statistics,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('OfflineSyncController::getConflicts failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get conflicts',
+            ], 500);
+        }
+    }
+
+    /**
+     * Resolve conflict
+     * POST /api/offline/conflicts/{id}/resolve
+     */
+    public function resolveConflict(Request $request, int $id)
+    {
+        $request->validate([
+            'strategy' => 'required|string|in:local_wins,server_wins,merge,skip',
+        ]);
+
+        try {
+            $result = $this->conflictResolutionService->autoResolveConflict(
+                $id,
+                $request->input('strategy')
+            );
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Conflict resolved',
+                    'result' => $result,
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'error' => $result['error'],
+            ], 400);
+
+        } catch (\Throwable $e) {
+            Log::error('OfflineSyncController::resolveConflict failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resolve conflict',
+            ], 500);
+        }
+    }
+
+    /**
+     * Auto-resolve all pending conflicts
+     * POST /api/offline/conflicts/auto-resolve
+     */
+    public function autoResolveAll(Request $request)
+    {
+        try {
+            $result = $this->conflictResolutionService->bulkAutoResolve();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bulk resolution completed',
+                'result' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('OfflineSyncController::autoResolveAll failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to auto-resolve conflicts',
             ], 500);
         }
     }

@@ -37,7 +37,12 @@ class SupplierScorecardController extends Controller
      */
     public function detail($supplierId)
     {
-        $report = $this->scorecardService->getSupplierPerformanceReport($supplierId, 12);
+        // Ensure supplierId is an integer
+        if (!is_numeric($supplierId)) {
+            abort(404, 'Supplier tidak ditemukan');
+        }
+
+        $report = $this->scorecardService->getSupplierPerformanceReport((int) $supplierId, 12);
 
         return view('suppliers.scorecard-detail', compact('report'));
     }

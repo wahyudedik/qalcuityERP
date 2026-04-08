@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
                 <a href="{{ route('printing.dashboard') }}"
-                    class="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white transition">
-                    ← Back to Dashboard
+                    class="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white transition text-sm">
+                    ← Back
                 </a>
                 <span class="text-gray-300 dark:text-slate-600">|</span>
-                <span>{{ $job->job_number }}</span>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ $job->job_number }}</h1>
             </div>
 
             <div class="flex gap-2">
@@ -16,7 +16,7 @@
                         @csrf
                         <input type="hidden" name="status" value="prepress">
                         <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
                             Start Pre-Press
                         </button>
                     </form>
@@ -24,7 +24,7 @@
 
                 @if ($job->status === 'finishing')
                     <a href="{{ route('printing.finishing', $job) }}"
-                        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm font-medium">
+                        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm font-medium whitespace-nowrap">
                         Manage Finishing
                     </a>
                 @endif
@@ -91,7 +91,7 @@
         <div class="lg:col-span-2 space-y-6">
             {{-- Basic Information --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📋 Job Information</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Job Information</h2>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -145,17 +145,17 @@
 
             {{-- Progress Tracker --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Production Progress</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Production Progress</h2>
 
                 @php
                     $stages = [
-                        ['key' => 'queued', 'label' => 'Queued', 'icon' => '📥'],
-                        ['key' => 'prepress', 'label' => 'Pre-Press', 'icon' => '🎨'],
-                        ['key' => 'platemaking', 'label' => 'Plate Making', 'icon' => '🔧'],
-                        ['key' => 'on_press', 'label' => 'On Press', 'icon' => '🖨️'],
-                        ['key' => 'finishing', 'label' => 'Finishing', 'icon' => '✂️'],
-                        ['key' => 'quality_check', 'label' => 'Quality Check', 'icon' => '✓'],
-                        ['key' => 'completed', 'label' => 'Completed', 'icon' => '✅'],
+                        ['key' => 'queued', 'label' => 'Queued'],
+                        ['key' => 'prepress', 'label' => 'Pre-Press'],
+                        ['key' => 'platemaking', 'label' => 'Plate Making'],
+                        ['key' => 'on_press', 'label' => 'On Press'],
+                        ['key' => 'finishing', 'label' => 'Finishing'],
+                        ['key' => 'quality_check', 'label' => 'Quality Check'],
+                        ['key' => 'completed', 'label' => 'Completed'],
                     ];
 
                     $currentStageIndex = array_search($job->status, array_column($stages, 'key'));
@@ -178,10 +178,10 @@
                             @endphp
                             <div class="flex flex-col items-center">
                                 <div
-                                    class="w-10 h-10 rounded-full flex items-center justify-center text-lg
+                                    class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
                                     {{ $isActive ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-400' }}
                                     {{ $isCurrent ? 'ring-4 ring-indigo-200 dark:ring-indigo-900' : '' }}">
-                                    {{ $stage['icon'] }}
+                                    {{ $index + 1 }}
                                 </div>
                                 <p
                                     class="mt-2 text-xs font-medium {{ $isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-slate-400' }}">
@@ -196,7 +196,7 @@
             {{-- Assigned Operator --}}
             @if ($job->assignedOperator)
                 <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">👤 Assigned Operator</h3>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Assigned Operator</h2>
                     <div class="flex items-center gap-3">
                         <div
                             class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold text-lg">
@@ -213,7 +213,7 @@
 
             {{-- Timeline --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">⏱️ Timeline</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Timeline</h2>
 
                 <div class="space-y-3">
                     <div class="flex items-start gap-3">
@@ -254,7 +254,7 @@
         <div class="space-y-6">
             {{-- Pricing Summary --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">💰 Pricing</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing</h2>
 
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
@@ -287,7 +287,7 @@
 
             {{-- Quick Actions --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">⚡ Quick Actions</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
 
                 <div class="space-y-2">
                     @if ($job->status === 'prepress')
@@ -295,7 +295,7 @@
                             @csrf
                             <button type="submit"
                                 class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium">
-                                ✓ Approve Proof
+                                Approve Proof
                             </button>
                         </form>
                     @endif
@@ -303,7 +303,7 @@
                     @if ($job->status === 'platemaking')
                         <a href="#"
                             class="block w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium text-center">
-                            🖨️ Start Press Run
+                            Start Press Run
                         </a>
                     @endif
 
@@ -322,7 +322,7 @@
 
                     <a href="#"
                         class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-sm font-medium text-center">
-                        📄 Print Job Ticket
+                        Print Job Ticket
                     </a>
                 </div>
             </div>
@@ -330,7 +330,7 @@
             {{-- Notes --}}
             <div
                 class="bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-xl p-4">
-                <h4 class="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-2">📝 Notes</h4>
+                <h4 class="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Notes</h4>
                 <textarea placeholder="Add notes about this job..."
                     class="w-full px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     rows="3"></textarea>

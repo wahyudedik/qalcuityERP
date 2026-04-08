@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RabItem extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'project_id', 'tenant_id', 'parent_id', 'code', 'name', 'type',
         'category', 'volume', 'unit', 'unit_price', 'coefficient',

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class CrmLead extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'assigned_to', 'name', 'company', 'phone', 'email',
         'source', 'stage', 'estimated_value', 'product_interest',

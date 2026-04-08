@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContractSlaLog extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'contract_id', 'tenant_id', 'incident_type', 'description',
         'reported_at', 'responded_at', 'resolved_at', 'sla_met',

@@ -123,6 +123,25 @@ class RevenueManagementController extends Controller
         $validated['tenant_id'] = $this->getTenantId();
         $validated['is_active'] = true;
 
+        // BUG-HOTEL-004 FIX: Check for overlapping rate plans
+        if (isset($validated['room_type_id'])) {
+            $overlapping = RatePlan::findOverlapping(
+                tenantId: $validated['tenant_id'],
+                roomTypeId: $validated['room_type_id'],
+                validFrom: $validated['valid_from'] ?? null,
+                validTo: $validated['valid_to'] ?? null
+            );
+
+            if ($overlapping->isNotEmpty()) {
+                $overlapNames = $overlapping->pluck('name')->join(', ');
+                return back()
+                    ->withErrors([
+                        'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama."
+                    ])
+                    ->withInput();
+            }
+        }
+
         RatePlan::create($validated);
 
         return redirect()->route('revenue.rate-plans')
@@ -145,6 +164,27 @@ class RevenueManagementController extends Controller
             'valid_from' => 'nullable|date',
             'valid_to' => 'nullable|date|after_or_equal:valid_from',
         ]);
+
+        // BUG-HOTEL-004 FIX: Check for overlapping rate plans (exclude current)
+        $validFrom = $validated['valid_from'] ?? $ratePlan->valid_from;
+        $validTo = $validated['valid_to'] ?? $ratePlan->valid_to;
+
+        $overlapping = RatePlan::findOverlapping(
+            tenantId: $ratePlan->tenant_id,
+            roomTypeId: $ratePlan->room_type_id,
+            validFrom: $validFrom,
+            validTo: $validTo,
+            excludeId: $ratePlan->id // Exclude current plan
+        );
+
+        if ($overlapping->isNotEmpty()) {
+            $overlapNames = $overlapping->pluck('name')->join(', ');
+            return back()
+                ->withErrors([
+                    'valid_from' => "Rate plan overlap dengan: {$overlapNames}. Tidak boleh ada date range yang overlap untuk room type yang sama."
+                ])
+                ->withInput();
+        }
 
         $ratePlan->update($validated);
 

@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -48,16 +51,16 @@ class PurchaseOrder extends Model
     protected function casts(): array
     {
         return [
-            'date'          => 'date',
+            'date' => 'date',
             'expected_date' => 'date',
-            'due_date'      => 'date',
-            'subtotal'      => 'decimal:2',
-            'discount'      => 'decimal:2',
-            'tax'           => 'decimal:2',
-            'total'         => 'decimal:2',
-            'tax_amount'    => 'decimal:2',
+            'due_date' => 'date',
+            'subtotal' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'tax' => 'decimal:2',
+            'total' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
             'currency_rate' => 'float',
-            'posted_at'     => 'datetime',
+            'posted_at' => 'datetime',
         ];
     }
 
@@ -73,20 +76,20 @@ class PurchaseOrder extends Model
     public function postingStatusLabel(): string
     {
         return match ($this->posting_status ?? 'draft') {
-            'draft'     => 'Draft',
-            'posted'    => 'Diposting',
+            'draft' => 'Draft',
+            'posted' => 'Diposting',
             'cancelled' => 'Dibatalkan',
-            default     => ucfirst($this->posting_status ?? 'draft'),
+            default => ucfirst($this->posting_status ?? 'draft'),
         };
     }
 
     public function postingStatusColor(): string
     {
         return match ($this->posting_status ?? 'draft') {
-            'draft'     => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
-            'posted'    => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+            'draft' => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
+            'posted' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
             'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-            default     => 'bg-gray-100 text-gray-500',
+            default => 'bg-gray-100 text-gray-500',
         };
     }
 

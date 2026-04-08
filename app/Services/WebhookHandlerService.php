@@ -24,6 +24,24 @@ class WebhookHandlerService
     public function handleMidtrans(array $payload, ?string $signature): array
     {
         try {
+            // BUG-API-001 FIX: Check idempotency BEFORE processing
+            $idempotency = app(\App\Services\WebhookIdempotencyService::class)
+                ->checkIdempotency('midtrans', $payload);
+
+            if ($idempotency['is_duplicate']) {
+                Log::info('BUG-API-001: Duplicate Midtrans webhook ignored', [
+                    'order_id' => $payload['order_id'] ?? 'unknown',
+                    'transaction_id' => $payload['transaction_id'] ?? 'unknown',
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => 'Webhook already processed (duplicate ignored)',
+                    'duplicate' => true,
+                    'previous_callback_id' => $idempotency['previous_callback']?->id,
+                ];
+            }
+
             // Log incoming webhook
             $callback = PaymentCallback::create([
                 'tenant_id' => $this->tenantId,
@@ -68,7 +86,7 @@ class WebhookHandlerService
             }
 
             // Process based on transaction status
-            DB::transaction(function () use ($paymentTransaction, $transactionStatus, $fraudStatus, $grossAmount, $transactionId, $callback) {
+            DB::transaction(function () use ($paymentTransaction, $transactionStatus, $fraudStatus, $grossAmount, $transactionId, $callback, $payload, $orderId) {
                 $newStatus = $this->mapMidtransStatus($transactionStatus, $fraudStatus);
 
                 // Update payment transaction
@@ -105,6 +123,13 @@ class WebhookHandlerService
                     'processed' => true,
                     'processed_at' => now(),
                 ]);
+
+                // BUG-API-001 FIX: Mark as processed in idempotency service
+                $idempotencyKey = app(\App\Services\WebhookIdempotencyService::class)
+                    ->checkIdempotency('midtrans', $payload)['idempotency_key'];
+
+                app(\App\Services\WebhookIdempotencyService::class)
+                    ->markAsProcessed($idempotencyKey, $callback);
 
                 Log::info("Midtrans webhook processed", [
                     'order_id' => $orderId,
@@ -313,18 +338,41 @@ class WebhookHandlerService
     private function deductStockForOrder(SalesOrder $order): void
     {
         foreach ($order->items as $item) {
-            $stock = \App\Models\ProductStock::where('product_id', $item->product_id)
+            // BUG-INV-001 FIX: Lock ALL stock rows and use atomic conditional update
+            $stocks = \App\Models\ProductStock::where('product_id', $item->product_id)
+                ->where('quantity', '>', 0)
+                ->orderBy('quantity', 'desc')
                 ->lockForUpdate()
-                ->first();
+                ->get();
 
-            if ($stock) {
-                if ($stock->quantity < $item->quantity) {
-                    Log::warning("Insufficient stock for product {$item->product_id}");
-                    continue;
-                }
+            if ($stocks->isEmpty()) {
+                Log::warning("Insufficient stock for product {$item->product_id}");
+                continue;
+            }
 
+            $totalAvailable = $stocks->sum('quantity');
+            if ($totalAvailable < $item->quantity) {
+                Log::warning("Insufficient stock for product {$item->product_id}: need {$item->quantity}, have {$totalAvailable}");
+                continue;
+            }
+
+            // Deduct stock across warehouses atomically
+            $remainingToDeduct = $item->quantity;
+            foreach ($stocks as $stock) {
+                if ($remainingToDeduct <= 0)
+                    break;
+
+                $deductFromThis = min($remainingToDeduct, $stock->quantity);
                 $before = $stock->quantity;
-                $stock->decrement('quantity', $item->quantity);
+
+                // BUG-INV-001 FIX: Atomic update with condition
+                $updated = \App\Models\ProductStock::where('id', $stock->id)
+                    ->where('quantity', '>=', $deductFromThis)
+                    ->decrement('quantity', $deductFromThis);
+
+                if (!$updated) {
+                    throw new \Exception("Failed to deduct stock for product {$item->product_id}");
+                }
 
                 \App\Models\StockMovement::create([
                     'tenant_id' => $order->tenant_id,
@@ -332,12 +380,14 @@ class WebhookHandlerService
                     'warehouse_id' => $stock->warehouse_id,
                     'user_id' => $order->user_id,
                     'type' => 'out',
-                    'quantity' => $item->quantity,
+                    'quantity' => $deductFromThis,
                     'quantity_before' => $before,
-                    'quantity_after' => $before - $item->quantity,
+                    'quantity_after' => $before - $deductFromThis,
                     'reference' => $order->number,
                     'notes' => 'Stock deducted via webhook payment completion',
                 ]);
+
+                $remainingToDeduct -= $deductFromThis;
             }
         }
 

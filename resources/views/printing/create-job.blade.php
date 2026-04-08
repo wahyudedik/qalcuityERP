@@ -1,12 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('printing.dashboard') }}"
-                class="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white transition">
-                ← Back to Dashboard
-            </a>
-            <span class="text-gray-300 dark:text-slate-600">|</span>
-            <span>Create New Print Job</span>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('printing.dashboard') }}"
+                    class="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white transition text-sm">
+                    ← Back
+                </a>
+                <span class="text-gray-300 dark:text-slate-600">|</span>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Create New Print Job</h1>
+            </div>
         </div>
     </x-slot>
 
@@ -16,7 +18,7 @@
 
             {{-- Basic Information --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📋 Basic Information</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -96,7 +98,7 @@
 
             {{-- Specifications --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📐 Specifications</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Specifications</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -203,7 +205,7 @@
 
             {{-- Pricing (Optional) --}}
             <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">💰 Pricing (Optional)</h3>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing (Optional)</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

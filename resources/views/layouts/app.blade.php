@@ -196,16 +196,17 @@
             display: flex;
             align-items: center;
             gap: 9px;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 9px;
-            font-size: 12.5px;
+            font-size: 13px;
             font-weight: 500;
             color: #64748b;
             transition: all 0.15s;
             cursor: pointer;
             text-decoration: none;
             position: relative;
-            margin: 1px 0;
+            margin: 2px 0;
+            line-height: 1.4;
         }
 
         .panel-link:hover {
@@ -227,20 +228,27 @@
             top: 50%;
             transform: translateY(-50%);
             width: 2px;
-            height: 14px;
+            height: 16px;
             border-radius: 0 2px 2px 0;
             background: var(--group-color, #60a5fa);
         }
 
         /* Panel section label */
         .panel-section {
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #334155;
-            padding: 12px 12px 3px;
-            margin-top: 4px;
+            color: #475569;
+            padding: 14px 12px 6px;
+            margin-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .panel-section:first-child {
+            border-top: none;
+            padding-top: 4px;
+            margin-top: 0;
         }
 
         /* Badge */
@@ -352,7 +360,8 @@
         }
 
         html:not(.dark) .panel-section {
-            color: #94a3b8;
+            color: #64748b;
+            border-top-color: #e2e8f0;
         }
 
         html:not(.dark) #panel-search {
@@ -391,6 +400,8 @@
                 // Each route prefix should appear in exactly ONE group to avoid conflicts.
                 $activeGroup = match (true) {
                     request()->routeIs('dashboard') => 'home',
+                    request()->routeIs('reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*')
+                        => 'home',
                     request()->routeIs('chat*') => 'ai',
                     request()->routeIs(
                         'quotations*',
@@ -422,6 +433,11 @@
                     request()->routeIs(
                         'production*',
                         'manufacturing*',
+                        'printing*',
+                        'cosmetic*',
+                        'tour-travel*',
+                        'livestock-enhancement*',
+                        'fisheries*',
                         'fleet*',
                         'contracts*',
                         'shipping*',
@@ -450,8 +466,6 @@
                         'writeoffs*',
                     )
                         => 'finance',
-                    request()->routeIs('reports*', 'kpi*', 'anomalies*', 'zero-input*', 'simulations*', 'forecast*')
-                        => 'analytics',
                     request()->routeIs('hotel*') => 'hotel',
                     request()->routeIs(
                         'company-profile*',
@@ -646,13 +660,14 @@
                     <span class="text-xs text-slate-600 hidden sm:block">/</span>
                     @if (isset($header))
                         @if (is_string($header) && !str_contains($header, '<'))
-                            <h1 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">
                                 {{ $header }}</h1>
                         @else
                             {!! $header !!}
                         @endif
                     @elseif(View::hasSection('header'))
-                        <h1 class="text-sm font-semibold text-gray-900 dark:text-white truncate">@yield('header')</h1>
+                        <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">@yield('header')
+                        </h1>
                     @endif
                 </div>
 
@@ -910,11 +925,67 @@
             @else
                 home: {
                     title: 'Dashboard',
-                    items: [{
-                        label: 'Dashboard',
-                        href: '{{ route('dashboard') }}',
-                        active: {{ request()->routeIs('dashboard') ? 'true' : 'false' }}
-                    }, ]
+                    items: [
+                        @if ($canView('dashboard'))
+                            {
+                                section: 'Overview'
+                            }, {
+                                label: 'Dashboard',
+                                href: '{{ route('dashboard') }}',
+                                active: {{ request()->routeIs('dashboard') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if (($navTenant?->isModuleEnabled('reports') ?? true) && $canView('reports'))
+                            {
+                                section: 'Reports & Analytics'
+                            }, {
+                                label: 'Laporan',
+                                href: '{{ route('reports.index') }}',
+                                active: {{ request()->routeIs('reports.index', 'reports.sales*', 'reports.finance*', 'reports.inventory*', 'reports.hrm*', 'reports.receivables*', 'reports.profit-loss*', 'reports.income-statement*', 'reports.payroll*', 'reports.aging*', 'reports.balance-sheet*', 'reports.cash-flow*', 'reports.budget*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('kpi'))
+                            {
+                                label: 'KPI Dashboard',
+                                href: '{{ route('kpi.index') }}',
+                                active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('reports'))
+                            {
+                                label: 'AI Forecasting',
+                                href: '{{ route('forecast.index') }}',
+                                active: {{ request()->routeIs('forecast*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Proyeksi Arus Kas',
+                                href: '{{ route('reports.cash-flow-projection') }}',
+                                active: {{ request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('anomalies'))
+                            {
+                                section: 'AI & Intelligence'
+                            }, {
+                                label: 'Deteksi Anomali',
+                                href: '{{ route('anomalies.index') }}',
+                                active: {{ request()->routeIs('anomalies*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('zero_input'))
+                            {
+                                label: 'Input Cerdas (AI)',
+                                href: '{{ route('zero-input.index') }}',
+                                active: {{ request()->routeIs('zero-input*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('simulations'))
+                            {
+                                label: 'Simulasi Keuangan',
+                                href: '{{ route('simulations.index') }}',
+                                active: {{ request()->routeIs('simulations*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                    ]
                 },
                 ai: {
                     title: 'AI Chat',
@@ -941,84 +1012,21 @@
                                 label: 'Data Supplier',
                                 href: '{{ route('suppliers.index') }}',
                                 active: {{ request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
-                            }, {
+                            },
+                        @endif
+                        @if ($canView('suppliers'))
+                            {
                                 label: 'Supplier Scorecard',
                                 href: '{{ route('suppliers.scorecards.index') }}',
                                 active: {{ request()->routeIs('suppliers.scorecards*') ? 'true' : 'false' }}
-                            }, {
+                            },
+                        @endif
+                        @if ($canView('suppliers'))
+                            {
                                 label: 'Strategic Sourcing',
                                 href: '{{ route('suppliers.sourcing') }}',
                                 active: {{ request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Printing Jobs',
-                                href: '{{ route('printing.dashboard') }}',
-                                active: {{ request()->routeIs('printing*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Tour & Travel',
-                                href: '{{ route('tour-travel.packages.index') }}',
-                                active: {{ request()->routeIs('tour-travel*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Livestock Enhancement',
-                                href: '{{ route('livestock-enhancement.dairy.milk-records') }}',
-                                active: {{ request()->routeIs('livestock-enhancement*') ? 'true' : 'false' }}
                             },
-                            @if (auth()->user()->tenant_id)
-                                {
-                                    section: 'Manufacturing',
-                                    icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
-                                    label: 'Cosmetic Formulas',
-                                    href: '{{ route('cosmetic.formulas.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.formulas*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Manufacturing',
-                                    icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-                                    label: 'Batch Production',
-                                    href: '{{ route('cosmetic.batches.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.batches*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Quality Control',
-                                    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-                                    label: 'QC Laboratory',
-                                    href: '{{ route('cosmetic.qc.tests') }}',
-                                    active: {{ request()->routeIs('cosmetic.qc*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Regulatory',
-                                    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-                                    label: 'BPOM Registrations',
-                                    href: '{{ route('cosmetic.registrations.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.registrations*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Product Variants',
-                                    icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
-                                    label: 'Variants Manager',
-                                    href: '{{ route('cosmetic.variants.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.variants*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Packaging',
-                                    icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-                                    label: 'Packaging & Labels',
-                                    href: '{{ route('cosmetic.packaging.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.packaging*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Expiry Management',
-                                    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-                                    label: 'Expiry & Recalls',
-                                    href: '{{ route('cosmetic.expiry.dashboard') }}',
-                                    active: {{ request()->routeIs('cosmetic.expiry*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Distribution',
-                                    icon: 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0',
-                                    label: 'Distribution Channels',
-                                    href: '{{ route('cosmetic.distribution.index') }}',
-                                    active: {{ request()->routeIs('cosmetic.distribution*') ? 'true' : 'false' }}
-                                }, {
-                                    section: 'Analytics & Reports',
-                                    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-                                    label: 'Cosmetic Analytics',
-                                    href: '{{ route('cosmetic.analytics.dashboard') }}',
-                                    active: {{ request()->routeIs('cosmetic.analytics*') ? 'true' : 'false' }}
-                                },
-                            @endif
                         @endif {
                             section: 'Produk & Gudang'
                         },
@@ -1034,6 +1042,20 @@
                                 label: 'Data Gudang',
                                 href: '{{ route('warehouses.index') }}',
                                 active: {{ request()->routeIs('warehouses*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('price_lists'))
+                            {
+                                label: 'Daftar Harga',
+                                href: '{{ route('price-lists.index') }}',
+                                active: {{ request()->routeIs('price-lists*') ? 'true' : 'false' }}
+                            },
+                        @endif
+                        @if ($canView('categories'))
+                            {
+                                label: 'Kategori Produk',
+                                href: '{{ route('categories.index') }}',
+                                active: {{ request()->routeIs('categories*') ? 'true' : 'false' }}
                             },
                         @endif
                     ]
@@ -1085,13 +1107,6 @@
                                         label: 'Retur Penjualan',
                                         href: '{{ route('sales-returns.index') }}',
                                         active: {{ request()->routeIs('sales-returns*') ? 'true' : 'false' }}
-                                    },
-                                @endif
-                                @if ($canView('price_lists'))
-                                    {
-                                        label: 'Daftar Harga',
-                                        href: '{{ route('price-lists.index') }}',
-                                        active: {{ request()->routeIs('price-lists*') ? 'true' : 'false' }}
                                     },
                                 @endif
                             @endif
@@ -1252,6 +1267,8 @@
                             @endif
                             @if (($navTenant?->isModuleEnabled('production') ?? true) && $canView('production'))
                                 {
+                                    section: 'Manufacturing'
+                                }, {
                                     label: 'Produksi / WO',
                                     href: '{{ route('production.index') }}',
                                     active: {{ request()->routeIs('production*') ? 'true' : 'false' }}
@@ -1274,6 +1291,94 @@
                                     label: 'MRP Planning',
                                     href: '{{ route('manufacturing.mrp') }}',
                                     active: {{ request()->routeIs('manufacturing.mrp*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if ($canView('printing'))
+                                {
+                                    label: 'Printing Jobs',
+                                    href: '{{ route('printing.dashboard') }}',
+                                    active: {{ request()->routeIs('printing*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if (auth()->user()?->tenant_id && $canView('cosmetic'))
+                                {
+                                    label: 'Cosmetic Formulas',
+                                    href: '{{ route('cosmetic.formulas.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.formulas*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Batch Production',
+                                    href: '{{ route('cosmetic.batches.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.batches*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'QC Laboratory',
+                                    href: '{{ route('cosmetic.qc.tests') }}',
+                                    active: {{ request()->routeIs('cosmetic.qc*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'BPOM Registrations',
+                                    href: '{{ route('cosmetic.registrations.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.registrations*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Variants Manager',
+                                    href: '{{ route('cosmetic.variants.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.variants*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Packaging & Labels',
+                                    href: '{{ route('cosmetic.packaging.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.packaging*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Expiry & Recalls',
+                                    href: '{{ route('cosmetic.expiry.dashboard') }}',
+                                    active: {{ request()->routeIs('cosmetic.expiry*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Distribution Channels',
+                                    href: '{{ route('cosmetic.distribution.index') }}',
+                                    active: {{ request()->routeIs('cosmetic.distribution*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Cosmetic Analytics',
+                                    href: '{{ route('cosmetic.analytics.dashboard') }}',
+                                    active: {{ request()->routeIs('cosmetic.analytics*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if (($navTenant?->isModuleEnabled('tour_travel') ?? true) && $canView('tour_travel'))
+                                {
+                                    section: 'Tour & Travel'
+                                }, {
+                                    label: 'Tour Packages',
+                                    href: '{{ route('tour-travel.packages.index') }}',
+                                    active: {{ request()->routeIs('tour-travel.packages*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Bookings',
+                                    href: '{{ route('tour-travel.bookings.index') }}',
+                                    active: {{ request()->routeIs('tour-travel.bookings*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Tour Analytics',
+                                    href: '{{ route('tour-travel.analytics') }}',
+                                    active: {{ request()->routeIs('tour-travel.analytics*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if ($navTenant?->isModuleEnabled('livestock_enhancement') ?? true)
+                                {
+                                    section: 'Livestock Enhancement'
+                                }, {
+                                    label: 'Dairy Management',
+                                    href: '{{ route('livestock-enhancement.dairy.milk-records') }}',
+                                    active: {{ request()->routeIs('livestock-enhancement.dairy*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Poultry Management',
+                                    href: '{{ route('livestock-enhancement.poultry.flocks') }}',
+                                    active: {{ request()->routeIs('livestock-enhancement.poultry*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Breeding',
+                                    href: '{{ route('livestock-enhancement.breeding.records') }}',
+                                    active: {{ request()->routeIs('livestock-enhancement.breeding*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Health & Vaccination',
+                                    href: '{{ route('livestock-enhancement.health.treatments') }}',
+                                    active: {{ request()->routeIs('livestock-enhancement.health*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Waste Management',
+                                    href: '{{ route('livestock-enhancement.waste.logs') }}',
+                                    active: {{ request()->routeIs('livestock-enhancement.waste*') ? 'true' : 'false' }}
                                 },
                             @endif
                             @if (($navTenant?->isModuleEnabled('fleet') ?? true) && $canView('fleet'))
@@ -1331,31 +1436,33 @@
                             @endif
                             @if ($navTenant?->isModuleEnabled('fisheries') ?? true)
                                 {
-                                    label: '🐟 Dashboard Perikanan',
+                                    section: 'Perikanan (Fisheries)'
+                                }, {
+                                    label: 'Dashboard Perikanan',
                                     href: '{{ route('fisheries.index') }}',
                                     active: {{ request()->routeIs('fisheries.index') ? 'true' : 'false' }}
                                 }, {
-                                    label: '❄️ Cold Chain',
+                                    label: 'Cold Chain',
                                     href: '{{ route('fisheries.cold-chain.index') }}',
                                     active: {{ request()->routeIs('fisheries.cold-chain*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '⚓ Fishing Operations',
+                                    label: 'Fishing Operations',
                                     href: '{{ route('fisheries.operations.index') }}',
                                     active: {{ request()->routeIs('fisheries.operations*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '🐠 Aquaculture',
+                                    label: 'Aquaculture',
                                     href: '{{ route('fisheries.aquaculture.index') }}',
                                     active: {{ request()->routeIs('fisheries.aquaculture*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '📋 Species & Grading',
+                                    label: 'Species & Grading',
                                     href: '{{ route('fisheries.species.index') }}',
                                     active: {{ request()->routeIs('fisheries.species*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '📦 Export Documentation',
+                                    label: 'Export Documentation',
                                     href: '{{ route('fisheries.export.index') }}',
                                     active: {{ request()->routeIs('fisheries.export*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '📊 Analytics',
+                                    label: 'Analytics',
                                     href: '{{ route('fisheries.analytics') }}',
                                     active: {{ request()->routeIs('fisheries.analytics') ? 'true' : 'false' }}
                                 },
@@ -1634,62 +1741,6 @@
                             @endif
                         ]
                     },
-                    analytics: {
-                        title: 'Analitik',
-                        items: [
-                            @if (($navTenant?->isModuleEnabled('reports') ?? true) && $canView('reports'))
-                                {
-                                    label: 'Laporan',
-                                    href: '{{ route('reports.index') }}',
-                                    active: {{ request()->routeIs('reports.index', 'reports.sales*', 'reports.finance*', 'reports.inventory*', 'reports.hrm*', 'reports.receivables*', 'reports.profit-loss*', 'reports.income-statement*', 'reports.payroll*', 'reports.aging*', 'reports.balance-sheet*', 'reports.cash-flow*', 'reports.budget*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                            @if ($canView('kpi'))
-                                {
-                                    label: 'KPI Dashboard',
-                                    href: '{{ route('kpi.index') }}',
-                                    active: {{ request()->routeIs('kpi*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                            @if ($canView('reports'))
-                                {
-                                    label: 'AI Forecasting',
-                                    href: '{{ route('forecast.index') }}',
-                                    active: {{ request()->routeIs('forecast*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                            @if ($canView('reports'))
-                                {
-                                    label: 'Proyeksi Arus Kas',
-                                    href: '{{ route('reports.cash-flow-projection') }}',
-                                    active: {{ request()->routeIs('reports.cash-flow-projection*') ? 'true' : 'false' }}
-                                },
-                            @endif {
-                                section: 'AI & Deteksi'
-                            },
-                            @if ($canView('anomalies'))
-                                {
-                                    label: 'Deteksi Anomali',
-                                    href: '{{ route('anomalies.index') }}',
-                                    active: {{ request()->routeIs('anomalies*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                            @if ($canView('zero_input'))
-                                {
-                                    label: 'Input Cerdas (AI)',
-                                    href: '{{ route('zero-input.index') }}',
-                                    active: {{ request()->routeIs('zero-input*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                            @if ($canView('simulations'))
-                                {
-                                    label: 'Simulasi Keuangan',
-                                    href: '{{ route('simulations.index') }}',
-                                    active: {{ request()->routeIs('simulations*') ? 'true' : 'false' }}
-                                },
-                            @endif
-                        ]
-                    },
                     @if (($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang())
                         hotel: {
                             title: 'Hotel PMS',
@@ -1910,6 +1961,7 @@
                 a.className = 'panel-link' + (item.active ? ' active' : '');
                 if (item.danger) a.style.color = '#f87171';
                 let inner = '';
+                // Hanya tampilkan meta (role label) jika ada, jangan tampilkan icon
                 if (item.meta) inner +=
                     `<span style="display:block;font-size:10px;color:#64748b;margin-bottom:1px">${item.meta}</span>`;
                 inner += `<span>${item.label}</span>`;

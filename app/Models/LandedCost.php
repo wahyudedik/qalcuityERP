@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LandedCost extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id', 'number', 'purchase_order_id', 'goods_receipt_id',
         'date', 'description', 'allocation_method', 'total_additional_cost',

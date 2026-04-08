@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class CustomFieldValue extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['tenant_id', 'custom_field_id', 'model_type', 'model_id', 'value'];
 
     public function customField(): BelongsTo { return $this->belongsTo(CustomField::class); }

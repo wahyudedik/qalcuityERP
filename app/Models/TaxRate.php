@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class TaxRate extends Model
 {
+    use BelongsToTenant;
     protected $fillable = ['tenant_id', 'name', 'code', 'type', 'tax_type', 'rate', 'is_active', 'is_withholding', 'account_code'];
     protected $casts = ['rate' => 'float', 'is_active' => 'boolean', 'is_withholding' => 'boolean'];
 

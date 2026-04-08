@@ -1,5 +1,9 @@
 <x-app-layout>
-    <x-slot name="header">📊 Fisheries Analytics & Reports</x-slot>
+    <x-slot name="header">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Fisheries Analytics & Reports</h1>
+        </div>
+    </x-slot>
 
     {{-- Period Selector --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 mb-6">
@@ -139,7 +143,7 @@
 
     {{-- Cold Chain Performance --}}
     <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">❄️ Cold Chain Performance</h3>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Cold Chain Performance</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -171,7 +175,7 @@
     {{-- Daily Catch Trend (Simple Bar Chart Visualization) --}}
     @if (count($analytics['daily_catch_trend']) > 0)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">📈 Daily Catch Trend (30 Days)</h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Daily Catch Trend (30 Days)</h2>
 
             <div class="h-64 flex items-end gap-1 overflow-x-auto">
                 @php
@@ -201,8 +205,8 @@
     {{-- Weekly Revenue Trend --}}
     @if (count($analytics['weekly_revenue']) > 0)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">💰 Weekly Revenue Trend (12 Weeks)
-            </h3>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Weekly Revenue Trend (12 Weeks)
+            </h2>
 
             <div class="h-64 flex items-end gap-2 overflow-x-auto">
                 @php
@@ -231,7 +235,7 @@
     {{-- Efficiency Metrics Summary --}}
     <div
         class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 p-6">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">⚡ Efficiency Metrics</h3>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Efficiency Metrics</h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="text-center">

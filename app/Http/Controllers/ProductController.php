@@ -22,7 +22,7 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $tid   = $this->tenantId();
+        $tid = $this->tenantId();
         $query = Product::where('tenant_id', $tid)->with('productStocks');
 
         if ($request->search) {
@@ -40,35 +40,139 @@ class ProductController extends Controller
             $query->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
         }
 
-        $products   = $query->orderBy('name')->paginate(20)->withQueryString();
+        $products = $query->orderBy('name')->paginate(20)->withQueryString();
         $categories = Product::where('tenant_id', $tid)->whereNotNull('category')->distinct()->pluck('category');
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
-        $lowCount   = Product::where('tenant_id', $tid)
+        $lowCount = Product::where('tenant_id', $tid)
             ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
             ->count();
 
         return view('products.index', compact('products', 'categories', 'warehouses', 'lowCount'));
     }
 
+    /**
+     * Bulk operations for products
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:delete,activate,deactivate,update_price',
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'exists:products,id',
+            'price' => 'nullable|numeric|min:0',
+            'price_type' => 'nullable|in:fixed,percentage,increase_percentage,decrease_percentage',
+        ]);
+
+        $tenantId = $this->tenantId();
+        $productIds = $request->product_ids;
+        $action = $request->action;
+        $affected = 0;
+
+        // Verify all products belong to tenant
+        $products = Product::where('tenant_id', $tenantId)
+            ->whereIn('id', $productIds)
+            ->get();
+
+        if ($products->count() !== count($productIds)) {
+            return back()->withErrors(['error' => 'Beberapa produk tidak valid atau bukan milik tenant Anda.']);
+        }
+
+        try {
+            switch ($action) {
+                case 'delete':
+                    // Soft delete products
+                    $affected = Product::where('tenant_id', $tenantId)
+                        ->whereIn('id', $productIds)
+                        ->delete();
+                    break;
+
+                case 'activate':
+                    $affected = Product::where('tenant_id', $tenantId)
+                        ->whereIn('id', $productIds)
+                        ->update(['is_active' => true]);
+                    break;
+
+                case 'deactivate':
+                    $affected = Product::where('tenant_id', $tenantId)
+                        ->whereIn('id', $productIds)
+                        ->update(['is_active' => false]);
+                    break;
+
+                case 'update_price':
+                    $price = $request->price;
+                    $priceType = $request->price_type ?? 'fixed';
+
+                    foreach ($products as $product) {
+                        $newPrice = $this->calculateNewPrice($product->selling_price, $price, $priceType);
+                        $product->update(['selling_price' => $newPrice]);
+                        $affected++;
+                    }
+                    break;
+            }
+
+            // Log activity
+            ActivityLog::create([
+                'tenant_id' => $tenantId,
+                'user_id' => auth()->id(),
+                'action' => "bulk_{$action}",
+                'description' => "Bulk {$action} performed on {$affected} products",
+                'metadata' => [
+                    'product_ids' => $productIds,
+                    'count' => $affected,
+                ],
+            ]);
+
+            $actionLabels = [
+                'delete' => 'dihapus',
+                'activate' => 'diaktifkan',
+                'deactivate' => 'dinonaktifkan',
+                'update_price' => 'diperbarui harganya',
+            ];
+
+            return back()->with('success', "Berhasil: {$affected} produk {$actionLabels[$action]}");
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal melakukan bulk action: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Calculate new price based on type
+     */
+    protected function calculateNewPrice(float $currentPrice, float $value, string $type): float
+    {
+        switch ($type) {
+            case 'fixed':
+                return $value;
+            case 'percentage':
+                return $currentPrice * ($value / 100);
+            case 'increase_percentage':
+                return $currentPrice * (1 + ($value / 100));
+            case 'decrease_percentage':
+                return $currentPrice * (1 - ($value / 100));
+            default:
+                return $currentPrice;
+        }
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'              => 'required|string|max:255',
-            'sku'               => 'nullable|string|max:100',
-            'category'          => 'nullable|string|max:100',
-            'unit'              => 'required|string|max:50',
-            'price_sell'        => 'required|numeric|min:0',
-            'price_buy'         => 'nullable|numeric|min:0',
-            'stock_min'         => 'nullable|integer|min:0',
-            'description'       => 'nullable|string',
-            'has_expiry'        => 'boolean',
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'unit' => 'required|string|max:50',
+            'price_sell' => 'required|numeric|min:0',
+            'price_buy' => 'nullable|numeric|min:0',
+            'stock_min' => 'nullable|integer|min:0',
+            'description' => 'nullable|string',
+            'has_expiry' => 'boolean',
             'expiry_alert_days' => 'nullable|integer|min:1|max:365',
-            'initial_stock'     => 'nullable|integer|min:0',
-            'warehouse_id'      => 'nullable|exists:warehouses,id',
-            'batch_number'      => 'nullable|string|max:100',
-            'expiry_date'       => 'nullable|date|after:today',
-            'manufacture_date'  => 'nullable|date',
-            'image'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'initial_stock' => 'nullable|integer|min:0',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'batch_number' => 'nullable|string|max:100',
+            'expiry_date' => 'nullable|date|after:today',
+            'manufacture_date' => 'nullable|date',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $tid = $this->tenantId();
@@ -85,18 +189,18 @@ class ProductController extends Controller
         }
 
         $product = Product::create([
-            'tenant_id'         => $tid,
-            'name'              => $data['name'],
-            'sku'               => $sku,
-            'category'          => $data['category'] ?? null,
-            'unit'              => $data['unit'],
-            'price_sell'        => $data['price_sell'],
-            'price_buy'         => $data['price_buy'] ?? 0,
-            'stock_min'         => $data['stock_min'] ?? 5,
-            'description'       => $data['description'] ?? null,
-            'image'             => $imagePath ? Storage::url($imagePath) : null,
-            'is_active'         => true,
-            'has_expiry'        => $request->boolean('has_expiry'),
+            'tenant_id' => $tid,
+            'name' => $data['name'],
+            'sku' => $sku,
+            'category' => $data['category'] ?? null,
+            'unit' => $data['unit'],
+            'price_sell' => $data['price_sell'],
+            'price_buy' => $data['price_buy'] ?? 0,
+            'stock_min' => $data['stock_min'] ?? 5,
+            'description' => $data['description'] ?? null,
+            'image' => $imagePath ? Storage::url($imagePath) : null,
+            'is_active' => true,
+            'has_expiry' => $request->boolean('has_expiry'),
             'expiry_alert_days' => $data['expiry_alert_days'] ?? 2,
         ]);
 
@@ -106,32 +210,32 @@ class ProductController extends Controller
 
         if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
             ProductStock::create([
-                'product_id'   => $product->id,
+                'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
-                'quantity'     => $data['initial_stock'],
+                'quantity' => $data['initial_stock'],
             ]);
             StockMovement::create([
-                'tenant_id'       => $tid,
-                'product_id'      => $product->id,
-                'warehouse_id'    => $data['warehouse_id'],
-                'user_id'         => auth()->id(),
-                'type'            => 'in',
-                'quantity'        => $data['initial_stock'],
+                'tenant_id' => $tid,
+                'product_id' => $product->id,
+                'warehouse_id' => $data['warehouse_id'],
+                'user_id' => auth()->id(),
+                'type' => 'in',
+                'quantity' => $data['initial_stock'],
                 'quantity_before' => 0,
-                'quantity_after'  => $data['initial_stock'],
-                'notes'           => 'Stok awal produk baru',
+                'quantity_after' => $data['initial_stock'],
+                'notes' => 'Stok awal produk baru',
             ]);
 
             if ($product->has_expiry && !empty($data['expiry_date'])) {
                 ProductBatch::create([
-                    'tenant_id'        => $tid,
-                    'product_id'       => $product->id,
-                    'warehouse_id'     => $data['warehouse_id'],
-                    'batch_number'     => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
-                    'quantity'         => $data['initial_stock'],
+                    'tenant_id' => $tid,
+                    'product_id' => $product->id,
+                    'warehouse_id' => $data['warehouse_id'],
+                    'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
+                    'quantity' => $data['initial_stock'],
                     'manufacture_date' => $data['manufacture_date'] ?? null,
-                    'expiry_date'      => $data['expiry_date'],
-                    'status'           => 'active',
+                    'expiry_date' => $data['expiry_date'],
+                    'status' => 'active',
                 ]);
             }
         }
@@ -144,16 +248,16 @@ class ProductController extends Controller
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'sku'         => 'nullable|string|max:100',
-            'category'    => 'nullable|string|max:100',
-            'unit'        => 'required|string|max:50',
-            'price_sell'  => 'required|numeric|min:0',
-            'price_buy'   => 'nullable|numeric|min:0',
-            'stock_min'   => 'nullable|integer|min:0',
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'unit' => 'required|string|max:50',
+            'price_sell' => 'required|numeric|min:0',
+            'price_buy' => 'nullable|numeric|min:0',
+            'stock_min' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'is_active'   => 'boolean',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active' => 'boolean',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {

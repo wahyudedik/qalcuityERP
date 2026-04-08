@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class InventoryController extends Controller
@@ -23,7 +24,14 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $tid = $this->tenantId();
-        $query = Product::where('tenant_id', $tid)->with('productStocks');
+
+        // BUG-INV-002 FIX: Eager load productStocks and select only needed columns
+        $query = Product::where('tenant_id', $tid)
+            ->with([
+                'productStocks' => function ($q) {
+                    $q->select('id', 'product_id', 'warehouse_id', 'quantity');
+                }
+            ]);
 
         if ($request->search) {
             $s = $request->search;
@@ -40,10 +48,10 @@ class InventoryController extends Controller
             $query->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
         }
 
-        $products   = $query->orderBy('name')->paginate(20)->withQueryString();
+        $products = $query->orderBy('name')->paginate(20)->withQueryString();
         $categories = Product::where('tenant_id', $tid)->whereNotNull('category')->distinct()->pluck('category');
         $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
-        $lowCount   = Product::where('tenant_id', $tid)
+        $lowCount = Product::where('tenant_id', $tid)
             ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
             ->count();
 
@@ -53,22 +61,22 @@ class InventoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'sku'           => 'nullable|string|max:100',
-            'category'      => 'nullable|string|max:100',
-            'unit'          => 'required|string|max:50',
-            'price_sell'    => 'required|numeric|min:0',
-            'price_buy'     => 'nullable|numeric|min:0',
-            'stock_min'     => 'nullable|integer|min:0',
-            'description'   => 'nullable|string',
-            'has_expiry'    => 'boolean',
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'unit' => 'required|string|max:50',
+            'price_sell' => 'required|numeric|min:0',
+            'price_buy' => 'nullable|numeric|min:0',
+            'stock_min' => 'nullable|integer|min:0',
+            'description' => 'nullable|string',
+            'has_expiry' => 'boolean',
             'expiry_alert_days' => 'nullable|integer|min:1|max:365',
             'initial_stock' => 'nullable|integer|min:0',
-            'warehouse_id'  => 'nullable|exists:warehouses,id',
-            'batch_number'  => 'nullable|string|max:100',
-            'expiry_date'   => 'nullable|date|after:today',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'batch_number' => 'nullable|string|max:100',
+            'expiry_date' => 'nullable|date|after:today',
             'manufacture_date' => 'nullable|date',
-            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $tid = $this->tenantId();
@@ -85,18 +93,18 @@ class InventoryController extends Controller
         }
 
         $product = Product::create([
-            'tenant_id'         => $tid,
-            'name'              => $data['name'],
-            'sku'               => $sku,
-            'category'          => $data['category'] ?? null,
-            'unit'              => $data['unit'],
-            'price_sell'        => $data['price_sell'],
-            'price_buy'         => $data['price_buy'] ?? 0,
-            'stock_min'         => $data['stock_min'] ?? 5,
-            'description'       => $data['description'] ?? null,
-            'image'             => $imagePath ? Storage::url($imagePath) : null,
-            'is_active'         => true,
-            'has_expiry'        => $request->boolean('has_expiry'),
+            'tenant_id' => $tid,
+            'name' => $data['name'],
+            'sku' => $sku,
+            'category' => $data['category'] ?? null,
+            'unit' => $data['unit'],
+            'price_sell' => $data['price_sell'],
+            'price_buy' => $data['price_buy'] ?? 0,
+            'stock_min' => $data['stock_min'] ?? 5,
+            'description' => $data['description'] ?? null,
+            'image' => $imagePath ? Storage::url($imagePath) : null,
+            'is_active' => true,
+            'has_expiry' => $request->boolean('has_expiry'),
             'expiry_alert_days' => $data['expiry_alert_days'] ?? 2,
         ]);
 
@@ -104,33 +112,33 @@ class InventoryController extends Controller
 
         if (!empty($data['initial_stock']) && $data['initial_stock'] > 0 && !empty($data['warehouse_id'])) {
             ProductStock::create([
-                'product_id'   => $product->id,
+                'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
-                'quantity'     => $data['initial_stock'],
+                'quantity' => $data['initial_stock'],
             ]);
             StockMovement::create([
-                'tenant_id'       => $tid,
-                'product_id'      => $product->id,
-                'warehouse_id'    => $data['warehouse_id'],
-                'user_id'         => auth()->id(),
-                'type'            => 'in',
-                'quantity'        => $data['initial_stock'],
+                'tenant_id' => $tid,
+                'product_id' => $product->id,
+                'warehouse_id' => $data['warehouse_id'],
+                'user_id' => auth()->id(),
+                'type' => 'in',
+                'quantity' => $data['initial_stock'],
                 'quantity_before' => 0,
-                'quantity_after'  => $data['initial_stock'],
-                'notes'           => 'Stok awal produk baru',
+                'quantity_after' => $data['initial_stock'],
+                'notes' => 'Stok awal produk baru',
             ]);
 
             // Buat batch jika produk has_expiry dan expiry_date diisi
             if ($product->has_expiry && !empty($data['expiry_date'])) {
                 ProductBatch::create([
-                    'tenant_id'        => $tid,
-                    'product_id'       => $product->id,
-                    'warehouse_id'     => $data['warehouse_id'],
-                    'batch_number'     => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
-                    'quantity'         => $data['initial_stock'],
+                    'tenant_id' => $tid,
+                    'product_id' => $product->id,
+                    'warehouse_id' => $data['warehouse_id'],
+                    'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($sku, 0, 4)) . '-' . now()->format('ymd'),
+                    'quantity' => $data['initial_stock'],
                     'manufacture_date' => $data['manufacture_date'] ?? null,
-                    'expiry_date'      => $data['expiry_date'],
-                    'status'           => 'active',
+                    'expiry_date' => $data['expiry_date'],
+                    'status' => 'active',
                 ]);
             }
         }
@@ -143,16 +151,16 @@ class InventoryController extends Controller
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'sku'         => 'nullable|string|max:100',
-            'category'    => 'nullable|string|max:100',
-            'unit'        => 'required|string|max:50',
-            'price_sell'  => 'required|numeric|min:0',
-            'price_buy'   => 'nullable|numeric|min:0',
-            'stock_min'   => 'nullable|integer|min:0',
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
+            'category' => 'nullable|string|max:100',
+            'unit' => 'required|string|max:50',
+            'price_sell' => 'required|numeric|min:0',
+            'price_buy' => 'nullable|numeric|min:0',
+            'stock_min' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'is_active'   => 'boolean',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active' => 'boolean',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -197,11 +205,11 @@ class InventoryController extends Controller
         abort_unless($product->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'warehouse_id'     => 'required|exists:warehouses,id',
-            'quantity'         => 'required|integer|min:1',
-            'notes'            => 'nullable|string',
-            'batch_number'     => 'nullable|string|max:100',
-            'expiry_date'      => 'nullable|date|after:today',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'quantity' => 'required|integer|min:1',
+            'notes' => 'nullable|string',
+            'batch_number' => 'nullable|string|max:100',
+            'expiry_date' => 'nullable|date|after:today',
             'manufacture_date' => 'nullable|date',
         ]);
 
@@ -210,53 +218,78 @@ class InventoryController extends Controller
             return back()->withErrors(['expiry_date' => 'Produk ini memerlukan tanggal expired.'])->withInput();
         }
 
-        $stock = ProductStock::firstOrCreate(
-            ['product_id' => $product->id, 'warehouse_id' => $data['warehouse_id']],
-            ['quantity' => 0]
-        );
+        // BUG-INV-001 FIX: Wrap in transaction with pessimistic locking
+        try {
+            DB::transaction(function () use ($product, $data) {
+                // Lock the stock row to prevent race conditions
+                $stock = ProductStock::where('product_id', $product->id)
+                    ->where('warehouse_id', $data['warehouse_id'])
+                    ->lockForUpdate()
+                    ->first();
 
-        $before = $stock->quantity;
-        $stock->increment('quantity', $data['quantity']);
+                if (!$stock) {
+                    // Create new stock record
+                    $stock = ProductStock::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $data['warehouse_id'],
+                        'quantity' => 0,
+                    ]);
+                }
 
-        StockMovement::create([
-            'tenant_id'       => $this->tenantId(),
-            'product_id'      => $product->id,
-            'warehouse_id'    => $data['warehouse_id'],
-            'user_id'         => auth()->id(),
-            'type'            => 'in',
-            'quantity'        => $data['quantity'],
-            'quantity_before' => $before,
-            'quantity_after'  => $before + $data['quantity'],
-            'notes'           => $data['notes'] ?? null,
-        ]);
+                $before = $stock->quantity;
 
-        // Buat batch jika produk has_expiry
-        if ($product->has_expiry && !empty($data['expiry_date'])) {
-            ProductBatch::create([
-                'tenant_id'        => $this->tenantId(),
-                'product_id'       => $product->id,
-                'warehouse_id'     => $data['warehouse_id'],
-                'batch_number'     => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($product->sku, 0, 4)) . '-' . now()->format('ymd') . '-' . rand(10, 99),
-                'quantity'         => $data['quantity'],
-                'manufacture_date' => $data['manufacture_date'] ?? null,
-                'expiry_date'      => $data['expiry_date'],
-                'status'           => 'active',
-            ]);
+                // BUG-INV-001 FIX: Atomic increment with re-check
+                $updated = ProductStock::where('id', $stock->id)
+                    ->where('quantity', '=', $before)  // Ensure no concurrent modification
+                    ->increment('quantity', $data['quantity']);
+
+                if (!$updated) {
+                    throw new \Exception('Gagal menambah stok. Silakan coba lagi.');
+                }
+
+                StockMovement::create([
+                    'tenant_id' => $this->tenantId(),
+                    'product_id' => $product->id,
+                    'warehouse_id' => $data['warehouse_id'],
+                    'user_id' => auth()->id(),
+                    'type' => 'in',
+                    'quantity' => $data['quantity'],
+                    'quantity_before' => $before,
+                    'quantity_after' => $before + $data['quantity'],
+                    'notes' => $data['notes'] ?? null,
+                ]);
+
+                // Buat batch jika produk has_expiry
+                if ($product->has_expiry && !empty($data['expiry_date'])) {
+                    ProductBatch::create([
+                        'tenant_id' => $this->tenantId(),
+                        'product_id' => $product->id,
+                        'warehouse_id' => $data['warehouse_id'],
+                        'batch_number' => $data['batch_number'] ?? 'BATCH-' . strtoupper(substr($product->sku, 0, 4)) . '-' . now()->format('ymd') . '-' . rand(10, 99),
+                        'quantity' => $data['quantity'],
+                        'manufacture_date' => $data['manufacture_date'] ?? null,
+                        'expiry_date' => $data['expiry_date'],
+                        'status' => 'active',
+                    ]);
+                }
+
+                ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → " . ($before + $data['quantity']) . ")", $product);
+
+                $this->fireWebhook('inventory.adjusted', [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'sku' => $product->sku,
+                    'type' => 'stock_added',
+                    'quantity' => (float) $data['quantity'],
+                    'stock_before' => $before,
+                    'stock_after' => $before + $data['quantity'],
+                ]);
+            });
+
+            return back()->with('success', "Stok berhasil ditambah {$data['quantity']} {$product->unit}.");
+        } catch (\Throwable $e) {
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
-
-        ActivityLog::record('stock_added', "Stok ditambah: {$product->name} +{$data['quantity']} {$product->unit} (dari {$before} → " . ($before + $data['quantity']) . ")", $product);
-
-        $this->fireWebhook('inventory.adjusted', [
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'sku' => $product->sku,
-            'type' => 'stock_added',
-            'quantity' => (float) $data['quantity'],
-            'stock_before' => $before,
-            'stock_after' => $before + $data['quantity'],
-        ]);
-
-        return back()->with('success', "Stok berhasil ditambah {$data['quantity']} {$product->unit}.");
     }
 
     public function batches(Request $request, Product $product)
@@ -295,19 +328,19 @@ class InventoryController extends Controller
     public function storeWarehouse(Request $request)
     {
         $data = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:20',
             'address' => 'nullable|string',
         ]);
 
-        $tid  = $this->tenantId();
+        $tid = $this->tenantId();
         $code = $data['code'] ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $data['name']), 0, 4)) . '-' . rand(10, 99);
 
         Warehouse::create([
             'tenant_id' => $tid,
-            'name'      => $data['name'],
-            'code'      => $code,
-            'address'   => $data['address'] ?? null,
+            'name' => $data['name'],
+            'code' => $code,
+            'address' => $data['address'] ?? null,
             'is_active' => true,
         ]);
 

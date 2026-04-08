@@ -405,7 +405,7 @@
         <div
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">📝 Ajukan Izin Ekspor Baru</h3>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Ajukan Izin Ekspor Baru</h2>
                 <button onclick="document.getElementById('addPermitModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
             </div>

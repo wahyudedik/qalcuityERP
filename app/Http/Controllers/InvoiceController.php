@@ -93,9 +93,14 @@ class InvoiceController extends Controller
 
         // Cek period lock
         app(\App\Services\PeriodLockService::class)->assertNotLocked($tid, now()->toDateString(), 'Invoice');
+
+        // BUG-SALES-003 FIX: Gunakan accounting-compliant calculation
         $subtotal = (float) $data['subtotal_amount'];
         $taxAmount = $data['tax_rate_id'] ? $taxService->calculate($subtotal, (int) $data['tax_rate_id']) : 0;
-        $total = $subtotal + $taxAmount;
+
+        // BUG-SALES-003 FIX: Hitung total dengan roundAccounting untuk mencegah rounding errors
+        $total = $taxService->calculateTotal($subtotal, $taxAmount);
+
         $currCode = $data['currency_code'] ?? 'IDR';
         $currRate = (new CurrencyService())->getRate($currCode);
 
