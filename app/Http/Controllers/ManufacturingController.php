@@ -7,8 +7,12 @@ use App\Models\BomLine;
 use App\Models\Product;
 use App\Models\WorkCenter;
 use App\Models\WorkOrder;
+use App\Models\QualityCheck;
+use App\Models\QualityCheckStandard;
+use App\Models\DefectRecord;
 use App\Services\GlPostingService;
 use App\Services\MrpService;
+use App\Services\Manufacturing\QualityControlService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -477,5 +481,245 @@ class ManufacturingController extends Controller
         }
 
         return redirect()->route('production.index')->with('success', $msg);
+    }
+
+    // ── Quality Control ───────────────────────────────────────────
+
+    public function qualityDashboard(QualityControlService $qcService)
+    {
+        $statistics = $qcService->getStatistics();
+        $defectAnalysis = $qcService->getDefectAnalysis();
+
+        $recentChecks = QualityCheck::where('tenant_id', $this->tid())
+            ->with(['workOrder', 'product', 'inspector', 'defects'])
+            ->latest('inspected_at')
+            ->limit(20)
+            ->get();
+
+        $openDefects = DefectRecord::where('tenant_id', $this->tid())
+            ->whereNull('resolved_at')
+            ->with(['product', 'workOrder', 'reportedBy'])
+            ->orderBy('severity')
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get();
+
+        $standards = QualityCheckStandard::where('tenant_id', $this->tid())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('manufacturing.quality.dashboard', compact(
+            'statistics',
+            'defectAnalysis',
+            'recentChecks',
+            'openDefects',
+            'standards'
+        ));
+    }
+
+    public function qualityChecks(Request $request, QualityControlService $qcService)
+    {
+        $query = QualityCheck::with(['workOrder', 'product', 'standard', 'inspector', 'defects'])
+            ->where('tenant_id', $this->tid());
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('stage')) {
+            $query->where('stage', $request->stage);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('inspected_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('inspected_at', '<=', $request->date_to);
+        }
+
+        $qualityChecks = $query->latest('inspected_at')->paginate(20)->withQueryString();
+
+        $statistics = $qcService->getStatistics();
+
+        return view('manufacturing.quality.checks', compact('qualityChecks', 'statistics'));
+    }
+
+    public function createQualityCheck()
+    {
+        $workOrders = WorkOrder::where('tenant_id', $this->tid())
+            ->whereIn('status', ['in_progress', 'completed'])
+            ->whereNull('quality_status')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $products = Product::where('tenant_id', $this->tid())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $standards = QualityCheckStandard::where('tenant_id', $this->tid())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('manufacturing.quality.create', compact('workOrders', 'products', 'standards'));
+    }
+
+    public function storeQualityCheck(Request $request, QualityControlService $qcService)
+    {
+        $validated = $request->validate([
+            'work_order_id' => 'nullable|exists:work_orders,id',
+            'product_id' => 'nullable|exists:products,id',
+            'standard_id' => 'nullable|exists:quality_check_standards,id',
+            'stage' => 'required|in:incoming,in_process,final',
+            'sample_size' => 'required|numeric|min:1',
+            'inspector_id' => 'required|exists:users,id',
+            'notes' => 'nullable|string',
+        ]);
+
+        $qualityCheck = $qcService->createQualityCheck($validated);
+
+        return redirect()->route('manufacturing.quality.checks.edit', $qualityCheck)
+            ->with('success', 'Quality check created: ' . $qualityCheck->check_number);
+    }
+
+    public function editQualityCheck(QualityCheck $qualityCheck)
+    {
+        abort_if($qualityCheck->tenant_id !== $this->tid(), 403);
+
+        $qualityCheck->load(['workOrder', 'product', 'standard', 'inspector', 'defects']);
+
+        return view('manufacturing.quality.edit', compact('qualityCheck'));
+    }
+
+    public function updateQualityCheck(Request $request, QualityCheck $qualityCheck, QualityControlService $qcService)
+    {
+        abort_if($qualityCheck->tenant_id !== $this->tid(), 403);
+
+        $validated = $request->validate([
+            'results' => 'required|array',
+            'sample_passed' => 'required|numeric|min:0',
+            'sample_failed' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+            'corrective_action' => 'nullable|string',
+        ]);
+
+        $qualityCheck = $qcService->submitResults(
+            $qualityCheck,
+            $validated['results'],
+            [
+                'sample_passed' => $validated['sample_passed'],
+                'sample_failed' => $validated['sample_failed'],
+                'notes' => $validated['notes'],
+                'corrective_action' => $validated['corrective_action'],
+            ]
+        );
+
+        $message = $qualityCheck->status === 'passed'
+            ? 'Quality check passed!'
+            : 'Quality check ' . str_replace('_', ' ', $qualityCheck->status);
+
+        return redirect()->route('manufacturing.quality.checks')
+            ->with('success', $message);
+    }
+
+    public function recordDefect(Request $request, QualityControlService $qcService)
+    {
+        $validated = $request->validate([
+            'quality_check_id' => 'required|exists:quality_checks,id',
+            'product_id' => 'required|exists:products,id',
+            'work_order_id' => 'nullable|exists:work_orders,id',
+            'defect_type' => 'required|in:cosmetic,functional,dimensional,material,other',
+            'severity' => 'required|in:minor,major,critical',
+            'quantity_defected' => 'required|integer|min:1',
+            'description' => 'required|string',
+            'disposition' => 'required|in:scrap,rework,return_to_vendor,use_as_is',
+            'cost_impact' => 'nullable|numeric|min:0',
+        ]);
+
+        $defect = $qcService->recordDefect($validated);
+
+        return back()->with('success', 'Defect recorded: ' . $defect->defect_code);
+    }
+
+    public function resolveDefect(Request $request, DefectRecord $defect, QualityControlService $qcService)
+    {
+        abort_if($defect->tenant_id !== $this->tid(), 403);
+
+        $validated = $request->validate([
+            'root_cause' => 'required|string',
+            'corrective_action' => 'required|string',
+            'preventive_action' => 'nullable|string',
+        ]);
+
+        $qcService->resolveDefect($defect, $validated);
+
+        return back()->with('success', 'Defect resolved: ' . $defect->defect_code);
+    }
+
+    public function defectRecords(Request $request)
+    {
+        $query = DefectRecord::with(['qualityCheck', 'product', 'workOrder', 'reportedBy', 'resolvedBy'])
+            ->where('tenant_id', $this->tid());
+
+        if ($request->filled('severity')) {
+            $query->where('severity', $request->severity);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'open') {
+                $query->whereNull('resolved_at');
+            } else {
+                $query->whereNotNull('resolved_at');
+            }
+        }
+
+        if ($request->filled('defect_type')) {
+            $query->where('defect_type', $request->defect_type);
+        }
+
+        $defects = $query->latest()->paginate(20)->withQueryString();
+
+        return view('manufacturing.quality.defects', compact('defects'));
+    }
+
+    public function qualityStandards(Request $request)
+    {
+        $standards = QualityCheckStandard::where('tenant_id', $this->tid())
+            ->withCount('qualityChecks')
+            ->orderBy('name')
+            ->paginate(20);
+
+        return view('manufacturing.quality.standards', compact('standards'));
+    }
+
+    public function storeQualityStandard(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:quality_check_standards,code',
+            'description' => 'nullable|string',
+            'stage' => 'required|in:incoming,in_process,final',
+            'parameters' => 'required|array',
+            'parameters.*.name' => 'required|string',
+            'parameters.*.min_value' => 'nullable|numeric',
+            'parameters.*.max_value' => 'nullable|numeric',
+            'parameters.*.unit' => 'nullable|string',
+            'parameters.*.critical' => 'boolean',
+        ]);
+
+        QualityCheckStandard::create([
+            'tenant_id' => $this->tid(),
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'description' => $validated['description'] ?? null,
+            'stage' => $validated['stage'],
+            'parameters' => $validated['parameters'],
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Quality standard created: ' . $validated['code']);
     }
 }

@@ -22,8 +22,18 @@ class ApiBaseController extends Controller
         return response()->json(['success' => false, 'message' => $message], $status);
     }
 
+    protected function success(mixed $data, string $message = 'OK', int $status = 200): JsonResponse
+    {
+        return $this->ok($data, $message, $status);
+    }
+
     protected function tenantId(): int
     {
         return (int) request()->get('_api_tenant_id');
+    }
+
+    protected function getTenantId(): int
+    {
+        return $this->tenantId();
     }
 }

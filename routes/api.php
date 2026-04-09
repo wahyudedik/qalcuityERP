@@ -155,10 +155,322 @@ Route::middleware(['auth:sanctum'])->get('/csrf-token', function () {
     ]);
 });
 
+use App\Http\Controllers\Api\HealthcareApiController;
+use App\Http\Controllers\Api\HotelApiController;
+use App\Http\Controllers\Api\InventoryApiController;
+use App\Http\Controllers\Api\HrmApiController;
+use App\Http\Controllers\Api\ManufacturingApiController;
+use App\Http\Controllers\Api\AgricultureApiController;
+use App\Http\Controllers\Api\FisheriesApiController;
+use App\Http\Controllers\Api\LivestockApiController;
+use App\Http\Controllers\Api\CosmeticsApiController;
+use App\Http\Controllers\Api\TourTravelApiController;
+
 // ── Health Check endpoints (public, no auth required) ───────────
 Route::prefix('health')->group(function () {
     Route::get('/', [HealthCheckController::class, 'health']);
     Route::get('/detailed', [HealthCheckController::class, 'detailed']);
     Route::get('/ready', [HealthCheckController::class, 'ready']);
     Route::get('/live', [HealthCheckController::class, 'live']);
+});
+
+// ── Healthcare Module API Endpoints ──────────────────────────────────────
+Route::prefix('healthcare')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Patients
+    Route::get('/patients', [HealthcareApiController::class, 'patients']);
+    Route::get('/patients/{id}', [HealthcareApiController::class, 'patient']);
+    Route::post('/patients', [HealthcareApiController::class, 'createPatient'])->middleware('api.rate:api-write');
+    Route::put('/patients/{id}', [HealthcareApiController::class, 'updatePatient'])->middleware('api.rate:api-write');
+    Route::delete('/patients/{id}', [HealthcareApiController::class, 'deletePatient'])->middleware('api.rate:api-write');
+
+    // Doctors
+    Route::get('/doctors', [HealthcareApiController::class, 'doctors']);
+    Route::get('/doctors/{id}', [HealthcareApiController::class, 'doctor']);
+
+    // Appointments
+    Route::get('/appointments', [HealthcareApiController::class, 'appointments']);
+    Route::get('/appointments/{id}', [HealthcareApiController::class, 'appointment']);
+    Route::post('/appointments', [HealthcareApiController::class, 'createAppointment'])->middleware('api.rate:api-write');
+    Route::patch('/appointments/{id}/status', [HealthcareApiController::class, 'updateAppointmentStatus'])->middleware('api.rate:api-write');
+
+    // Lab Results
+    Route::get('/lab-results', [HealthcareApiController::class, 'labResults']);
+    Route::get('/lab-results/{id}', [HealthcareApiController::class, 'labResult']);
+    Route::post('/lab-results', [HealthcareApiController::class, 'createLabResult'])->middleware('api.rate:api-write');
+
+    // Prescriptions
+    Route::get('/prescriptions', [HealthcareApiController::class, 'prescriptions']);
+    Route::get('/prescriptions/{id}', [HealthcareApiController::class, 'prescription']);
+    Route::post('/prescriptions', [HealthcareApiController::class, 'createPrescription'])->middleware('api.rate:api-write');
+
+    // EMR (Electronic Medical Records)
+    Route::get('/emr/{patientId}', [HealthcareApiController::class, 'getEmr']);
+    Route::post('/emr', [HealthcareApiController::class, 'createEmr'])->middleware('api.rate:api-write');
+
+    // Admissions
+    Route::get('/admissions', [HealthcareApiController::class, 'admissions']);
+    Route::post('/admissions', [HealthcareApiController::class, 'createAdmission'])->middleware('api.rate:api-write');
+    Route::patch('/admissions/{id}/discharge', [HealthcareApiController::class, 'dischargePatient'])->middleware('api.rate:api-write');
+
+    // Beds
+    Route::get('/beds/availability', [HealthcareApiController::class, 'bedAvailability']);
+    Route::get('/beds/{id}', [HealthcareApiController::class, 'bedDetail']);
+});
+
+// ── Hotel Module API Endpoints ──────────────────────────────────────
+Route::prefix('hotel')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Rooms
+    Route::get('/rooms', [HotelApiController::class, 'rooms']);
+    Route::get('/rooms/{id}', [HotelApiController::class, 'room']);
+    Route::post('/rooms', [HotelApiController::class, 'createRoom'])->middleware('api.rate:api-write');
+    Route::put('/rooms/{id}', [HotelApiController::class, 'updateRoom'])->middleware('api.rate:api-write');
+
+    // Reservations
+    Route::get('/reservations', [HotelApiController::class, 'reservations']);
+    Route::get('/reservations/{id}', [HotelApiController::class, 'reservation']);
+    Route::post('/reservations', [HotelApiController::class, 'createReservation'])->middleware('api.rate:api-write');
+    Route::patch('/reservations/{id}/status', [HotelApiController::class, 'updateReservationStatus'])->middleware('api.rate:api-write');
+    Route::delete('/reservations/{id}', [HotelApiController::class, 'cancelReservation'])->middleware('api.rate:api-write');
+
+    // Room Types
+    Route::get('/room-types', [HotelApiController::class, 'roomTypes']);
+    Route::post('/room-types', [HotelApiController::class, 'createRoomType'])->middleware('api.rate:api-write');
+
+    // Guests
+    Route::get('/guests', [HotelApiController::class, 'guests']);
+    Route::get('/guests/{id}', [HotelApiController::class, 'guest']);
+
+    // Billing
+    Route::get('/billing/{reservationId}', [HotelApiController::class, 'getBilling']);
+    Route::post('/billing/{reservationId}/charge', [HotelApiController::class, 'addCharge'])->middleware('api.rate:api-write');
+
+    // Housekeeping
+    Route::get('/housekeeping/status', [HotelApiController::class, 'housekeepingStatus']);
+    Route::patch('/housekeeping/{roomId}/status', [HotelApiController::class, 'updateHousekeepingStatus'])->middleware('api.rate:api-write');
+});
+
+// ── Inventory Module API Endpoints ──────────────────────────────────────
+Route::prefix('inventory')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Stock Levels
+    Route::get('/stock', [InventoryApiController::class, 'stockLevels']);
+    Route::get('/stock/{productId}', [InventoryApiController::class, 'stockDetail']);
+
+    // Stock Movements
+    Route::get('/movements', [InventoryApiController::class, 'movements']);
+    Route::post('/movements', [InventoryApiController::class, 'recordMovement'])->middleware('api.rate:api-write');
+
+    // Stock Adjustments
+    Route::get('/adjustments', [InventoryApiController::class, 'adjustments']);
+    Route::post('/adjustments', [InventoryApiController::class, 'createAdjustment'])->middleware('api.rate:api-write');
+
+    // Stock Transfers
+    Route::get('/transfers', [InventoryApiController::class, 'transfers']);
+    Route::post('/transfers', [InventoryApiController::class, 'createTransfer'])->middleware('api.rate:api-write');
+    Route::patch('/transfers/{id}/status', [InventoryApiController::class, 'updateTransferStatus'])->middleware('api.rate:api-write');
+
+    // Inventory Valuation
+    Route::get('/valuation', [InventoryApiController::class, 'valuation']);
+
+    // Low Stock Alerts
+    Route::get('/low-stock', [InventoryApiController::class, 'lowStockAlerts']);
+
+    // Stock Count/Opname
+    Route::post('/stock-count', [InventoryApiController::class, 'recordStockCount'])->middleware('api.rate:api-write');
+    Route::get('/stock-count/history', [InventoryApiController::class, 'stockCountHistory']);
+});
+
+// ── HRM Module API Endpoints ──────────────────────────────────────
+Route::prefix('hrm')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Employees
+    Route::get('/employees', [HrmApiController::class, 'employees']);
+    Route::get('/employees/{id}', [HrmApiController::class, 'employee']);
+    Route::post('/employees', [HrmApiController::class, 'createEmployee'])->middleware('api.rate:api-write');
+    Route::put('/employees/{id}', [HrmApiController::class, 'updateEmployee'])->middleware('api.rate:api-write');
+
+    // Attendance
+    Route::get('/attendance', [HrmApiController::class, 'attendance']);
+    Route::post('/attendance/check-in', [HrmApiController::class, 'checkIn'])->middleware('api.rate:api-write');
+    Route::post('/attendance/check-out', [HrmApiController::class, 'checkOut'])->middleware('api.rate:api-write');
+
+    // Leave Management
+    Route::get('/leave/requests', [HrmApiController::class, 'leaveRequests']);
+    Route::post('/leave/requests', [HrmApiController::class, 'requestLeave'])->middleware('api.rate:api-write');
+    Route::patch('/leave/requests/{id}/status', [HrmApiController::class, 'updateLeaveStatus'])->middleware('api.rate:api-write');
+
+    // Payroll
+    Route::get('/payroll', [HrmApiController::class, 'payroll']);
+    Route::post('/payroll/process', [HrmApiController::class, 'processPayroll'])->middleware('api.rate:api-write');
+    Route::get('/payroll/{id}/slip', [HrmApiController::class, 'payrollSlip']);
+
+    // Departments
+    Route::get('/departments', [HrmApiController::class, 'departments']);
+
+    // Employee Performance
+    Route::get('/performance/{employeeId}', [HrmApiController::class, 'employeePerformance']);
+});
+
+// ── Manufacturing Module API Endpoints (Extended) ───────────────────────────
+Route::prefix('manufacturing')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Work Orders (existing)
+    Route::get('/work-orders', [ManufacturingApiController::class, 'workOrders']);
+    Route::post('/work-orders', [ManufacturingApiController::class, 'createWorkOrder'])->middleware('api.rate:api-write');
+    Route::get('/work-orders/{id}', [ManufacturingApiController::class, 'workOrderDetail']);
+    Route::patch('/work-orders/{id}/status', [ManufacturingApiController::class, 'updateWorkOrderStatus'])->middleware('api.rate:api-write');
+
+    // BOM
+    Route::get('/boms', [ManufacturingApiController::class, 'boms']);
+    Route::get('/boms/{id}', [ManufacturingApiController::class, 'bomDetail']);
+    Route::post('/boms', [ManufacturingApiController::class, 'createBom'])->middleware('api.rate:api-write');
+
+    // MRP
+    Route::post('/mrp/calculate', [ManufacturingApiController::class, 'runMrp'])->middleware('api.rate:api-write');
+
+    // Quality Checks
+    Route::get('/quality-checks', [ManufacturingApiController::class, 'qualityChecks']);
+    Route::get('/quality-checks/{id}', [ManufacturingApiController::class, 'qualityCheckDetail']);
+    Route::post('/quality-checks', [ManufacturingApiController::class, 'createQualityCheck'])->middleware('api.rate:api-write');
+    Route::post('/quality-checks/{id}/submit', [ManufacturingApiController::class, 'submitQualityCheck'])->middleware('api.rate:api-write');
+
+    // Defects
+    Route::get('/defects', [ManufacturingApiController::class, 'defects']);
+    Route::get('/defects/{id}', [ManufacturingApiController::class, 'defectDetail']);
+    Route::post('/defects', [ManufacturingApiController::class, 'recordDefect'])->middleware('api.rate:api-write');
+    Route::patch('/defects/{id}/resolve', [ManufacturingApiController::class, 'resolveDefect'])->middleware('api.rate:api-write');
+
+    // Production Output
+    Route::get('/production/output', [ManufacturingApiController::class, 'productionOutput']);
+    Route::post('/production/output', [ManufacturingApiController::class, 'recordProductionOutput'])->middleware('api.rate:api-write');
+});
+
+// ── Agriculture Module API Endpoints ──────────────────────────────────────
+Route::prefix('agriculture')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Crops
+    Route::get('/crops', [AgricultureApiController::class, 'crops']);
+    Route::get('/crops/{id}', [AgricultureApiController::class, 'crop']);
+    Route::post('/crops', [AgricultureApiController::class, 'createCrop'])->middleware('api.rate:api-write');
+
+    // Harvest
+    Route::get('/harvests', [AgricultureApiController::class, 'harvests']);
+    Route::post('/harvests', [AgricultureApiController::class, 'recordHarvest'])->middleware('api.rate:api-write');
+
+    // Land/Fields
+    Route::get('/fields', [AgricultureApiController::class, 'fields']);
+    Route::post('/fields', [AgricultureApiController::class, 'createField'])->middleware('api.rate:api-write');
+
+    // Planting Cycles
+    Route::get('/planting-cycles', [AgricultureApiController::class, 'plantingCycles']);
+    Route::post('/planting-cycles', [AgricultureApiController::class, 'createPlantingCycle'])->middleware('api.rate:api-write');
+});
+
+// ── Fisheries Module API Endpoints ──────────────────────────────────────
+Route::prefix('fisheries')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Ponds
+    Route::get('/ponds', [FisheriesApiController::class, 'ponds']);
+    Route::post('/ponds', [FisheriesApiController::class, 'createPond'])->middleware('api.rate:api-write');
+
+    // Fish Stocks
+    Route::get('/fish-stocks', [FisheriesApiController::class, 'fishStocks']);
+    Route::post('/fish-stocks', [FisheriesApiController::class, 'stockFish'])->middleware('api.rate:api-write');
+
+    // Harvest
+    Route::get('/harvests', [FisheriesApiController::class, 'harvests']);
+    Route::post('/harvests', [FisheriesApiController::class, 'recordHarvest'])->middleware('api.rate:api-write');
+
+    // Water Quality
+    Route::get('/water-quality', [FisheriesApiController::class, 'waterQuality']);
+    Route::post('/water-quality', [FisheriesApiController::class, 'recordWaterQuality'])->middleware('api.rate:api-write');
+});
+
+// ── Livestock Module API Endpoints ──────────────────────────────────────
+Route::prefix('livestock')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Animals
+    Route::get('/animals', [LivestockApiController::class, 'animals']);
+    Route::get('/animals/{id}', [LivestockApiController::class, 'animal']);
+    Route::post('/animals', [LivestockApiController::class, 'createAnimal'])->middleware('api.rate:api-write');
+
+    // Health Records
+    Route::get('/health-records', [LivestockApiController::class, 'healthRecords']);
+    Route::post('/health-records', [LivestockApiController::class, 'recordHealth'])->middleware('api.rate:api-write');
+
+    // Breeding
+    Route::get('/breeding', [LivestockApiController::class, 'breeding']);
+    Route::post('/breeding', [LivestockApiController::class, 'recordBreeding'])->middleware('api.rate:api-write');
+});
+
+// ── Cosmetics Module API Endpoints ──────────────────────────────────────
+Route::prefix('cosmetics')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Products/Formulations
+    Route::get('/formulations', [CosmeticsApiController::class, 'formulations']);
+    Route::get('/formulations/{id}', [CosmeticsApiController::class, 'formulation']);
+    Route::post('/formulations', [CosmeticsApiController::class, 'createFormulation'])->middleware('api.rate:api-write');
+
+    // BPOM Registration
+    Route::get('/bpom-registrations', [CosmeticsApiController::class, 'bpomRegistrations']);
+    Route::post('/bpom-registrations', [CosmeticsApiController::class, 'registerBpom'])->middleware('api.rate:api-write');
+
+    // Batch Production
+    Route::get('/batches', [CosmeticsApiController::class, 'batches']);
+    Route::post('/batches', [CosmeticsApiController::class, 'createBatch'])->middleware('api.rate:api-write');
+});
+
+// ── Tour & Travel Module API Endpoints ──────────────────────────────────────
+Route::prefix('tour-travel')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+    // Tour Packages
+    Route::get('/packages', [TourTravelApiController::class, 'packages']);
+    Route::get('/packages/{id}', [TourTravelApiController::class, 'package']);
+    Route::post('/packages', [TourTravelApiController::class, 'createPackage'])->middleware('api.rate:api-write');
+
+    // Bookings
+    Route::get('/bookings', [TourTravelApiController::class, 'bookings']);
+    Route::get('/bookings/{id}', [TourTravelApiController::class, 'booking']);
+    Route::post('/bookings', [TourTravelApiController::class, 'createBooking'])->middleware('api.rate:api-write');
+    Route::patch('/bookings/{id}/status', [TourTravelApiController::class, 'updateBookingStatus'])->middleware('api.rate:api-write');
+
+    // Itineraries
+    Route::get('/itineraries', [TourTravelApiController::class, 'itineraries']);
+    Route::post('/itineraries', [TourTravelApiController::class, 'createItinerary'])->middleware('api.rate:api-write');
+
+    // Vehicles
+    Route::get('/vehicles', [TourTravelApiController::class, 'vehicles']);
+    Route::post('/vehicles', [TourTravelApiController::class, 'createVehicle'])->middleware('api.rate:api-write');
+});
+
+// ── Healthcare Module API Endpoints ──────────────────────────────────────
+Route::prefix('healthcare')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
+
+    // Laboratory APIs
+    Route::get('/lab-orders/{id}/results', [HealthcareApiController::class, 'getLabOrderResults']);
+    Route::get('/lab-equipment/calibration-due', [HealthcareApiController::class, 'getLabEquipmentCalibrationDue']);
+
+    // Lab Results (write operations)
+    Route::post('/lab-results/{id}/approve', [HealthcareApiController::class, 'approveLabResult'])->middleware('api.rate:api-write');
+    Route::post('/lab-samples/{id}/process', [HealthcareApiController::class, 'processLabSample'])->middleware('api.rate:api-write');
+
+    // Radiology APIs
+    Route::get('/radiology-exams/{id}/images', [HealthcareApiController::class, 'getRadiologyExamImages']);
+    Route::get('/pacs/studies', [HealthcareApiController::class, 'getPacsStudies']);
+
+    // Radiology Reports (write operations)
+    Route::post('/radiology-reports/{id}/finalize', [HealthcareApiController::class, 'finalizeRadiologyReport'])->middleware('api.rate:api-write');
+
+    // Surgery APIs
+    Route::get('/operating-rooms/availability', [HealthcareApiController::class, 'getOperatingRoomsAvailability']);
+
+    // Surgery (write operations)
+    Route::post('/surgery-schedules/{id}/assign-team', [HealthcareApiController::class, 'assignSurgeryTeam'])->middleware('api.rate:api-write');
+    Route::post('/surgery-schedules/{id}/complete', [HealthcareApiController::class, 'completeSurgery'])->middleware('api.rate:api-write');
+
+    // Pharmacy APIs
+    Route::get('/medications/expiring', [HealthcareApiController::class, 'getExpiringMedications']);
+
+    // Pharmacy (write operations)
+    Route::post('/prescriptions/{id}/dispense', [HealthcareApiController::class, 'dispensePrescription'])->middleware('api.rate:api-write');
+    Route::post('/pharmacy/stock-opname', [HealthcareApiController::class, 'createPharmacyStockOpname'])->middleware('api.rate:api-write');
+
+    // Inpatient APIs
+    Route::get('/beds/availability', [HealthcareApiController::class, 'getBedAvailability']);
+
+    // Inpatient (write operations)
+    Route::post('/admissions/{id}/transfer-ward', [HealthcareApiController::class, 'transferWard'])->middleware('api.rate:api-write');
+    Route::post('/admissions/{id}/discharge', [HealthcareApiController::class, 'dischargeAdmission'])->middleware('api.rate:api-write');
 });

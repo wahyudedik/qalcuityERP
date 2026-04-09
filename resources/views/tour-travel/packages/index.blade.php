@@ -70,14 +70,9 @@
                 </div>
 
                 @if ($packages->count() === 0)
-                    <div class="p-12 text-center">
-                        <p class="text-4xl mb-3">✈️</p>
-                        <p class="text-sm text-gray-500 dark:text-slate-400">No tour packages yet.</p>
-                        <a href="{{ route('tour-travel.packages.create') }}"
-                            class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
-                            Create First Package
-                        </a>
-                    </div>
+                    <x-empty-state icon="calendar" title="Belum ada paket tour"
+                        message="Belum ada paket tour travel. Buat paket pertama Anda." actionText="Buat Paket Tour"
+                        actionUrl="{{ route('tour-travel.packages.create') }}" />
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">

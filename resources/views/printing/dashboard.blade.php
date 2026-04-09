@@ -75,14 +75,9 @@
         </div>
 
         @if ($jobs->count() === 0)
-            <div class="p-12 text-center">
-                <p class="text-4xl mb-3">📋</p>
-                <p class="text-sm text-gray-500 dark:text-slate-400">No active print jobs.</p>
-                <a href="{{ route('printing.create') }}"
-                    class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
-                    Create First Job
-                </a>
-            </div>
+            <x-empty-state icon="document" title="Belum ada print job"
+                message="Belum ada print job aktif. Buat print job pertama Anda." actionText="Buat Print Job"
+                actionUrl="{{ route('printing.create') }}" />
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">

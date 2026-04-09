@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SettingsUpdated;
 use App\Services\ModuleCleanupService; // BUG-SET-002 FIX
 use App\Services\ModuleRecommendationService;
+use App\Services\SettingsCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ModuleSettingsController extends Controller
 {
+    protected SettingsCacheService $cacheService;
+
+    public function __construct(SettingsCacheService $cacheService)
+    {
+        $this->cacheService = $cacheService;
+    }
+
     public function index()
     {
         $tenant = auth()->user()->tenant;
@@ -65,6 +74,22 @@ class ModuleSettingsController extends Controller
 
         // Update enabled modules
         $tenant->update(['enabled_modules' => $newModules]);
+
+        // BUG-SET-001 FIX: Dispatch event to clear module settings cache
+        event(new SettingsUpdated(
+            type: 'module',
+            tenantId: $tenant->id,
+            metadata: [
+                'old_modules' => $oldModules,
+                'new_modules' => $newModules,
+                'disabled_modules' => $disabledModules,
+                'cleanup_strategy' => $cleanupStrategy,
+                'cleanup_results' => $cleanupResults,
+            ]
+        ));
+
+        // Also clear specific tenant cache
+        $this->cacheService->clearTenantCache($tenant->id);
 
         $message = 'Pengaturan modul berhasil disimpan.';
         if (!empty($disabledModules)) {

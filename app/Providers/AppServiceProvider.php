@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\SettingsUpdated;
 use App\Exceptions\CustomExceptionHandler;
+use App\Listeners\ClearSettingsCache;
 use App\Models\SystemSetting;
 use App\Models\TenantApiSetting;
 use App\Models\Product;
@@ -14,10 +16,10 @@ use App\Observers\TenantApiSettingObserver; // BUG-SET-001 FIX
 use App\Services\ChatSessionManager;
 use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
-use App\Services\PermissionService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -68,6 +70,9 @@ class AppServiceProvider extends ServiceProvider
         // BUG-SET-001 FIX: Register settings observers for cache invalidation
         SystemSetting::observe(SystemSettingObserver::class);
         TenantApiSetting::observe(TenantApiSettingObserver::class);
+
+        // Register event listeners for settings cache invalidation
+        Event::listen(SettingsUpdated::class, ClearSettingsCache::class);
 
         $this->configureRateLimiting();
         $this->registerBladeDirectives();

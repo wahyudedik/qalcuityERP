@@ -418,3 +418,71 @@ Schedule::call(function () {
     $deleted = $service->cleanupOldDeliveries(30);
     \Illuminate\Support\Facades\Log::info("Integration cleanup: deleted {$deleted} old webhook deliveries");
 })->dailyAt('03:00')->name('integration-cleanup-webhooks')->withoutOverlapping();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEALTHCARE MODULE SCHEDULED TASKS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Record daily analytics — setiap hari jam 23:50 (sebelum tengah malam)
+Schedule::command('healthcare:analytics:daily')
+    ->dailyAt('23:50')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/healthcare/daily-analytics.log'))
+    ->name('healthcare-daily-analytics');
+
+// Send appointment reminders — setiap jam pada jam kerja (08:00 - 17:00)
+Schedule::command('healthcare:reminders:appointments --channel=all')
+    ->hourly()
+    ->weekdays()
+    ->between('08:00', '17:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('healthcare-appointment-reminders');
+
+// Check expiring medical supplies — setiap hari jam 07:00
+Schedule::command('healthcare:supplies:check-expiry --days=30 --notify')
+    ->dailyAt('07:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/healthcare/supply-expiry.log'))
+    ->name('healthcare-check-expiring-supplies');
+
+// Poll lab equipment — setiap 30 menit
+Schedule::command('healthcare:lab:poll-equipment')
+    ->everyThirtyMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('healthcare-poll-lab-equipment');
+
+// Check BPJS claim status — setiap hari jam 10:00
+Schedule::command('healthcare:bpjs:check-claims --limit=100')
+    ->dailyAt('10:00')
+    ->weekdays()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/healthcare/bpjs-claims.log'))
+    ->name('healthcare-check-bpjs-claims');
+
+// Create medical records backup — setiap hari jam 01:00
+Schedule::command('healthcare:backup:medical-records --compress')
+    ->dailyAt('01:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/healthcare/medical-backup.log'))
+    ->name('healthcare-medical-backup');
+
+// Generate monthly compliance report — tanggal 1 setiap bulan jam 02:00
+Schedule::command('healthcare:compliance:generate-report --format=json')
+    ->monthlyOn(1, '02:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('healthcare-compliance-report');
+
+// Cleanup old audit logs — setiap minggu Minggu jam 03:00
+Schedule::command('healthcare:cleanup:audit-logs --archive --force')
+    ->weeklyOn(0, '03:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/healthcare/audit-cleanup.log'))
+    ->name('healthcare-cleanup-audit-logs');

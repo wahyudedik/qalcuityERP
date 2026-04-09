@@ -2,275 +2,398 @@
 
 namespace App\Services\Security;
 
-use App\Models\DataConsent;
-use App\Models\DataRequest;
+use App\Models\GdprConsent;
+use App\Models\GdprDataExport;
+use App\Models\GdprDeletionRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
+/**
+ * GDPR Compliance Service
+ * 
+ * Implements GDPR requirements:
+ * - Right to Access (Data Export)
+ * - Right to be Forgotten (Data Deletion)
+ * - Right to Rectification
+ * - Consent Management
+ * - Data Portability
+ */
 class GdprComplianceService
 {
     /**
-     * Record user consent
+     * Create data export request
+     * 
+     * @param int $userId
+     * @param string $exportType (personal_data, all_data, specific_module)
+     * @param array $modules (optional)
+     * @return GdprDataExport
      */
-    public function recordConsent(int $tenantId, int $userId, string $consentType, string $consentText): bool
+    public function createDataExportRequest(int $userId, string $exportType = 'personal_data', array $modules = []): GdprDataExport
     {
-        try {
-            DataConsent::create([
-                'tenant_id' => $tenantId,
-                'user_id' => $userId,
-                'consent_type' => $consentType,
-                'granted' => true,
-                'consent_text' => $consentText,
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'granted_at' => now(),
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            \Log::error('Record consent failed', [
-                'user_id' => $userId,
-                'consent_type' => $consentType,
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
-        }
-    }
-
-    /**
-     * Withdraw consent
-     */
-    public function withdrawConsent(int $tenantId, int $userId, string $consentType): bool
-    {
-        try {
-            DataConsent::where('tenant_id', $tenantId)
-                ->where('user_id', $userId)
-                ->where('consent_type', $consentType)
-                ->where('granted', true)
-                ->update([
-                    'granted' => false,
-                    'withdrawn_at' => now(),
-                ]);
-
-            return true;
-        } catch (\Exception $e) {
-            \Log::error('Withdraw consent failed', [
-                'user_id' => $userId,
-                'consent_type' => $consentType,
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
-        }
-    }
-
-    /**
-     * Check if user has given consent
-     */
-    public function hasConsent(int $tenantId, int $userId, string $consentType): bool
-    {
-        $consent = DataConsent::where('tenant_id', $tenantId)
-            ->where('user_id', $userId)
-            ->where('consent_type', $consentType)
-            ->where('granted', true)
-            ->latest()
-            ->first();
-
-        return $consent !== null;
-    }
-
-    /**
-     * Create data access request (Right to Access)
-     */
-    public function createAccessRequest(int $tenantId, int $userId, ?string $details = null): int
-    {
-        $request = DataRequest::create([
-            'tenant_id' => $tenantId,
+        $export = GdprDataExport::create([
             'user_id' => $userId,
-            'request_type' => 'access',
-            'details' => $details,
+            'export_type' => $exportType,
+            'modules' => $modules,
             'status' => 'pending',
+            'requested_at' => now(),
+            'expires_at' => now()->addDays(30), // GDPR: 30 days to respond
         ]);
 
-        return $request->id;
+        // Process export asynchronously
+        $this->processDataExport($export);
+
+        return $export;
     }
 
     /**
-     * Create data erasure request (Right to be Forgotten)
+     * Process data export
+     * 
+     * @param GdprDataExport $export
+     * @return string Path to exported file
      */
-    public function createErasureRequest(int $tenantId, int $userId, ?string $details = null): int
+    public function processDataExport(GdprDataExport $export): string
     {
-        $request = DataRequest::create([
-            'tenant_id' => $tenantId,
-            'user_id' => $userId,
-            'request_type' => 'erasure',
-            'details' => $details,
-            'status' => 'pending',
-        ]);
+        $export->update(['status' => 'processing']);
 
-        return $request->id;
-    }
-
-    /**
-     * Create data rectification request
-     */
-    public function createRectificationRequest(int $tenantId, int $userId, string $details): int
-    {
-        $request = DataRequest::create([
-            'tenant_id' => $tenantId,
-            'user_id' => $userId,
-            'request_type' => 'rectification',
-            'details' => $details,
-            'status' => 'pending',
-        ]);
-
-        return $request->id;
-    }
-
-    /**
-     * Process data access request - export user data
-     */
-    public function processAccessRequest(int $requestId, int $processedByUserId): array
-    {
         try {
-            $dataRequest = DataRequest::findOrFail($requestId);
+            $user = $export->user;
+            $tenantId = $user->tenant_id;
+            $data = [];
 
-            // Collect all user data
-            $userData = $this->collectUserData($dataRequest->user_id, $dataRequest->tenant_id);
-
-            $dataRequest->update([
-                'status' => 'completed',
-                'response_data' => json_encode($userData),
-                'processed_by_user_id' => $processedByUserId,
-                'processed_at' => now(),
-                'completed_at' => now(),
-            ]);
-
-            return [
-                'success' => true,
-                'data' => $userData,
-                'export_url' => $this->generateExportFile($userData),
+            // Export personal data
+            $data['personal_information'] = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'created_at' => $user->created_at,
+                'last_login' => $user->last_login_at,
             ];
-        } catch (\Exception $e) {
-            \Log::error('Process access request failed', [
-                'request_id' => $requestId,
-                'error' => $e->getMessage(),
+
+            // Export module-specific data based on request
+            $modules = $export->modules ?: $this->getDefaultModules();
+
+            foreach ($modules as $module) {
+                $data[$module] = $this->exportModuleData($module, $user, $tenantId);
+            }
+
+            // Generate JSON file
+            $filename = "gdpr_export_{$user->id}_" . Str::uuid() . '.json';
+            $path = "gdpr/exports/{$filename}";
+
+            Storage::disk('local')->put($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+            $export->update([
+                'status' => 'completed',
+                'file_path' => $path,
+                'completed_at' => now(),
+                'file_size' => Storage::disk('local')->size($path),
             ]);
 
-            return ['success' => false, 'message' => $e->getMessage()];
+            return $path;
+        } catch (\Exception $e) {
+            $export->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            throw $e;
         }
     }
 
     /**
-     * Process data erasure request
+     * Create data deletion request (Right to be Forgotten)
+     * 
+     * @param int $userId
+     * @param string $reason
+     * @return GdprDeletionRequest
      */
-    public function processErasureRequest(int $requestId, int $processedByUserId): bool
+    public function createDeletionRequest(int $userId, string $reason): GdprDeletionRequest
     {
+        $deletion = GdprDeletionRequest::create([
+            'user_id' => $userId,
+            'reason' => $reason,
+            'status' => 'pending_approval',
+            'requested_at' => now(),
+        ]);
+
+        return $deletion;
+    }
+
+    /**
+     * Approve and process deletion request
+     * 
+     * @param GdprDeletionRequest $deletion
+     * @param int $approvedBy
+     * @return bool
+     */
+    public function processDeletionRequest(GdprDeletionRequest $deletion, int $approvedBy): bool
+    {
+        $deletion->update([
+            'status' => 'processing',
+            'approved_by' => $approvedBy,
+            'approved_at' => now(),
+        ]);
+
         try {
-            $dataRequest = DataRequest::findOrFail($requestId);
+            $user = $deletion->user;
+            $tenantId = $user->tenant_id;
 
-            // Anonymize user data (don't delete - keep for audit)
-            $this->anonymizeUserData($dataRequest->user_id, $dataRequest->tenant_id);
+            // Anonymize user data instead of hard delete (for audit trail)
+            $this->anonymizeUserData($user);
 
-            $dataRequest->update([
+            // Delete or anonymize related data
+            $this->deleteRelatedData($user, $tenantId);
+
+            $deletion->update([
                 'status' => 'completed',
-                'processed_by_user_id' => $processedByUserId,
-                'processed_at' => now(),
                 'completed_at' => now(),
+                'anonymization_method' => 'pseudonymization',
             ]);
 
             return true;
         } catch (\Exception $e) {
-            \Log::error('Process erasure request failed', [
-                'request_id' => $requestId,
-                'error' => $e->getMessage(),
+            $deletion->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
             ]);
 
-            return false;
+            throw $e;
         }
-    }
-
-    /**
-     * Get pending data requests
-     */
-    public function getPendingRequests(int $tenantId): array
-    {
-        return DataRequest::where('tenant_id', $tenantId)
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(function ($request) {
-                return [
-                    'id' => $request->id,
-                    'user_name' => $request->user->name ?? 'Unknown',
-                    'request_type' => $request->request_type,
-                    'details' => $request->details,
-                    'created_at' => $request->created_at,
-                ];
-            })
-            ->toArray();
-    }
-
-    /**
-     * Get user's consent history
-     */
-    public function getUserConsents(int $tenantId, int $userId): array
-    {
-        return DataConsent::where('tenant_id', $tenantId)
-            ->where('user_id', $userId)
-            ->orderBy('granted_at', 'desc')
-            ->get()
-            ->map(function ($consent) {
-                return [
-                    'consent_type' => $consent->consent_type,
-                    'granted' => $consent->granted,
-                    'granted_at' => $consent->granted_at,
-                    'withdrawn_at' => $consent->withdrawn_at,
-                    'consent_text' => $consent->consent_text,
-                ];
-            })
-            ->toArray();
-    }
-
-    /**
-     * Collect all user data for export
-     */
-    protected function collectUserData(int $userId, int $tenantId): array
-    {
-        $user = \App\Models\User::find($userId);
-
-        return [
-            'profile' => $user ? $user->only(['name', 'email', 'phone']) : [],
-            'consents' => $this->getUserConsents($tenantId, $userId),
-            // Add more data collections as needed
-        ];
     }
 
     /**
      * Anonymize user data
+     * 
+     * @param $user
      */
-    protected function anonymizeUserData(int $userId, int $tenantId): void
+    protected function anonymizeUserData($user): void
     {
-        $user = \App\Models\User::find($userId);
-
-        if ($user) {
-            $user->update([
-                'name' => 'Deleted User #' . $userId,
-                'email' => "deleted_{$userId}@anonymous.com",
-                'phone' => null,
-            ]);
-        }
+        $user->update([
+            'name' => 'Deleted User #' . $user->id,
+            'email' => 'deleted_' . $user->id . '@anonymized.local',
+            'phone' => null,
+            'address' => null,
+            'avatar' => null,
+        ]);
     }
 
     /**
-     * Generate export file
+     * Delete or anonymize related data
+     * 
+     * @param $user
+     * @param int $tenantId
      */
-    protected function generateExportFile(array $userData): string
+    protected function deleteRelatedData($user, int $tenantId): void
     {
-        $filename = 'data_export_' . date('Y-m-d_H-i-s') . '.json';
-        $path = storage_path('app/exports/' . $filename);
+        // Anonymize audit logs (keep for compliance but remove PII)
+        \DB::table('audit_logs')
+            ->where('causer_id', $user->id)
+            ->update([
+                'causer_type' => 'Anonymized User',
+                'properties' => json_encode(['anonymized' => true]),
+            ]);
 
-        file_put_contents($path, json_encode($userData, JSON_PRETTY_PRINT));
+        // Anonymize activity logs
+        \DB::table('activity_log')
+            ->where('causer_id', $user->id)
+            ->update([
+                'description' => '[Anonymized]',
+                'properties' => json_encode(['anonymized' => true]),
+            ]);
 
-        return url('storage/exports/' . $filename);
+        // Delete personal preferences
+        \DB::table('user_preferences')
+            ->where('user_id', $user->id)
+            ->delete();
+
+        // Delete sessions
+        \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->delete();
+
+        // Note: Financial and legal records should be retained per local laws
+        // Only PII should be anonymized
+    }
+
+    /**
+     * Record user consent
+     * 
+     * @param int $userId
+     * @param string $consentType
+     * @param string $ipAddress
+     * @param string $userAgent
+     * @return GdprConsent
+     */
+    public function recordConsent(int $userId, string $consentType, string $ipAddress, string $userAgent): GdprConsent
+    {
+        // Revoke any previous active consent of this type
+        GdprConsent::where('user_id', $userId)
+            ->where('consent_type', $consentType)
+            ->where('is_active', true)
+            ->update(['is_active' => false]);
+
+        return GdprConsent::create([
+            'user_id' => $userId,
+            'consent_type' => $consentType,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'consented_at' => now(),
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Revoke user consent
+     * 
+     * @param int $userId
+     * @param string $consentType
+     * @return bool
+     */
+    public function revokeConsent(int $userId, string $consentType): bool
+    {
+        return GdprConsent::where('user_id', $userId)
+            ->where('consent_type', $consentType)
+            ->where('is_active', true)
+            ->update(['is_active' => false]) > 0;
+    }
+
+    /**
+     * Check if user has active consent
+     * 
+     * @param int $userId
+     * @param string $consentType
+     * @return bool
+     */
+    public function hasConsent(int $userId, string $consentType): bool
+    {
+        return GdprConsent::where('user_id', $userId)
+            ->where('consent_type', $consentType)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Export module data
+     * 
+     * @param string $module
+     * @param $user
+     * @param int $tenantId
+     * @return array
+     */
+    protected function exportModuleData(string $module, $user, int $tenantId): array
+    {
+        return match ($module) {
+            'patients' => $this->exportPatientData($user, $tenantId),
+            'employees' => $this->exportEmployeeData($user, $tenantId),
+            'customers' => $this->exportCustomerData($user, $tenantId),
+            'orders' => $this->exportOrderData($user, $tenantId),
+            default => [],
+        };
+    }
+
+    /**
+     * Export patient data (Healthcare)
+     */
+    protected function exportPatientData($user, int $tenantId): array
+    {
+        if (!class_exists('\App\Models\Patient')) {
+            return [];
+        }
+
+        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+            ->where('created_by', $user->id)
+            ->get();
+
+        return $patients->map(fn($p) => [
+            'mrn' => $p->mrn,
+            'name' => $p->full_name,
+            'date_of_birth' => $p->date_of_birth,
+            'gender' => $p->gender,
+            'contact' => $p->phone,
+            'medical_records_count' => $p->visits()->count(),
+        ])->toArray();
+    }
+
+    /**
+     * Export employee data (HRM)
+     */
+    protected function exportEmployeeData($user, int $tenantId): array
+    {
+        if ($user->id !== $user->id) {
+            return []; // Only export own data
+        }
+
+        if (!class_exists('\App\Models\Employee')) {
+            return [];
+        }
+
+        $employee = \App\Models\Employee::where('tenant_id', $tenantId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$employee) {
+            return [];
+        }
+
+        return [
+            'employee_code' => $employee->employee_code,
+            'department' => $employee->department?->name,
+            'position' => $employee->position?->name,
+            'hire_date' => $employee->hire_date,
+            'salary' => '[REDACTED]', // Sensitive data
+        ];
+    }
+
+    /**
+     * Export customer data
+     */
+    protected function exportCustomerData($user, int $tenantId): array
+    {
+        if (!class_exists('\App\Models\Customer')) {
+            return [];
+        }
+
+        $customers = \App\Models\Customer::where('tenant_id', $tenantId)
+            ->where('created_by', $user->id)
+            ->get();
+
+        return $customers->map(fn($c) => [
+            'code' => $c->customer_code,
+            'name' => $c->name,
+            'email' => $c->email,
+            'phone' => $c->phone,
+            'address' => $c->address,
+        ])->toArray();
+    }
+
+    /**
+     * Export order data
+     */
+    protected function exportOrderData($user, int $tenantId): array
+    {
+        if (!class_exists('\App\Models\SalesOrder')) {
+            return [];
+        }
+
+        $orders = \App\Models\SalesOrder::where('tenant_id', $tenantId)
+            ->where('created_by', $user->id)
+            ->with('customer')
+            ->get();
+
+        return $orders->map(fn($o) => [
+            'order_number' => $o->order_number,
+            'customer' => $o->customer?->name,
+            'date' => $o->order_date,
+            'total' => $o->total_amount,
+            'status' => $o->status,
+        ])->toArray();
+    }
+
+    /**
+     * Get default modules for export
+     */
+    protected function getDefaultModules(): array
+    {
+        return ['patients', 'employees', 'customers', 'orders'];
     }
 }

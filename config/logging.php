@@ -152,6 +152,64 @@ return [
             'level' => env('LOG_ALERT_LEVEL', 'critical'),
         ],
 
+        // Healthcare Audit Trail Channel
+        // Logs all medical record access for HIPAA compliance
+        'healthcare_audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/healthcare/audit.log'),
+            'level' => env('HEALTHCARE_AUDIT_LOG_LEVEL', 'info'),
+            'days' => env('HEALTHCARE_AUDIT_LOG_DAYS', 2555), // 7 years for compliance
+            'permission' => 0640,
+            'locking' => true,
+            'replace_placeholders' => true,
+            'processors' => [
+                PsrLogMessageProcessor::class,
+                // Add custom processor for tenant context
+                function ($record) {
+                    if (auth()->check()) {
+                        $record['context']['user_id'] = auth()->id();
+                        $record['context']['tenant_id'] = auth()->user()->tenant_id ?? null;
+                    }
+                    return $record;
+                },
+            ],
+        ],
+
+        // Healthcare Security Alerts Channel
+        // Logs security incidents and suspicious access patterns
+        'healthcare_security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/healthcare/security.log'),
+            'level' => env('HEALTHCARE_SECURITY_LOG_LEVEL', 'warning'),
+            'days' => env('HEALTHCARE_SECURITY_LOG_DAYS', 2555), // 7 years for compliance
+            'permission' => 0640,
+            'locking' => true,
+            'replace_placeholders' => true,
+            'processors' => [
+                PsrLogMessageProcessor::class,
+                function ($record) {
+                    if (auth()->check()) {
+                        $record['context']['user_id'] = auth()->id();
+                        $record['context']['user_email'] = auth()->user()->email ?? null;
+                        $record['context']['ip_address'] = request()->ip();
+                    }
+                    return $record;
+                },
+            ],
+        ],
+
+        // Healthcare Compliance Channel
+        // Separate log for compliance reporting
+        'healthcare_compliance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/healthcare/compliance.log'),
+            'level' => env('HEALTHCARE_COMPLIANCE_LOG_LEVEL', 'notice'),
+            'days' => env('HEALTHCARE_COMPLIANCE_LOG_DAYS', 2555), // 7 years
+            'permission' => 0640,
+            'locking' => true,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

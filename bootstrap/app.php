@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
+    ->withProviders([
+        App\Providers\AuthServiceProvider::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
@@ -29,6 +32,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'csrf.upload' => \App\Http\Middleware\VerifyCsrfForUploads::class,
             'security.headers' => \App\Http\Middleware\AddSecurityHeaders::class,
             'file.upload' => \App\Http\Middleware\ValidateFileUpload::class, // SEC-004
+    
+            // Healthcare Module Middleware
+            'healthcare.access' => \App\Http\Middleware\HealthcareAccessMiddleware::class,
+            'healthcare.audit' => \App\Http\Middleware\AuditTrailMiddleware::class,
+            'healthcare.rbac' => \App\Http\Middleware\RBACMiddleware::class,
+            'healthcare.hours' => \App\Http\Middleware\BusinessHoursMiddleware::class,
         ]);
 
         // CheckTenantActive di-append ke web group agar berjalan di semua request

@@ -13,7 +13,7 @@
                 </div>
                 <div class="flex gap-3">
                     <a href="{{ route('analytics.predictive') }}"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                         <i class="fas fa-brain mr-2"></i>AI Predictions
                     </a>
                     <a href="{{ route('analytics.report-builder') }}"

@@ -100,6 +100,9 @@
     <!-- Defer non-critical scripts -->
     @vite(['resources/js/app.js'])
 
+    <!-- Toast Notification Manager -->
+    <script src="{{ asset('js/toast.js') }}" defer></script>
+
     <!-- Page-specific scripts (lazy loaded) -->
     @stack('scripts')
 </body>

@@ -58,14 +58,42 @@ export default defineConfig({
 
     // Development optimizations
     optimizeDeps: {
-        include: ['alpinejs', 'chart.js', 'dompurify', 'marked']
+        include: ['alpinejs', 'chart.js', 'dompurify', 'marked'],
+        // Exclude large dependencies from pre-bundling to reduce memory
+        exclude: []
     },
 
     // Server configuration
     server: {
         hmr: {
             host: 'localhost',
-            protocol: 'ws'
+            protocol: 'ws',
+            // Reduce HMR memory usage
+            overlay: false
+        },
+        // Increase file watcher limit for large projects
+        watch: {
+            usePolling: false,
+            interval: 100,
+            // Ignore large directories to reduce memory usage
+            ignored: [
+                '**/node_modules/**',
+                '**/storage/**',
+                '**/vendor/**',
+                '**/.git/**',
+                '**/bootstrap/cache/**'
+            ]
+        },
+        // Limit concurrent requests to reduce memory
+        warmup: {
+            clientFiles: [
+                'resources/js/app.js',
+                'resources/css/app.css'
+            ]
         }
+    },
+    // Increase Node.js memory limit for Vite
+    define: {
+        'process.env.NODE_OPTIONS': '--max-old-space-size=4096'
     }
 });

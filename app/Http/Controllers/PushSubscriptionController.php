@@ -14,25 +14,26 @@ class PushSubscriptionController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'endpoint' => 'required|url|max:500',
-            'keys.p256dh' => 'required|string',
-            'keys.auth'   => 'required|string',
+        $validated = $request->validate([
+            'subscription.endpoint' => 'required|url|max:500',
+            'subscription.keys.p256dh' => 'required|string',
+            'subscription.keys.auth' => 'required|string',
         ]);
 
         $user = $request->user();
+        $subscription = $validated['subscription'];
 
         // Upsert — don't create duplicate for same endpoint
         PushSubscription::updateOrCreate(
-            ['user_id' => $user->id, 'endpoint' => $data['endpoint']],
+            ['user_id' => $user->id, 'endpoint' => $subscription['endpoint']],
             [
                 'tenant_id' => $user->tenant_id,
-                'p256dh'    => $data['keys']['p256dh'],
-                'auth'      => $data['keys']['auth'],
+                'p256dh' => $subscription['keys']['p256dh'],
+                'auth' => $subscription['keys']['auth'],
             ]
         );
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'message' => 'Push subscription saved']);
     }
 
     /**

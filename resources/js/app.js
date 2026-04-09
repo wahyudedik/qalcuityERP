@@ -48,8 +48,36 @@ if ('requestIdleCallback' in window) {
     }, { timeout: 2000 });
 } else {
     setTimeout(() => {
-        import('./offline-manager.js').catch(console.warn);
-    }, 1000);
+        import('./offline-manager.js')
+            .then(module => {
+                console.log('[Offline] Preloaded');
+            })
+            .catch(err => {
+                console.warn('[Offline] Preload failed:', err);
+            });
+    }, 2000);
 }
+
+// Initialize Push Notifications (if VAPID key is configured)
+document.addEventListener('DOMContentLoaded', () => {
+    const vapidKey = document.querySelector('meta[name="vapid-public-key"]')?.content;
+
+    if (vapidKey && 'serviceWorker' in navigator) {
+        import('./push-notification.js')
+            .then(({ PushNotificationManager }) => {
+                window.pushManager = new PushNotificationManager();
+
+                // Auto-initialize if permission already granted
+                window.pushManager.initialize(vapidKey).then(success => {
+                    if (success) {
+                        console.log('[PushNotification] Auto-initialized');
+                    }
+                });
+            })
+            .catch(err => {
+                console.warn('[PushNotification] Failed to load:', err);
+            });
+    }
+});
 
 console.log('[App] Initialized with code splitting');

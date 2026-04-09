@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="canonical" href="<?php echo e(url('/')); ?>">
     <meta name="description"
-        content="Platform ERP AI untuk semua industri: retail, F&B, konstruksi, pabrik beton, pertanian, manufaktur, distributor, telecom/ISP, hospitality, perikanan, peternakan, dan jasa. 70+ modul terintegrasi dengan AI chat. Gratis 14 hari.">
+        content="Platform ERP AI untuk semua industri: retail, F&B, konstruksi, pabrik beton, pertanian, manufaktur, distributor, telecom/ISP, hospitality, perikanan, peternakan, healthcare/rumah sakit, dan jasa. 70+ modul terintegrasi dengan AI chat. Gratis 14 hari.">
     <meta name="keywords"
         content="ERP Indonesia, ERP AI, software akuntansi, aplikasi kasir POS, manajemen inventori, ERP konstruksi, ERP pertanian, ERP pabrik beton, ERP manufaktur, ERP telecom, ERP ISP, ERP hotel, ERP restoran, SaaS ERP, Qalcuity">
     <meta name="robots" content="index, follow">
@@ -20,7 +20,7 @@
     <meta property="og:url" content="<?php echo e(url('/')); ?>">
     <meta property="og:title" content="Qalcuity ERP — ERP Cerdas Berbasis AI untuk Semua Industri">
     <meta property="og:description"
-        content="Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, kosmetik & beauty, CRM, fleet, telecom/ISP, hospitality, e-commerce marketplace, dan 70+ modul bisnis dengan AI. Cukup ketik perintah, AI langsung bertindak.">
+        content="Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, kosmetik & beauty, CRM, fleet, telecom/ISP, hospitality, e-commerce marketplace, healthcare/rumah sakit, dan 70+ modul bisnis dengan AI. Cukup ketik perintah, AI langsung bertindak.">
     <meta property="og:image" content="<?php echo e(url('/logo.png')); ?>">
     <meta property="og:locale" content="id_ID">
     <meta property="og:site_name" content="Qalcuity ERP">
@@ -29,7 +29,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Qalcuity ERP — ERP AI untuk Semua Industri Indonesia">
     <meta name="twitter:description"
-        content="70+ modul ERP terintegrasi AI. Retail, F&B, konstruksi, pertanian, manufaktur, distributor, telecom/ISP, hospitality, perikanan, peternakan.">
+        content="70+ modul ERP terintegrasi AI. Retail, F&B, konstruksi, pertanian, manufaktur, distributor, telecom/ISP, hospitality, e-commerce, perikanan, peternakan, healthcare/rumah sakit.">
     <meta name="twitter:image" content="<?php echo e(url('/logo.png')); ?>">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -65,7 +65,7 @@
         "name": "Qalcuity ERP",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "description": "Platform ERP berbasis AI untuk semua industri Indonesia. 70+ modul terintegrasi: inventori, penjualan, keuangan, SDM, konstruksi, pertanian, manufaktur, telecom/ISP, hospitality, e-commerce, perikanan, peternakan.",
+        "description": "Platform ERP berbasis AI untuk semua industri Indonesia. 70+ modul terintegrasi: inventori, penjualan, keuangan, SDM, konstruksi, pertanian, manufaktur, telecom/ISP, hospitality, e-commerce, perikanan, peternakan, healthcare/rumah sakit.",
         "url": "<?php echo e(url('/')); ?>",
         "offers": {
             "@type": "AggregateOffer",
@@ -94,7 +94,7 @@
         class="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="<?php echo e(route('landing')); ?>" class="flex items-center gap-2.5">
-                <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0">
+                <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0" loading="lazy">
             </a>
             <div class="hidden md:flex items-center gap-0.5 text-sm font-medium">
                 <a href="#fitur"
@@ -105,13 +105,43 @@
                     class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Industri</a>
                 <a href="#harga"
                     class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Harga</a>
-                <a href="#open-clow"
-                    class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Open
-                    Clow</a>
+
+                
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" @click.outside="open = false"
+                        class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition flex items-center gap-1">
+                        Resources
+                        <svg class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition
+                        class="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                        <a href="<?php echo e(route('documentation')); ?>"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                            <div class="font-medium">Dokumentasi</div>
+                            <div class="text-xs text-gray-500">Panduan lengkap</div>
+                        </a>
+                        <a href="<?php echo e(url('/api-docs')); ?>" target="_blank"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                            <div class="font-medium">API Docs</div>
+                            <div class="text-xs text-gray-500">REST API reference</div>
+                        </a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <a href="#open-clow" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                            <div class="font-medium">Open Clow</div>
+                            <div class="text-xs text-gray-500">Komunitas developer</div>
+                        </a>
+                        <a href="#faq" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                            <div class="font-medium">FAQ</div>
+                            <div class="text-xs text-gray-500">Pertanyaan umum</div>
+                        </a>
+                    </div>
+                </div>
+
                 <a href="#affiliate"
                     class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Affiliate</a>
-                <a href="#faq"
-                    class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">FAQ</a>
                 <a href="#kontak"
                     class="px-4 py-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">Kontak</a>
             </div>
@@ -149,12 +179,31 @@
                 class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Industri</a>
             <a href="#harga" @click="open=false"
                 class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Harga</a>
-            <a href="#open-clow" @click="open=false"
-                class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Open Clow</a>
+
+            
+            <div x-data="{ resourcesOpen: false }" class="space-y-1">
+                <button @click="resourcesOpen = !resourcesOpen"
+                    class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
+                    Resources
+                    <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': resourcesOpen }" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="resourcesOpen" x-collapse class="pl-4 space-y-1">
+                    <a href="<?php echo e(route('documentation')); ?>" @click="open=false"
+                        class="block px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Dokumentasi</a>
+                    <a href="<?php echo e(url('/api-docs')); ?>" @click="open=false" target="_blank"
+                        class="block px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">API Docs</a>
+                    <a href="#open-clow" @click="open=false"
+                        class="block px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Open Clow</a>
+                    <a href="#faq" @click="open=false"
+                        class="block px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50">FAQ</a>
+                </div>
+            </div>
+
             <a href="#affiliate" @click="open=false"
                 class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Affiliate</a>
-            <a href="#faq" @click="open=false"
-                class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">FAQ</a>
             <a href="#kontak" @click="open=false"
                 class="block px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">Kontak</a>
             <div class="pt-3 flex flex-col gap-2 border-t border-gray-100 mt-2">
@@ -196,10 +245,10 @@
 
             <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
                 Kelola inventory, penjualan, keuangan, SDM, produksi, konstruksi, pertanian, kosmetik & beauty, CRM,
-                fleet, telecom/ISP, hospitality, e-commerce marketplace, dan 70+ modul
+                fleet, telecom/ISP, hospitality, e-commerce marketplace, healthcare/rumah sakit, dan 70+ modul
                 bisnis lainnya — cukup dengan mengetik perintah. AI kami memahami konteks bisnis Anda dan langsung
                 bertindak. Cocok untuk retail, F&B, pabrik beton, perkebunan, distributor, manufaktur kosmetik, ISP,
-                hotel, restoran, perikanan, peternakan, dan semua jenis industri.
+                hotel, restoran, perikanan, peternakan, rumah sakit, klinik, dan semua jenis industri.
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
@@ -309,7 +358,7 @@
     <section class="bg-white border-b border-gray-100 py-14">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                <?php $__currentLoopData = [['value' => '40+', 'label' => 'Modul ERP Terintegrasi'], ['value' => '8+', 'label' => 'Industri Didukung'], ['value' => 'AI', 'label' => 'Powered by Qalcuity AI'], ['value' => '4.9★', 'label' => 'Rating Pengguna']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = [['value' => '40+', 'label' => 'Modul ERP Terintegrasi'], ['value' => '9+', 'label' => 'Industri Didukung'], ['value' => 'AI', 'label' => 'Powered by Qalcuity AI'], ['value' => '4.9★', 'label' => 'Rating Pengguna']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div>
                         <p class="text-3xl font-black text-gray-900 tracking-tight"><?php echo e($s['value']); ?></p>
                         <p class="text-sm text-gray-400 mt-1.5"><?php echo e($s['label']); ?></p>
@@ -398,6 +447,14 @@
                         ],
                         [
                             'icon' =>
+                                'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+                            'title' => 'Healthcare & Rumah Sakit',
+                            'color' => 'red',
+                            'desc' =>
+                                'Electronic Medical Records (EMR), appointment scheduling, bed management, pharmacy, laboratory, radiology, BPJS claims, billing pasien, dan patient portal.',
+                        ],
+                        [
+                            'icon' =>
                                 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0',
                             'title' => 'Distribution Channels',
                             'color' => 'cyan',
@@ -414,6 +471,7 @@
                         'pink' => ['bg' => 'bg-pink-50', 'ic' => 'text-pink-600'],
                         'teal' => ['bg' => 'bg-teal-50', 'ic' => 'text-teal-600'],
                         'rose' => ['bg' => 'bg-rose-50', 'ic' => 'text-rose-600'],
+                        'red' => ['bg' => 'bg-red-50', 'ic' => 'text-red-600'],
                         'cyan' => ['bg' => 'bg-cyan-50', 'ic' => 'text-cyan-600'],
                     ];
                 ?>
@@ -579,6 +637,18 @@
                                 'Webhook',
                             ],
                         ],
+                        [
+                            'emoji' => '🏥',
+                            'title' => 'Healthcare',
+                            'color' => 'red',
+                            'items' => [
+                                'Electronic Medical Records',
+                                'Appointment Scheduling',
+                                'Bed Management',
+                                'BPJS Claims',
+                                'Patient Portal',
+                            ],
+                        ],
                     ];
                     $mc = [
                         'blue' => ['b' => 'border-blue-200', 't' => 'text-blue-700', 'd' => 'bg-blue-400'],
@@ -594,6 +664,7 @@
                         'cyan' => ['b' => 'border-cyan-200', 't' => 'text-cyan-700', 'd' => 'bg-cyan-400'],
                         'emerald' => ['b' => 'border-emerald-200', 't' => 'text-emerald-700', 'd' => 'bg-emerald-400'],
                         'pink' => ['b' => 'border-pink-200', 't' => 'text-pink-700', 'd' => 'bg-pink-400'],
+                        'red' => ['b' => 'border-red-200', 't' => 'text-red-700', 'd' => 'bg-red-400'],
                     ];
                 ?>
                 <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -615,7 +686,55 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
             <div class="mt-5 flex flex-wrap gap-2 justify-center">
-                <?php $__currentLoopData = ['🚚 Pengiriman', '🛍️ E-Commerce', '🤖 Bot WA/Telegram', '🏦 Rekonsiliasi Bank', '⭐ Loyalty Program', '✍️ Tanda Tangan Digital', '📊 AI Forecasting', '🔔 Push Notification', '🏪 Konsinyasi', '📐 Project Billing', '🔄 Subscription Billing', '🎫 Helpdesk & Tiket', '🚢 Landed Cost', '💵 Komisi Sales', '🚛 Fleet & Aset', '📝 Kontrak', '🧮 Mix Design Beton', '📐 RAB Konstruksi', '🌱 Siklus Tanam', '🌾 Pencatatan Panen', '📦 Bulk Import/Export', '🔗 Webhook Outbound', '🌐 Telecom/ISP', '🏨 Hotel Management', '🍽️ Restaurant POS', '💆 Spa & Wellness', '✈️ Tour & Travel', '🐟 Budidaya Ikan', '🐄 Peternakan', '🖨️ Print Estimation', '👆 Fingerprint/RFID', '🏭 BOM Multi-Level', '📊 Custom Dashboard', '✅ Approval Workflow', '📷 Zero Input OCR', '🏢 Multi-Company', '🌍 Multi-Currency']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tag): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = [
+        '🚚 Pengiriman',
+        '🛍️ E-Commerce',
+        '🤖 Bot WA/Telegram',
+        '🏦 Rekonsiliasi Bank',
+        '⭐ Loyalty Program',
+        '✍️ Tanda Tangan Digital',
+        '📊 AI Forecasting',
+        '🔔 Push Notification',
+        '🏪 Konsinyasi',
+        '📐 Project Billing',
+        '🔄 Subscription Billing',
+        '🎫 Helpdesk & Tiket',
+        '🚢 Landed Cost',
+        '💵 Komisi Sales',
+        '🚛 Fleet & Aset',
+        '📝 Kontrak',
+        '🧮 Mix Design Beton',
+        '📐 RAB Konstruksi',
+        '🌱 Siklus Tanam',
+        '🌾 Pencatatan Panen',
+        '📦 Bulk Import/Export',
+        '🔗 Webhook Outbound',
+        '🌐 Telecom/ISP',
+        '🏨 Hotel Management',
+        '🍽️ Restaurant POS',
+        '💆 Spa & Wellness',
+        '✈️ Tour & Travel',
+        '🐟 Budidaya Ikan',
+        '🐄 Peternakan',
+        '🖨️ Print Estimation',
+        '👆 Fingerprint/RFID',
+        '🏭 BOM Multi-Level',
+        '📊 Custom Dashboard',
+        '✅ Approval Workflow',
+        '📷 Zero Input OCR',
+        '🏢 Multi-Company',
+        '🌍 Multi-Currency',
+        '🏥 Electronic Medical Records',
+        '🩺 Appointment Scheduling',
+        '🛏️ Bed Management',
+        '💊 Pharmacy Management',
+        '🔬 Laboratory',
+        '📡 Radiology',
+        '🏥 BPJS Claims',
+        '👤 Patient Portal',
+        '🚑 Emergency Room',
+        '🏨 Inpatient Ward',
+    ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tag): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <span
                         class="text-xs bg-white border border-gray-200 rounded-full px-3 py-1.5 text-gray-500 shadow-sm"><?php echo e($tag); ?></span>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -626,7 +745,9 @@
                     Cukup ketik <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Hitung kebutuhan
                         beton K-300 untuk 50 m³"</span> atau
                     <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Panen 500 kg padi dari blok A1
-                        grade A"</span> — AI langsung mengeksekusi.
+                        grade A"</span> atau
+                    <span class="bg-white/20 px-2 py-0.5 rounded-lg font-mono text-xs">"Jadwalkan dr. Andi untuk
+                        pasien Budi besok jam 10"</span> — AI langsung mengeksekusi.
                 </p>
             </div>
         </div>
@@ -945,6 +1066,13 @@
                             'desc' => 'Print estimation, print job, prepress, plate management, web-to-print order',
                             'color' => 'bg-slate-50 border-slate-200',
                         ],
+                        [
+                            'emoji' => '🏥',
+                            'title' => 'Healthcare & Rumah Sakit',
+                            'desc' =>
+                                'EMR, appointment, bed management, pharmacy, lab, radiology, BPJS, billing, patient portal',
+                            'color' => 'bg-red-50 border-red-200',
+                        ],
                     ];
                 ?>
                 <?php $__currentLoopData = $industries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ind): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -957,7 +1085,9 @@
             </div>
             <p class="text-center text-sm text-gray-400 mt-8">Ketik <span
                     class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template konstruksi"</span> atau
-                <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template pertanian"</span> di AI
+                <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template pertanian"</span> atau
+                <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">"setup template healthcare"</span> di
+                AI
                 Chat untuk langsung mulai.
             </p>
         </div>
@@ -1136,6 +1266,224 @@
             </div>
             <p class="text-center text-xs text-gray-400 mt-8">Semua plan sudah termasuk trial gratis. Tidak perlu kartu
                 kredit. Batalkan kapan saja.</p>
+        </div>
+    </section>
+
+    
+    <section id="dokumentasi" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Dokumentasi</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mt-3">Panduan Lengkap Penggunaan</h2>
+                <p class="text-gray-500 mt-4 max-w-2xl mx-auto">
+                    Akses dokumentasi lengkap untuk semua modul dan fitur Qalcuity ERP
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                
+                <div
+                    class="card-hover bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-8">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">User Manual</h3>
+                    <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                        Panduan lengkap penggunaan semua modul: Finance, Sales, Inventory, HRM, Healthcare, Hotel, dan
+                        lainnya.
+                    </p>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Quick Start Guide
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Step-by-step Tutorials
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Troubleshooting & FAQ
+                        </li>
+                    </ul>
+                    <a href="<?php echo e(route('documentation')); ?>"
+                        class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-sm transition">
+                        Baca Dokumentasi
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
+
+                
+                <div
+                    class="card-hover bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-2xl p-8">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">API Documentation</h3>
+                    <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                        Dokumentasi REST API lengkap dengan 233+ endpoints untuk integrasi dengan sistem eksternal.
+                    </p>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            OpenAPI/Swagger Spec
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Authentication Guides
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Code Examples
+                        </li>
+                    </ul>
+                    <a href="<?php echo e(url('/api-docs')); ?>" target="_blank"
+                        class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold text-sm transition">
+                        Lihat API Docs
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                    </a>
+                </div>
+
+                
+                <div
+                    class="card-hover bg-gradient-to-br from-green-50 to-teal-50 border border-green-100 rounded-2xl p-8">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Video Tutorials</h3>
+                    <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                        Video tutorial interaktif untuk mempercepat proses belajar dan onboard tim Anda.
+                    </p>
+                    <ul class="space-y-2 mb-6 text-sm text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Getting Started Series
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Module Walkthroughs
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor"
+                                viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Advanced Features
+                        </li>
+                    </ul>
+                    <a href="#tutorial"
+                        class="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold text-sm transition">
+                        Tonton Video
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            
+            <div class="mt-12 bg-gray-50 rounded-2xl p-8 border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-6 text-center">Quick Links</h3>
+                <div class="grid md:grid-cols-4 gap-4">
+                    <a href="<?php echo e(route('documentation')); ?>"
+                        class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition group">
+                        <span class="text-2xl">📋</span>
+                        <div>
+                            <div class="font-semibold text-sm text-gray-900 group-hover:text-blue-600">Modul Guides
+                            </div>
+                            <div class="text-xs text-gray-500">10+ industri</div>
+                        </div>
+                    </a>
+                    <a href="<?php echo e(route('documentation')); ?>#common-tasks"
+                        class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-sm transition group">
+                        <span class="text-2xl">📝</span>
+                        <div>
+                            <div class="font-semibold text-sm text-gray-900 group-hover:text-purple-600">Common Tasks
+                            </div>
+                            <div class="text-xs text-gray-500">Step-by-step</div>
+                        </div>
+                    </a>
+                    <a href="<?php echo e(route('documentation')); ?>#troubleshooting"
+                        class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-sm transition group">
+                        <span class="text-2xl">🔧</span>
+                        <div>
+                            <div class="font-semibold text-sm text-gray-900 group-hover:text-green-600">Troubleshooting
+                            </div>
+                            <div class="text-xs text-gray-500">Solusi cepat</div>
+                        </div>
+                    </a>
+                    <a href="<?php echo e(route('documentation')); ?>#faq"
+                        class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-orange-300 hover:shadow-sm transition group">
+                        <span class="text-2xl">❓</span>
+                        <div>
+                            <div class="font-semibold text-sm text-gray-900 group-hover:text-orange-600">FAQ</div>
+                            <div class="text-xs text-gray-500">30+ questions</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -1453,7 +1801,7 @@
                         </p>
                     </div>
                 </div>
-                <a href="/api-docs/" target="_blank" rel="noopener"
+                <a href="<?php echo e(url('/api-docs')); ?>" target="_blank" rel="noopener"
                     class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition shadow-lg shadow-blue-900/40 whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1475,7 +1823,8 @@
             <div class="grid md:grid-cols-4 gap-8 mb-10">
                 <div class="md:col-span-2">
                     <div class="flex items-center gap-2.5 mb-4">
-                        <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0">
+                        <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0"
+                            loading="lazy">
                     </div>
                     <p class="text-sm text-gray-400 leading-relaxed max-w-xs">
                         Platform ERP berbasis AI untuk bisnis Indonesia. Kelola semua aspek bisnis Anda lewat percakapan
@@ -1490,7 +1839,11 @@
                         <li><a href="#industri" class="text-gray-500 hover:text-gray-900 transition">Industri</a></li>
                         <li><a href="#harga" class="text-gray-500 hover:text-gray-900 transition">Harga</a></li>
                         <li>
-                            <a href="/api-docs/" target="_blank" rel="noopener"
+                            <a href="<?php echo e(route('documentation')); ?>"
+                                class="text-gray-500 hover:text-gray-900 transition">Dokumentasi</a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(url('/api-docs')); ?>" target="_blank" rel="noopener"
                                 class="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-700 transition font-medium">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

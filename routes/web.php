@@ -70,6 +70,10 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+Route::get('/documentation', function () {
+    return view('documentation');
+})->name('documentation');
+
 Route::get('/offline', fn() => response()->file(public_path('offline.html')))->name('offline');
 
 // API Documentation (static files served via route for Herd/Valet compatibility)
@@ -1394,6 +1398,21 @@ Route::middleware('auth')->group(function () {
         Route::delete('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'destroy'])->name('mix-design.destroy')->middleware('permission:manufacturing,delete');
         Route::get('/mix-design/{mixDesign}/calculate', [\App\Http\Controllers\ConcreteMixDesignController::class, 'calculate'])->name('mix-design.calculate');
         Route::post('/mix-design/{mixDesign}/generate-bom', [\App\Http\Controllers\ConcreteMixDesignController::class, 'generateBom'])->name('mix-design.generate-bom')->middleware('permission:manufacturing,create');
+
+        // Quality Control
+        Route::prefix('quality')->name('quality.')->group(function () {
+            Route::get('/dashboard', [ManufacturingController::class, 'qualityDashboard'])->name('dashboard')->middleware('permission:manufacturing,view');
+            Route::get('/checks', [ManufacturingController::class, 'qualityChecks'])->name('checks')->middleware('permission:manufacturing,view');
+            Route::get('/checks/create', [ManufacturingController::class, 'createQualityCheck'])->name('checks.create')->middleware('permission:manufacturing,create');
+            Route::post('/checks', [ManufacturingController::class, 'storeQualityCheck'])->name('checks.store')->middleware('permission:manufacturing,create');
+            Route::get('/checks/{qualityCheck}/edit', [ManufacturingController::class, 'editQualityCheck'])->name('checks.edit')->middleware('permission:manufacturing,edit');
+            Route::put('/checks/{qualityCheck}', [ManufacturingController::class, 'updateQualityCheck'])->name('checks.update')->middleware('permission:manufacturing,edit');
+            Route::post('/defects', [ManufacturingController::class, 'recordDefect'])->name('defects.store')->middleware('permission:manufacturing,create');
+            Route::put('/defects/{defect}/resolve', [ManufacturingController::class, 'resolveDefect'])->name('defects.resolve')->middleware('permission:manufacturing,edit');
+            Route::get('/defects', [ManufacturingController::class, 'defectRecords'])->name('defects')->middleware('permission:manufacturing,view');
+            Route::get('/standards', [ManufacturingController::class, 'qualityStandards'])->name('standards')->middleware('permission:manufacturing,view');
+            Route::post('/standards', [ManufacturingController::class, 'storeQualityStandard'])->name('standards.store')->middleware('permission:manufacturing,create');
+        });
     });
 
     // Farm / Agriculture — Manajemen Lahan
@@ -3020,3 +3039,41 @@ Route::prefix('api/integrations/webhooks')->name('api.integrations.webhooks.')->
     Route::post('/woocommerce', [\App\Http\Controllers\Integrations\WebhookController::class, 'handleWooCommerce'])->name('woocommerce');
     Route::post('/test', [\App\Http\Controllers\Integrations\WebhookController::class, 'test'])->name('test');
 });
+
+// Healthcare Module Routes
+Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.')->group(function () {
+
+    // Patient Management
+    Route::prefix('patients')->name('patients.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PatientController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\PatientController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\PatientController::class, 'store'])->name('store');
+        Route::get('/{patient}', [\App\Http\Controllers\PatientController::class, 'show'])->name('show');
+        Route::get('/{patient}/edit', [\App\Http\Controllers\PatientController::class, 'edit'])->name('edit');
+        Route::put('/{patient}', [\App\Http\Controllers\PatientController::class, 'update'])->name('update');
+        Route::post('/{patient}/deactivate', [\App\Http\Controllers\PatientController::class, 'deactivate'])->name('deactivate');
+
+        // Patient Search
+        Route::get('/search', [\App\Http\Controllers\PatientController::class, 'search'])->name('search');
+
+        // Patient Allergies
+        Route::post('/{patient}/allergies', [\App\Http\Controllers\PatientController::class, 'addAllergy'])->name('allergies.add');
+        Route::delete('/allergies/{allergy}', [\App\Http\Controllers\PatientController::class, 'removeAllergy'])->name('allergies.remove');
+        Route::get('/{patient}/allergies/api', [\App\Http\Controllers\PatientController::class, 'getAllergies'])->name('allergies.api');
+
+        // Patient Insurance
+        Route::post('/{patient}/insurance', [\App\Http\Controllers\PatientController::class, 'addInsurance'])->name('insurance.add');
+        Route::get('/{patient}/insurance/api', [\App\Http\Controllers\PatientController::class, 'getInsurance'])->name('insurance.api');
+
+        // QR Code
+        Route::post('/{patient}/qr/generate', [\App\Http\Controllers\PatientController::class, 'generateQrCode'])->name('qr.generate');
+        Route::get('/{patient}/qr/download', [\App\Http\Controllers\PatientController::class, 'downloadQrCode'])->name('qr.download');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Healthcare Module Routes
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/healthcare.php';

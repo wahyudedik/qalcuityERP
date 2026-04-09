@@ -36,8 +36,8 @@
         @endcanmodule
     </div>
 
-    {{-- Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    {{-- Table - Desktop Only --}}
+    <div class="hidden md:block bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
@@ -118,6 +118,36 @@
         <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $customers->links() }}</div>
         @endif
     </div>
+
+    {{-- Mobile Card View --}}
+    <x-mobile-card 
+        :data="$customers" 
+        :fields="[
+            ['label' => 'Perusahaan', 'key' => 'company'],
+            ['label' => 'NPWP', 'key' => 'npwp'],
+            ['label' => 'Telepon', 'key' => 'phone', 'type' => 'tel'],
+            ['label' => 'Email', 'key' => 'email', 'type' => 'email'],
+            ['label' => 'Credit Limit', 'key' => 'credit_limit', 'type' => 'currency'],
+            ['label' => 'Alamat', 'key' => 'address'],
+        ]"
+        titleField="name"
+        subtitleField="company"
+        statusField="is_active"
+        emptyMessage="Belum ada customer."
+        :actions="function($item) {
+            $buttons = '';
+            if (auth()->user()?->canModule('customers', 'edit')) {
+                $buttons .= '<button onclick=\"openEdit(' . $item->id . ', ' . json_encode($item->name) . ', ' . json_encode($item->company ?? '') . ', ' . json_encode($item->phone ?? '') . ', ' . json_encode($item->email ?? '') . ', ' . json_encode($item->address ?? '') . ', ' . json_encode($item->npwp ?? '') . ', ' . ($item->credit_limit ?? 0) . ', ' . ($item->is_active ? 'true' : 'false') . ')\" class=\"min-h-[44px] px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700\">Edit</button>';
+            }
+            if (auth()->user()?->canModule('customers', 'edit')) {
+                $buttons .= '<form method=\"POST\" action=\"' . route('customers.toggle', $item) . '\" class=\"inline\"><input type=\"hidden\" name=\"_token\" value=\"' . csrf_token() . '\"><input type=\"hidden\" name=\"_method\" value=\"PATCH\"><button type=\"submit\" class=\"min-h-[44px] px-3 py-2 text-sm ' . ($item->is_active ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700') . ' text-white rounded-lg\">' . ($item->is_active ? 'Aktif' : 'Nonaktif') . '</button></form>';
+            }
+            if (auth()->user()?->canModule('customers', 'delete')) {
+                $buttons .= '<form method=\"POST\" action=\"' . route('customers.destroy', $item) . '\" class=\"inline\" onsubmit=\"return confirm(\'Hapus customer ' . addslashes($item->name) . '?\')\"><input type=\"hidden\" name=\"_token\" value=\"' . csrf_token() . '\"><input type=\"hidden\" name=\"_method\" value=\"DELETE\"><button type=\"submit\" class=\"min-h-[44px] px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700\">Hapus</button></form>';
+            }
+            return $buttons;
+        }"
+    />
 
     {{-- Modal Tambah --}}
     <div id="modal-add" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

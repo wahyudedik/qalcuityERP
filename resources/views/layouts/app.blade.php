@@ -18,6 +18,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/favicon.png">
+    @if (config('services.vapid.public_key'))
+        <meta name="vapid-public-key" content="{{ config('services.vapid.public_key') }}">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js'])
     @stack('head')
     <script>
@@ -302,6 +305,7 @@
                 border-right: none !important;
                 border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
                 transform: translateY(100%) !important;
+                transition: transform 0.3s cubic-bezier(.16, 1, .3, 1) !important;
             }
 
             #sidebar-rail.mobile-open {
@@ -314,10 +318,17 @@
                 max-width: 100vw !important;
                 top: 0 !important;
                 bottom: 0 !important;
+                transform: translateX(-100%) !important;
+                transition: transform 0.26s cubic-bezier(.16, 1, .3, 1) !important;
+            }
+
+            #sidebar-panel.panel-open {
+                transform: translateX(0) !important;
             }
 
             #main-wrap {
                 padding-left: 0 !important;
+                padding-bottom: 64px !important;
                 transition: none !important;
             }
 
@@ -330,6 +341,17 @@
             }
 
             .rail-btn::before {
+                display: none !important;
+            }
+
+            /* Rail buttons mobile */
+            .rail-btn {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+            }
+
+            #rail-logo {
                 display: none !important;
             }
         }
@@ -373,6 +395,16 @@
         html:not(.dark) #panel-search::placeholder {
             color: #94a3b8;
         }
+
+        /* Hide scrollbar for mobile breadcrumb */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 
@@ -388,7 +420,7 @@
             {{-- Logo: always white since rail bg is always dark --}}
             <a href="{{ route('dashboard') }}" id="rail-logo"
                 class="flex items-center justify-center w-9 h-9 mb-3 rounded-xl transition-all duration-200">
-                <img src="/logo.png" alt="Q" class="h-6 w-auto object-contain"
+                <img src="/logo.png" alt="Q" class="h-6 w-auto object-contain" loading="lazy"
                     style="filter: brightness(0) invert(1);">
             </a>
 
@@ -587,7 +619,8 @@
                 class="rail-btn w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/10 hover:ring-blue-500/50 transition mb-1 relative"
                 data-group="profile" data-color="#60a5fa" data-rgb="96,165,250"
                 style="--group-color:#60a5fa;--group-rgb:96,165,250">
-                <img src="{{ $user?->avatarUrl() }}" alt="{{ $user?->name }}" class="w-full h-full object-cover">
+                <img src="{{ $user?->avatarUrl() }}" alt="{{ $user?->name }}" class="w-full h-full object-cover"
+                    loading="lazy">
                 <span class="rail-tip">{{ $user?->name }}</span>
             </button>
         </aside>
@@ -633,8 +666,8 @@
         <div id="panel-backdrop" class="fixed inset-0 z-30 hidden" onclick="closePanel()"></div>
 
         {{-- Mobile sidebar overlay --}}
-        <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/50 hidden lg:hidden" onclick="closeMobileSidebar()"
-            style="pointer-events:auto"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/50 hidden lg:hidden"
+            onclick="closeMobileSidebar()" style="pointer-events:auto"></div>
 
 
         {{-- ── MAIN CONTENT ── --}}
@@ -655,19 +688,24 @@
                 </button>
 
                 {{-- Breadcrumb / Page title --}}
-                <div class="flex-1 flex items-center gap-2 min-w-0">
-                    <span class="text-xs text-slate-400 hidden sm:block">{{ config('app.name') }}</span>
-                    <span class="text-xs text-slate-600 hidden sm:block">/</span>
+                <div class="flex-1 flex items-center gap-2 min-w-0 overflow-x-auto scrollbar-hide">
+                    <span
+                        class="text-xs text-slate-400 hidden sm:block whitespace-nowrap">{{ config('app.name') }}</span>
+                    <span class="text-xs text-slate-600 hidden sm:block whitespace-nowrap">/</span>
                     @if (isset($header))
                         @if (is_string($header) && !str_contains($header, '<'))
-                            <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">
+                            <h1
+                                class="text-base font-semibold text-gray-900 dark:text-white truncate whitespace-nowrap">
                                 {{ $header }}</h1>
                         @else
-                            {!! $header !!}
+                            <div class="flex items-center gap-2 whitespace-nowrap">{!! $header !!}</div>
                         @endif
                     @elseif(View::hasSection('header'))
-                        <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">@yield('header')
-                        </h1>
+                        <div class="flex items-center gap-2 whitespace-nowrap">
+                            <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">
+                                @yield('header')
+                            </h1>
+                        </div>
                     @endif
                 </div>
 

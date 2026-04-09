@@ -320,16 +320,16 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('✅ ' + data.message);
-                            location.reload();
+                            Toast.success(data.message);
+                            setTimeout(() => location.reload(), 1500);
                         } else {
-                            alert('❌ ' + data.message);
+                            Toast.error(data.message);
                             button.disabled = false;
                             button.innerHTML = originalText;
                         }
                     })
                     .catch(error => {
-                        alert('Error: ' + error.message);
+                        Toast.error('Error: ' + error.message);
                         button.disabled = false;
                         button.innerHTML = originalText;
                     });

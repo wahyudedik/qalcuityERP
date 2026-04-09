@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SettingsUpdated;
 use App\Models\TenantApiSetting;
-use Illuminate\Http\Request;
+use App\Services\SettingsCacheService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TenantIntegrationSettingsController extends Controller
 {
+    protected SettingsCacheService $cacheService;
+
+    public function __construct(SettingsCacheService $cacheService)
+    {
+        $this->cacheService = $cacheService;
+    }
+
     /**
      * Settings map: key => [group, label, encrypted, description]
      */
@@ -107,6 +116,18 @@ class TenantIntegrationSettingsController extends Controller
                 label: $label,
             );
         }
+
+        // BUG-SET-001 FIX: Dispatch event to clear API settings cache
+        event(new SettingsUpdated(
+            type: 'api',
+            tenantId: $tenantId,
+            metadata: [
+                'settings_updated' => array_keys(self::SETTINGS_MAP),
+            ]
+        ));
+
+        // Also clear specific cache
+        $this->cacheService->clearTenantCache($tenantId);
 
         return back()->with('success', 'Pengaturan integrasi berhasil disimpan.');
     }
