@@ -6,11 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property \Carbon\Carbon $appointment_date
+ * @property \Carbon\Carbon|null $checked_in_at
+ * @property \Carbon\Carbon|null $consultation_started_at
+ * @property \Carbon\Carbon|null $consultation_ended_at
+ * @property \Carbon\Carbon|null $cancelled_at
+ * @property \Carbon\Carbon|null $last_reminder_sent_at
+ */
 class Appointment extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'tenant_id',
         'patient_id',
         'doctor_id',
         'department_id',
@@ -244,6 +253,14 @@ class Appointment extends Model
         return $query->where('status', 'confirmed')
             ->whereDate('appointment_date', today())
             ->where('reminder_sent_1h', false);
+    }
+
+    /**
+     * Relation: Tenant
+     */
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     /**

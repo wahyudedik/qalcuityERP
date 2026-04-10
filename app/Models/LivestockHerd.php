@@ -4,51 +4,97 @@ namespace App\Models;
 
 use App\Traits\BelongsToTenant;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property Carbon|null $entry_date
+ * @property Carbon|null $target_harvest_date
+ */
 class LivestockHerd extends Model
 {
     use BelongsToTenant;
     protected $fillable = [
-        'tenant_id', 'farm_plot_id', 'code', 'name', 'animal_type', 'breed',
-        'initial_count', 'current_count', 'entry_date', 'entry_age_days',
-        'entry_weight_kg', 'purchase_price', 'status',
-        'target_harvest_date', 'target_weight_kg', 'notes',
+        'tenant_id',
+        'farm_plot_id',
+        'code',
+        'name',
+        'animal_type',
+        'breed',
+        'initial_count',
+        'current_count',
+        'entry_date',
+        'entry_age_days',
+        'entry_weight_kg',
+        'purchase_price',
+        'status',
+        'target_harvest_date',
+        'target_weight_kg',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'entry_date'          => 'date',
+            'entry_date' => 'date',
             'target_harvest_date' => 'date',
-            'entry_weight_kg'     => 'decimal:3',
-            'purchase_price'      => 'decimal:2',
-            'target_weight_kg'    => 'decimal:3',
+            'entry_weight_kg' => 'decimal:3',
+            'purchase_price' => 'decimal:2',
+            'target_weight_kg' => 'decimal:3',
         ];
     }
 
     public const ANIMAL_TYPES = [
-        'ayam_broiler' => '🐔 Ayam Broiler',
-        'ayam_layer'   => '🥚 Ayam Petelur',
-        'sapi'         => '🐄 Sapi',
-        'kambing'      => '🐐 Kambing/Domba',
-        'bebek'        => '🦆 Bebek/Itik',
-        'ikan'         => '🐟 Ikan',
-        'babi'         => '🐷 Babi',
-        'kelinci'      => '🐰 Kelinci',
-        'lainnya'      => '🐾 Lainnya',
+        'ayam_broiler' => 'Ayam Broiler',
+        'ayam_layer' => 'Ayam Petelur',
+        'sapi' => 'Sapi',
+        'kambing' => 'Kambing/Domba',
+        'bebek' => 'Bebek/Itik',
+        'ikan' => 'Ikan',
+        'babi' => 'Babi',
+        'kelinci' => 'Kelinci',
+        'lainnya' => 'Lainnya',
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function plot(): BelongsTo { return $this->belongsTo(FarmPlot::class, 'farm_plot_id'); }
-    public function movements(): HasMany { return $this->hasMany(LivestockMovement::class)->orderByDesc('date'); }
-    public function healthRecords(): HasMany { return $this->hasMany(LivestockHealthRecord::class)->orderByDesc('date'); }
-    public function vaccinations(): HasMany { return $this->hasMany(LivestockVaccination::class)->orderBy('scheduled_date'); }
-    public function feedLogs(): HasMany { return $this->hasMany(LivestockFeedLog::class)->orderByDesc('date'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function plot(): BelongsTo
+    {
+        return $this->belongsTo(FarmPlot::class, 'farm_plot_id');
+    }
+    public function movements(): HasMany
+    {
+        return $this->hasMany(LivestockMovement::class)->orderByDesc('date');
+    }
+    public function healthRecords(): HasMany
+    {
+        return $this->hasMany(LivestockHealthRecord::class)->orderByDesc('date');
+    }
+    public function vaccinations(): HasMany
+    {
+        return $this->hasMany(LivestockVaccination::class)->orderBy('scheduled_date');
+    }
+    public function feedLogs(): HasMany
+    {
+        return $this->hasMany(LivestockFeedLog::class)->orderByDesc('date');
+    }
+    public function eggProductions(): HasMany
+    {
+        return $this->hasMany(PoultryEggProduction::class, 'livestock_herd_id');
+    }
+    public function flockPerformances(): HasMany
+    {
+        return $this->hasMany(PoultryFlockPerformance::class, 'livestock_herd_id');
+    }
 
-    public function animalLabel(): string { return self::ANIMAL_TYPES[$this->animal_type] ?? $this->animal_type; }
+    public function animalLabel(): string
+    {
+        return self::ANIMAL_TYPES[$this->animal_type] ?? $this->animal_type;
+    }
 
     /** Current age in days */
     public function ageDays(): ?int
@@ -141,7 +187,8 @@ class LivestockHerd extends Model
     public function weightGain(): ?float
     {
         $current = $this->latestBodyWeight();
-        if (!$current || $this->entry_weight_kg <= 0) return null;
+        if (!$current || $this->entry_weight_kg <= 0)
+            return null;
         return round($current - (float) $this->entry_weight_kg, 3);
     }
 
@@ -155,7 +202,8 @@ class LivestockHerd extends Model
         $totalFeed = $this->totalFeedKg();
         $currentWeight = $this->latestBodyWeight();
 
-        if ($totalFeed <= 0 || !$currentWeight || $this->entry_weight_kg <= 0) return null;
+        if ($totalFeed <= 0 || !$currentWeight || $this->entry_weight_kg <= 0)
+            return null;
 
         $totalWeightGain = ($currentWeight - (float) $this->entry_weight_kg) * $this->current_count;
 
@@ -173,7 +221,8 @@ class LivestockHerd extends Model
     public function feedCostPerKgGain(): ?float
     {
         $currentWeight = $this->latestBodyWeight();
-        if (!$currentWeight || $this->entry_weight_kg <= 0) return null;
+        if (!$currentWeight || $this->entry_weight_kg <= 0)
+            return null;
 
         $totalWeightGain = ($currentWeight - (float) $this->entry_weight_kg) * $this->current_count;
         $totalFeedCost = $this->totalFeedCost();

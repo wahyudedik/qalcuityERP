@@ -56,15 +56,15 @@ use App\Http\Controllers\WarehouseTransferController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\AccountingController;
 use App\Http\Controllers\JournalController;
-use App\Http\Controllers\PeriodLockController;
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\StockMovementController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect()->route('dashboard');
     }
     return view('landing');
@@ -115,6 +115,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/widgets/reset', [DashboardController::class, 'resetWidgets'])
         ->name('dashboard.widgets.reset');
 
+    // ═══════════════════════════════════════════════════════════
+    // UI/UX Enhancements - Task 4.1
+    // ═══════════════════════════════════════════════════════════
+
+    // Quick Search (Command Palette)
+    Route::get('/api/quick-search', [\App\Http\Controllers\QuickSearchController::class, 'search'])
+        ->name('quick-search.search');
+
+    // Bulk Actions
+    Route::post('/bulk-actions/execute', [\App\Http\Controllers\BulkActionsController::class, 'execute'])
+        ->name('bulk-actions.execute');
+    Route::get('/bulk-actions/export-download', [\App\Http\Controllers\BulkActionsController::class, 'exportDownload'])
+        ->name('bulk-actions.export-download');
+
     // Custom widget builder (admin/manager only)
     Route::get('/dashboard/custom-widgets', [DashboardController::class, 'customWidgetsList'])->name('dashboard.custom-widgets.list');
     Route::post('/dashboard/custom-widgets', [DashboardController::class, 'customWidgetStore'])->name('dashboard.custom-widgets.store');
@@ -162,6 +176,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/preferences', [NotificationPreferenceController::class, 'update'])->name('preferences.update');
         Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('read');
         Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+
+        // API endpoints for notification bell
+        Route::get('/api/list', [NotificationController::class, 'apiIndex'])->name('api.index');
+        Route::get('/api/unread-count', [NotificationController::class, 'apiUnreadCount'])->name('api.unread-count');
     });
 
     // Push Subscription (browser push notifications)
@@ -261,10 +279,16 @@ Route::middleware('auth')->group(function () {
         // Advanced Analytics Dashboard (NEW)
         Route::get('/advanced', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'index'])->name('advanced');
         Route::get('/predictive', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'predictiveAnalytics'])->name('predictive');
+        Route::get('/comparative', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'comparativeAnalysis'])->name('comparative');
+        Route::get('/executive', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'executiveDashboard'])->name('executive-dashboard');
         Route::get('/report-builder', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'reportBuilder'])->name('report-builder');
         Route::post('/generate-report', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'generateReport'])->name('generate-report');
         Route::get('/scheduled-reports', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'scheduledReports'])->name('scheduled-reports');
         Route::post('/scheduled-reports', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'createScheduledReport'])->name('create-scheduled-report');
+        Route::get('/real-time-metrics', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'realTimeMetrics'])->name('real-time-metrics');
+        Route::post('/share-report', [\App\Http\Controllers\Analytics\AdvancedAnalyticsDashboardController::class, 'shareReport'])->name('share-report');
+        Route::get('/shared/{id}', [\App\Http\Controllers\Analytics\SharedReportController::class, 'view'])->name('shared.view');
+        Route::get('/shared/{id}/download/{format?}', [\App\Http\Controllers\Analytics\SharedReportController::class, 'download'])->name('shared.download');
 
         // API Endpoint
         Route::get('/api/all', [\App\Http\Controllers\Analytics\AnalyticsDashboardController::class, 'apiGetAllAnalytics'])->name('api.all');
@@ -925,6 +949,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/complete', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'complete'])->name('complete');
             Route::post('/{id}/assign-guide', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'assignGuide'])->name('assign-guide');
         });
+
+        // Tour Analytics
+        Route::get('/analytics', [\App\Http\Controllers\TourTravel\TourTravelAnalyticsController::class, 'index'])->name('analytics');
     });
 
     // Livestock Enhancement Module (Dairy, Poultry, Breeding, Waste)
@@ -939,6 +966,7 @@ Route::middleware('auth')->group(function () {
 
         // Poultry Management
         Route::prefix('poultry')->name('poultry.')->group(function () {
+            Route::get('/flocks', [\App\Http\Controllers\Livestock\PoultryController::class, 'flocks'])->name('flocks');
             Route::get('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'eggProduction'])->name('egg-production');
             Route::post('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'storeEggRecord'])->name('egg-production.store');
             Route::get('/flock-performance', [\App\Http\Controllers\Livestock\PoultryController::class, 'flockPerformance'])->name('flock-performance');
@@ -951,6 +979,14 @@ Route::middleware('auth')->group(function () {
             Route::post('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'store'])->name('records.store');
             Route::get('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'pedigrees'])->name('pedigrees');
             Route::post('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'storePedigree'])->name('pedigrees.store');
+        });
+
+        // Health & Vaccination
+        Route::prefix('health')->name('health.')->group(function () {
+            Route::get('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'treatments'])->name('treatments');
+            Route::post('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'storeTreatment'])->name('treatments.store');
+            Route::get('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'vaccinations'])->name('vaccinations');
+            Route::post('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'storeVaccination'])->name('vaccinations.store');
         });
 
         // Waste Management
@@ -1402,13 +1438,18 @@ Route::middleware('auth')->group(function () {
         // Quality Control
         Route::prefix('quality')->name('quality.')->group(function () {
             Route::get('/dashboard', [ManufacturingController::class, 'qualityDashboard'])->name('dashboard')->middleware('permission:manufacturing,view');
+            Route::get('/dashboard-enhanced', [ManufacturingController::class, 'qcDashboardEnhanced'])->name('dashboard-enhanced')->middleware('permission:manufacturing,view');
             Route::get('/checks', [ManufacturingController::class, 'qualityChecks'])->name('checks')->middleware('permission:manufacturing,view');
             Route::get('/checks/create', [ManufacturingController::class, 'createQualityCheck'])->name('checks.create')->middleware('permission:manufacturing,create');
             Route::post('/checks', [ManufacturingController::class, 'storeQualityCheck'])->name('checks.store')->middleware('permission:manufacturing,create');
             Route::get('/checks/{qualityCheck}/edit', [ManufacturingController::class, 'editQualityCheck'])->name('checks.edit')->middleware('permission:manufacturing,edit');
             Route::put('/checks/{qualityCheck}', [ManufacturingController::class, 'updateQualityCheck'])->name('checks.update')->middleware('permission:manufacturing,edit');
+            Route::get('/checks/{qualityCheck}/coa', [ManufacturingController::class, 'generateCOA'])->name('coa')->middleware('permission:manufacturing,view');
+            Route::get('/checks/{qualityCheck}/coa/print', [ManufacturingController::class, 'printCOA'])->name('coa.print')->middleware('permission:manufacturing,view');
             Route::post('/defects', [ManufacturingController::class, 'recordDefect'])->name('defects.store')->middleware('permission:manufacturing,create');
             Route::put('/defects/{defect}/resolve', [ManufacturingController::class, 'resolveDefect'])->name('defects.resolve')->middleware('permission:manufacturing,edit');
+            Route::post('/capa', [ManufacturingController::class, 'createCAPA'])->name('capa.store')->middleware('permission:manufacturing,create');
+            Route::get('/root-cause-templates', [ManufacturingController::class, 'getRootCauseTemplates'])->name('root-cause-templates')->middleware('permission:manufacturing,view');
             Route::get('/defects', [ManufacturingController::class, 'defectRecords'])->name('defects')->middleware('permission:manufacturing,view');
             Route::get('/standards', [ManufacturingController::class, 'qualityStandards'])->name('standards')->middleware('permission:manufacturing,view');
             Route::post('/standards', [ManufacturingController::class, 'storeQualityStandard'])->name('standards.store')->middleware('permission:manufacturing,create');
@@ -1578,10 +1619,84 @@ Route::middleware('auth')->group(function () {
 
     // Document Management
     Route::prefix('documents')->name('documents.')->group(function () {
-        Route::get('/', [DocumentController::class, 'index'])->name('index');
-        Route::post('/', [DocumentController::class, 'store'])->name('store');
-        Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
-        Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('destroy');
+        // Main document routes
+        Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
+        Route::get('/expired', [\App\Http\Controllers\DocumentController::class, 'expired'])->name('expired');
+        Route::get('/expiring-soon', [\App\Http\Controllers\DocumentController::class, 'expiringSoon'])->name('expiring-soon');
+        Route::post('/bulk-sign', [\App\Http\Controllers\DocumentController::class, 'bulkSign'])->name('bulk-sign');
+        Route::post('/bulk-generate', [\App\Http\Controllers\DocumentController::class, 'bulkGenerate'])->name('bulk-generate');
+        Route::post('/preview-template', [\App\Http\Controllers\DocumentController::class, 'previewTemplate'])->name('preview-template');
+        Route::get('/ocr-statistics', [\App\Http\Controllers\DocumentController::class, 'ocrStatistics'])->name('ocr-statistics');
+        Route::get('/signature-statistics', [\App\Http\Controllers\DocumentController::class, 'signatureStatistics'])->name('signature-statistics');
+        Route::get('/bulk-generation-stats', [\App\Http\Controllers\DocumentController::class, 'bulkGenerationStats'])->name('bulk-generation-stats');
+        Route::post('/search-ocr', [\App\Http\Controllers\DocumentController::class, 'searchOcr'])->name('search-ocr');
+        Route::get('/pending-approvals', [\App\Http\Controllers\DocumentApprovalController::class, 'pendingApprovals'])->name('pending-approvals');
+
+        // Document-specific routes
+        Route::prefix('{document}')->group(function () {
+            // Download
+            Route::get('/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
+            Route::delete('/', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
+
+            // OCR
+            Route::post('/process-ocr', [\App\Http\Controllers\DocumentController::class, 'processOcr'])->name('process-ocr');
+            Route::get('/verify-signature', [\App\Http\Controllers\DocumentController::class, 'verifySignature'])->name('verify-signature');
+
+            // Sign
+            Route::post('/sign', [\App\Http\Controllers\DocumentController::class, 'sign'])->name('sign');
+
+            // Versioning
+            Route::get('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'index'])->name('versions.index');
+            Route::get('/versions/api', [\App\Http\Controllers\DocumentVersionController::class, 'getVersions'])->name('versions.api');
+            Route::post('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'store'])->name('versions.store');
+            Route::post('/versions/{versionNumber}/rollback', [\App\Http\Controllers\DocumentVersionController::class, 'rollback'])->name('versions.rollback');
+            Route::get('/versions/compare/{version1}/{version2}', [\App\Http\Controllers\DocumentVersionController::class, 'compare'])->name('versions.compare');
+            Route::get('/versions/{versionNumber}/download', [\App\Http\Controllers\DocumentVersionController::class, 'download'])->name('versions.download');
+            Route::get('/versions/statistics', [\App\Http\Controllers\DocumentVersionController::class, 'statistics'])->name('versions.statistics');
+            Route::post('/versions/cleanup', [\App\Http\Controllers\DocumentVersionController::class, 'cleanup'])->name('versions.cleanup');
+
+            // Approval
+            Route::get('/approval', [\App\Http\Controllers\DocumentApprovalController::class, 'index'])->name('approval.index');
+            Route::get('/approval/history', [\App\Http\Controllers\DocumentApprovalController::class, 'getHistory'])->name('approval.history');
+            Route::post('/approval/submit', [\App\Http\Controllers\DocumentApprovalController::class, 'submit'])->name('approval.submit');
+            Route::post('/approval/{stepNumber}/approve', [\App\Http\Controllers\DocumentApprovalController::class, 'approve'])->name('approval.approve');
+            Route::post('/approval/{stepNumber}/reject', [\App\Http\Controllers\DocumentApprovalController::class, 'reject'])->name('approval.reject');
+        });
+
+        // Templates
+        Route::prefix('templates')->name('templates.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\DocumentTemplateController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\DocumentTemplateController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\DocumentTemplateController::class, 'store'])->name('store');
+            Route::get('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'show'])->name('show');
+            Route::get('/{template}/edit', [\App\Http\Controllers\DocumentTemplateController::class, 'edit'])->name('edit');
+            Route::put('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'update'])->name('update');
+            Route::delete('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'destroy'])->name('destroy');
+            Route::post('/{template}/duplicate', [\App\Http\Controllers\DocumentTemplateController::class, 'duplicate'])->name('duplicate');
+            Route::get('/{template}/api', [\App\Http\Controllers\DocumentTemplateController::class, 'getTemplate'])->name('api');
+            Route::get('/category/{category}', [\App\Http\Controllers\DocumentTemplateController::class, 'getByCategory'])->name('by-category');
+        });
+
+        // Approval Workflows
+        Route::prefix('workflows')->name('workflows.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\DocumentApprovalController::class, 'workflows'])->name('index');
+            Route::post('/', [\App\Http\Controllers\DocumentApprovalController::class, 'storeWorkflow'])->name('store');
+            Route::put('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'updateWorkflow'])->name('update');
+            Route::delete('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'destroyWorkflow'])->name('destroy');
+            Route::get('/{workflow}/statistics', [\App\Http\Controllers\DocumentApprovalController::class, 'workflowStatistics'])->name('statistics');
+        });
+
+        // Cloud Storage
+        Route::prefix('cloud-storage')->name('cloud-storage.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\CloudStorageController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\CloudStorageController::class, 'store'])->name('store');
+            Route::put('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'update'])->name('update');
+            Route::delete('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'destroy'])->name('destroy');
+            Route::post('/test-connection', [\App\Http\Controllers\CloudStorageController::class, 'testConnection'])->name('test-connection');
+            Route::post('/{config}/set-default', [\App\Http\Controllers\CloudStorageController::class, 'setDefault'])->name('set-default');
+            Route::get('/statistics', [\App\Http\Controllers\CloudStorageController::class, 'statistics'])->name('statistics');
+        });
     });
 
     // Timesheet
@@ -1909,7 +2024,10 @@ Route::middleware('auth')->group(function () {
         Route::post('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'storePreference'])->name('guests.store-preference');
         Route::patch('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'updatePreference'])->name('guests.update-preference');
         Route::delete('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'destroyPreference'])->name('guests.destroy-preference');
+        Route::get('guests/{guest}/suggestions', [App\Http\Controllers\Hotel\GuestController::class, 'getSuggestions'])->name('guests.suggestions');
+        Route::post('guests/{guest}/apply-suggestion', [App\Http\Controllers\Hotel\GuestController::class, 'applySuggestion'])->name('guests.apply-suggestion');
         Route::post('guests/{guest}/award-points', [App\Http\Controllers\Hotel\GuestController::class, 'awardPoints'])->name('guests.award-points');
+        Route::post('guests/{guest}/redeem-points', [App\Http\Controllers\Hotel\GuestController::class, 'redeemPoints'])->name('guests.redeem-points');
         Route::patch('guests/{guest}/vip-level', [App\Http\Controllers\Hotel\GuestController::class, 'updateVipLevel'])->name('guests.update-vip-level');
         Route::resource('guests', App\Http\Controllers\Hotel\GuestController::class)->names('guests');
 
@@ -1923,6 +2041,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('reservations/{reservation}/remove-from-group', [App\Http\Controllers\Hotel\GroupBookingController::class, 'removeReservation'])->name('group-bookings.remove-reservation');
         Route::resource('group-bookings', App\Http\Controllers\Hotel\GroupBookingController::class)->names('group-bookings');
 
+        // Group Booking Enhanced Features
+        Route::post('group-bookings/{groupBooking}/create-room-block', [App\Http\Controllers\Hotel\GroupBookingController::class, 'createRoomBlock'])->name('group-bookings.create-room-block');
+        Route::get('group-bookings/{groupBooking}/billing', [App\Http\Controllers\Hotel\GroupBookingController::class, 'billing'])->name('group-bookings.billing');
+        Route::post('group-bookings/{groupBooking}/split-bill', [App\Http\Controllers\Hotel\GroupBookingController::class, 'splitBill'])->name('group-bookings.split-bill');
+        Route::post('group-bookings/{groupBooking}/group-payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'groupPayment'])->name('group-bookings.group-payment');
+        Route::post('group-bookings/{groupBooking}/check-in-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkInMember'])->name('group-bookings.check-in-member');
+        Route::post('group-bookings/{groupBooking}/check-out-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkOutMember'])->name('group-bookings.check-out-member');
+
         // Walk-in Reservations
         Route::get('walk-ins/statistics', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'statistics'])->name('walk-ins.statistics');
         Route::post('walk-ins/quick-check-in', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'quickCheckIn'])->name('walk-ins.quick-check-in');
@@ -1934,6 +2060,21 @@ Route::middleware('auth')->group(function () {
         Route::post('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckIn'])->name('checkin.process');
         Route::get('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkOutForm'])->name('checkout.form');
         Route::post('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckOut'])->name('checkout.process');
+
+        // Room Changes
+        Route::get('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'showChangeForm'])->name('room-change.form');
+        Route::post('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'processRoomChange'])->name('room-change.process');
+        Route::get('room-map', [App\Http\Controllers\Hotel\RoomChangeController::class, 'roomMap'])->name('room-map');
+        Route::get('available-rooms', [App\Http\Controllers\Hotel\RoomChangeController::class, 'getAvailableRooms'])->name('available-rooms');
+        Route::get('reservations/{reservation}/room-change-history', [App\Http\Controllers\Hotel\RoomChangeController::class, 'history'])->name('room-change.history');
+
+        // Pre-Arrival Forms
+        Route::get('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'preArrivalForm'])->name('checkin.pre-arrival');
+        Route::post('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'submitPreArrival'])->name('checkin.pre-arrival.submit');
+        Route::post('pre-arrival/{form}/verify', [App\Http\Controllers\Hotel\CheckInOutController::class, 'verifyPreArrival'])->name('pre-arrival.verify');
+
+        // Quick Check-in
+        Route::post('check-in/{reservation}/quick', [App\Http\Controllers\Hotel\CheckInOutController::class, 'quickCheckIn'])->name('checkin.quick');
 
         // Housekeeping Module
         Route::prefix('housekeeping')->name('housekeeping.')->group(function () {

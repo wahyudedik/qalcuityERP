@@ -67,4 +67,31 @@ class MinistryReportController extends Controller
         $report->delete();
         return response()->json(['success' => true, 'message' => 'Report deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/ministry-reports/{ministry_report}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.ministry-report.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/ministry-reports/{ministry_report}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.ministry-reports.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

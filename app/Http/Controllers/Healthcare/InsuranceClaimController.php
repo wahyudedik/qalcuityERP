@@ -128,4 +128,31 @@ class InsuranceClaimController extends Controller
         $claim->delete();
         return response()->json(['success' => true, 'message' => 'Claim deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/insurance-claims/{insurance_claim}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.insurance-claim.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/insurance-claims/{insurance_claim}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.insurance-claims.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

@@ -3,12 +3,12 @@
 namespace App\Services\Manufacturing;
 
 use App\Models\QualityCheck;
-use App\Models\QualityCheckStandard;
 use App\Models\DefectRecord;
 use App\Models\WorkOrder;
-use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class QualityControlService
 {
@@ -20,11 +20,17 @@ class QualityControlService
     }
 
     /**
-     * Create quality check for work order
+     * Create quality check with workflow stage enforcement
      */
     public function createQualityCheck(array $data): QualityCheck
     {
         return DB::transaction(function () use ($data) {
+            // Validate QC stage against work order status
+            if (isset($data['work_order_id'])) {
+                $workOrder = WorkOrder::findOrFail($data['work_order_id']);
+                $this->validateQCStage($workOrder, $data['stage']);
+            }
+
             $qualityCheck = QualityCheck::create([
                 'tenant_id' => $this->tenantId,
                 'work_order_id' => $data['work_order_id'] ?? null,
@@ -58,6 +64,26 @@ class QualityControlService
 
             return $qualityCheck;
         });
+    }
+
+    /**
+     * Validate QC stage against work order status
+     */
+    protected function validateQCStage(WorkOrder $workOrder, string $stage): void
+    {
+        $allowedStages = [
+            'planned' => ['pre_production'],
+            'in_progress' => ['pre_production', 'in_process'],
+            'completed' => ['pre_production', 'in_process', 'post_production', 'final'],
+        ];
+
+        $allowed = $allowedStages[$workOrder->status] ?? [];
+
+        if (!in_array($stage, $allowed)) {
+            throw new \InvalidArgumentException(
+                "QC stage '{$stage}' is not allowed for work order with status '{$workOrder->status}'"
+            );
+        }
     }
 
     /**
@@ -123,7 +149,7 @@ class QualityControlService
                 'description' => $data['description'],
                 'disposition' => $data['disposition'],
                 'cost_impact' => $data['cost_impact'] ?? 0,
-                'reported_by' => $data['reported_by'] ?? auth()->id(),
+                'reported_by' => $data['reported_by'] ?? Auth::id(),
             ]);
 
             Log::warning("Defect recorded", [
@@ -145,7 +171,7 @@ class QualityControlService
             $data['root_cause'],
             $data['corrective_action'],
             $data['preventive_action'] ?? null,
-            $data['resolved_by'] ?? auth()->id()
+            $data['resolved_by'] ?? Auth::id()
         );
 
         Log::info("Defect resolved", [
@@ -255,5 +281,234 @@ class QualityControlService
         if (isset($statusMap[$qcStatus])) {
             $workOrder->update($statusMap[$qcStatus]);
         }
+    }
+
+    /**
+     * Create CAPA (Corrective and Preventive Action) record
+     */
+    public function createCAPA(array $data): array
+    {
+        return DB::transaction(function () use ($data) {
+            $capa = [
+                'capa_number' => 'CAPA-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'defect_id' => $data['defect_id'],
+                'type' => $data['type'], // corrective, preventive
+                'root_cause' => $data['root_cause'],
+                'root_cause_category' => $data['root_cause_category'] ?? null, // 5-whys, fishbone, fta
+                'corrective_action' => $data['corrective_action'],
+                'preventive_action' => $data['preventive_action'] ?? null,
+                'responsible_person_id' => $data['responsible_person_id'],
+                'target_date' => $data['target_date'],
+                'status' => 'open',
+                'priority' => $data['priority'] ?? 'medium',
+                'created_at' => now(),
+            ];
+
+            // Store in defect record or separate CAPA table
+            if (isset($data['defect_id'])) {
+                $defect = DefectRecord::findOrFail($data['defect_id']);
+                $defect->update([
+                    'root_cause' => $data['root_cause'],
+                    'corrective_action' => $data['corrective_action'],
+                    'preventive_action' => $data['preventive_action'] ?? null,
+                ]);
+            }
+
+            Log::info("CAPA created", [
+                'capa_number' => $capa['capa_number'],
+                'type' => $capa['type'],
+            ]);
+
+            return $capa;
+        });
+    }
+
+    /**
+     * Get root cause analysis templates
+     */
+    public function getRootCauseTemplates(): array
+    {
+        return [
+            '5_whys' => [
+                'name' => '5 Whys Analysis',
+                'description' => 'Iterative interrogative technique to explore cause-and-effect relationships',
+                'template' => [
+                    'problem_statement' => '',
+                    'why_1' => '',
+                    'why_2' => '',
+                    'why_3' => '',
+                    'why_4' => '',
+                    'why_5' => '',
+                    'root_cause' => '',
+                ],
+            ],
+            'fishbone' => [
+                'name' => 'Fishbone (Ishikawa) Diagram',
+                'description' => 'Cause-and-effect diagram for quality problems',
+                'template' => [
+                    'problem_statement' => '',
+                    'categories' => [
+                        'manpower' => [],
+                        'methods' => [],
+                        'machines' => [],
+                        'materials' => [],
+                        'measurements' => [],
+                        'environment' => [],
+                    ],
+                    'root_cause' => '',
+                ],
+            ],
+            'fta' => [
+                'name' => 'Fault Tree Analysis',
+                'description' => 'Top-down deductive failure analysis',
+                'template' => [
+                    'top_event' => '',
+                    'intermediate_events' => [],
+                    'basic_events' => [],
+                    'logic_gates' => [],
+                    'root_cause' => '',
+                ],
+            ],
+            'fmea' => [
+                'name' => 'FMEA (Failure Mode and Effects Analysis)',
+                'description' => 'Systematic approach for identifying potential failures',
+                'template' => [
+                    'failure_mode' => '',
+                    'potential_effects' => '',
+                    'severity' => 0,
+                    'potential_causes' => '',
+                    'occurrence' => 0,
+                    'current_controls' => '',
+                    'detection' => 0,
+                    'rpn' => 0, // Risk Priority Number
+                    'recommended_actions' => '',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Generate Certificate of Analysis (COA)
+     */
+    public function generateCOA(int $qualityCheckId): array
+    {
+        $qualityCheck = QualityCheck::with(['workOrder', 'product', 'standard', 'inspector', 'defects'])
+            ->findOrFail($qualityCheckId);
+
+        if ($qualityCheck->status !== 'passed' && $qualityCheck->status !== 'conditional_pass') {
+            throw new \InvalidArgumentException("Cannot generate COA for {$qualityCheck->status} quality check");
+        }
+
+        $coa = [
+            'coa_number' => 'COA-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            'quality_check_id' => $qualityCheck->id,
+            'check_number' => $qualityCheck->check_number,
+            'product' => [
+                'name' => $qualityCheck->product?->name,
+                'sku' => $qualityCheck->product?->sku,
+                'batch_number' => $qualityCheck->workOrder?->batch_number,
+            ],
+            'work_order' => $qualityCheck->workOrder?->number,
+            'inspection_date' => $qualityCheck->inspected_at?->format('Y-m-d H:i:s'),
+            'inspector' => $qualityCheck->inspector?->name,
+            'stage' => ucfirst(str_replace('_', ' ', $qualityCheck->stage)),
+            'sample_size' => $qualityCheck->sample_size,
+            'results' => $qualityCheck->results,
+            'summary' => [
+                'passed' => $qualityCheck->sample_passed,
+                'failed' => $qualityCheck->sample_failed,
+                'pass_rate' => $qualityCheck->pass_rate,
+            ],
+            'status' => ucfirst(str_replace('_', ' ', $qualityCheck->status)),
+            'defects' => $qualityCheck->defects->map(function ($defect) {
+                return [
+                    'code' => $defect->defect_code,
+                    'type' => $defect->defect_type,
+                    'severity' => $defect->severity,
+                    'quantity' => $defect->quantity_defected,
+                ];
+            }),
+            'conclusion' => $this->generateCOAConclusion($qualityCheck),
+            'authorized_by' => $qualityCheck->inspector?->name,
+            'signature_date' => now()->format('Y-m-d'),
+        ];
+
+        return $coa;
+    }
+
+    /**
+     * Generate COA conclusion text
+     */
+    protected function generateCOAConclusion(QualityCheck $qualityCheck): string
+    {
+        if ($qualityCheck->status === 'passed') {
+            return "The product has been inspected and tested in accordance with the specified quality standards. All test results meet the acceptance criteria. The batch is hereby approved for release.";
+        } elseif ($qualityCheck->status === 'conditional_pass') {
+            return "The product has been inspected and meets most quality requirements with minor deviations noted. The batch is conditionally approved subject to the corrective actions specified.";
+        }
+
+        return "The product does not meet the quality standards and is rejected.";
+    }
+
+    /**
+     * Get comprehensive QC dashboard data
+     */
+    public function getDashboardData(): array
+    {
+        return Cache::remember("qc_dashboard_{$this->tenantId}", 300, function () {
+            $stats = $this->getStatistics();
+            $defectAnalysis = $this->getDefectAnalysis();
+
+            // QC by stage
+            $qcByStage = QualityCheck::where('tenant_id', $this->tenantId)
+                ->selectRaw('stage, COUNT(*) as count')
+                ->groupBy('stage')
+                ->get()
+                ->keyBy('stage');
+
+            // Recent quality checks
+            $recentChecks = QualityCheck::where('tenant_id', $this->tenantId)
+                ->with(['workOrder', 'product', 'inspector'])
+                ->latest('inspected_at')
+                ->limit(10)
+                ->get();
+
+            // Open CAPAs
+            $openCAPAs = DefectRecord::where('tenant_id', $this->tenantId)
+                ->whereNull('resolved_at')
+                ->whereNotNull('root_cause')
+                ->with(['product', 'workOrder'])
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            // Trend data (last 7 days)
+            $trendData = QualityCheck::where('tenant_id', $this->tenantId)
+                ->where('inspected_at', '>=', now()->subDays(7))
+                ->selectRaw('DATE(inspected_at) as date, 
+                            COUNT(*) as total,
+                            SUM(CASE WHEN status = "passed" THEN 1 ELSE 0 END) as passed,
+                            SUM(CASE WHEN status = "failed" THEN 1 ELSE 0 END) as failed')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+
+            return [
+                'statistics' => $stats,
+                'defect_analysis' => $defectAnalysis,
+                'qc_by_stage' => $qcByStage,
+                'recent_checks' => $recentChecks,
+                'open_capas' => $openCAPAs,
+                'trend_data' => $trendData,
+            ];
+        });
+    }
+
+    /**
+     * Clear dashboard cache
+     */
+    public function clearDashboardCache(): void
+    {
+        Cache::forget("qc_dashboard_{$this->tenantId}");
     }
 }

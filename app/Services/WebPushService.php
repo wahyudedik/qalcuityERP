@@ -4,14 +4,14 @@ namespace App\Services;
 
 use App\Models\PushSubscription;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
 
 /**
  * WebPushService — Send push notifications to subscribed browsers.
  *
- * Uses the Web Push protocol with VAPID authentication.
- * No external package needed — uses raw HTTP with JWT signing.
+ * Uses the Web Push protocol with VAPID authentication via Minishlink library.
  *
  * Setup: Generate VAPID keys with `php artisan vapid:generate`
  * and add to .env: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY
@@ -47,39 +47,86 @@ class WebPushService
     }
 
     /**
-     * Send to a collection of subscriptions.
+     * Send to a collection of subscriptions using Minishlink WebPush.
      */
     private function sendToSubscriptions($subscriptions, string $title, string $body, ?string $url = null, ?string $tag = null): int
     {
+        if ($subscriptions->isEmpty()) {
+            return 0;
+        }
+
         $sent = 0;
         $payload = json_encode([
             'title' => $title,
-            'body'  => $body,
-            'url'   => $url ?? '/dashboard',
-            'tag'   => $tag ?? 'erp-' . now()->timestamp,
+            'body' => $body,
+            'url' => $url ?? '/dashboard',
+            'tag' => $tag ?? 'erp-' . now()->timestamp,
+            'icon' => '/logo.png',
+            'badge' => '/logo.png',
         ]);
+
+        $webPush = $this->getWebPushInstance();
+
+        if (!$webPush) {
+            Log::warning('WebPush: VAPID keys not configured');
+            return 0;
+        }
 
         foreach ($subscriptions as $sub) {
             try {
-                $response = Http::withHeaders([
-                    'Content-Type'     => 'application/json',
-                    'TTL'              => '86400',
-                ])->withBody($payload, 'application/json')
-                  ->post($sub->endpoint);
+                $subscription = Subscription::create([
+                    'endpoint' => $sub->endpoint,
+                    'publicKey' => $sub->p256dh,
+                    'authToken' => $sub->auth,
+                ]);
 
-                if ($response->status() === 201 || $response->status() === 200) {
-                    $sent++;
-                } elseif ($response->status() === 410 || $response->status() === 404) {
-                    // Subscription expired — clean up
+                $webPush->sendOneNotification(
+                    $subscription,
+                    $payload,
+                    ['TTL' => 86400]
+                );
+
+                $sent++;
+            } catch (\Throwable $e) {
+                // Check if subscription is expired (410 Gone or 404 Not Found)
+                if (str_contains($e->getMessage(), '410') || str_contains($e->getMessage(), '404')) {
                     $sub->delete();
                     Log::info("WebPush: removed expired subscription #{$sub->id}");
+                } else {
+                    Log::warning("WebPush failed for sub #{$sub->id}: " . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning("WebPush failed for sub #{$sub->id}: " . $e->getMessage());
+            }
+        }
+
+        // Flush all pending notifications
+        foreach ($webPush->flush() as $report) {
+            if (!$report->isSuccess()) {
+                Log::warning("WebPush failed: " . $report->getReason());
             }
         }
 
         return $sent;
+    }
+
+    /**
+     * Get WebPush instance with VAPID configuration.
+     */
+    private function getWebPushInstance(): ?WebPush
+    {
+        $publicKey = config('services.vapid.public_key');
+        $privateKey = config('services.vapid.private_key');
+
+        if (!$publicKey || !$privateKey) {
+            return null;
+        }
+
+        return new WebPush([
+            'VAPID' => [
+                'subject' => config('app.url'),
+                'publicKey' => $publicKey,
+                'privateKey' => $privateKey,
+            ],
+        ]);
     }
 
     /**
@@ -88,5 +135,14 @@ class WebPushService
     public static function vapidPublicKey(): ?string
     {
         return config('services.vapid.public_key');
+    }
+
+    /**
+     * Check if WebPush is properly configured.
+     */
+    public function isConfigured(): bool
+    {
+        return config('services.vapid.public_key') !== null
+            && config('services.vapid.private_key') !== null;
     }
 }

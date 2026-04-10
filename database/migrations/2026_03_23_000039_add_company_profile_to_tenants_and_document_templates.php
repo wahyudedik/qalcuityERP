@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         // Tambah kolom company profile ke tenants
@@ -27,28 +26,41 @@ return new class extends Migration
             $table->string('doc_number_prefix', 20)->nullable()->after('letter_head_color');
         });
 
-        // Tabel document_templates
-        Schema::create('document_templates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->string('doc_type', 50); // invoice, po, quotation, letter, memo
-            $table->text('html_content');
-            $table->boolean('is_default')->default(false);
-            $table->timestamps();
+        // Add is_default column to document_templates if not exists
+        if (!Schema::hasColumn('document_templates', 'is_default')) {
+            Schema::table('document_templates', function (Blueprint $table) {
+                $table->boolean('is_default')->default(false)->after('html_content');
+            });
+        }
 
-            $table->index(['tenant_id', 'doc_type']);
-        });
+        // Add tenant_id foreign key if not exists
+        if (!Schema::hasColumn('document_templates', 'tenant_id')) {
+            // This should not happen as table already has tenant_id, but just in case
+            Schema::table('document_templates', function (Blueprint $table) {
+                $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
         Schema::table('tenants', function (Blueprint $table) {
             $table->dropColumn([
-                'npwp', 'website', 'city', 'province', 'postal_code',
-                'bank_name', 'bank_account', 'bank_account_name', 'tagline',
-                'stamp_image', 'director_signature', 'invoice_footer_notes',
-                'invoice_payment_terms', 'letter_head_color', 'doc_number_prefix',
+                'npwp',
+                'website',
+                'city',
+                'province',
+                'postal_code',
+                'bank_name',
+                'bank_account',
+                'bank_account_name',
+                'tagline',
+                'stamp_image',
+                'director_signature',
+                'invoice_footer_notes',
+                'invoice_payment_terms',
+                'letter_head_color',
+                'doc_number_prefix',
             ]);
         });
         Schema::dropIfExists('document_templates');

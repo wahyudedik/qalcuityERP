@@ -140,4 +140,31 @@ class MedicalWasteController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Waste record deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/medical-waste/{medical_waste}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.medical-waste.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/medical-waste/{medical_waste}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.medical-waste.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

@@ -102,4 +102,47 @@ class ComplianceReportController extends Controller
         $report->delete();
         return response()->json(['success' => true, 'message' => 'Report deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/compliance-reports/{compliance_report}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.compliance-report.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/compliance-reports/{compliance_report}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.compliance-reports.update')
+            ->with('success', 'Updated successfully.');
+    }
+    /**
+     * Review.
+     * Route: healthcare/compliance-reports/{report}/review
+     */
+    public function review(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement Review logic
+        
+        return back()->with('success', 'Review completed successfully.');
+    }
 }

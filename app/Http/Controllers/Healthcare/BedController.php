@@ -229,4 +229,36 @@ class BedController extends Controller
             'message' => 'Patient assigned to bed successfully',
         ]);
     }
+    /**
+     * ReleasePatient.
+     * Route: healthcare/beds/{bed}/release
+     */
+    public function releasePatient(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement ReleasePatient logic
+        
+        return back()->with('success', 'ReleasePatient completed successfully.');
+    }
+    /**
+     * CheckAvailability.
+     * Route: healthcare/beds/availability
+     */
+    public function checkAvailability(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement CheckAvailability logic
+        
+        return back()->with('success', 'CheckAvailability completed successfully.');
+    }
 }

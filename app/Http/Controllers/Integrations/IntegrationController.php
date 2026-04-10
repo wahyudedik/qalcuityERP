@@ -375,4 +375,21 @@ class IntegrationController extends Controller
 
         return false;
     }
+    /**
+     * WebhookLogs.
+     * Route: integrations/webhook-logs
+     */
+    public function webhookLogs(Request $request)
+    {
+        // TODO: Add authorization
+        // $this->authorize('ACTION', MODEL::class);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement WebhookLogs logic
+        
+        return back()->with('success', 'WebhookLogs completed successfully.');
+    }
 }

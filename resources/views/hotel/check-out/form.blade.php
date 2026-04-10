@@ -50,6 +50,40 @@
                         {{ number_format($charges['room_charge'], 0, ',', '.') }}</p>
                 </div>
 
+                {{-- Mini-bar Charges --}}
+                @if ($charges['minibar_charges'] > 0)
+                    <div class="flex justify-between items-center py-2">
+                        <div>
+                            <p class="text-sm text-gray-900 dark:text-white">Mini-bar Charges</p>
+                            <p class="text-xs text-gray-500 dark:text-slate-400">{{ count($charges['minibar_items']) }}
+                                item(s)</p>
+                        </div>
+                        <p class="font-medium text-gray-900 dark:text-white">Rp
+                            {{ number_format($charges['minibar_charges'], 0, ',', '.') }}</p>
+                    </div>
+
+                    {{-- Mini-bar Items Detail --}}
+                    <div class="ml-4 space-y-1">
+                        @foreach ($charges['minibar_items'] as $item)
+                            <div class="flex justify-between text-xs text-gray-600 dark:text-slate-400">
+                                <span>• {{ $item['item'] }} × {{ $item['quantity'] }}</span>
+                                <span>Rp {{ number_format($item['total'], 0, ',', '.') }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Additional Charges --}}
+                @if ($charges['additional_charges'] > 0)
+                    <div class="flex justify-between items-center py-2">
+                        <div>
+                            <p class="text-sm text-gray-900 dark:text-white">Additional Charges</p>
+                        </div>
+                        <p class="font-medium text-gray-900 dark:text-white">Rp
+                            {{ number_format($charges['additional_charges'], 0, ',', '.') }}</p>
+                    </div>
+                @endif
+
                 {{-- Discount --}}
                 @if ($charges['discount'] > 0)
                     <div class="flex justify-between items-center py-2 text-green-600 dark:text-green-400">
@@ -138,8 +172,46 @@
         <form method="POST" action="{{ route('hotel.checkout.process', $reservation) }}"
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             @csrf
-            <h3 class="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">Check-out
-                Details</h3>
+            <h3 class="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">Payment &
+                Check-out Details</h3>
+
+            {{-- Payment Method --}}
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Payment Method *</label>
+                <select name="payment_method" required
+                    class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select payment method</option>
+                    <option value="cash">Cash</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="debit_card">Debit Card</option>
+                    <option value="transfer">Bank Transfer</option>
+                    <option value="qris">QRIS</option>
+                </select>
+            </div>
+
+            {{-- Amount Paid --}}
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Amount Paid (Rp)
+                    *</label>
+                <input type="number" name="amount_paid" step="1000" min="0" required
+                    value="{{ old('amount_paid', $charges['balance_due'] > 0 ? $charges['balance_due'] : $charges['grand_total']) }}"
+                    placeholder="Enter amount paid"
+                    class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @if ($charges['balance_due'] > 0)
+                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        Minimum payment required: Rp {{ number_format($charges['balance_due'], 0, ',', '.') }}
+                    </p>
+                @endif
+            </div>
+
+            {{-- Transaction Reference --}}
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Transaction Reference
+                    (Optional)</label>
+                <input type="text" name="transaction_reference" value="{{ old('transaction_reference') }}"
+                    placeholder="e.g., card number, transfer ID"
+                    class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
             {{-- Notes/Feedback --}}
             <div class="mb-6">
@@ -157,12 +229,12 @@
                     ← Back to Reservation
                 </a>
                 <button type="submit"
-                    class="w-full sm:w-auto px-8 py-3 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors flex items-center justify-center gap-2">
+                    class="w-full sm:w-auto px-8 py-3 text-base font-medium bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Process Check-out
+                    Process Check-out & Generate Receipt
                 </button>
             </div>
         </form>

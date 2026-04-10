@@ -90,25 +90,58 @@
                     @if ($checkIns->count() > 0)
                         <div class="space-y-4">
                             @foreach ($checkIns as $reservation)
+                                @php
+                                    $hasPreArrival =
+                                        $reservation->preArrivalForm && $reservation->preArrivalForm->isComplete();
+                                    $roomAssigned = $reservation->room_id !== null;
+                                @endphp
                                 <div
                                     class="border border-gray-200 dark:border-white/10 rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div class="flex items-start justify-between mb-3">
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900 dark:text-white">
-                                                {{ $reservation->guest->name }}
-                                            </h3>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">
+                                                    {{ $reservation->guest->name }}
+                                                </h3>
+                                                @if ($hasPreArrival)
+                                                    <span
+                                                        class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">
+                                                        ✓ Pre-Arrival Complete
+                                                    </span>
+                                                @else
+                                                    <span
+                                                        class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-xs font-medium">
+                                                        ⚠ Pre-Arrival Pending
+                                                    </span>
+                                                @endif
+                                            </div>
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                {{ $reservation->roomType->name ?? '-' }} • Room
-                                                {{ $reservation->room->number ?? 'TBA' }}
+                                                {{ $reservation->roomType->name ?? '-' }} •
+                                                @if ($roomAssigned)
+                                                    <span class="text-green-600 dark:text-green-400 font-medium">Room
+                                                        {{ $reservation->room->number ?? 'TBA' }}</span>
+                                                @else
+                                                    <span class="text-amber-600 dark:text-amber-400">Room: Not
+                                                        Assigned</span>
+                                                @endif
                                             </p>
                                         </div>
-                                        <span
-                                            class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
-                                            {{ $reservation->status }}
-                                        </span>
+                                        <div class="flex flex-col gap-1 items-end">
+                                            @if ($reservation->status === 'confirmed')
+                                                <span
+                                                    class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
+                                                    Confirmed
+                                                </span>
+                                            @elseif($reservation->status === 'pending')
+                                                <span
+                                                    class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">
+                                                    Pending
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+                                    <div class="grid grid-cols-3 gap-3 text-sm mb-3">
                                         <div>
                                             <span class="text-gray-500 dark:text-gray-400">Check-in:</span>
                                             <span class="ml-1 text-gray-900 dark:text-white font-medium">
@@ -121,13 +154,43 @@
                                                 {{ $reservation->nights }}
                                             </span>
                                         </div>
+                                        <div>
+                                            <span class="text-gray-500 dark:text-gray-400">Total:</span>
+                                            <span class="ml-1 text-blue-600 dark:text-blue-400 font-bold">
+                                                Rp {{ number_format($reservation->grand_total, 0, ',', '.') }}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div class="flex gap-2">
-                                        <a href="{{ route('hotel.checkin.form', $reservation) }}"
-                                            class="flex-1 text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                            Process Check-in
-                                        </a>
+                                        @if ($roomAssigned)
+                                            <form method="POST" action="{{ route('hotel.checkin.quick', $reservation) }}"
+                                                class="flex-1">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Quick Check-in
+                                                </button>
+                                            </form>
+                                        @else
+                                            <a href="{{ route('hotel.checkin.form', $reservation) }}"
+                                                class="flex-1 text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                                Assign Room & Check-in
+                                            </a>
+                                        @endif
+
+                                        @if (!$hasPreArrival)
+                                            <a href="{{ route('hotel.checkin.pre-arrival', $reservation) }}"
+                                                class="px-4 py-2 border border-purple-300 dark:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-sm font-medium rounded-lg transition-colors">
+                                                Pre-Arrival
+                                            </a>
+                                        @endif
+
                                         <a href="{{ route('hotel.reservations.show', $reservation) }}"
                                             class="px-4 py-2 border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
                                             View
@@ -154,7 +217,8 @@
                 <div class="p-6 border-b border-gray-200 dark:border-white/10">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>

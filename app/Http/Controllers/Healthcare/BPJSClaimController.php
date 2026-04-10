@@ -124,4 +124,31 @@ class BPJSClaimController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Claim deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/bpjs-claims/{bpjs_claim}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.b-p-j-s-claim.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/bpjs-claims/{bpjs_claim}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.bpjs-claims.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

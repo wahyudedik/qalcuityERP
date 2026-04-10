@@ -26,6 +26,7 @@
         "vite-plugin-static-copy": "^3.0.0"
     },
     "dependencies": {
+        "@alpinejs/collapse": "^3.15.11",
         "chart.js": "^4.5.1",
         "dompurify": "^3.3.3",
         "marked": "^17.0.4"

@@ -8,6 +8,7 @@ use App\Models\AiTourSession;
 use App\Models\UserTip;
 use App\Services\SampleDataGeneratorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OnboardingController extends Controller
 {
@@ -17,12 +18,30 @@ class OnboardingController extends Controller
     }
 
     /**
+     * Get authenticated user's tenant ID with null safety
+     */
+    protected function getTenantId(): int
+    {
+        $user = Auth::user();
+        return $user?->tenant_id ?? abort(401, 'Unauthenticated.');
+    }
+
+    /**
+     * Get authenticated user's ID with null safety
+     */
+    protected function getUserId(): int
+    {
+        $user = Auth::user();
+        return $user?->id ?? abort(401, 'Unauthenticated.');
+    }
+
+    /**
      * Main onboarding dashboard
      */
     public function index()
     {
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         // Check if profile exists
         $profile = OnboardingProfile::where('tenant_id', $tenantId)
@@ -67,8 +86,8 @@ class OnboardingController extends Controller
             'selected_modules' => 'nullable|array',
         ]);
 
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         $profile = OnboardingProfile::updateOrCreate(
             ['tenant_id' => $tenantId, 'user_id' => $userId],
@@ -95,8 +114,8 @@ class OnboardingController extends Controller
      */
     public function sampleDataPage()
     {
-        $profile = OnboardingProfile::where('tenant_id', auth()->user()->tenant_id)
-            ->where('user_id', auth()->id())
+        $profile = OnboardingProfile::where('tenant_id', $this->getTenantId())
+            ->where('user_id', $this->getUserId())
             ->first();
 
         if (!$profile) {
@@ -113,8 +132,8 @@ class OnboardingController extends Controller
      */
     public function generateSampleData(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         $profile = OnboardingProfile::where('tenant_id', $tenantId)
             ->where('user_id', $userId)
@@ -143,8 +162,8 @@ class OnboardingController extends Controller
      */
     public function getProgressData()
     {
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         $progress = $this->getProgress($tenantId, $userId);
 
@@ -156,8 +175,8 @@ class OnboardingController extends Controller
      */
     public function completeStep(Request $request, string $stepKey)
     {
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         $this->markStepCompleted($tenantId, $userId, $stepKey);
 
@@ -174,8 +193,8 @@ class OnboardingController extends Controller
         ]);
 
         $tour = AiTourSession::create([
-            'tenant_id' => auth()->user()->tenant_id,
-            'user_id' => auth()->id(),
+            'tenant_id' => $this->getTenantId(),
+            'user_id' => $this->getUserId(),
             'tour_type' => $request->tour_type,
             'started_at' => now(),
         ]);
@@ -205,8 +224,8 @@ class OnboardingController extends Controller
      */
     public function getTips()
     {
-        $tips = UserTip::where('tenant_id', auth()->user()->tenant_id)
-            ->where('user_id', auth()->id())
+        $tips = UserTip::where('tenant_id', $this->getTenantId())
+            ->where('user_id', $this->getUserId())
             ->where('dismissed', false)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -226,12 +245,139 @@ class OnboardingController extends Controller
     }
 
     /**
+     * Complete onboarding
+     */
+    public function complete(Request $request)
+    {
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
+
+        $request->validate([
+            'industry' => 'required|in:retail,restaurant,hotel,construction,agriculture,manufacturing,services',
+            'business_size' => 'required|in:micro,small,medium,large',
+            'employee_count' => 'nullable|integer|min:1',
+            'selected_modules' => 'nullable|array',
+        ]);
+
+        // Create or update profile
+        $profile = OnboardingProfile::updateOrCreate(
+            ['tenant_id' => $tenantId, 'user_id' => $userId],
+            [
+                'industry' => $request->industry,
+                'business_size' => $request->business_size,
+                'employee_count' => $request->employee_count,
+                'selected_modules' => $request->selected_modules ?? [],
+                'completed_at' => now(),
+            ]
+        );
+
+        // Initialize progress steps
+        $this->initializeProgressSteps($tenantId, $userId, $request->industry);
+
+        // Mark onboarding as completed
+        OnboardingProgress::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->update(['completed' => true]);
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Onboarding completed successfully! Welcome to Qalcuity ERP.');
+    }
+
+    /**
+     * Skip onboarding
+     */
+    public function skip()
+    {
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
+
+        // Create minimal profile
+        OnboardingProfile::updateOrCreate(
+            ['tenant_id' => $tenantId, 'user_id' => $userId],
+            [
+                'industry' => 'services',
+                'business_size' => 'small',
+                'skipped' => true,
+                'completed_at' => now(),
+            ]
+        );
+
+        return redirect()->route('dashboard')
+            ->with('info', 'Onboarding skipped. You can always configure settings later.');
+    }
+
+    /**
+     * AI Chat assistant for onboarding
+     */
+    public function aiChat(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+            'context' => 'nullable|string',
+        ]);
+
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
+
+        // Get user's onboarding profile
+        $profile = OnboardingProfile::where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
+            ->first();
+
+        // Here you would integrate with your AI service
+        // For now, return a simple response
+        $response = $this->generateOnboardingChatResponse(
+            $request->message,
+            $profile,
+            $request->context
+        );
+
+        return response()->json([
+            'success' => true,
+            'response' => $response,
+        ]);
+    }
+
+    /**
+     * Generate AI chat response for onboarding
+     */
+    protected function generateOnboardingChatResponse(string $message, ?OnboardingProfile $profile, ?string $context): string
+    {
+        // Simple keyword-based response system
+        // In production, this would call your AI service (Gemini, OpenAI, etc.)
+
+        $message = strtolower($message);
+
+        if (str_contains($message, 'product') || str_contains($message, 'inventory')) {
+            return 'To add products, go to Inventory > Products > Add Product. You can also import products in bulk using CSV files.';
+        }
+
+        if (str_contains($message, 'customer') || str_contains($message, 'client')) {
+            return 'You can manage customers in the CRM module. Go to CRM > Customers to add or import your customer list.';
+        }
+
+        if (str_contains($message, 'sale') || str_contains($message, 'pos')) {
+            return 'To process sales, use the POS module. Go to POS, select products, and complete the checkout process.';
+        }
+
+        if (str_contains($message, 'report')) {
+            return 'Reports are available in the Reports section. You can generate sales, inventory, finance, and HRM reports.';
+        }
+
+        if (str_contains($message, 'help') || str_contains($message, 'support')) {
+            return 'I\'m here to help! You can ask me about any feature in Qalcuity ERP. What would you like to know?';
+        }
+
+        return 'Thank you for your question! I can help you with products, customers, sales, reports, and other features. What specific area would you like to explore?';
+    }
+
+    /**
      * Reset onboarding (for testing)
      */
     public function reset()
     {
-        $tenantId = auth()->user()->tenant_id;
-        $userId = auth()->id();
+        $tenantId = $this->getTenantId();
+        $userId = $this->getUserId();
 
         OnboardingProfile::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();
         OnboardingProgress::where('tenant_id', $tenantId)->where('user_id', $userId)->delete();

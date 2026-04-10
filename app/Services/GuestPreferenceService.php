@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Guest;
 use App\Models\GuestPreference;
+use App\Models\Reservation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -288,5 +289,238 @@ class GuestPreferenceService
         }
 
         return $deleted > 0;
+    }
+
+    /**
+     * Get suggested preferences based on guest's stay history
+     * Analyzes past reservations to detect patterns and suggest preferences
+     */
+    public function getSuggestedPreferences(Guest $guest, int $limit = 10): array
+    {
+        $reservations = $guest->reservations()
+            ->with(['roomType', 'checkInOuts'])
+            ->where('status', 'checked_out')
+            ->orderBy('check_in_date', 'desc')
+            ->get();
+
+        if ($reservations->isEmpty()) {
+            return [];
+        }
+
+        $suggestions = [];
+
+        // Analyze room type preferences
+        $roomTypeCounts = $reservations->pluck('room_type_id')
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
+        if ($roomTypeCounts->isNotEmpty()) {
+            $mostFrequentRoomType = $reservations
+                ->where('room_type_id', $roomTypeCounts->keys()->first())
+                ->first()?->roomType;
+
+            if ($mostFrequentRoomType) {
+                $suggestions[] = [
+                    'category' => 'room',
+                    'preference_key' => 'preferred_room_type',
+                    'preference_value' => $mostFrequentRoomType->name,
+                    'confidence' => round(($roomTypeCounts->first() / $reservations->count()) * 100, 2),
+                    'source' => 'stay_history',
+                    'frequency' => $roomTypeCounts->first(),
+                ];
+            }
+        }
+
+        // Analyze floor preferences from room assignments
+        $floorNumbers = $reservations->flatMap(function ($reservation) {
+            return $reservation->checkInOuts->pluck('room_id')
+                ->filter()
+                ->map(function ($roomId) {
+                    $room = \App\Models\Room::find($roomId);
+                    return $room ? (int) filter_var($room->number, FILTER_SANITIZE_NUMBER_INT) : null;
+                })
+                ->filter();
+        })->countBy()->sortDesc();
+
+        if ($floorNumbers->isNotEmpty()) {
+            $preferredFloor = $floorNumbers->keys()->first();
+            $suggestions[] = [
+                'category' => 'room',
+                'preference_key' => 'preferred_floor',
+                'preference_value' => "Floor {$preferredFloor}",
+                'confidence' => round(($floorNumbers->first() / $floorNumbers->sum()) * 100, 2),
+                'source' => 'stay_history',
+                'frequency' => $floorNumbers->first(),
+            ];
+        }
+
+        // Analyze special requests patterns
+        $specialRequests = $reservations->pluck('special_requests')
+            ->filter()
+            ->flatMap(function ($request) {
+                // Extract common keywords
+                $keywords = ['high floor', 'low floor', 'near elevator', 'quiet', 'view', 'sea view', 'city view', 'extra bed', 'late checkout', 'early checkin'];
+                $found = [];
+                foreach ($keywords as $keyword) {
+                    if (stripos($request, $keyword) !== false) {
+                        $found[] = $keyword;
+                    }
+                }
+                return $found;
+            })->countBy()->sortDesc();
+
+        foreach ($specialRequests->take(3) as $keyword => $count) {
+            $suggestions[] = [
+                'category' => 'room',
+                'preference_key' => str_replace(' ', '_', $keyword),
+                'preference_value' => 'true',
+                'confidence' => round(($count / $reservations->count()) * 100, 2),
+                'source' => 'special_requests_analysis',
+                'frequency' => $count,
+            ];
+        }
+
+        // Analyze check-in time patterns
+        $arrivalTimes = $reservations->pluck('expected_arrival_time')
+            ->filter()
+            ->map(function ($time) {
+                $hour = (int) date('H', strtotime($time));
+                if ($hour >= 6 && $hour < 12) {
+                    return 'morning';
+                } elseif ($hour >= 12 && $hour < 17) {
+                    return 'afternoon';
+                } elseif ($hour >= 17 && $hour < 22) {
+                    return 'evening';
+                }
+                return 'night';
+            })->countBy()->sortDesc();
+
+        if ($arrivalTimes->isNotEmpty()) {
+            $suggestions[] = [
+                'category' => 'service',
+                'preference_key' => 'preferred_arrival_time',
+                'preference_value' => $arrivalTimes->keys()->first(),
+                'confidence' => round(($arrivalTimes->first() / $arrivalTimes->sum()) * 100, 2),
+                'source' => 'arrival_pattern',
+                'frequency' => $arrivalTimes->first(),
+            ];
+        }
+
+        // Analyze purpose of stay
+        $purposes = $reservations->pluck('purpose_of_stay')
+            ->filter()
+            ->countBy()->sortDesc();
+
+        if ($purposes->isNotEmpty()) {
+            $suggestions[] = [
+                'category' => 'service',
+                'preference_key' => 'primary_purpose',
+                'preference_value' => $purposes->keys()->first(),
+                'confidence' => round(($purposes->first() / $purposes->sum()) * 100, 2),
+                'source' => 'stay_purpose',
+                'frequency' => $purposes->first(),
+            ];
+        }
+
+        // Sort by confidence and limit
+        usort($suggestions, function ($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+
+        return array_slice($suggestions, 0, $limit);
+    }
+
+    /**
+     * Get loyalty-based preference recommendations
+     * Suggests preferences and rewards based on VIP level
+     */
+    public function getLoyaltyRecommendations(Guest $guest): array
+    {
+        $vipLevel = $guest->vip_level ?? 'regular';
+        $loyaltyPoints = $guest->loyalty_points ?? 0;
+
+        // Base recommendations for all guests
+        $recommendations = [
+            'available_rewards' => [],
+            'preference_suggestions' => [],
+            'next_tier_requirements' => null,
+        ];
+
+        // VIP-specific rewards
+        $rewardTiers = [
+            'silver' => [
+                'rewards' => [
+                    ['name' => 'Late Checkout (2 PM)', 'points' => 200, 'category' => 'service'],
+                    ['name' => 'Room Upgrade (1 Category)', 'points' => 500, 'category' => 'room'],
+                ],
+                'next_tier' => ['level' => 'gold', 'requires_stays' => 20, 'requires_points' => 2000],
+            ],
+            'gold' => [
+                'rewards' => [
+                    ['name' => 'Late Checkout (4 PM)', 'points' => 300, 'category' => 'service'],
+                    ['name' => 'Room Upgrade (2 Categories)', 'points' => 800, 'category' => 'room'],
+                    ['name' => 'Free Breakfast', 'points' => 400, 'category' => 'dining'],
+                ],
+                'next_tier' => ['level' => 'platinum', 'requires_stays' => 50, 'requires_points' => 5000],
+            ],
+            'platinum' => [
+                'rewards' => [
+                    ['name' => 'Late Checkout (6 PM)', 'points' => 500, 'category' => 'service'],
+                    ['name' => 'Suite Upgrade', 'points' => 1500, 'category' => 'room'],
+                    ['name' => 'Free Breakfast & Dinner', 'points' => 1000, 'category' => 'dining'],
+                    ['name' => 'Airport Transfer', 'points' => 800, 'category' => 'transport'],
+                ],
+                'next_tier' => null,
+            ],
+        ];
+
+        if (isset($rewardTiers[$vipLevel])) {
+            $recommendations['available_rewards'] = $rewardTiers[$vipLevel]['rewards'];
+            $recommendations['next_tier_requirements'] = $rewardTiers[$vipLevel]['next_tier'];
+        }
+
+        // Preference suggestions based on VIP level
+        if (in_array($vipLevel, ['gold', 'platinum'])) {
+            $recommendations['preference_suggestions'] = [
+                ['category' => 'service', 'key' => 'priority_check_in', 'value' => 'true', 'reason' => 'VIP priority service'],
+                ['category' => 'service', 'key' => 'welcome_amenity', 'value' => 'complimentary', 'reason' => 'VIP welcome benefit'],
+                ['category' => 'room', 'key' => 'auto_upgrade', 'value' => 'true', 'reason' => 'Automatic room upgrade when available'],
+            ];
+        }
+
+        return $recommendations;
+    }
+
+    /**
+     * Auto-apply preferences from stay history after checkout
+     */
+    public function autoApplyStayPreferences(Guest $guest, Reservation $reservation): void
+    {
+        $suggestions = $this->getSuggestedPreferences($guest, 5);
+
+        // Only auto-apply high confidence suggestions (>70%)
+        $highConfidence = array_filter($suggestions, function ($suggestion) {
+            return $suggestion['confidence'] >= 70;
+        });
+
+        foreach ($highConfidence as $suggestion) {
+            // Check if preference already exists
+            $existing = GuestPreference::where('guest_id', $guest->id)
+                ->where('category', $suggestion['category'])
+                ->where('preference_key', $suggestion['preference_key'])
+                ->first();
+
+            if (!$existing) {
+                $this->setPreference(
+                    $guest,
+                    $suggestion['category'],
+                    $suggestion['preference_key'],
+                    $suggestion['preference_value'],
+                    2, // Medium priority for auto-detected
+                    true
+                );
+            }
+        }
     }
 }

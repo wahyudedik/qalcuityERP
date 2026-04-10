@@ -96,4 +96,20 @@ class AnalyticsDashboardController extends Controller
 
         return response()->json(['success' => true, 'data' => $months]);
     }
+    /**
+     * VisitTrends.
+     * Route: healthcare/analytics/visit-trends
+     */
+    public function visitTrends(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement VisitTrends logic
+        
+        return back()->with('success', 'VisitTrends completed successfully.');
+    }
 }

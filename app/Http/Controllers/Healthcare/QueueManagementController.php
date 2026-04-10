@@ -241,4 +241,31 @@ class QueueManagementController extends Controller
             'message' => 'Queue ticket deleted successfully',
         ]);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/queue-management/{queue_management}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.queue-management.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/queue-management/{queue_management}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.queue-management.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

@@ -1,153 +1,402 @@
 <x-app-layout>
-    <x-slot name="header">Manajemen Dokumen</x-slot>
-
-    <div class="space-y-6">
-
-        {{-- Upload Form --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Unggah Dokumen Baru</h2>
-            <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data"
-                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Judul Dokumen *</label>
-                    <input type="text" name="title" required placeholder="Nama dokumen..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Kategori</label>
-                    <input type="text" name="category" placeholder="Kontrak, Invoice, SOP..."
-                        list="category-list"
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-                    <datalist id="category-list">
-                        @foreach($categories as $cat)
-                        <option value="{{ $cat }}">
-                        @endforeach
-                        <option value="Kontrak">
-                        <option value="Invoice">
-                        <option value="SOP">
-                        <option value="Laporan">
-                        <option value="Lainnya">
-                    </datalist>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Deskripsi</label>
-                    <input type="text" name="description" placeholder="Keterangan singkat..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">File * (maks 20MB)</label>
-                    <input type="file" name="file" required
-                        class="w-full text-sm text-gray-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
-                </div>
-                <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
-                    <button type="submit"
-                        class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition">
-                        Unggah Dokumen
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        {{-- Filter --}}
-        <form method="GET" class="flex flex-wrap gap-3">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul atau deskripsi..."
-                class="flex-1 min-w-48 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-            <select name="category"
-                class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-                <option value="">Semua Kategori</option>
-                @foreach($categories as $cat)
-                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition">Filter</button>
-            @if(request()->hasAny(['search','category']))
-            <a href="{{ route('documents.index') }}" class="px-4 py-2 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition">Reset</a>
-            @endif
-        </form>
-
-        {{-- Document List --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            @if($documents->isEmpty())
-                <div class="px-6 py-16 text-center text-gray-400 dark:text-slate-500 text-sm">
-                    <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Document Management') }}
+            </h2>
+            <div class="flex space-x-2">
+                <a href="{{ route('documents.pending-approvals') }}"
+                    class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Belum ada dokumen.
+                    Pending Approvals
+                </a>
+                <button onclick="document.getElementById('uploadModal').showModal()"
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                    </svg>
+                    Upload Document
+                </button>
+            </div>
+        </div>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Documents</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $statistics['total'] }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
-                        <tr>
-                            <th class="px-6 py-3 text-left">Dokumen</th>
-                            <th class="px-6 py-3 text-left hidden sm:table-cell">Kategori</th>
-                            <th class="px-6 py-3 text-left hidden md:table-cell">Ukuran</th>
-                            <th class="px-6 py-3 text-left hidden lg:table-cell">Diunggah oleh</th>
-                            <th class="px-6 py-3 text-left hidden sm:table-cell">Tanggal</th>
-                            <th class="px-6 py-3 text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
-                        @foreach($documents as $doc)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="px-6 py-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Approval</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ $statistics['pending_approval'] }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Expired</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $statistics['expired'] }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Signed</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $statistics['signed'] }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">With OCR</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {{ $statistics['with_ocr'] }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6 p-4">
+                <form method="GET" action="{{ route('documents.index') }}" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Search documents..."
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                            <select name="status"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">All Status</option>
+                                <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft
+                                </option>
+                                <option value="pending_approval"
+                                    {{ request('status') == 'pending_approval' ? 'selected' : '' }}>Pending Approval
+                                </option>
+                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>
+                                    Approved</option>
+                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
+                                    Rejected</option>
+                                <option value="archived" {{ request('status') == 'archived' ? 'selected' : '' }}>
+                                    Archived</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                            <input type="text" name="category" value="{{ request('category') }}"
+                                placeholder="Category"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-end space-x-2">
+                            <button type="submit"
+                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Filter
+                            </button>
+                            <a href="{{ route('documents.index') }}"
+                                class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white rounded-md hover:bg-gray-400">
+                                Reset
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="expiring" value="1"
+                                {{ request('expiring') ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Expiring Soon</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="expired" value="1"
+                                {{ request('expired') ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Expired</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="signed" value="1"
+                                {{ request('signed') ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Signed</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="has_ocr" value="1"
+                                {{ request('has_ocr') ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Has OCR</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Documents Table -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Document</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Category</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Version</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Expires</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @forelse($documents as $document)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <svg class="h-10 w-10 text-gray-400" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                    </path>
+                                                </svg>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {{ $document->title }}</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                    {{ $document->file_name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200">
+                                            {{ $document->category ?? 'General' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        v{{ $document->version }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @php
-                                            $icon = match(true) {
-                                                str_contains($doc->file_type, 'pdf') => '📄',
-                                                str_contains($doc->file_type, 'image') => '🖼️',
-                                                str_contains($doc->file_type, 'spreadsheet') || str_contains($doc->file_name, '.xls') => '📊',
-                                                str_contains($doc->file_type, 'word') || str_contains($doc->file_name, '.doc') => '📝',
-                                                default => '📎',
-                                            };
+                                            $statusColors = [
+                                                'draft' =>
+                                                    'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200',
+                                                'pending_approval' =>
+                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                                                'approved' =>
+                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                                                'rejected' =>
+                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                                                'archived' =>
+                                                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                                            ];
                                         @endphp
-                                        <span class="text-sm">{{ $icon }}</span>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">{{ $doc->title }}</p>
-                                        @if($doc->description)
-                                        <p class="text-xs text-gray-400 dark:text-slate-500 truncate max-w-xs">{{ $doc->description }}</p>
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$document->status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ ucfirst(str_replace('_', ' ', $document->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                        @if ($document->expires_at)
+                                            @if ($document->isExpired())
+                                                <span class="text-red-600 font-semibold">Expired</span>
+                                                <div class="text-xs text-gray-500">
+                                                    {{ $document->expires_at->format('d M Y') }}</div>
+                                            @else
+                                                <div>{{ $document->expires_at->format('d M Y') }}</div>
+                                                <div class="text-xs text-gray-500">{{ $document->daysUntilExpiry() }}
+                                                    days left</div>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-400">No expiry</span>
                                         @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-3 hidden sm:table-cell">
-                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium">
-                                    {{ $doc->category ?? 'Umum' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell">{{ $doc->file_size_human }}</td>
-                            <td class="px-6 py-3 text-gray-500 dark:text-slate-400 hidden lg:table-cell">{{ $doc->uploader?->name ?? '-' }}</td>
-                            <td class="px-6 py-3 text-gray-400 dark:text-slate-500 hidden sm:table-cell">{{ $doc->created_at->format('d M Y') }}</td>
-                            <td class="px-6 py-3 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('documents.download', $doc) }}"
-                                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition">
-                                        Unduh
-                                    </a>
-                                    @if(auth()->user()->hasRole(['admin','manager']) || $doc->uploaded_by === auth()->id())
-                                    <form method="POST" action="{{ route('documents.destroy', $doc) }}"
-                                          onsubmit="return confirm('Hapus dokumen ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-medium rounded-lg transition">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <a href="{{ route('documents.download', $document) }}"
+                                            class="text-blue-600 hover:text-blue-900 dark:hover:text-blue-400">Download</a>
+                                        <a href="{{ route('documents.versions.index', $document) }}"
+                                            class="text-purple-600 hover:text-purple-900 dark:hover:text-purple-400">Versions</a>
+                                        @if ($document->status === 'pending_approval' || $document->isPendingApproval())
+                                            <a href="{{ route('documents.approval.index', $document) }}"
+                                                class="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-400">Approval</a>
+                                        @endif
+                                        @if (!$document->has_ocr)
+                                            <form method="POST"
+                                                action="{{ route('documents.process-ocr', $document) }}"
+                                                class="inline">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="text-green-600 hover:text-green-900 dark:hover:text-green-400">Process
+                                                    OCR</button>
+                                            </form>
+                                        @endif
+                                        <form method="POST" action="{{ route('documents.destroy', $document) }}"
+                                            class="inline" onsubmit="return confirm('Are you sure?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-900 dark:hover:text-red-400">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No documents
+                                        </h3>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by
+                                            uploading a new document.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4">
+                    {{ $documents->links() }}
+                </div>
             </div>
-            <div class="px-6 py-4 border-t border-gray-100 dark:border-white/5">
-                {{ $documents->links() }}
-            </div>
-            @endif
         </div>
     </div>
+
+    <!-- Upload Modal -->
+    <dialog id="uploadModal" class="modal rounded-lg shadow-xl p-0">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Upload Document</h3>
+                <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data"
+                    class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">File *</label>
+                        <input type="file" name="file" required
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
+                        <input type="text" name="title" required
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                        <input type="text" name="category"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                        <textarea name="description" rows="3"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry
+                            Date</label>
+                        <input type="datetime-local" name="expires_at"
+                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="auto_ocr" value="1"
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Auto-process OCR after
+                                upload</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="requires_approval" value="1"
+                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Requires approval
+                                workflow</span>
+                        </label>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="document.getElementById('uploadModal').close()"
+                            class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white rounded-md hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </dialog>
 </x-app-layout>

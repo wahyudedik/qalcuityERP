@@ -16,11 +16,13 @@ use App\Observers\TenantApiSettingObserver; // BUG-SET-001 FIX
 use App\Services\ChatSessionManager;
 use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
+use App\View\Composers\SidebarBadgeComposer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -73,6 +75,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Register event listeners for settings cache invalidation
         Event::listen(SettingsUpdated::class, ClearSettingsCache::class);
+
+        // Register View Composers for sidebar badge optimization (N+1 query fix)
+        View::composer('layouts.app', SidebarBadgeComposer::class);
 
         $this->configureRateLimiting();
         $this->registerBladeDirectives();

@@ -1,10 +1,24 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
 
-// Initialize Alpine.js
+// Register Alpine plugins
 window.Alpine = Alpine;
+Alpine.plugin(collapse);
 Alpine.start();
+
+// ═══════════════════════════════════════════════════════════
+// UI/UX Enhancements - Task 4.1
+// ═══════════════════════════════════════════════════════════
+
+// Initialize core UI/UX modules immediately
+import './theme-manager.js';
+import './keyboard-shortcuts.js';
+import './quick-search.js';
+import './accessibility.js';
+
+console.log('[UI/UX] Enhanced modules loaded (theme, shortcuts, search, a11y)');
 
 // Register Service Worker for offline support & caching
 if ('serviceWorker' in navigator) {

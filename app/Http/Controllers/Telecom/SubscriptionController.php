@@ -253,4 +253,16 @@ class SubscriptionController extends Controller
 
         return back()->with('success', 'Quota berhasil direset.');
     }
+    /**
+     * Remove the specified resource.
+     * Route: telecom/subscriptions/{subscription}
+     */
+    public function destroy($model)
+    {
+        $this->authorize('delete', $model);
+        
+        $model->delete();
+        
+        return back()->with('success', 'Deleted successfully.');
+    }
 }

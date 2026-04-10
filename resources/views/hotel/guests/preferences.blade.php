@@ -53,6 +53,10 @@
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <button onclick="openRedeemPointsModal()"
+                        class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium transition">
+                        Redeem Points
+                    </button>
                     <button onclick="openAwardPointsModal()"
                         class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition">
                         Award Points
@@ -62,6 +66,69 @@
                         Add Preference
                     </button>
                 </div>
+            </div>
+        </div>
+
+        {{-- Smart Suggestions Section --}}
+        <div id="suggestions-section"
+            class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10 rounded-2xl border border-blue-200 dark:border-blue-500/20 p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Smart Suggestions
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">AI-powered preferences based on stay
+                        history</p>
+                </div>
+                <button onclick="loadSuggestions()"
+                    class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition">
+                    Refresh Suggestions
+                </button>
+            </div>
+            <div id="suggestions-loading" class="text-center py-8">
+                <svg class="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p class="text-sm text-gray-600 dark:text-slate-400 mt-2">Analyzing guest history...</p>
+            </div>
+            <div id="suggestions-content" class="hidden">
+                <div id="suggestions-list" class="space-y-3">
+                    <!-- Suggestions will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        {{-- Loyalty Rewards Section --}}
+        <div id="loyalty-section"
+            class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 rounded-2xl border border-amber-200 dark:border-amber-500/20 p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                        </svg>
+                        Loyalty Rewards
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Available rewards for your VIP level</p>
+                </div>
+            </div>
+            <div id="loyalty-rewards-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- Rewards will be loaded here -->
+            </div>
+            <div id="next-tier-info" class="mt-4 p-4 bg-white/50 dark:bg-white/5 rounded-lg hidden">
+                <!-- Next tier requirements will be shown here -->
             </div>
         </div>
 
@@ -429,8 +496,61 @@
         </div>
     </div>
 
+    {{-- Redeem Points Modal --}}
+    <div id="modal-redeem-points" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
+            <form action="{{ route('hotel.guests.redeem-points', $guest) }}" method="POST">
+                @csrf
+
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Redeem Loyalty Points</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Reward Name
+                                *</label>
+                            <input type="text" name="reward_name" required
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., Late Checkout">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Points to
+                                Redeem *</label>
+                            <input type="number" name="points" required min="1"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., 200">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Reason</label>
+                            <textarea name="reason" rows="2"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Additional details"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 px-6 pb-6">
+                    <button type="button"
+                        onclick="document.getElementById('modal-redeem-points').classList.add('hidden')"
+                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-amber-600 text-white rounded-xl hover:bg-amber-700">
+                        Redeem Points
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
+            const guestId = {{ $guest->id }};
+
             function openAddPreferenceModal(category = 'room') {
                 document.getElementById('pref-category-input').value = category;
                 document.getElementById('modal-title').textContent = 'Add Preference';
@@ -462,6 +582,124 @@
             function openAwardPointsModal() {
                 document.getElementById('modal-award-points').classList.remove('hidden');
             }
+
+            function openRedeemPointsModal() {
+                document.getElementById('modal-redeem-points').classList.remove('hidden');
+            }
+
+            // Load smart suggestions
+            function loadSuggestions() {
+                document.getElementById('suggestions-loading').classList.remove('hidden');
+                document.getElementById('suggestions-content').classList.add('hidden');
+
+                fetch(`/hotel/guests/${guestId}/suggestions`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            renderSuggestions(data.data.suggestions);
+                            renderLoyaltyRecommendations(data.data.loyalty_recommendations);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading suggestions:', error);
+                        document.getElementById('suggestions-list').innerHTML =
+                            '<p class="text-sm text-red-600 dark:text-red-400">Failed to load suggestions</p>';
+                    })
+                    .finally(() => {
+                        document.getElementById('suggestions-loading').classList.add('hidden');
+                        document.getElementById('suggestions-content').classList.remove('hidden');
+                    });
+            }
+
+            function renderSuggestions(suggestions) {
+                const container = document.getElementById('suggestions-list');
+
+                if (!suggestions || suggestions.length === 0) {
+                    container.innerHTML =
+                        '<p class="text-sm text-gray-600 dark:text-slate-400 text-center py-4">No suggestions available yet. More data will be collected after guest stays.</p>';
+                    return;
+                }
+
+                container.innerHTML = suggestions.map(suggestion => `
+                    <div class="p-4 bg-white dark:bg-[#1e293b] rounded-lg border border-gray-200 dark:border-white/10">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">${suggestion.category}</span>
+                                    <span class="text-xs text-gray-500 dark:text-slate-400">•</span>
+                                    <span class="text-xs text-gray-600 dark:text-slate-300 font-medium">${suggestion.preference_key.replace(/_/g, ' ')}</span>
+                                </div>
+                                <p class="text-sm text-gray-900 dark:text-white mb-2">${suggestion.preference_value}</p>
+                                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
+                                    <span>Confidence: ${suggestion.confidence}%</span>
+                                    <span>•</span>
+                                    <span>Used ${suggestion.frequency} times</span>
+                                    <span>•</span>
+                                    <span>${suggestion.source.replace(/_/g, ' ')}</span>
+                                </div>
+                            </div>
+                            <form action="/hotel/guests/${guestId}/apply-suggestion" method="POST" class="ml-3">
+                                @csrf
+                                <input type="hidden" name="category" value="${suggestion.category}">
+                                <input type="hidden" name="preference_key" value="${suggestion.preference_key}">
+                                <input type="hidden" name="preference_value" value="${suggestion.preference_value}">
+                                <button type="submit" class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                                    Apply
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderLoyaltyRecommendations(recommendations) {
+                const rewardsContainer = document.getElementById('loyalty-rewards-list');
+                const nextTierContainer = document.getElementById('next-tier-info');
+
+                // Render rewards
+                if (recommendations.available_rewards && recommendations.available_rewards.length > 0) {
+                    rewardsContainer.innerHTML = recommendations.available_rewards.map(reward => `
+                        <div class="p-3 bg-white dark:bg-[#1e293b] rounded-lg border border-amber-200 dark:border-amber-500/20">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">${reward.name}</p>
+                                    <p class="text-xs text-gray-500 dark:text-slate-400">${reward.points} points</p>
+                                </div>
+                                <button onclick="redeemReward('${reward.name}', ${reward.points})" 
+                                    class="px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition">
+                                    Redeem
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    rewardsContainer.innerHTML =
+                        '<p class="text-sm text-gray-600 dark:text-slate-400 col-span-2 text-center py-4">No rewards available for current VIP level</p>';
+                }
+
+                // Render next tier info
+                if (recommendations.next_tier_requirements) {
+                    const req = recommendations.next_tier_requirements;
+                    nextTierContainer.classList.remove('hidden');
+                    nextTierContainer.innerHTML = `
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Next Tier: ${req.level.toUpperCase()}</h4>
+                        <div class="flex items-center gap-4 text-xs text-gray-600 dark:text-slate-400">
+                            <span>Requires ${req.requires_stays} stays OR ${req.requires_points} points</span>
+                        </div>
+                    `;
+                } else {
+                    nextTierContainer.classList.add('hidden');
+                }
+            }
+
+            function redeemReward(name, points) {
+                document.querySelector('#modal-redeem-points input[name="reward_name"]').value = name;
+                document.querySelector('#modal-redeem-points input[name="points"]').value = points;
+                document.getElementById('modal-redeem-points').classList.remove('hidden');
+            }
+
+            // Load suggestions on page load
+            document.addEventListener('DOMContentLoaded', loadSuggestions);
         </script>
     @endpush
 </x-app-layout>

@@ -123,4 +123,31 @@ class TeleconsultationController extends Controller
         $teleconsultation->delete();
         return response()->json(['success' => true, 'message' => 'Consultation deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/teleconsultations/{teleconsultation}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.teleconsultation.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/teleconsultations/{teleconsultation}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.teleconsultations.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

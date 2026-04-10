@@ -98,4 +98,48 @@ class PatientMessageController extends Controller
         $message->delete();
         return response()->json(['success' => true, 'message' => 'Message deleted']);
     }
+    /**
+     * Index.
+     * Route: healthcare/patient-messages
+     */
+    public function index(Request $request)
+    {
+        // TODO: Add authorization
+        // $this->authorize('ACTION', MODEL::class);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement Index logic
+        
+        return back()->with('success', 'Index completed successfully.');
+    }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/patient-messages/{patient_message}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.patient-message.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/patient-messages/{patient_message}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.patient-messages.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

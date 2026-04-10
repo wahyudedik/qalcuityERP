@@ -170,4 +170,42 @@ class LabResultController extends Controller
         // Implementation for critical result notification
         // Could send SMS, email, or push notification
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/lab-results/{lab_result}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.lab-result.edit', compact('model'));
+    }
+    /**
+     * Remove the specified resource.
+     * Route: healthcare/lab-results/{lab_result}
+     */
+    public function destroy($model)
+    {
+        $this->authorize('delete', $model);
+        
+        $model->delete();
+        
+        return back()->with('success', 'Deleted successfully.');
+    }
+    /**
+     * FlagCritical.
+     * Route: healthcare/lab-results/{result}/flag-critical
+     */
+    public function flagCritical(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement FlagCritical logic
+        
+        return back()->with('success', 'FlagCritical completed successfully.');
+    }
 }

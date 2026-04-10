@@ -6,11 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\PatientMedicalRecord;
 use App\Models\Patient;
 use App\Models\PatientVisit;
+use App\Services\EMRService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class EMRController extends Controller
 {
+    private EMRService $emrService;
+
+    public function __construct(EMRService $emrService)
+    {
+        $this->emrService = $emrService;
+    }
     /**
      * Display a listing of medical records.
      */
@@ -243,5 +250,151 @@ class EMRController extends Controller
 
         // Generate PDF or Excel export
         return view('healthcare.emr.export', compact('patient'));
+    }
+
+    /**
+     * Patient dashboard with vital signs and overview
+     */
+    public function dashboard($patientId)
+    {
+        $dashboardData = $this->emrService->getPatientDashboard($patientId);
+
+        return view('healthcare.emr.dashboard', $dashboardData);
+    }
+
+    /**
+     * Get vital signs chart data (AJAX)
+     */
+    public function getVitalSignsChart($patientId, Request $request)
+    {
+        $days = $request->get('days', 30);
+        $trend = $this->emrService->getVitalSignsTrend($patientId, $days);
+
+        return response()->json([
+            'success' => true,
+            'data' => $trend,
+        ]);
+    }
+
+    /**
+     * Create SOAP format visit note
+     */
+    public function createSOAPNote(Request $request, $visitId)
+    {
+        $visit = PatientVisit::with(['patient', 'doctor'])->findOrFail($visitId);
+
+        // If GET request, show form
+        if ($request->isMethod('get')) {
+            $previousRecords = PatientMedicalRecord::where('patient_id', $visit->patient_id)
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            return view('healthcare.emr.soap-note', compact('visit', 'previousRecords'));
+        }
+
+        // POST request - save SOAP note
+        $validated = $request->validate([
+            'subjective' => 'required|array',
+            'subjective.chief_complaint' => 'required|string',
+            'subjective.history_of_present_illness' => 'nullable|string',
+            'objective' => 'required|array',
+            'objective.vital_signs' => 'nullable|array',
+            'objective.physical_examination' => 'nullable|string',
+            'assessment' => 'required|array',
+            'assessment.diagnoses' => 'nullable|array',
+            'plan' => 'required|array',
+            'plan.treatment_plan' => 'nullable|string',
+        ]);
+
+        $soapNote = $this->emrService->buildSOAPNote($validated);
+        $validation = $this->emrService->validateSOAPNote($soapNote);
+
+        // Create medical record from SOAP
+        $record = PatientMedicalRecord::create([
+            'patient_id' => $visit->patient_id,
+            'visit_id' => $visit->id,
+            'doctor_id' => $visit->doctor_id ?? Auth::id(),
+            'record_date' => now(),
+            'chief_complaint' => $soapNote['subjective']['chief_complaint'],
+            'history_of_present_illness' => $soapNote['subjective']['history_of_present_illness'],
+            'vital_signs' => $soapNote['objective']['vital_signs'],
+            'physical_examination' => $soapNote['objective']['physical_examination'],
+            'diagnosis' => $soapNote['assessment']['diagnoses'][0]['description'] ?? '',
+            'treatment_plan' => $soapNote['plan']['treatment_plan'],
+            'doctor_notes' => json_encode($soapNote),
+            'status' => 'completed',
+        ]);
+
+        // Clear cache
+        $this->emrService->clearDashboardCache($visit->patient_id);
+
+        return redirect()->route('healthcare.emr.dashboard', $visit->patient_id)
+            ->with('success', 'SOAP note saved successfully');
+    }
+
+    /**
+     * Search ICD-10 codes (AJAX)
+     */
+    public function searchICD10(Request $request)
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $results = $this->emrService->searchICD10($query);
+
+        return response()->json($results);
+    }
+
+    /**
+     * Check drug interactions (AJAX)
+     */
+    public function checkDrugInteractions(Request $request)
+    {
+        $validated = $request->validate([
+            'medications' => 'required|array',
+            'medications.*' => 'required|string',
+        ]);
+
+        $result = $this->emrService->checkDrugInteractions($validated['medications']);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Get patient timeline (AJAX or view)
+     */
+    public function getTimeline($patientId, Request $request)
+    {
+        $filters = [
+            'type' => $request->get('type', 'all'),
+            'date_from' => $request->get('date_from'),
+            'date_to' => $request->get('date_to'),
+        ];
+
+        $timeline = $this->emrService->getPatientTimeline($patientId, $filters);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $timeline,
+            ]);
+        }
+
+        $patient = Patient::findOrFail($patientId);
+        return view('healthcare.emr.timeline', compact('patient', 'timeline'));
+    }
+
+    /**
+     * Print prescription
+     */
+    public function printPrescription($prescriptionId)
+    {
+        $data = $this->emrService->generatePrescriptionPDF($prescriptionId);
+
+        return view('healthcare.emr.prescription-print', $data);
     }
 }

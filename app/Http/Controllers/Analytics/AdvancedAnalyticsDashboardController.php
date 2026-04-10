@@ -5,16 +5,23 @@ namespace App\Http\Controllers\Analytics;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Invoice;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
+use App\Models\ScheduledReport;
+use App\Models\SharedReport;
+use App\Notifications\ReportSharedNotification;
 use App\Services\GeminiService;
+use App\Services\ReportingAnalyticsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdvancedAnalyticsDashboardController extends Controller
 {
@@ -23,7 +30,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
         $module = $request->input('module', 'all');
@@ -148,7 +155,7 @@ class AdvancedAnalyticsDashboardController extends Controller
 
         return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($tenantId, $startDate, $endDate) {
             return [
-                'top_products' => OrderItem::where('tenant_id', $tenantId)
+                'top_products' => SalesOrderItem::where('tenant_id', $tenantId)
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(total_amount) as total_revenue')
                     ->groupBy('product_id')
@@ -185,11 +192,11 @@ class AdvancedAnalyticsDashboardController extends Controller
     }
 
     /**
-     * AI Predictive Analytics
+     * AI Predictive Analytics (Legacy)
      */
-    public function predictiveAnalytics(Request $request)
+    public function aiPredictiveAnalytics(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $predictionType = $request->input('type', 'sales');
         $horizon = $request->input('horizon', 30); // days
 
@@ -230,9 +237,9 @@ class AdvancedAnalyticsDashboardController extends Controller
                     $prompt = "Analyze this sales data and provide 3 key insights with actionable recommendations:\n" .
                         json_encode($historicalData->take(30)->toArray());
 
-                    $aiInsights = $geminiService->generateText($prompt, temperature: 0.7);
+                    $aiInsights = $geminiService->generate($prompt);
                 } catch (\Throwable $e) {
-                    \Log::warning("AI sales forecast failed: {$e->getMessage()}");
+                    Log::warning("AI sales forecast failed: {$e->getMessage()}");
                 }
             }
 
@@ -255,7 +262,7 @@ class AdvancedAnalyticsDashboardController extends Controller
 
         return Cache::remember($cacheKey, now()->addHours(6), function () use ($tenantId, $horizon) {
             // Product demand history
-            $productDemand = OrderItem::where('tenant_id', $tenantId)
+            $productDemand = SalesOrderItem::where('tenant_id', $tenantId)
                 ->where('created_at', '>=', now()->subDays(90)->format('Y-m-d'))
                 ->selectRaw('product_id, DATE(created_at) as date, SUM(quantity) as demand')
                 ->groupBy('product_id', 'date')
@@ -320,8 +327,13 @@ class AdvancedAnalyticsDashboardController extends Controller
                 ->get();
 
             $churnPredictions = $customers->map(function ($customer) {
-                $daysSinceLastOrder = $customer->salesOrders()->latest('order_date')->first()?->order_date
-                    ? now()->diffInDays($customer->salesOrders()->latest('order_date')->first()->order_date)
+                $lastOrder = SalesOrder::where('customer_id', $customer->id)
+                    ->where('tenant_id', $customer->tenant_id)
+                    ->latest('order_date')
+                    ->first();
+
+                $daysSinceLastOrder = $lastOrder?->order_date
+                    ? now()->diffInDays($lastOrder->order_date)
                     : 999;
 
                 // Simple churn risk model
@@ -365,7 +377,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     public function reportBuilder(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $metrics = $request->input('metrics', []);
         $dateRange = $request->input('date_range', '30d');
         $filters = $request->only(['module', 'category', 'status']);
@@ -378,7 +390,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     public function generateReport(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $validated = $request->validate([
             'metrics' => 'required|array',
             'start_date' => 'required|date',
@@ -400,8 +412,8 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     public function scheduledReports(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-        $schedules = \App\Models\ScheduledReport::where('tenant_id', $tenantId)
+        $tenantId = Auth::user()->tenant_id;
+        $schedules = ScheduledReport::where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->get();
 
@@ -409,11 +421,165 @@ class AdvancedAnalyticsDashboardController extends Controller
     }
 
     /**
+     * Executive Dashboard
+     */
+    public function executiveDashboard(Request $request)
+    {
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $period = $request->get('period', 'this_month');
+        $reportingService = new ReportingAnalyticsService();
+
+        try {
+            $dashboard = $reportingService->getExecutiveDashboard($period);
+            return view('analytics.executive-dashboard', compact('dashboard', 'period'));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to load executive dashboard: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Predictive Analytics
+     */
+    public function predictiveAnalytics(Request $request)
+    {
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $months = $request->get('months', 3);
+        $reportingService = new ReportingAnalyticsService();
+
+        $predictions = $reportingService->getPredictiveAnalytics($tenantId, $months);
+        return view('analytics.predictive', compact('predictions', 'months'));
+    }
+
+    /**
+     * Comparative Analysis
+     */
+    public function comparativeAnalysis(Request $request)
+    {
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $comparison = $request->get('comparison', 'yoy'); // yoy, mom, qoq
+        $reportingService = new ReportingAnalyticsService();
+
+        $analysis = $reportingService->getComparativeAnalysis($tenantId, $comparison);
+        return view('analytics.comparative', compact('analysis', 'comparison'));
+    }
+
+    /**
+     * Real-time Metrics API (for WebSocket)
+     */
+    public function realTimeMetrics(Request $request)
+    {
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $reportingService = new ReportingAnalyticsService();
+        $metrics = $reportingService->getRealTimeMetrics($tenantId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $metrics,
+        ]);
+    }
+
+    /**
+     * Share Report
+     */
+    public function shareReport(Request $request)
+    {
+        $user = Auth::user();
+        $tenantId = $user->tenant_id ?? abort(401, 'Unauthenticated.');
+
+        $validated = $request->validate([
+            'report_name' => 'required|string|max:255',
+            'report_type' => 'required|string|in:executive,predictive,comparative,custom',
+            'report_data' => 'required|array',
+            'access_level' => 'required|in:view,download,edit',
+            'expiry_days' => 'required|integer|min:1|max:30',
+            'recipients' => 'required|array|min:1',
+            'recipients.*' => 'email',
+            'message' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create shared report record
+            $sharedReport = SharedReport::create([
+                'tenant_id' => $tenantId,
+                'created_by' => $user->id,
+                'name' => $validated['report_name'],
+                'type' => $validated['report_type'],
+                'report_data' => $validated['report_data'],
+                'config' => [
+                    'access_level' => $validated['access_level'],
+                    'filters' => $request->input('filters', []),
+                ],
+                'recipients' => $validated['recipients'],
+                'access_level' => $validated['access_level'],
+                'expires_at' => now()->addDays($validated['expiry_days']),
+                'is_active' => true,
+            ]);
+
+            // Send email notifications to recipients
+            if (!empty($validated['recipients'])) {
+                foreach ($validated['recipients'] as $email) {
+                    // Create a notifiable object for email-only recipients
+                    $notifiable = new class ($email) {
+                        use \Illuminate\Notifications\Notifiable;
+
+                        public function __construct(protected string $email)
+                        {}
+
+                        public function routeNotificationForMail(): string
+                        {
+                            return $this->email;
+                        }
+                    };
+
+                    Notification::send(
+                        $notifiable,
+                        new ReportSharedNotification(
+                            $sharedReport,
+                            $user->name ?? 'System Administrator',
+                            $validated['message'] ?? ''
+                        )
+                    );
+                }
+
+                Log::info("Report shared with " . count($validated['recipients']) . " recipients", [
+                    'report_id' => $sharedReport->report_id,
+                    'recipients' => $validated['recipients'],
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report shared successfully',
+                'data' => [
+                    'report_id' => $sharedReport->report_id,
+                    'share_url' => $sharedReport->share_url,
+                    'expires_at' => $sharedReport->expires_at,
+                    'recipients_count' => count($validated['recipients']),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to share report: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to share report: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Create Scheduled Report
      */
     public function createScheduledReport(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'metrics' => 'required|array',
@@ -422,7 +588,7 @@ class AdvancedAnalyticsDashboardController extends Controller
             'format' => 'required|in:pdf,excel,csv',
         ]);
 
-        $schedule = \App\Models\ScheduledReport::create([
+        $schedule = ScheduledReport::create([
             'tenant_id' => $tenantId,
             'name' => $validated['name'],
             'metrics' => $validated['metrics'],
@@ -521,7 +687,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     protected function calculateInventoryTurnover(int $tenantId): float
     {
-        $costOfGoodsSold = OrderItem::where('tenant_id', $tenantId)
+        $costOfGoodsSold = SalesOrderItem::where('tenant_id', $tenantId)
             ->where('created_at', '>=', now()->subDays(365)->format('Y-m-d'))
             ->sum('total_amount');
 
@@ -616,7 +782,7 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     protected function exportToPdf(array $report)
     {
-        $pdf = \PDF::loadView('analytics.exports.pdf-report', ['report' => $report]);
+        $pdf = Pdf::loadView('analytics.exports.pdf-report', ['report' => $report]);
         return $pdf->download('analytics-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
@@ -625,8 +791,30 @@ class AdvancedAnalyticsDashboardController extends Controller
      */
     protected function exportToExcel(array $report)
     {
-        $excel = new \App\Exports\AnalyticsReportExport($report);
-        return \Excel::download($excel, 'analytics-report-' . now()->format('Y-m-d') . '.xlsx');
+        // Create a simple export class inline
+        $excel = new class ($report) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $report;
+
+            public function __construct($report)
+            {
+                $this->report = $report;
+            }
+
+            public function array(): array
+            {
+                $data = [];
+                foreach ($this->report['data'] ?? [] as $metric => $value) {
+                    $data[] = [$metric, $value];
+                }
+                return $data;
+            }
+
+            public function headings(): array
+            {
+                return ['Metric', 'Value'];
+            }
+        };
+        return Excel::download($excel, 'analytics-report-' . now()->format('Y-m-d') . '.xlsx');
     }
 
     /**

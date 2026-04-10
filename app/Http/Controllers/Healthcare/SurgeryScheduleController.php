@@ -168,4 +168,31 @@ class SurgeryScheduleController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Surgery deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/surgery-schedules/{surgery_schedule}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.surgery-schedule.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/surgery-schedules/{surgery_schedule}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.surgery-schedules.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

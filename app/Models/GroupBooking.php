@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property \Carbon\Carbon $start_date
+ * @property \Carbon\Carbon $end_date
+ */
 class GroupBooking extends Model
 {
     use BelongsToTenant;

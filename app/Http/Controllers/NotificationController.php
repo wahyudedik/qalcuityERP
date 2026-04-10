@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ErpNotification;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,7 +11,7 @@ class NotificationController extends Controller
 {
     public function index(Request $request): View
     {
-        $user   = $request->user();
+        $user = $request->user();
         $module = $request->get('module');
 
         if ($user->isSuperAdmin()) {
@@ -29,7 +28,7 @@ class NotificationController extends Controller
                 ->pluck('count', 'module');
         } else {
             $tenantId = $user->tenant_id;
-            $query    = ErpNotification::where('tenant_id', $tenantId)->latest();
+            $query = ErpNotification::where('tenant_id', $tenantId)->latest();
             if ($module && $module !== 'all') {
                 $query->byModule($module);
             }
@@ -49,11 +48,14 @@ class NotificationController extends Controller
 
     public function markRead(Request $request, ErpNotification $notification): RedirectResponse
     {
+        $user = $request->user();
+
         // Pastikan user berhak
         abort_if(
-            !auth()->user()->isSuperAdmin() && $notification->tenant_id !== auth()->user()->tenant_id,
+            !$user || (!$user->isSuperAdmin() && $notification->tenant_id !== $user->tenant_id),
             403
         );
+
         $notification->markRead();
         return back();
     }
@@ -71,5 +73,57 @@ class NotificationController extends Controller
         }
 
         return back()->with('success', 'Semua notifikasi ditandai dibaca.');
+    }
+
+    /**
+     * API: Get notifications for notification bell (JSON).
+     */
+    public function apiIndex(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+        $limit = $request->get('limit', 10);
+
+        $query = $user->isSuperAdmin()
+            ? ErpNotification::where('user_id', $user->id)
+            : ErpNotification::where('tenant_id', $user->tenant_id);
+
+        $notifications = $query->latest()
+            ->limit($limit)
+            ->get()
+            ->map(fn($n) => [
+                'id' => $n->id,
+                'type' => $n->type,
+                'module' => $n->module,
+                'title' => $n->title,
+                'body' => $n->body,
+                'data' => $n->data,
+                'read_at' => $n->read_at?->toISOString(),
+                'created_at' => $n->created_at->toISOString(),
+            ]);
+
+        $unreadCount = $user->isSuperAdmin()
+            ? ErpNotification::where('user_id', $user->id)->whereNull('read_at')->count()
+            : ErpNotification::where('tenant_id', $user->tenant_id)->whereNull('read_at')->count();
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    /**
+     * API: Get unread notification count (JSON).
+     */
+    public function apiUnreadCount(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+
+        $count = $user->isSuperAdmin()
+            ? ErpNotification::where('user_id', $user->id)->whereNull('read_at')->count()
+            : ErpNotification::where('tenant_id', $user->tenant_id)->whereNull('read_at')->count();
+
+        return response()->json([
+            'unread_count' => $count,
+        ]);
     }
 }

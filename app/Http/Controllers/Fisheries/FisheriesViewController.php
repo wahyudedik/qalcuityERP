@@ -11,28 +11,38 @@ use App\Models\FishingTrip;
 use App\Models\CatchLog;
 use App\Models\AquaculturePond;
 use App\Models\WaterQualityLog;
+use App\Models\FeedingSchedule;
 use App\Models\FishSpecies;
 use App\Models\QualityGrade;
 use App\Models\ExportPermit;
 use App\Models\HealthCertificate;
 use App\Models\CustomsDeclaration;
 use App\Models\ExportShipment;
+use App\Models\FishingZone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FisheriesViewController extends Controller
 {
+    /**
+     * Get authenticated user's tenant ID
+     */
+    private function tenantId(): int
+    {
+        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+    }
     /**
      * Main Fisheries Dashboard
      */
     public function index()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
 
         // Gather dashboard statistics
         $stats = [
             'cold_storage_units' => ColdStorageUnit::where('tenant_id', $tenantId)->count(),
             'temp_alerts' => ColdChainAlert::where('tenant_id', $tenantId)
-                ->where('status', 'active')
+                ->where('is_acknowledged', false)
                 ->count(),
             'active_trips' => FishingTrip::where('tenant_id', $tenantId)
                 ->whereIn('status', ['departed', 'fishing', 'returning'])
@@ -42,8 +52,14 @@ class FisheriesViewController extends Controller
             })->count(),
             'ponds' => AquaculturePond::where('tenant_id', $tenantId)->count(),
             'avg_pond_utilization' => AquaculturePond::where('tenant_id', $tenantId)
-                ->where('status', 'active')
-                ->avg('utilization_percentage') ?? 0,
+                ->whereIn('status', ['stocked', 'growing', 'ready_harvest'])
+                ->get()
+                ->map(function ($pond) {
+                    return $pond->carrying_capacity > 0
+                        ? ($pond->current_stock / $pond->carrying_capacity) * 100
+                        : 0;
+                })
+                ->avg() ?? 0,
             'species_count' => FishSpecies::where('tenant_id', $tenantId)->count(),
             'export_shipments' => ExportShipment::where('tenant_id', $tenantId)
                 ->whereMonth('created_at', now()->month)
@@ -61,7 +77,7 @@ class FisheriesViewController extends Controller
      */
     public function coldChain()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
 
         $storageUnits = ColdStorageUnit::where('tenant_id', $tenantId)
             ->with(['latestTemperatureLog'])
@@ -100,7 +116,7 @@ class FisheriesViewController extends Controller
      */
     public function coldChainDetail($id)
     {
-        $unit = ColdStorageUnit::where('tenant_id', auth()->user()->tenant_id)
+        $unit = ColdStorageUnit::where('tenant_id', $this->tenantId())
             ->findOrFail($id);
 
         $temperatureLogs = TemperatureLog::where('storage_unit_id', $id)
@@ -119,7 +135,7 @@ class FisheriesViewController extends Controller
      */
     public function operations()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
 
         $trips = FishingTrip::where('tenant_id', $tenantId)
             ->with(['vessel', 'captain', 'catches.species', 'catches.grade'])
@@ -150,7 +166,7 @@ class FisheriesViewController extends Controller
             ->where('role', 'captain')
             ->orWhere('role', 'crew')
             ->get();
-        $zones = \App\Models\FishingZone::where('tenant_id', $tenantId)->get();
+        $zones = FishingZone::where('tenant_id', $tenantId)->get();
 
         return view('fisheries.operations', compact(
             'trips',
@@ -168,7 +184,7 @@ class FisheriesViewController extends Controller
      */
     public function operationDetail($id)
     {
-        $trip = FishingTrip::where('tenant_id', auth()->user()->tenant_id)
+        $trip = FishingTrip::where('tenant_id', $this->tenantId())
             ->with(['vessel', 'captain', 'crew', 'catches.species', 'catches.grade', 'fishingZone'])
             ->findOrFail($id);
 
@@ -185,7 +201,7 @@ class FisheriesViewController extends Controller
      */
     public function aquaculture()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
 
         $ponds = AquaculturePond::where('tenant_id', $tenantId)
             ->with(['latestWaterQuality'])
@@ -212,14 +228,14 @@ class FisheriesViewController extends Controller
      */
     public function aquacultureDetail($id)
     {
-        $pond = AquaculturePond::where('tenant_id', auth()->user()->tenant_id)
+        $pond = AquaculturePond::where('tenant_id', $this->tenantId())
             ->findOrFail($id);
 
         $waterQualityLogs = WaterQualityLog::where('pond_id', $id)
             ->orderBy('logged_at', 'desc')
             ->paginate(30);
 
-        $feedings = \App\Models\FeedingSchedule::where('pond_id', $id)
+        $feedings = FeedingSchedule::where('pond_id', $id)
             ->orderBy('feeding_time', 'desc')
             ->paginate(20);
 
@@ -231,7 +247,7 @@ class FisheriesViewController extends Controller
      */
     public function species(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
         $tab = $request->get('tab', 'species');
 
         if ($tab === 'grades') {
@@ -265,7 +281,7 @@ class FisheriesViewController extends Controller
      */
     public function export(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
         $tab = $request->get('tab', 'permits');
 
         $stats = [
@@ -328,7 +344,7 @@ class FisheriesViewController extends Controller
      */
     public function analytics()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $this->tenantId();
         $period = request('period', '30d'); // 7d, 30d, 90d, 1y
 
         // Date range calculation
@@ -393,7 +409,7 @@ class FisheriesViewController extends Controller
             ->where('status', 'active')
             ->avg('utilization_percentage') ?? 0;
 
-        $totalFeedingCost = \App\Models\FeedingSchedule::whereHas('pond', fn($q) => $q->where('tenant_id', $tenantId))
+        $totalFeedingCost = FeedingSchedule::whereHas('pond', fn($q) => $q->where('tenant_id', $tenantId))
             ->where('created_at', '>=', $startDate)
             ->sum('feed_cost');
 

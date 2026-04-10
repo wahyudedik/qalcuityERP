@@ -137,4 +137,47 @@ class SterilizationController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Cycle deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/sterilization/{sterilization}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.sterilization.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/sterilization/{sterilization}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.sterilization.update')
+            ->with('success', 'Updated successfully.');
+    }
+    /**
+     * QualityCheck.
+     * Route: healthcare/sterilization/{cycle}/quality-check
+     */
+    public function qualityCheck(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement QualityCheck logic
+        
+        return back()->with('success', 'QualityCheck completed successfully.');
+    }
 }

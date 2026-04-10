@@ -78,4 +78,31 @@ class MedicalCertificateController extends Controller
         $certificate->delete();
         return response()->json(['success' => true, 'message' => 'Certificate deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/medical-certificates/{medical_certificate}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.medical-certificate.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/medical-certificates/{medical_certificate}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.medical-certificates.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

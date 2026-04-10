@@ -158,4 +158,47 @@ class RadiologyExamController extends Controller
             'message' => 'Radiology exam deleted successfully',
         ]);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/radiology-exams/{radiology_exam}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.radiology-exam.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/radiology-exams/{radiology_exam}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.radiology-exams.update')
+            ->with('success', 'Updated successfully.');
+    }
+    /**
+     * Complete.
+     * Route: healthcare/radiology-exams/{exam}/complete
+     */
+    public function complete(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement Complete logic
+        
+        return back()->with('success', 'Complete completed successfully.');
+    }
 }

@@ -7,6 +7,7 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Room;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -247,10 +248,29 @@ class CheckInOutService
      */
     public function calculateCharges(int $reservationId): array
     {
-        $reservation = Reservation::with(['roomType', 'checkInOuts'])->findOrFail($reservationId);
+        $reservation = Reservation::with(['roomType', 'checkInOuts', 'minibarCharges.item'])
+            ->findOrFail($reservationId);
 
         // Base room charges
         $roomCharge = (float) $reservation->total_amount;
+
+        // Get minibar charges
+        $minibarCharges = $reservation->minibarCharges()
+            ->where('status', 'pending')
+            ->get();
+
+        $minibarTotal = $minibarCharges->sum('total');
+        $minibarItems = $minibarCharges->map(function ($charge) {
+            return [
+                'item' => $charge->item->name,
+                'quantity' => $charge->quantity,
+                'unit_price' => (float) $charge->unit_price,
+                'total' => (float) $charge->total,
+            ];
+        })->toArray();
+
+        // Additional charges (manual additions)
+        $additionalCharges = (float) ($reservation->additional_charges ?? 0);
 
         // Get deposits paid
         $checkIn = $reservation->checkInOuts()->where('type', 'check_in')->first();
@@ -258,7 +278,9 @@ class CheckInOutService
 
         // Apply discount
         $discount = (float) $reservation->discount;
-        $subtotal = $roomCharge - $discount;
+
+        // Calculate subtotal
+        $subtotal = $roomCharge + $minibarTotal + $additionalCharges - $discount;
 
         // Calculate tax
         $taxRate = $this->getTaxRate($reservation->tenant_id);
@@ -272,6 +294,9 @@ class CheckInOutService
 
         return [
             'room_charge' => round($roomCharge, 2),
+            'minibar_charges' => round($minibarTotal, 2),
+            'minibar_items' => $minibarItems,
+            'additional_charges' => round($additionalCharges, 2),
             'discount' => round($discount, 2),
             'subtotal' => round($subtotal, 2),
             'tax_rate' => $taxRate,
@@ -444,12 +469,12 @@ class CheckInOutService
      * @param int $reservationId
      * @param int $newRoomId
      * @param string|null $reason
-     * @return Reservation
+     * @return array
      */
-    public function changeRoom(int $reservationId, int $newRoomId, ?string $reason = null): Reservation
+    public function changeRoom(int $reservationId, int $newRoomId, ?string $reason = null): array
     {
         return DB::transaction(function () use ($reservationId, $newRoomId, $reason) {
-            $reservation = Reservation::with('room')->findOrFail($reservationId);
+            $reservation = Reservation::with('room', 'roomType')->findOrFail($reservationId);
 
             if (!$reservation->isCheckedIn()) {
                 throw new \RuntimeException("Can only change room for checked-in reservations.");
@@ -463,8 +488,16 @@ class CheckInOutService
                 throw new \RuntimeException("Room does not belong to this tenant.");
             }
 
-            if ($newRoom->room_type_id !== $reservation->room_type_id) {
-                throw new \RuntimeException("Room type does not match the reservation.");
+            // Check if room type is different (upgrade/downgrade)
+            $isUpgrade = $newRoom->room_type_id !== $reservation->room_type_id;
+            $changeType = 'same_type';
+            $rateDifference = 0;
+
+            if ($isUpgrade) {
+                $oldRate = $reservation->rate_per_night;
+                $newRate = $newRoom->roomType->base_rate;
+                $rateDifference = $newRate - $oldRate;
+                $changeType = $rateDifference > 0 ? 'upgrade' : 'downgrade';
             }
 
             // Check new room availability for remaining dates
@@ -479,13 +512,26 @@ class CheckInOutService
                 throw new \RuntimeException("New room is not available for the remaining dates.");
             }
 
+            // Calculate remaining nights
+            $remainingNights = now()->diffInDays($reservation->check_out_date);
+            $totalRateDifference = $rateDifference * $remainingNights;
+
             // Update old reservation_room
             \App\Models\ReservationRoom::where('reservation_id', $reservationId)
                 ->where('room_id', $oldRoom->id)
                 ->update(['status' => 'changed']);
 
             // Update reservation with new room
-            $reservation->update(['room_id' => $newRoomId]);
+            $reservation->update([
+                'room_id' => $newRoomId,
+                'room_type_id' => $newRoom->room_type_id,
+                'rate_per_night' => $isUpgrade ? $newRoom->roomType->base_rate : $reservation->rate_per_night,
+                'total_amount' => $reservation->total_amount + $totalRateDifference,
+            ]);
+
+            // Recalculate grand total with new rate
+            $charges = $this->calculateCharges($reservationId);
+            $reservation->update(['grand_total' => $charges['grand_total']]);
 
             // Create new reservation_room
             \App\Models\ReservationRoom::create([
@@ -497,40 +543,47 @@ class CheckInOutService
                 'status' => 'checked_in',
             ]);
 
-            // Update old room status
-            $oldRoom->update(['status' => 'cleaning']);
+            // Create room change record
+            $roomChange = \App\Models\ReservationRoomChange::create([
+                'tenant_id' => $reservation->tenant_id,
+                'reservation_id' => $reservationId,
+                'from_room_id' => $oldRoom->id,
+                'to_room_id' => $newRoomId,
+                'room_type_id' => $newRoom->room_type_id,
+                'change_type' => $changeType,
+                'effective_date' => now(),
+                'rate_difference' => $rateDifference,
+                'reason' => $reason,
+                'notes' => "Room changed from {$oldRoom->number} to {$newRoom->number}. " .
+                    "Rate difference: Rp " . number_format($rateDifference, 0, ',', '.') . " per night. " .
+                    "Remaining nights: {$remainingNights}. Total difference: Rp " . number_format($totalRateDifference, 0, ',', '.'),
+                'processed_by' => Auth::id(),
+            ]);
 
-            // Create housekeeping task for old room
-            $this->housekeepingService->createTask(
-                $oldRoom->id,
-                'checkout_clean',
-                $reservation->tenant_id,
-                'normal'
-            );
+            // Update old room status
+            $this->housekeepingStatusService->markRoomDirty($oldRoom, 'room_change');
 
             // Update new room status
             $newRoom->update(['status' => 'occupied']);
-
-            // Create check-in/out record for room change
-            CheckInOut::create([
-                'tenant_id' => $reservation->tenant_id,
-                'reservation_id' => $reservationId,
-                'room_id' => $newRoomId,
-                'guest_id' => $reservation->guest_id,
-                'type' => 'room_change',
-                'processed_at' => now(),
-                'processed_by' => $reason,
-                'notes' => $reason ?? 'Room changed from ' . $oldRoom->number . ' to ' . $newRoom->number,
-            ]);
 
             Log::info('Room changed', [
                 'reservation_id' => $reservationId,
                 'old_room_id' => $oldRoom->id,
                 'new_room_id' => $newRoomId,
+                'change_type' => $changeType,
+                'rate_difference' => $rateDifference,
+                'total_difference' => $totalRateDifference,
                 'reason' => $reason,
             ]);
 
-            return $reservation->fresh();
+            return [
+                'reservation' => $reservation->fresh(),
+                'room_change' => $roomChange,
+                'rate_difference' => $rateDifference,
+                'total_difference' => $totalRateDifference,
+                'remaining_nights' => $remainingNights,
+                'change_type' => $changeType,
+            ];
         });
     }
 

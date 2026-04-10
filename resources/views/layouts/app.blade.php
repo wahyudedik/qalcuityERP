@@ -21,7 +21,7 @@
     @if (config('services.vapid.public_key'))
         <meta name="vapid-public-key" content="{{ config('services.vapid.public_key') }}">
     @endif
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js', 'resources/js/conflict-resolution.js', 'resources/js/topbar-offline-indicator.js'])
     @stack('head')
     <script>
         if (localStorage.getItem('theme') === 'light') {
@@ -714,7 +714,10 @@
                         <div class="hidden sm:flex items-center gap-1.5">{{ $topbarActions }}</div>
                     @endisset
 
-                    {{-- Offline indicator --}}
+                    {{-- TASK 1.6: Enhanced Offline Indicator di Topbar --}}
+                    <div id="topbar-offline-indicator" class="flex items-center gap-2"></div>
+
+                    {{-- Legacy offline indicator (hidden, kept for backward compat) --}}
                     <div id="offline-indicator"
                         class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium"
                         data-pending="0">
@@ -745,17 +748,8 @@
 
                     {{-- Notification bell --}}
                     @php
-                        $authUser = auth()->user();
-                        $notifTenantId = $authUser?->tenant_id;
-                        $unreadCount = $notifTenantId
-                            ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)
-                                ->whereNull('read_at')
-                                ->count()
-                            : ($authUser?->isSuperAdmin()
-                                ? \App\Models\ErpNotification::where('user_id', $authUser->id)
-                                    ->whereNull('read_at')
-                                    ->count()
-                                : 0);
+                        // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
+                        $unreadCount = $sidebarBadges['notifications'] ?? 0;
                     @endphp
                     <div class="relative" id="notif-wrapper">
                         <button onclick="toggleNotif()"
@@ -903,7 +897,7 @@
                             label: 'Monitoring',
                             href: '{{ route('super-admin.monitoring.index') }}',
                             active: {{ request()->routeIs('super-admin.monitoring*') ? 'true' : 'false' }},
-                            badge: {{ \App\Models\ErrorLog::where('is_resolved', false)->count() ?: 'null' }},
+                            badge: {{ $sidebarBadges['error_logs'] ?? 0 ?: 'null' }},
                             badgeClass: 'badge-red'
                         },
                         {
@@ -926,7 +920,7 @@
                             label: 'Komisi',
                             href: '{{ route('super-admin.affiliates.commissions') }}',
                             active: {{ request()->routeIs('super-admin.affiliates.commissions*') ? 'true' : 'false' }},
-                            badge: {{ \App\Models\AffiliateCommission::where('status', 'pending')->count() ?: 'null' }},
+                            badge: {{ $sidebarBadges['affiliate_commissions'] ?? 0 ?: 'null' }},
                             badgeClass: 'badge-amber'
                         },
                         {
@@ -938,7 +932,7 @@
                             label: 'Fraud Monitor',
                             href: '{{ route('super-admin.affiliates.audit-logs') }}',
                             active: {{ request()->routeIs('super-admin.affiliates.audit-logs*') ? 'true' : 'false' }},
-                            badge: {{ \App\Models\AffiliateAuditLog::where('severity', 'fraud')->where('created_at', '>=', now()->subDays(7))->count() ?:'null' }},
+                            badge: {{ $sidebarBadges['affiliate_fraud'] ?? 0 ?: 'null' }},
                             badgeClass: 'badge-red'
                         },
                         {
@@ -1521,7 +1515,7 @@
                                     label: 'Persetujuan',
                                     href: '{{ route('approvals.index') }}',
                                     active: {{ request()->routeIs('approvals*') ? 'true' : 'false' }},
-                                    badge: {{ \App\Models\ApprovalRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status', 'pending')->count() ?:'null' }}
+                                    badge: {{ $sidebarBadges['approvals'] ?? 0 ?: 'null' }}
                                 },
                             @endif
                             @if (($navTenant?->isModuleEnabled('ecommerce') ?? true) && $canView('ecommerce'))
@@ -1597,18 +1591,18 @@
                                     label: 'Lembur',
                                     href: '{{ route('hrm.overtime.index') }}',
                                     active: {{ request()->routeIs('hrm.overtime*') ? 'true' : 'false' }},
-                                    badge: {{ \App\Models\OvertimeRequest::where('tenant_id', $user?->tenant_id ?? 0)->where('status', 'pending')->count() ?:'null' }}
+                                    badge: {{ $sidebarBadges['overtime'] ?? 0 ?: 'null' }}
                                 }, {
                                     label: 'Pelatihan & Sertifikasi',
                                     href: '{{ route('hrm.training.index') }}',
                                     active: {{ request()->routeIs('hrm.training*') ? 'true' : 'false' }},
-                                    badge: {{ \App\Models\EmployeeCertification::where('tenant_id', $user?->tenant_id ?? 0)->where('status', 'active')->whereNotNull('expiry_date')->where('expiry_date', '<=', now()->addDays(90))->count() ?:'null' }},
+                                    badge: {{ $sidebarBadges['certifications'] ?? 0 ?: 'null' }},
                                     badgeClass: 'badge-red'
                                 }, {
                                     label: 'Surat Peringatan',
                                     href: '{{ route('hrm.disciplinary.index') }}',
                                     active: {{ request()->routeIs('hrm.disciplinary*') ? 'true' : 'false' }},
-                                    badge: {{ \App\Models\DisciplinaryLetter::where('tenant_id', $user?->tenant_id ?? 0)->whereIn('status', ['issued', 'acknowledged'])->count() ?:'null' }}
+                                    badge: {{ $sidebarBadges['disciplinary'] ?? 0 ?: 'null' }}
                                 },
                             @endif
                             @if (($navTenant?->isModuleEnabled('payroll') ?? true) && $canView('payroll'))

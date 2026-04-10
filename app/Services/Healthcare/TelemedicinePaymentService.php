@@ -2,7 +2,7 @@
 
 namespace App\Services\Healthcare;
 
-use App\Models\TelemedicineConsultation;
+use App\Models\Teleconsultation;
 use App\Models\PaymentTransaction;
 use App\Models\PaymentGateway;
 use App\Models\Invoice;
@@ -35,7 +35,7 @@ class TelemedicinePaymentService
     /**
      * Create payment for telemedicine consultation
      */
-    public function createPayment(TelemedicineConsultation $consultation, string $paymentMethod = 'qris', string $provider = null): array
+    public function createPayment(Teleconsultation $consultation, string $paymentMethod = 'qris', string $provider = null): array
     {
         try {
             DB::beginTransaction();
@@ -280,7 +280,7 @@ class TelemedicinePaymentService
     /**
      * Get expiry time based on payment method
      */
-    protected function getExpiryTime(string $paymentMethod): \DateTime
+    protected function getExpiryTime(string $paymentMethod)
     {
         return match ($paymentMethod) {
             'qris' => now()->addMinutes(15),
@@ -294,7 +294,7 @@ class TelemedicinePaymentService
     /**
      * Generate Midtrans payment
      */
-    protected function generateMidtransPayment(PaymentGateway $gateway, TelemedicineConsultation $consultation, PaymentTransaction $transaction): array
+    protected function generateMidtransPayment(PaymentGateway $gateway, Teleconsultation $consultation, PaymentTransaction $transaction): array
     {
         $serverKey = $gateway->configuration['server_key'] ?? '';
         $isProduction = $gateway->configuration['is_production'] ?? false;
@@ -360,7 +360,7 @@ class TelemedicinePaymentService
     /**
      * Generate Xendit payment
      */
-    protected function generateXenditPayment(PaymentGateway $gateway, TelemedicineConsultation $consultation, PaymentTransaction $transaction): array
+    protected function generateXenditPayment(PaymentGateway $gateway, Teleconsultation $consultation, PaymentTransaction $transaction): array
     {
         $secretKey = $gateway->configuration['secret_key'] ?? '';
 
@@ -406,7 +406,7 @@ class TelemedicinePaymentService
     /**
      * Generate Duitku payment
      */
-    protected function generateDuitkuPayment(PaymentGateway $gateway, TelemedicineConsultation $consultation, PaymentTransaction $transaction): array
+    protected function generateDuitkuPayment(PaymentGateway $gateway, Teleconsultation $consultation, PaymentTransaction $transaction): array
     {
         $merchantKey = $gateway->configuration['merchant_key'] ?? '';
         $merchantCode = $gateway->configuration['merchant_code'] ?? '';
@@ -448,7 +448,7 @@ class TelemedicinePaymentService
     /**
      * Generate Tripay payment
      */
-    protected function generateTripayPayment(PaymentGateway $gateway, TelemedicineConsultation $consultation, PaymentTransaction $transaction): array
+    protected function generateTripayPayment(PaymentGateway $gateway, Teleconsultation $consultation, PaymentTransaction $transaction): array
     {
         $apiKey = $gateway->configuration['api_key'] ?? '';
         $privateKey = $gateway->configuration['private_key'] ?? '';
@@ -567,7 +567,7 @@ class TelemedicinePaymentService
     /**
      * Create invoice for paid consultation
      */
-    protected function createInvoiceForConsultation(TelemedicineConsultation $consultation, PaymentTransaction $payment): void
+    protected function createInvoiceForConsultation(Teleconsultation $consultation, PaymentTransaction $payment): void
     {
         // Create healthcare invoice
         Invoice::create([

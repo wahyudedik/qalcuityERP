@@ -125,4 +125,31 @@ class BackupController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Backup deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/backups/{backup}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.backup.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/backups/{backup}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.backups.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

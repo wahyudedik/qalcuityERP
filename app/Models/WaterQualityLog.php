@@ -3,71 +3,56 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WaterQualityLog extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
         'pond_id',
-        'fishing_zone_id',
+        'recorded_at',
+        'temperature',
         'ph_level',
         'dissolved_oxygen',
-        'temperature',
         'salinity',
         'ammonia',
-        'nitrite',
         'nitrate',
+        'nitrite',
         'turbidity',
-        'measurement_method',
-        'measured_by_user_id',
-        'measured_at',
+        'recorded_by',
         'notes',
     ];
 
-    protected $casts = [
-        'ph_level' => 'decimal:2',
-        'dissolved_oxygen' => 'decimal:2',
-        'temperature' => 'decimal:2',
-        'salinity' => 'decimal:2',
-        'ammonia' => 'decimal:2',
-        'nitrite' => 'decimal:2',
-        'nitrate' => 'decimal:2',
-        'turbidity' => 'decimal:2',
-        'measured_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'recorded_at' => 'datetime',
+            'temperature' => 'decimal:2',
+            'ph_level' => 'decimal:2',
+            'dissolved_oxygen' => 'decimal:2',
+            'salinity' => 'decimal:2',
+            'ammonia' => 'decimal:3',
+            'nitrate' => 'decimal:3',
+            'nitrite' => 'decimal:3',
+            'turbidity' => 'decimal:2',
+        ];
+    }
 
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    public function pond()
+    public function pond(): BelongsTo
     {
         return $this->belongsTo(AquaculturePond::class, 'pond_id');
     }
 
-    public function fishingZone()
+    public function recordedBy(): BelongsTo
     {
-        return $this->belongsTo(FishingZone::class, 'fishing_zone_id');
-    }
-
-    public function measuredBy()
-    {
-        return $this->belongsTo(User::class, 'measured_by_user_id');
-    }
-
-    public function isPhSafe(): bool
-    {
-        return $this->ph_level >= 6.5 && $this->ph_level <= 9.0;
-    }
-
-    public function isOxygenAdequate(): bool
-    {
-        return $this->dissolved_oxygen >= 5.0; // mg/L
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 }

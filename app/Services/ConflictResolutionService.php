@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EditConflict;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ConflictResolutionService
@@ -22,7 +23,7 @@ class ConflictResolutionService
             // Update with second user's changes
             $existingConflict->update([
                 'second_user_changes' => $newChanges,
-                'conflicting_user_id' => auth()->id(),
+                'conflicting_user_id' => Auth::id(),
             ]);
 
             return $existingConflict;
@@ -30,11 +31,11 @@ class ConflictResolutionService
 
         // Create new conflict record
         return EditConflict::create([
-            'tenant_id' => auth()->user()->tenant_id,
+            'tenant_id' => Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.'),
             'model_type' => $modelType,
             'model_id' => $modelId,
-            'original_user_id' => auth()->id(),
-            'conflicting_user_id' => auth()->id(),
+            'original_user_id' => Auth::id(),
+            'conflicting_user_id' => Auth::id(),
             'original_data' => $originalData,
             'first_user_changes' => $newChanges,
             'second_user_changes' => [],
@@ -104,7 +105,11 @@ class ConflictResolutionService
      */
     public function getPendingConflicts(int $limit = 20): array
     {
-        $tenantId = auth()->user()->tenant_id;
+        if (!Auth::check()) {
+            return [];
+        }
+
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
 
         return EditConflict::where('tenant_id', $tenantId)
             ->where('status', 'pending')
@@ -113,6 +118,33 @@ class ConflictResolutionService
             ->limit($limit)
             ->get()
             ->toArray();
+    }
+
+    /**
+     * Get conflict statistics
+     */
+    public function getStatistics(): array
+    {
+        if (!Auth::check()) {
+            return [
+                'pending_conflicts' => 0,
+                'resolved_today' => 0,
+                'total_conflicts' => 0,
+            ];
+        }
+
+        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+
+        return [
+            'pending_conflicts' => EditConflict::where('tenant_id', $tenantId)
+                ->where('status', 'pending')
+                ->count(),
+            'resolved_today' => EditConflict::where('tenant_id', $tenantId)
+                ->where('status', 'resolved')
+                ->whereDate('resolved_at', today())
+                ->count(),
+            'total_conflicts' => EditConflict::where('tenant_id', $tenantId)->count(),
+        ];
     }
 
     /**

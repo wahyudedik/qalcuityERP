@@ -32,7 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'csrf.upload' => \App\Http\Middleware\VerifyCsrfForUploads::class,
             'security.headers' => \App\Http\Middleware\AddSecurityHeaders::class,
             'file.upload' => \App\Http\Middleware\ValidateFileUpload::class, // SEC-004
-    
+            'cache.response' => \App\Http\Middleware\CacheApiResponse::class,
+
             // Healthcare Module Middleware
             'healthcare.access' => \App\Http\Middleware\HealthcareAccessMiddleware::class,
             'healthcare.audit' => \App\Http\Middleware\AuditTrailMiddleware::class,

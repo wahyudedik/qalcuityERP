@@ -11,6 +11,8 @@ export default defineConfig({
                 'resources/js/offline-manager.js',
                 'resources/js/offline-pos.js',
                 'resources/js/offline-status.js',
+                'resources/js/conflict-resolution.js',
+                'resources/js/topbar-offline-indicator.js',
             ],
             refresh: true,
         }),
@@ -91,9 +93,5 @@ export default defineConfig({
                 'resources/css/app.css'
             ]
         }
-    },
-    // Increase Node.js memory limit for Vite
-    define: {
-        'process.env.NODE_OPTIONS': '--max-old-space-size=4096'
     }
 });

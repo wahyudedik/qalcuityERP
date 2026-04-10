@@ -9,6 +9,7 @@ use App\Models\GuestPreference;
 use App\Services\GuestPreferenceService;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GuestController extends Controller
 {
@@ -25,7 +26,7 @@ class GuestController extends Controller
 
     private function tenantId(): int
     {
-        return auth()->user()->tenant_id;
+        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
     }
 
     public function index(Request $request)
@@ -325,5 +326,102 @@ class GuestController extends Controller
         );
 
         return back()->with('success', "VIP level updated to {$data['vip_level']}.");
+    }
+
+    /**
+     * Get suggested preferences based on guest history
+     */
+    public function getSuggestions(Guest $guest)
+    {
+        abort_unless($guest->tenant_id === $this->tenantId(), 403);
+
+        $suggestions = $this->preferenceService->getSuggestedPreferences($guest);
+        $loyaltyRecommendations = $this->preferenceService->getLoyaltyRecommendations($guest);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'suggestions' => $suggestions,
+                'loyalty_recommendations' => $loyaltyRecommendations,
+            ],
+        ]);
+    }
+
+    /**
+     * Apply a suggested preference
+     */
+    public function applySuggestion(Request $request, Guest $guest)
+    {
+        abort_unless($guest->tenant_id === $this->tenantId(), 403);
+
+        $data = $request->validate([
+            'category' => 'required|string|max:50',
+            'preference_key' => 'required|string|max:100',
+            'preference_value' => 'nullable|string|max:500',
+        ]);
+
+        $preference = $this->preferenceService->setPreference(
+            $guest,
+            $data['category'],
+            $data['preference_key'],
+            $data['preference_value'] ?? null,
+            2,
+            true
+        );
+
+        ActivityLog::record(
+            'guest_preference_applied_from_suggestion',
+            "Applied suggested preference for {$guest->name}: {$data['category']}.{$data['preference_key']}",
+            $guest,
+            ['preference' => $data]
+        );
+
+        return back()->with('success', 'Preference applied successfully.');
+    }
+
+    /**
+     * Redeem loyalty points for reward
+     */
+    public function redeemPoints(Request $request, Guest $guest)
+    {
+        abort_unless($guest->tenant_id === $this->tenantId(), 403);
+
+        $data = $request->validate([
+            'points' => 'required|integer|min:1',
+            'reward_name' => 'required|string|max:255',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $success = $this->preferenceService->redeemPoints(
+            $guest,
+            $data['points'],
+            "Redeemed: {$data['reward_name']} - {$data['reason']}"
+        );
+
+        if (!$success) {
+            return back()->with('error', 'Insufficient loyalty points.');
+        }
+
+        return back()->with('success', "{$data['reward_name']} redeemed successfully!");
+    }
+    /**
+     * Show the form for creating.
+     * Route: hotel/guests/create
+     */
+    public function create()
+    {
+        $this->authorize('create', self::class);
+
+        return view('hotel.guest.create');
+    }
+    /**
+     * Show the form for editing.
+     * Route: hotel/guests/{guest}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+
+        return view('hotel.guest.edit', compact('model'));
     }
 }

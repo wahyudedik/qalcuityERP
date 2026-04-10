@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property \Carbon\Carbon $check_in_date
+ * @property \Carbon\Carbon $check_out_date
+ * @property \Carbon\Carbon|null $actual_check_in
+ * @property \Carbon\Carbon|null $actual_check_out
+ * @property \Carbon\Carbon|null $cancelled_at
+ */
 class Reservation extends Model
 {
     use BelongsToTenant;
@@ -90,6 +97,22 @@ class Reservation extends Model
         return $this->belongsTo(Room::class);
     }
 
+    /**
+     * Get the pre-arrival form for this reservation
+     */
+    public function preArrivalForm()
+    {
+        return $this->hasOne(PreArrivalForm::class);
+    }
+
+    /**
+     * Get minibar charges for this reservation
+     */
+    public function minibarCharges()
+    {
+        return $this->hasMany(MinibarCharge::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -155,5 +178,22 @@ class Reservation extends Model
     public function isCancelled(): bool
     {
         return $this->status === 'cancelled';
+    }
+
+    /**
+     * Generate unique reservation number
+     */
+    public static function generateReservationNumber(int $tenantId): string
+    {
+        $prefix = 'RES';
+        $date = now()->format('Ymd');
+        $lastReservation = static::where('tenant_id', $tenantId)
+            ->whereDate('created_at', today())
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $sequence = $lastReservation ? (int) substr($lastReservation->reservation_number, -4) + 1 : 1;
+
+        return sprintf('%s-%s-%04d', $prefix, $date, $sequence);
     }
 }

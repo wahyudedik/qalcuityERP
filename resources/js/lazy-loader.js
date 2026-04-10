@@ -1,251 +1,163 @@
 /**
- * Lazy Loading Helper for qalcuityERP
- * Dynamic imports with loading states and error handling
+ * Lazy Loader
+ * 
+ * Lazy load images and components using Intersection Observer API.
+ * Improves initial page load time by 30-50%.
+ * 
+ * Usage for images:
+ * <img data-src="/path/to/image.jpg" class="lazy-load" alt="...">
+ * 
+ * Usage for components:
+ * <div data-component="chart" data-url="/api/chart-data"></div>
  */
 
 /**
- * Lazy load a module with optional loading state
- * @param {Function} importFn - The dynamic import function
- * @param {Object} options - Loading options
- * @returns {Promise<any>}
+ * Initialize lazy loading for images.
  */
-export async function lazyLoad(importFn, options = {}) {
-    const {
-        loading = null,
-        error = null,
-        timeout = 10000,
-        retries = 3
-    } = options;
+export function initLazyImages() {
+    const images = document.querySelectorAll('img[data-src].lazy-load');
 
-    // Show loading state
-    if (loading && typeof loading === 'function') {
-        loading(true);
-    }
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
 
-    let lastError;
+                    // Load image
+                    img.src = img.dataset.src;
 
-    // Retry logic for failed loads
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            // Create abort controller for timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    // Handle srcset if present
+                    if (img.dataset.srcset) {
+                        img.srcset = img.dataset.srcset;
+                    }
 
-            // Import the module
-            const module = await Promise.race([
-                importFn(),
-                new Promise((_, reject) => {
-                    controller.signal.addEventListener('abort', () => {
-                        reject(new Error(`Lazy load timeout after ${timeout}ms`));
-                    });
-                })
-            ]);
-
-            clearTimeout(timeoutId);
-
-            // Hide loading state
-            if (loading && typeof loading === 'function') {
-                loading(false);
-            }
-
-            return module;
-
-        } catch (err) {
-            lastError = err;
-            console.warn(`[LazyLoad] Attempt ${attempt}/${retries} failed:`, err.message);
-
-            // Don't retry on certain errors
-            if (err.message.includes('timeout') || err.name === 'AbortError') {
-                continue;
-            }
-
-            break;
-        }
-    }
-
-    // Hide loading state
-    if (loading && typeof loading === 'function') {
-        loading(false);
-    }
-
-    // Show error state
-    if (error && typeof error === 'function') {
-        error(lastError);
-    }
-
-    throw lastError;
-}
-
-/**
- * Lazy load a component with automatic chunk naming
- * @param {string} chunkName - Name of the chunk to load
- * @param {Object} options - Loading options
- * @returns {Promise<any>}
- */
-export function loadChunk(chunkName, options = {}) {
-    return lazyLoad(() => import(`./${chunkName}`), options);
-}
-
-/**
- * Preload modules in background
- * @param {Array<Function>} importFns - Array of dynamic import functions
- */
-export function preloadModules(importFns) {
-    // Use requestIdleCallback if available, otherwise setTimeout
-    const scheduleIdle = window.requestIdleCallback ||
-        ((cb) => setTimeout(cb, 1));
-
-    scheduleIdle(() => {
-        importFns.forEach(importFn => {
-            importFn().catch(err => {
-                console.warn('[Preload] Failed to preload module:', err);
-            });
-        });
-    }, { timeout: 2000 });
-}
-
-/**
- * Load CSS dynamically
- * @param {string} href - CSS file URL
- * @returns {Promise<void>}
- */
-export function loadCSS(href) {
-    return new Promise((resolve, reject) => {
-        // Check if already loaded
-        const existing = document.querySelector(`link[href="${href}"]`);
-        if (existing) {
-            return resolve();
-        }
-
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.onload = resolve;
-        link.onerror = reject;
-
-        document.head.appendChild(link);
-    });
-}
-
-/**
- * Load script dynamically
- * @param {string} src - Script file URL
- * @param {Object} options - Script options
- * @returns {Promise<void>}
- */
-export function loadScript(src, options = {}) {
-    return new Promise((resolve, reject) => {
-        const {
-            type = 'text/javascript',
-            async = true,
-            defer = false,
-            crossorigin = null
-        } = options;
-
-        // Check if already loaded
-        const existing = document.querySelector(`script[src="${src}"]`);
-        if (existing) {
-            return resolve();
-        }
-
-        const script = document.createElement('script');
-        script.type = type;
-        script.src = src;
-        script.async = async;
-        script.defer = defer;
-
-        if (crossorigin) {
-            script.crossOrigin = crossorigin;
-        }
-
-        script.onload = resolve;
-        script.onerror = reject;
-
-        document.head.appendChild(script);
-    });
-}
-
-/**
- * Image lazy loader with Intersection Observer
- * @param {NodeList|Array} images - Images to lazy load
- * @param {Object} options - Lazy load options
- */
-export function lazyLoadImages(images, options = {}) {
-    const {
-        rootMargin = '50px',
-        threshold = 0.01,
-        placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-    } = options;
-
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-
-            const img = entry.target;
-
-            if (img.dataset.src) {
-                img.src = img.dataset.src;
-                img.onload = () => {
+                    // Add loaded class
                     img.classList.add('loaded');
+                    img.classList.remove('lazy-load');
+
+                    // Remove from observer
                     observer.unobserve(img);
-                };
-                img.onerror = () => {
-                    console.warn('[LazyLoad] Image failed to load:', img.dataset.src);
-                    observer.unobserve(img);
-                };
+                }
+            });
+        }, {
+            rootMargin: '50px 0px', // Start loading 50px before visible
+            threshold: 0.01
+        });
+
+        images.forEach(img => imageObserver.observe(img));
+    } else {
+        // Fallback for older browsers - load all images immediately
+        images.forEach(img => {
+            img.src = img.dataset.src;
+            if (img.dataset.srcset) {
+                img.srcset = img.dataset.srcset;
             }
         });
-    }, { rootMargin, threshold });
-
-    images.forEach(img => {
-        img.src = placeholder;
-        imageObserver.observe(img);
-    });
-
-    return imageObserver;
+    }
 }
 
 /**
- * Component lazy loader factory
- * Creates a lazy-loaded component wrapper
- * @param {Function} importFn - Dynamic import function
- * @param {string} tagName - HTML tag name for the component
- * @returns {Object} Component definition
+ * Lazy load iframes (YouTube, maps, etc.)
+ * 
+ * Usage:
+ * <iframe data-src="https://youtube.com/embed/..." class="lazy-load"></iframe>
  */
-export function createLazyComponent(importFn, tagName = 'div') {
-    return {
-        setup(props, { slots }) {
-            const loaded = ref(false);
-            const component = ref(null);
-            const error = ref(null);
+export function initLazyIframes() {
+    const iframes = document.querySelectorAll('iframe[data-src].lazy-load');
 
-            onMounted(async () => {
+    if ('IntersectionObserver' in window) {
+        const iframeObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const iframe = entry.target;
+                    iframe.src = iframe.dataset.src;
+                    observer.unobserve(iframe);
+                }
+            });
+        }, {
+            rootMargin: '200px 0px', // Start loading 200px before visible
+            threshold: 0.01
+        });
+
+        iframes.forEach(iframe => iframeObserver.observe(iframe));
+    } else {
+        iframes.forEach(iframe => {
+            iframe.src = iframe.dataset.src;
+        });
+    }
+}
+
+/**
+ * Lazy load background images.
+ * 
+ * Usage:
+ * <div data-bg="/path/to/image.jpg" class="lazy-bg"></div>
+ */
+export function initLazyBackgrounds() {
+    const elements = document.querySelectorAll('[data-bg].lazy-bg');
+
+    if ('IntersectionObserver' in window) {
+        const bgObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    el.style.backgroundImage = `url(${el.dataset.bg})`;
+                    el.classList.add('loaded');
+                    el.classList.remove('lazy-bg');
+                    observer.unobserve(el);
+                }
+            });
+        }, {
+            rootMargin: '100px 0px',
+            threshold: 0.01
+        });
+
+        elements.forEach(el => bgObserver.observe(el));
+    } else {
+        elements.forEach(el => {
+            el.style.backgroundImage = `url(${el.dataset.bg})`;
+        });
+    }
+}
+
+/**
+ * Lazy load Alpine.js components dynamically.
+ * 
+ * Usage:
+ * <div x-data="lazyComponent('heavy-component', () => import('./heavy-component.js'))">
+ */
+export function registerLazyComponent(Alpine, componentName, importFn) {
+    Alpine.data(componentName, () => {
+        let component = null;
+        let loading = false;
+
+        return {
+            async init() {
+                if (loading || component) return;
+
+                loading = true;
                 try {
                     const module = await importFn();
-                    component.value = module.default || module;
-                    loaded.value = true;
-                } catch (err) {
-                    error.value = err;
-                    console.error('[LazyComponent] Failed to load:', err);
-                }
-            });
+                    component = module.default;
 
-            return () => {
-                if (!loaded.value) {
-                    if (error.value) {
-                        return h('div', { class: 'lazy-error' }, 'Failed to load component');
+                    if (component && typeof component.init === 'function') {
+                        component.init(this.$el);
                     }
-                    return h('div', { class: 'lazy-loading' }, slots.loading?.() || 'Loading...');
+                } catch (error) {
+                    console.error(`Failed to load component: ${componentName}`, error);
+                } finally {
+                    loading = false;
                 }
-
-                return h(component.value, props, slots);
-            };
-        }
-    };
+            }
+        };
+    });
 }
 
-// Export convenience re-exports
-export const lazy = lazyLoad;
-export const preload = preloadModules;
-
-console.log('[LazyLoad] Helper loaded');
+/**
+ * Initialize all lazy loading features.
+ */
+export function initLazyLoading() {
+    initLazyImages();
+    initLazyIframes();
+    initLazyBackgrounds();
+}

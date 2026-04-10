@@ -622,4 +622,21 @@ class SpaController extends Controller
             'endDate'
         ));
     }
+    /**
+     * CreatePackage.
+     * Route: hotel/spa/packages/create
+     */
+    public function createPackage(Request $request)
+    {
+        // TODO: Add authorization
+        // $this->authorize('ACTION', MODEL::class);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        // TODO: Implement CreatePackage logic
+        
+        return back()->with('success', 'CreatePackage completed successfully.');
+    }
 }

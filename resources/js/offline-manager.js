@@ -107,10 +107,16 @@ class OfflineQueueManager {
                 queued_at: new Date().toISOString(),
                 retry_count: 0,
                 max_retries: mutation.max_retries || 5,
+                // TASK 1.4: Exponential backoff configuration
+                base_delay: mutation.base_delay || 1000, // 1 second base
+                max_delay: mutation.max_delay || 300000, // 5 minutes max
+                next_retry_at: null,
                 csrf_token: document.querySelector('meta[name="csrf-token"]')?.content,
                 // BUG-OFF-001 FIX: Add timestamp for conflict detection
                 offline_timestamp: new Date().toISOString(),
                 local_id: mutation.local_id || null,
+                user_id: mutation.user_id || null,
+                user_role: mutation.user_role || null,
                 on_success_callback: mutation.onSuccess ? mutation.onSuccess.toString() : null,
                 on_error_callback: mutation.onError ? mutation.onError.toString() : null,
             };
@@ -243,6 +249,15 @@ class OfflineQueueManager {
      */
     async processMutation(mutation) {
         try {
+            // TASK 1.4: Check if it's time to retry (exponential backoff)
+            if (mutation.next_retry_at) {
+                const nextRetry = new Date(mutation.next_retry_at);
+                if (new Date() < nextRetry) {
+                    console.log(`[OfflineQueue] Skipping mutation #${mutation.id} - next retry at ${nextRetry.toISOString()}`);
+                    return false; // Not ready yet
+                }
+            }
+
             // BUG-OFF-002 FIX: Refresh CSRF token before sync to avoid stale token
             const csrfToken = await this.getFreshCsrfToken();
 
@@ -251,6 +266,9 @@ class OfflineQueueManager {
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken, // Use fresh token, not stored one
                 'X-Offline-Sync': '1',
+                // TASK 1.3: Include user info for role-priority resolution
+                'X-User-ID': mutation.user_id || '',
+                'X-User-Role': mutation.user_role || '',
             };
 
             const response = await fetch(mutation.url, {
@@ -349,8 +367,21 @@ class OfflineQueueManager {
                 // Auth error - re-queue for later
                 console.warn(`[OfflineQueue] Auth error for mutation #${mutation.id}, will retry`);
                 return false;
+            } else if (response.status === 429 || response.status >= 500) {
+                // TASK 1.4: Rate limit or server error - apply exponential backoff
+                const retryCount = mutation.retry_count + 1;
+                const delay = this.calculateBackoffDelay(retryCount, mutation.base_delay, mutation.max_delay);
+
+                console.warn(`[OfflineQueue] Rate limit/server error for mutation #${mutation.id}, retry ${retryCount}/${mutation.max_retries} in ${delay}ms`);
+
+                await this.updateRetryWithBackoff(mutation.id, retryCount, delay);
+                return false;
             } else {
-                // Other errors - retry
+                // Other errors - retry with exponential backoff
+                const retryCount = mutation.retry_count + 1;
+                const delay = this.calculateBackoffDelay(retryCount, mutation.base_delay, mutation.max_delay);
+
+                await this.updateRetryWithBackoff(mutation.id, retryCount, delay);
                 throw new Error(`HTTP ${response.status}`);
             }
         } catch (error) {
@@ -362,6 +393,54 @@ class OfflineQueueManager {
             }
             throw error;
         }
+    }
+
+    /**
+     * TASK 1.4: Calculate exponential backoff delay
+     * @param {number} retryCount - Current retry count
+     * @param {number} baseDelay - Base delay in ms
+     * @param {number} maxDelay - Maximum delay in ms
+     * @returns {number} Delay in milliseconds
+     */
+    calculateBackoffDelay(retryCount, baseDelay = 1000, maxDelay = 300000) {
+        // Exponential backoff with jitter
+        const exponentialDelay = baseDelay * Math.pow(2, retryCount);
+        const jitter = Math.random() * 0.3 * exponentialDelay; // Add up to 30% jitter
+        const delay = Math.min(exponentialDelay + jitter, maxDelay);
+
+        return Math.round(delay);
+    }
+
+    /**
+     * TASK 1.4: Update retry count with backoff delay
+     * @param {number} id - Mutation ID
+     * @param {number} count - New retry count
+     * @param {number} delayMs - Delay in milliseconds before next retry
+     */
+    async updateRetryWithBackoff(id, count, delayMs) {
+        await this.ensureDbReady();
+
+        const nextRetryAt = new Date(Date.now() + delayMs);
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.get(id);
+
+            request.onsuccess = () => {
+                const item = request.result;
+                if (item) {
+                    item.retry_count = count;
+                    item.last_retry_at = new Date().toISOString();
+                    item.next_retry_at = nextRetryAt.toISOString();
+                    item.backoff_delay = delayMs;
+                    store.put(item);
+                }
+                resolve();
+            };
+
+            request.onerror = (event) => reject(event.target.error);
+        });
     }
 
     /**

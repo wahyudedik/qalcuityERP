@@ -6,31 +6,79 @@ use App\Http\Controllers\Controller;
 use App\Models\PoultryEggProduction;
 use App\Models\LivestockHerd;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PoultryController extends Controller
 {
+    /**
+     * Get authenticated user's tenant ID
+     */
+    private function tenantId(): int
+    {
+        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+    }
+
+    /**
+     * Get authenticated user's ID
+     */
+    private function userId(): int
+    {
+        return Auth::id() ?? abort(401, 'Unauthenticated.');
+    }
+    /**
+     * Display poultry flocks list
+     */
+    public function flocks(Request $request)
+    {
+        $tenantId = $this->tenantId();
+
+        $stats = [
+            'total_flocks' => LivestockHerd::where('tenant_id', $tenantId)
+                ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+                ->count(),
+            'active_flocks' => LivestockHerd::where('tenant_id', $tenantId)
+                ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+                ->active()
+                ->count(),
+            'total_birds' => LivestockHerd::where('tenant_id', $tenantId)
+                ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+                ->active()
+                ->sum('initial_count'),
+        ];
+
+        $flocks = LivestockHerd::where('tenant_id', $tenantId)
+            ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
+            ->withCount(['eggProductions', 'flockPerformances'])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('livestock.poultry.flocks', compact('stats', 'flocks'));
+    }
+
     /**
      * Display egg production records
      */
     public function eggProduction(Request $request)
     {
+        $tenantId = $this->tenantId();
+
         $stats = [
-            'total_records' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)->count(),
-            'today_eggs' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)
+            'total_records' => PoultryEggProduction::where('tenant_id', $tenantId)->count(),
+            'today_eggs' => PoultryEggProduction::where('tenant_id', $tenantId)
                 ->whereDate('record_date', today())
                 ->sum('eggs_collected'),
-            'avg_laying_rate' => PoultryEggProduction::where('tenant_id', auth()->user()->tenant_id)
+            'avg_laying_rate' => PoultryEggProduction::where('tenant_id', $tenantId)
                 ->whereBetween('record_date', [now()->subDays(7), now()])
                 ->avg('laying_rate_percentage') ?? 0,
             'avg_breakage_rate' => 0,
         ];
 
         $records = PoultryEggProduction::with(['herd', 'recordedBy'])
-            ->where('tenant_id', auth()->user()->tenant_id)
+            ->where('tenant_id', $tenantId)
             ->orderByDesc('record_date')
             ->paginate(20);
 
-        $herds = LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+        $herds = LivestockHerd::where('tenant_id', $tenantId)
             ->where('animal_type', 'ayam_layer')
             ->active()
             ->get();
@@ -62,10 +110,10 @@ class PoultryController extends Controller
 
         try {
             $record = new PoultryEggProduction();
-            $record->tenant_id = auth()->user()->tenant_id;
+            $record->tenant_id = $this->tenantId();
             $record->fill($validated);
             $record->eggs_broken = $validated['eggs_broken'] ?? 0;
-            $record->recorded_by = auth()->id();
+            $record->recorded_by = $this->userId();
             $record->save();
 
             return back()->with('success', 'Egg production recorded successfully!');
@@ -79,24 +127,26 @@ class PoultryController extends Controller
      */
     public function flockPerformance(Request $request)
     {
+        $tenantId = $this->tenantId();
+
         $stats = [
-            'total_flocks' => LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+            'total_flocks' => LivestockHerd::where('tenant_id', $tenantId)
                 ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
                 ->count(),
-            'avg_mortality_rate' => \App\Models\PoultryFlockPerformance::where('tenant_id', auth()->user()->tenant_id)
+            'avg_mortality_rate' => \App\Models\PoultryFlockPerformance::where('tenant_id', $tenantId)
                 ->whereBetween('record_date', [now()->subDays(30), now()])
                 ->avg('mortality_rate_percentage') ?? 0,
-            'avg_fcr' => \App\Models\PoultryFlockPerformance::where('tenant_id', auth()->user()->tenant_id)
+            'avg_fcr' => \App\Models\PoultryFlockPerformance::where('tenant_id', $tenantId)
                 ->whereBetween('record_date', [now()->subDays(30), now()])
                 ->avg('feed_conversion_ratio') ?? 0,
         ];
 
         $performances = \App\Models\PoultryFlockPerformance::with(['herd', 'recordedBy'])
-            ->where('tenant_id', auth()->user()->tenant_id)
+            ->where('tenant_id', $tenantId)
             ->orderByDesc('record_date')
             ->paginate(20);
 
-        $herds = LivestockHerd::where('tenant_id', auth()->user()->tenant_id)
+        $herds = LivestockHerd::where('tenant_id', $tenantId)
             ->whereIn('animal_type', ['ayam_broiler', 'ayam_layer', 'bebek'])
             ->active()
             ->get();
@@ -125,19 +175,17 @@ class PoultryController extends Controller
 
         try {
             $performance = new \App\Models\PoultryFlockPerformance();
-            $performance->tenant_id = auth()->user()->tenant_id;
+            $performance->tenant_id = $this->tenantId();
             $performance->fill($validated);
             $performance->mortality_count = $validated['mortality_count'] ?? 0;
             $performance->health_status = $validated['health_status'] ?? 'healthy';
-            $performance->recorded_by = auth()->id();
+            $performance->recorded_by = $this->userId();
 
             // Calculate mortality rate
             if ($performance->birds_alive > 0) {
                 $totalBirds = $performance->birds_alive + $performance->mortality_count;
-                $performance->mortality_rate_percentage = round(
-                    ($performance->mortality_count / $totalBirds) * 100,
-                    2
-                );
+                $calculatedRate = ($performance->mortality_count / $totalBirds) * 100;
+                $performance->mortality_rate_percentage = round($calculatedRate, 2);
             }
 
             $performance->save();

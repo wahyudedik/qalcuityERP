@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
-use App\Models\TelemedicineConsultation;
+use App\Models\Teleconsultation;
 use App\Services\Healthcare\TelemedicinePaymentService;
+use App\Services\TelemedicineVideoService;
+use App\Services\TelemedicineFeedbackService;
+use App\Models\TelemedicineSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,32 +15,49 @@ use Illuminate\Support\Facades\Log;
 class TelemedicineController extends Controller
 {
     protected $paymentService;
+    protected $videoService;
+    protected $feedbackService;
 
-    public function __construct(TelemedicinePaymentService $paymentService)
-    {
+    public function __construct(
+        TelemedicinePaymentService $paymentService,
+        TelemedicineVideoService $videoService,
+        TelemedicineFeedbackService $feedbackService
+    ) {
         $this->paymentService = $paymentService;
+        $this->videoService = $videoService;
+        $this->feedbackService = $feedbackService;
     }
     /**
      * Display telemedicine dashboard.
      */
     public function index()
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $statistics = [
-            'today_consultations' => TelemedicineConsultation::where('tenant_id', $tenantId)
-                ->whereDate('consultation_date', today())
+            'today_consultations' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
+                ->whereDate('scheduled_time', today())
                 ->count(),
-            'scheduled' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'scheduled' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'scheduled')
                 ->count(),
-            'completed' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'completed' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'completed')
                 ->count(),
-            'cancelled' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'cancelled' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'cancelled')
                 ->count(),
-            'total_patients' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'total_patients' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->distinct('patient_id')
                 ->count('patient_id'),
         ];
@@ -72,10 +92,12 @@ class TelemedicineController extends Controller
      */
     public function consultations(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
-        $query = TelemedicineConsultation::with(['patient', 'doctor'])
-            ->where('tenant_id', $tenantId);
+        $query = Teleconsultation::with(['patient', 'doctor'])
+            ->whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            });
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -108,19 +130,29 @@ class TelemedicineController extends Controller
 
         // Stats - with tenant isolation
         $statistics = [
-            'total_consultations' => TelemedicineConsultation::where('tenant_id', $tenantId)->count(),
-            'scheduled' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'total_consultations' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })->count(),
+            'scheduled' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'scheduled')
                 ->count(),
-            'in_progress' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'in_progress' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'in_progress')
                 ->count(),
-            'completed' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'completed' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'completed')
                 ->count(),
-            'completed_today' => TelemedicineConsultation::where('tenant_id', $tenantId)
+            'completed_today' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
                 ->where('status', 'completed')
-                ->whereDate('completed_at', today())
+                ->whereDate('updated_at', today())
                 ->count(),
         ];
 
@@ -237,7 +269,7 @@ class TelemedicineController extends Controller
      */
     public function showPayment($id)
     {
-        $consultation = TelemedicineConsultation::with(['patient', 'doctor'])->findOrFail($id);
+        $consultation = Teleconsultation::with(['patient', 'doctor'])->findOrFail($id);
 
         // Check if consultation requires payment
         if ($consultation->payment_status === 'paid') {
@@ -267,7 +299,7 @@ class TelemedicineController extends Controller
      */
     public function processPayment(Request $request, $id)
     {
-        $consultation = TelemedicineConsultation::with(['patient', 'doctor'])->findOrFail($id);
+        $consultation = Teleconsultation::with(['patient', 'doctor'])->findOrFail($id);
 
         $validated = $request->validate([
             'payment_method' => 'required|string',
@@ -353,8 +385,8 @@ class TelemedicineController extends Controller
      */
     public function processRefund(Request $request, $id)
     {
-        $consultation = TelemedicineConsultation::findOrFail($id);
-        $paymentTransaction = \App\Models\PaymentTransaction::where('telemedicine_consultation_id', $consultation->id)
+        $consultation = Teleconsultation::findOrFail($id);
+        $paymentTransaction = \App\Models\PaymentTransaction::where('teleconsultation_id', $consultation->id)
             ->where('status', 'paid')
             ->first();
 
@@ -374,4 +406,182 @@ class TelemedicineController extends Controller
 
         return back()->with('error', 'Refund failed: ' . $result['error']);
     }
+
+    // ========================================
+    // VIDEO INTEGRATION METHODS (Jitsi Meet)
+    // ========================================
+
+    /**
+     * Show video room for consultation.
+     */
+    public function videoRoom($id)
+    {
+        $consultation = Teleconsultation::with(['patient', 'doctor'])->findOrFail($id);
+
+        // Check if user can join
+        if (!$consultation->canJoin()) {
+            return redirect()->route('healthcare.telemedicine.consultations')
+                ->with('error', 'This consultation cannot be joined at this time.');
+        }
+
+        // Generate or get meeting details
+        if (!$consultation->meeting_url) {
+            $meetingData = $this->videoService->generateMeetingRoom($consultation);
+        } else {
+            $settings = TelemedicineSetting::getForTenant($consultation->patient?->tenant_id ?? 1);
+            $meetingData = [
+                'room_name' => $consultation->meeting_id,
+                'meeting_url' => $consultation->meeting_url,
+                'jitsi_domain' => $settings->getJitsiDomain(),
+                'settings' => $settings,
+            ];
+        }
+
+        return view('healthcare.telemedicine.video-room', [
+            'consultation' => $consultation,
+            'roomName' => $meetingData['room_name'],
+            'jitsiServerUrl' => $meetingData['settings']->jitsi_server_url,
+            'jitsiDomain' => $meetingData['jitsi_domain'],
+            'settings' => $meetingData['settings'],
+        ]);
+    }
+
+    /**
+     * Generate JWT token for Jitsi (if using self-hosted with auth).
+     */
+    public function generateToken(Request $request, $id)
+    {
+        $consultation = Teleconsultation::findOrFail($id);
+        $user = Auth::user();
+
+        // Determine role
+        $role = ($consultation->doctor_id == $user->id) ? 'moderator' : 'participant';
+        $userId = $user->id;
+
+        $token = $this->videoService->generateJWT(
+            $consultation->meeting_id,
+            $role,
+            $userId
+        );
+
+        return response()->json([
+            'token' => $token,
+            'role' => $role,
+        ]);
+    }
+
+    /**
+     * Start recording for consultation.
+     */
+    public function startRecording($id)
+    {
+        $consultation = Teleconsultation::findOrFail($id);
+
+        $success = $this->videoService->startRecording($consultation);
+
+        if ($success) {
+            return response()->json(['message' => 'Recording started']);
+        }
+
+        return response()->json(['message' => 'Failed to start recording'], 500);
+    }
+
+    /**
+     * Stop recording for consultation.
+     */
+    public function stopRecording($id)
+    {
+        $consultation = Teleconsultation::findOrFail($id);
+
+        $success = $this->videoService->stopRecording($consultation);
+
+        if ($success) {
+            return response()->json(['message' => 'Recording stopped']);
+        }
+
+        return response()->json(['message' => 'Failed to stop recording'], 500);
+    }
+
+    /**
+     * Show feedback form for completed consultation.
+     */
+    public function showFeedback($id)
+    {
+        $consultation = Teleconsultation::with(['patient', 'doctor'])->findOrFail($id);
+
+        // Check if feedback already exists
+        if ($this->feedbackService->hasFeedback($consultation->id)) {
+            return redirect()->route('healthcare.telemedicine.consultations')
+                ->with('info', 'You have already submitted feedback for this consultation.');
+        }
+
+        return view('healthcare.telemedicine.feedback', compact('consultation'));
+    }
+
+    /**
+     * Submit feedback for consultation.
+     */
+    public function submitFeedback($id, Request $request)
+    {
+        $consultation = Teleconsultation::findOrFail($id);
+
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'video_quality' => 'nullable|integer|min:1|max:5',
+            'audio_quality' => 'nullable|integer|min:1|max:5',
+            'doctor_rating' => 'required|integer|min:1|max:5',
+            'platform_rating' => 'nullable|integer|min:1|max:5',
+            'feedback' => 'nullable|string|max:1000',
+            'positive_feedback' => 'nullable|string|max:500',
+            'negative_feedback' => 'nullable|string|max:500',
+            'suggestions' => 'nullable|string|max:500',
+            'would_recommend' => 'nullable|boolean',
+            'would_use_again' => 'nullable|boolean',
+            'needs_followup' => 'nullable|boolean',
+            'followup_notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $feedback = $this->feedbackService->submitFeedback([
+                'consultation_id' => $consultation->id,
+                'patient_id' => $consultation->patient_id,
+                'doctor_id' => $consultation->doctor_id,
+                'rating' => $validated['rating'],
+                'video_quality' => $validated['video_quality'] ?? null,
+                'audio_quality' => $validated['audio_quality'] ?? null,
+                'doctor_rating' => $validated['doctor_rating'],
+                'platform_rating' => $validated['platform_rating'] ?? null,
+                'feedback' => $validated['feedback'] ?? null,
+                'positive_feedback' => $validated['positive_feedback'] ?? null,
+                'negative_feedback' => $validated['negative_feedback'] ?? null,
+                'suggestions' => $validated['suggestions'] ?? null,
+                'would_recommend' => $validated['would_recommend'] ?? true,
+                'would_use_again' => $validated['would_use_again'] ?? true,
+                'needs_followup' => $validated['needs_followup'] ?? false,
+                'followup_notes' => $validated['followup_notes'] ?? null,
+            ]);
+
+            return redirect()->route('healthcare.telemedicine.consultations')
+                ->with('success', 'Thank you for your feedback!');
+        } catch (\Exception $e) {
+            Log::error('Failed to submit feedback', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Failed to submit feedback. Please try again.');
+        }
+    }
+
+    /**
+     * Get feedback for consultation (API).
+     */
+    public function getFeedback($id)
+    {
+        $consultation = Teleconsultation::findOrFail($id);
+        $feedback = $this->feedbackService->getConsultationFeedback($consultation->id);
+
+        if (!$feedback) {
+            return response()->json(['message' => 'No feedback found'], 404);
+        }
+
+        return response()->json($feedback);
+    }
 }
+

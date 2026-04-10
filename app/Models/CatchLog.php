@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CatchLog extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -28,47 +27,45 @@ class CatchLog extends Model
         'notes',
     ];
 
-    protected $casts = [
-        'quantity' => 'decimal:2',
-        'total_weight' => 'decimal:2',
-        'average_weight' => 'decimal:2',
-        'freshness_score' => 'decimal:2',
-        'caught_at' => 'datetime',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
-        'depth' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'decimal:2',
+            'total_weight' => 'decimal:2',
+            'average_weight' => 'decimal:2',
+            'freshness_score' => 'decimal:2',
+            'caught_at' => 'datetime',
+            'latitude' => 'decimal:8',
+            'longitude' => 'decimal:8',
+            'depth' => 'decimal:2',
+        ];
+    }
 
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    public function fishingTrip()
+    public function fishingTrip(): BelongsTo
     {
-        return $this->belongsTo(FishingTrip::class);
+        return $this->belongsTo(FishingTrip::class, 'fishing_trip_id');
     }
 
-    public function species()
+    /**
+     * Alias for fishingTrip - used in controller queries
+     */
+    public function trip(): BelongsTo
+    {
+        return $this->fishingTrip();
+    }
+
+    public function species(): BelongsTo
     {
         return $this->belongsTo(FishSpecies::class, 'species_id');
     }
 
-    public function grade()
+    public function grade(): BelongsTo
     {
         return $this->belongsTo(QualityGrade::class, 'grade_id');
-    }
-
-    public function freshnessAssessment()
-    {
-        return $this->hasOne(FreshnessAssessment::class);
-    }
-
-    public function getEstimatedValueAttribute(): float
-    {
-        $basePrice = $this->species?->market_price_per_kg ?? 0;
-        $multiplier = $this->grade?->price_multiplier ?? 1.0;
-
-        return $this->total_weight * $basePrice * $multiplier;
     }
 }

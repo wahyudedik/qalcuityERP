@@ -24,10 +24,26 @@ return new class extends Migration {
             $table->timestamps();
             $table->index(['tenant_id', 'related_type', 'related_id']);
         });
+
+        // Document templates base table
+        Schema::create('document_templates', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('tenant_id');
+            $table->string('name');
+            $table->string('doc_type')->default('pdf');
+            $table->text('html_content')->nullable();
+            $table->text('css_content')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+
+            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+            $table->index(['tenant_id', 'is_active']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('document_templates');
         Schema::dropIfExists('documents');
     }
 };

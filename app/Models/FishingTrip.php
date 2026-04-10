@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\FishingZone;
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FishingTrip extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -22,69 +23,63 @@ class FishingTrip extends Model
         'status',
         'fuel_consumed',
         'total_catch_weight',
-        'latitude',
-        'longitude',
-        'weather_conditions',
         'notes',
     ];
 
-    protected $casts = [
-        'departure_time' => 'datetime',
-        'return_time' => 'datetime',
-        'fuel_consumed' => 'decimal:2',
-        'total_catch_weight' => 'decimal:2',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
+    protected function casts(): array
+    {
+        return [
+            'departure_time' => 'datetime',
+            'return_time' => 'datetime',
+            'fuel_consumed' => 'decimal:2',
+            'total_catch_weight' => 'decimal:2',
+        ];
+    }
+
+    public const STATUSES = [
+        'planned' => 'Planned',
+        'departed' => 'Departed',
+        'fishing' => 'Fishing',
+        'returning' => 'Returning',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
     ];
 
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    public function vessel()
+    public function vessel(): BelongsTo
     {
         return $this->belongsTo(FishingVessel::class, 'vessel_id');
     }
 
-    public function captain()
+    public function captain(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'captain_id');
     }
 
-    public function fishingZone()
+    public function fishingZone(): BelongsTo
     {
         return $this->belongsTo(FishingZone::class, 'fishing_zone_id');
     }
 
-    public function crew()
-    {
-        return $this->belongsToMany(Employee::class, 'fishing_trip_crew')
-            ->withPivot('role')
-            ->withTimestamps();
-    }
-
-    public function catchLogs()
+    public function catchLogs(): HasMany
     {
         return $this->hasMany(CatchLog::class);
     }
 
-    public function mortalityLogs()
+    /**
+     * Alias for catchLogs - used in views
+     */
+    public function catches(): HasMany
     {
-        return $this->hasMany(MortalityLog::class);
+        return $this->catchLogs();
     }
 
-    public function duration(): ?int
+    public function statusLabel(): string
     {
-        if (!$this->return_time) {
-            return null;
-        }
-
-        return $this->departure_time->diffInHours($this->return_time);
-    }
-
-    public function isActive(): bool
-    {
-        return in_array($this->status, ['planned', 'departed', 'fishing', 'returning']);
+        return self::STATUSES[$this->status] ?? $this->status;
     }
 }

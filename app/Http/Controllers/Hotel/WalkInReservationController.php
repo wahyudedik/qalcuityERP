@@ -344,4 +344,53 @@ class WalkInReservationController extends Controller
             ],
         ]);
     }
+    /**
+     * Display the specified resource.
+     * Route: hotel/walk-ins/{walk_in}
+     */
+    public function show($model)
+    {
+        $this->authorize('view', $model);
+        
+        return view('hotel.walk-in-reservation.show', compact('model'));
+    }
+    /**
+     * Show the form for editing.
+     * Route: hotel/walk-ins/{walk_in}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('hotel.walk-in-reservation.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: hotel/walk-ins/{walk_in}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('hotel.walk-ins.update')
+            ->with('success', 'Updated successfully.');
+    }
+    /**
+     * Remove the specified resource.
+     * Route: hotel/walk-ins/{walk_in}
+     */
+    public function destroy($model)
+    {
+        $this->authorize('delete', $model);
+        
+        $model->delete();
+        
+        return back()->with('success', 'Deleted successfully.');
+    }
 }

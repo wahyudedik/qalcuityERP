@@ -35,7 +35,7 @@ class BarcodeService
         'ean8' => BarcodeGeneratorPNG::TYPE_EAN_8,
         'upca' => BarcodeGeneratorPNG::TYPE_UPC_A,
         'upce' => BarcodeGeneratorPNG::TYPE_UPC_E,
-        'qr' => BarcodeGeneratorPNG::TYPE_QR_CODE,
+        // QR code is not supported by Picqer\Barcode, will be handled separately
     ];
 
     /**
@@ -81,13 +81,7 @@ class BarcodeService
         $generator = new BarcodeGeneratorPNG();
         $typeConstant = $this->getTypeConstant($type);
 
-        return $generator->setBarcode($value)
-            ->setType($typeConstant)
-            ->setWidth($width)
-            ->setHeight($height)
-            ->setForegroundColor('black')
-            ->setBackgroundColor('white')
-            ->getBarcode();
+        return $generator->generate($value, $typeConstant, $width, $height);
     }
 
     /**
@@ -98,13 +92,7 @@ class BarcodeService
         $generator = new BarcodeGeneratorSVG();
         $typeConstant = $this->getTypeConstant($type);
 
-        return $generator->setBarcode($value)
-            ->setType($typeConstant)
-            ->setWidth(2)
-            ->setHeight(30)
-            ->setForegroundColor('black')
-            ->setBackgroundColor('white')
-            ->getBarcode();
+        return $generator->generate($value, $typeConstant, 2, 30);
     }
 
     /**
@@ -115,13 +103,7 @@ class BarcodeService
         $generator = new BarcodeGeneratorHTML();
         $typeConstant = $this->getTypeConstant($type);
 
-        return $generator->setBarcode($value)
-            ->setType($typeConstant)
-            ->setWidth(2)
-            ->setHeight(30)
-            ->setForegroundColor('black')
-            ->setBackgroundColor('white')
-            ->getBarcode();
+        return $generator->generate($value, $typeConstant, 2, 30);
     }
 
     /**
@@ -252,7 +234,7 @@ class BarcodeService
      * @param string $sku Product SKU
      * @param float $price Product price
      * @param string $template Template name (avery, thermal, custom)
-     * @return \Illuminate\Http\Response PDF response
+     * @return \Illuminate\Contracts\View\View View instance
      */
     public function printLabel(
         string $barcodeValue,
@@ -260,7 +242,7 @@ class BarcodeService
         string $sku,
         float $price = 0,
         string $template = 'thermal'
-    ) {
+    ): \Illuminate\Contracts\View\View {
         $barcodeImage = $this->generate($barcodeValue, 'code128', 'png');
 
         $viewData = [

@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExportShipment extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -30,36 +29,37 @@ class ExportShipment extends Model
         'shipping_documents',
     ];
 
-    protected $casts = [
-        'shipment_date' => 'date',
-        'estimated_arrival' => 'date',
-        'actual_arrival' => 'date',
-        'total_value' => 'decimal:2',
-        'shipping_documents' => 'array',
+    protected function casts(): array
+    {
+        return [
+            'shipment_date' => 'date',
+            'estimated_arrival' => 'date',
+            'actual_arrival' => 'date',
+            'total_value' => 'decimal:2',
+            'shipping_documents' => 'array',
+        ];
+    }
+
+    public const STATUSES = [
+        'preparing' => 'Preparing',
+        'in_transit' => 'In Transit',
+        'arrived' => 'Arrived',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
     ];
 
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    public function customsDeclaration()
+    public function customsDeclaration(): BelongsTo
     {
-        return $this->belongsTo(CustomsDeclaration::class, 'customs_declaration_id');
+        return $this->belongsTo(CustomsDeclaration::class);
     }
 
-    public function transport()
+    public function statusLabel(): string
     {
-        return $this->belongsTo(RefrigeratedTransport::class, 'transport_id');
-    }
-
-    public function isInTransit(): bool
-    {
-        return $this->status === 'in_transit';
-    }
-
-    public function isDelivered(): bool
-    {
-        return $this->status === 'delivered';
+        return self::STATUSES[$this->status] ?? $this->status;
     }
 }

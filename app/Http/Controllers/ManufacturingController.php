@@ -14,13 +14,14 @@ use App\Services\GlPostingService;
 use App\Services\MrpService;
 use App\Services\Manufacturing\QualityControlService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ManufacturingController extends Controller
 {
     private function tid(): int
     {
-        return auth()->user()->tenant_id;
+        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
     }
 
     // ── BOM CRUD ──────────────────────────────────────────────────
@@ -362,7 +363,7 @@ class ManufacturingController extends Controller
         if ($result['material_cost'] > 0) {
             $glResult = $glService->postProductionConsumption(
                 $workOrder->tenant_id,
-                auth()->id(),
+                Auth::id(),
                 $workOrder->number,
                 $workOrder->id,
                 $result['material_cost']
@@ -461,7 +462,7 @@ class ManufacturingController extends Controller
         if ($result['material_cost'] > 0) {
             $glResult = $glService->postProductionConsumption(
                 $workOrder->tenant_id,
-                auth()->id(),
+                Auth::id(),
                 $workOrder->number,
                 $workOrder->id,
                 $result['material_cost']
@@ -721,5 +722,75 @@ class ManufacturingController extends Controller
         ]);
 
         return back()->with('success', 'Quality standard created: ' . $validated['code']);
+    }
+
+    /**
+     * Enhanced QC Dashboard with analytics
+     */
+    public function qcDashboardEnhanced()
+    {
+        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $dashboardData = $qcService->getDashboardData();
+
+        return view('manufacturing.quality.dashboard-enhanced', $dashboardData);
+    }
+
+    /**
+     * Get root cause analysis templates
+     */
+    public function getRootCauseTemplates()
+    {
+        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $templates = $qcService->getRootCauseTemplates();
+
+        return response()->json([
+            'success' => true,
+            'templates' => $templates,
+        ]);
+    }
+
+    /**
+     * Create CAPA record
+     */
+    public function createCAPA(Request $request)
+    {
+        $validated = $request->validate([
+            'defect_id' => 'required|exists:defect_records,id',
+            'type' => 'required|in:corrective,preventive',
+            'root_cause' => 'required|string',
+            'root_cause_category' => 'nullable|string',
+            'corrective_action' => 'required|string',
+            'preventive_action' => 'nullable|string',
+            'responsible_person_id' => 'required|exists:users,id',
+            'target_date' => 'required|date|after:today',
+            'priority' => 'nullable|in:low,medium,high,critical',
+        ]);
+
+        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $capa = $qcService->createCAPA($validated);
+
+        return back()->with('success', "CAPA created: {$capa['capa_number']}");
+    }
+
+    /**
+     * Generate Certificate of Analysis
+     */
+    public function generateCOA($qualityCheckId)
+    {
+        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $coa = $qcService->generateCOA($qualityCheckId);
+
+        return view('manufacturing.quality.coa', compact('coa'));
+    }
+
+    /**
+     * Print Certificate of Analysis
+     */
+    public function printCOA($qualityCheckId)
+    {
+        $qcService = new \App\Services\Manufacturing\QualityControlService($this->tid());
+        $coa = $qcService->generateCOA($qualityCheckId);
+
+        return view('manufacturing.quality.coa-print', compact('coa'));
     }
 }

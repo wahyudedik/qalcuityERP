@@ -112,6 +112,28 @@ Schedule::call(function () {
     });
 })->dailyAt('07:30')->name('check-product-expiry')->withoutOverlapping();
 
+// ─── Notification Escalations ───────────────────────────────────────────────
+
+// Process notification escalations — setiap 15 menit
+Schedule::command('notifications:process-escalations')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// ─── Notification Digest Emails ─────────────────────────────────────────────
+
+// Send daily notification digest — setiap hari jam 07:00
+Schedule::command('notifications:send-digest --daily')
+    ->dailyAt('07:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Send weekly notification digest — setiap Senin jam 08:00
+Schedule::command('notifications:send-digest --weekly')
+    ->weeklyOn(1, '08:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // ─── Trial & Plan Expiry ──────────────────────────────────────────────────────
 
 // Cek trial/plan akan berakhir — setiap hari jam 07:00

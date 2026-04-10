@@ -9,12 +9,10 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\SalesOrder;
-use App\Models\SalesOrderItem;
 use App\Models\StockMovement;
 use App\Models\TaxRate;
 use App\Models\Warehouse;
 use App\Services\GlPostingService;
-use App\Services\TaxService;
 use App\Services\TransactionStateMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +26,6 @@ class SalesOrderController extends Controller
 
     public function __construct()
     {
-        parent::__construct();
         $this->stateMachine = app(TransactionStateMachine::class);
     }
 
@@ -140,7 +137,9 @@ class SalesOrderController extends Controller
             }
         }
 
-        DB::transaction(function () use ($data, $tid, $request) {
+        $salesOrder = null;
+
+        DB::transaction(function () use ($data, $tid, $request, &$salesOrder) {
             $subtotal = 0;
             $itemsData = [];
 
@@ -187,7 +186,7 @@ class SalesOrderController extends Controller
             $currCode = $data['currency_code'] ?? 'IDR';
             $currRate = (new \App\Services\CurrencyService())->getRate($currCode);
 
-            $so = SalesOrder::create([
+            $salesOrder = SalesOrder::create([
                 'tenant_id' => $tid,
                 'customer_id' => $data['customer_id'],
                 'user_id' => auth()->id(),
@@ -212,7 +211,7 @@ class SalesOrderController extends Controller
                 'source' => 'order',
             ]);
 
-            $so->items()->createMany($itemsData);
+            $salesOrder->items()->createMany($itemsData);
 
             // Kurangi stok dari gudang
             foreach ($itemsData as $item) {
@@ -232,12 +231,12 @@ class SalesOrderController extends Controller
                     'quantity' => $item['quantity'],
                     'quantity_before' => $before,
                     'quantity_after' => $before - $item['quantity'],
-                    'reference' => $so->number,
-                    'notes' => "Sales Order {$so->number}",
+                    'reference' => $salesOrder->number,
+                    'notes' => "Sales Order {$salesOrder->number}",
                 ]);
             }
 
-            ActivityLog::record('sales_order_created', "SO dibuat: {$so->number} ({$currCode} " . number_format($total, 0, ',', '.') . ")", $so);
+            ActivityLog::record('sales_order_created', "SO dibuat: {$salesOrder->number} ({$currCode} " . number_format($total, 0, ',', '.') . ")", $salesOrder);
 
             // GL Auto-Posting — always in IDR (convert if foreign currency)
             $glSubtotal = ($subtotal - $discount) * $currRate;
@@ -247,8 +246,8 @@ class SalesOrderController extends Controller
             $glResult = app(GlPostingService::class)->postSalesOrder(
                 tenantId: $tid,
                 userId: auth()->id(),
-                soNumber: $so->number,
-                soId: $so->id,
+                soNumber: $salesOrder->number,
+                soId: $salesOrder->id,
                 subtotal: $glSubtotal,
                 taxAmount: $glTaxAmount,
                 total: $glTotal,
@@ -260,7 +259,11 @@ class SalesOrderController extends Controller
             $GLOBALS['_gl_result'] = $glResult;
         });
 
-        $this->fireWebhook('order.created', $so->load('items', 'customer')->toArray());
+        if (!$salesOrder) {
+            return redirect()->route('sales.index')->with('error', 'Gagal membuat Sales Order.');
+        }
+
+        $this->fireWebhook('order.created', $salesOrder->load('items', 'customer')->toArray());
 
         $successMsg = 'Sales Order berhasil dibuat.';
         if (isset($GLOBALS['_gl_result']) && $GLOBALS['_gl_result']->isFailed()) {

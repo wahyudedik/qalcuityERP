@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
-use App\Models\Patient;
-use App\Models\Doctor;
-use App\Models\MedicalStaffSchedule;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentController extends Controller
 {
@@ -17,9 +15,11 @@ class AppointmentController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        // Get authenticated user's tenant ID with null safety
+        $user = Auth::user();
+        $tenantId = $user?->tenant_id ?? abort(401, 'Unauthenticated.');
 
-        $query = Appointment::with(['patient', 'doctor', 'schedule'])
+        $query = Appointment::with(['patient', 'doctor', 'department', 'createdBy'])
             ->where('tenant_id', $tenantId);
 
         // Filters
@@ -94,17 +94,23 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        // Get authenticated user's tenant ID with null safety
+        $user = Auth::user();
+        $tenantId = $user?->tenant_id ?? abort(401, 'Unauthenticated.');
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'doctor_id' => 'required|exists:doctors,id',
             'schedule_id' => 'nullable|exists:medical_staff_schedules,id',
-            'appointment_date' => 'required|date',
+            'appointment_date' => 'required|date|after_or_equal:today',
             'appointment_time' => 'required',
-            'reason' => 'required|string',
-            'visit_type' => 'required|in:general,specialist,consultation,follow-up,emergency',
-            'notes' => 'nullable|string',
+            'reason_for_visit' => 'required|string|max:500',
+            'appointment_type' => 'required|in:consultation,follow_up,check_up,procedure,telemedicine,emergency',
+            'visit_type' => 'required|in:new_patient,return_patient',
+            'symptoms' => 'nullable|string|max:1000',
+            'special_requests' => 'nullable|string|max:500',
+            'is_urgent' => 'nullable|boolean',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         // Check for scheduling conflicts
@@ -121,10 +127,8 @@ class AppointmentController extends Controller
         }
 
         $validated['tenant_id'] = $tenantId;
+        $validated['created_by'] = Auth::id();
         $appointment = Appointment::create($validated);
-
-        // Clear cache
-        DashboardCacheService::clearStats("stats:appointments:{$tenantId}");
 
         return redirect()->route('healthcare.appointments.show', $appointment)
             ->with('success', 'Appointment booked successfully');
@@ -135,7 +139,15 @@ class AppointmentController extends Controller
      */
     public function show(Appointment $appointment)
     {
-        $appointment->load(['patient', 'doctor', 'schedule']);
+        $this->authorize('view', $appointment);
+
+        // Verify tenant isolation with null safety
+        $user = Auth::user();
+        if ($appointment->tenant_id !== $user?->tenant_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $appointment->load(['patient', 'doctor', 'department', 'createdBy', 'cancelledBy']);
 
         return view('healthcare.appointments.show', compact('appointment'));
     }
@@ -145,17 +157,46 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
+        $this->authorize('update', $appointment);
+
+        // Verify tenant isolation with null safety
+        $user = Auth::user();
+        if ($appointment->tenant_id !== $user?->tenant_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'appointment_date' => 'required|date',
             'appointment_time' => 'required',
-            'reason' => 'nullable|string',
-            'notes' => 'nullable|string',
+            'reason_for_visit' => 'nullable|string|max:500',
+            'symptoms' => 'nullable|string|max:1000',
+            'special_requests' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:scheduled,confirmed,checked_in,in_progress,completed,cancelled,no_show,rescheduled',
         ]);
 
         $appointment->update($validated);
 
         return redirect()->route('healthcare.appointments.show', $appointment)
             ->with('success', 'Appointment updated successfully');
+    }
+
+    /**
+     * Remove the specified appointment from storage.
+     */
+    public function destroy(Appointment $appointment)
+    {
+        $this->authorize('delete', $appointment);
+
+        // Check if appointment can be deleted
+        if (in_array($appointment->status, ['completed', 'in_progress'])) {
+            return back()->with('error', 'Cannot delete completed or in-progress appointments');
+        }
+
+        $appointment->delete();
+
+        return redirect()->route('healthcare.appointments.index')
+            ->with('success', 'Appointment deleted successfully');
     }
 
     /**

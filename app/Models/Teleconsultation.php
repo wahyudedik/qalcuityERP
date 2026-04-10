@@ -182,4 +182,117 @@ class Teleconsultation extends Model
         }
         return null;
     }
+
+    /**
+     * RELATIONSHIPS
+     */
+
+    /**
+     * Get the patient.
+     */
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    /**
+     * Get the doctor.
+     */
+    public function doctor()
+    {
+        return $this->belongsTo(Doctor::class);
+    }
+
+    /**
+     * Get the visit.
+     */
+    public function visit()
+    {
+        return $this->belongsTo(PatientVisit::class, 'visit_id');
+    }
+
+    /**
+     * Get feedback for this consultation.
+     */
+    public function feedback()
+    {
+        return $this->hasOne(TeleconsultationFeedback::class, 'consultation_id');
+    }
+
+    /**
+     * Get recordings for this consultation.
+     */
+    public function recordings()
+    {
+        return $this->hasMany(TeleconsultationRecording::class, 'consultation_id');
+    }
+
+    /**
+     * Get tenant settings.
+     */
+    public function tenantSetting()
+    {
+        $tenantId = $this->patient ? $this->patient->tenant_id : null;
+        if (!$tenantId) {
+            return null;
+        }
+        return TelemedicineSetting::getForTenant($tenantId);
+    }
+
+    /**
+     * HELPER METHODS
+     */
+
+    /**
+     * Check if consultation can be joined.
+     */
+    public function canJoin(): bool
+    {
+        return in_array($this->status, ['scheduled', 'waiting', 'in_progress'])
+            && $this->scheduled_time <= now()->addMinutes(30);
+    }
+
+    /**
+     * Check if patient is in waiting room.
+     */
+    public function isInWaitingRoom(): bool
+    {
+        return $this->status === 'waiting';
+    }
+
+    /**
+     * Get meeting URL.
+     */
+    public function getMeetingUrl(): string
+    {
+        return $this->meeting_url ?? '';
+    }
+
+    /**
+     * Generate meeting details for Jitsi.
+     */
+    public function generateMeetingDetails(): void
+    {
+        $tenantId = $this->patient ? $this->patient->tenant_id : 1;
+        $roomName = sprintf(
+            'consultation_%d_%d_%d',
+            $tenantId,
+            $this->id,
+            time()
+        );
+
+        $settings = TelemedicineSetting::getForTenant($tenantId);
+        $meetingUrl = sprintf('%s/%s', $settings->jitsi_server_url, $roomName);
+
+        $this->update([
+            'meeting_id' => $roomName,
+            'meeting_url' => $meetingUrl,
+            'meeting_details' => [
+                'room_name' => $roomName,
+                'jitsi_server' => $settings->jitsi_server_url,
+                'generated_at' => now()->toISOString(),
+            ],
+        ]);
+    }
 }
+

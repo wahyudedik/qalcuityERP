@@ -80,4 +80,31 @@ class LabEquipmentController extends Controller
         $equipment->delete();
         return response()->json(['success' => true, 'message' => 'Equipment deleted']);
     }
+    /**
+     * Show the form for editing.
+     * Route: healthcare/lab-equipment/{lab_equipment}/edit
+     */
+    public function edit($model)
+    {
+        $this->authorize('update', $model);
+        
+        return view('healthcare.lab-equipment.edit', compact('model'));
+    }
+    /**
+     * Update the specified resource.
+     * Route: healthcare/lab-equipment/{lab_equipment}
+     */
+    public function update(Request $request, $model)
+    {
+        $this->authorize('update', $model);
+        
+        $validated = $request->validate([
+            // TODO: Add validation rules
+        ]);
+        
+        $model->update($validated);
+        
+        return redirect()->route('healthcare.lab-equipment.update')
+            ->with('success', 'Updated successfully.');
+    }
 }

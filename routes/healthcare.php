@@ -16,6 +16,7 @@ use App\Http\Controllers\Healthcare\LaboratoryController;
 use App\Http\Controllers\Healthcare\RadiologyController;
 use App\Http\Controllers\Healthcare\BillingController;
 use App\Http\Controllers\Healthcare\TelemedicineController;
+use App\Http\Controllers\Healthcare\TelemedicineSettingsController;
 use App\Http\Controllers\Healthcare\SurgeryController;
 use App\Http\Controllers\Healthcare\ResourceController;
 use App\Http\Controllers\Healthcare\InventoryController;
@@ -121,6 +122,8 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
     */
     Route::prefix('emr')->name('emr.')->group(function () {
         Route::get('/', [EMRController::class, 'index'])->name('index');
+        Route::get('/dashboard/{patient_id}', [EMRController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{patient_id}/vital-signs-chart', [EMRController::class, 'getVitalSignsChart'])->name('vital-signs-chart');
         Route::get('/{patient_id}', [EMRController::class, 'show'])->name('show');
         Route::post('/', [EMRController::class, 'store'])->name('store');
         Route::put('/{id}', [EMRController::class, 'update'])->name('update');
@@ -128,8 +131,13 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
         Route::post('/{id}/diagnosis', [EMRController::class, 'addDiagnosis'])->name('diagnosis');
         Route::post('/{id}/prescription', [EMRController::class, 'addPrescription'])->name('prescription');
         Route::post('/{id}/lab-order', [EMRController::class, 'orderLab'])->name('lab-order');
-        Route::get('/{patient_id}/timeline', [EMRController::class, 'timeline'])->name('timeline');
+        Route::get('/{patient_id}/timeline', [EMRController::class, 'getTimeline'])->name('timeline');
         Route::get('/{patient_id}/export', [EMRController::class, 'export'])->name('export');
+        Route::get('/visit/{visit_id}/soap-note', [EMRController::class, 'createSOAPNote'])->name('soap-note');
+        Route::post('/visit/{visit_id}/soap-note', [EMRController::class, 'createSOAPNote'])->name('soap-note.store');
+        Route::get('/search-icd10', [EMRController::class, 'searchICD10'])->name('search-icd10');
+        Route::post('/check-drug-interactions', [EMRController::class, 'checkDrugInteractions'])->name('check-drug-interactions');
+        Route::get('/prescription/{prescription_id}/print', [EMRController::class, 'printPrescription'])->name('prescription.print');
     });
 
     /*
@@ -303,6 +311,23 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
         Route::get('/payment/pending', [TelemedicineController::class, 'paymentPending'])->name('payment.pending');
         Route::get('/payment/error', [TelemedicineController::class, 'paymentError'])->name('payment.error');
         Route::post('/payment/callback/{provider}', [TelemedicineController::class, 'paymentCallback'])->name('payment.callback');
+
+        // Video Integration Routes (Jitsi Meet)
+        Route::get('/consultations/{id}/video-room', [TelemedicineController::class, 'videoRoom'])->name('video-room');
+        Route::post('/consultations/{id}/generate-token', [TelemedicineController::class, 'generateToken'])->name('generate-token');
+        Route::post('/consultations/{id}/start-recording', [TelemedicineController::class, 'startRecording'])->name('start-recording');
+        Route::post('/consultations/{id}/stop-recording', [TelemedicineController::class, 'stopRecording'])->name('stop-recording');
+
+        // Feedback Routes
+        Route::get('/consultations/{id}/feedback', [TelemedicineController::class, 'showFeedback'])->name('feedback.show');
+        Route::post('/consultations/{id}/feedback', [TelemedicineController::class, 'submitFeedback'])->name('feedback.store');
+        Route::get('/consultations/{id}/feedback/data', [TelemedicineController::class, 'getFeedback'])->name('feedback.data');
+
+        // Settings Routes
+        Route::get('/settings', [TelemedicineSettingsController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [TelemedicineSettingsController::class, 'update'])->name('settings.update');
+        Route::post('/settings/test-connection', [TelemedicineSettingsController::class, 'testConnection'])->name('settings.test-connection');
+        Route::post('/settings/reset', [TelemedicineSettingsController::class, 'resetToDefault'])->name('settings.reset');
     });
 
     /*

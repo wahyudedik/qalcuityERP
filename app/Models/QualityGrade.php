@@ -3,44 +3,42 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QualityGrade extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
         'grade_code',
         'grade_name',
-        'description',
-        'price_multiplier',
+        'rank',
         'criteria',
-        'sort_order',
+        'min_freshness_score',
+        'price_multiplier',
         'is_active',
     ];
 
-    protected $casts = [
-        'price_multiplier' => 'decimal:2',
-        'criteria' => 'array',
-        'sort_order' => 'integer',
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'rank' => 'integer',
+            'min_freshness_score' => 'decimal:2',
+            'price_multiplier' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
 
-    public function tenant()
+    public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
     }
 
-    public function catchLogs()
+    public function catchLogs(): HasMany
     {
-        return $this->hasMany(CatchLog::class, 'grade_id');
-    }
-
-    public function calculatePrice(float $basePrice): float
-    {
-        return $basePrice * $this->price_multiplier;
+        return $this->hasMany(CatchLog::class, 'quality_grade_id');
     }
 }
