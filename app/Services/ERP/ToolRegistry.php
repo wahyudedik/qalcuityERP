@@ -33,6 +33,8 @@ class ToolRegistry
         if (isset(self::$toolsCache[$cacheKey]) && isset(self::$executorsCache[$cacheKey])) {
             $this->tools = self::$toolsCache[$cacheKey];
             $this->executors = self::$executorsCache[$cacheKey];
+            // Always feed definitions to validator (even from cache)
+            $this->validator->setToolDefinitions($this->tools);
             return; // Skip expensive object creation!
         }
 
@@ -95,6 +97,9 @@ class ToolRegistry
         $this->executors = $executors;
         self::$toolsCache[$cacheKey] = $tools;
         self::$executorsCache[$cacheKey] = $executors;
+
+        // Feed all tool definitions to the validator so it can validate args
+        $this->validator->setToolDefinitions($this->tools);
     }
 
     /**

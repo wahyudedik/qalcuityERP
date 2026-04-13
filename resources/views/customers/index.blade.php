@@ -152,62 +152,101 @@
     </div>
 
     {{-- Mobile Card View --}}
-    <x-mobile-card :data="$customers" :fields="[
-        ['label' => 'Perusahaan', 'key' => 'company'],
-        ['label' => 'NPWP', 'key' => 'npwp'],
-        ['label' => 'Telepon', 'key' => 'phone', 'type' => 'tel'],
-        ['label' => 'Email', 'key' => 'email', 'type' => 'email'],
-        ['label' => 'Credit Limit', 'key' => 'credit_limit', 'type' => 'currency'],
-        ['label' => 'Alamat', 'key' => 'address'],
-    ]" titleField="name" subtitleField="company"
-        statusField="is_active" emptyMessage="Belum ada customer." :actions='function ($item) {
-            $buttons = "";
-            if (auth()->user()?->hasPermission('customers', 'edit')) {
-                $buttons .=
-                    "<button onclick=\"openEdit(" .
-                    $item->id .
-                    ', ' .
-                    json_encode($item->name) .
-                    ', ' .
-                    json_encode($item->company ?? '') .
-                    ', ' .
-                    json_encode($item->phone ?? '') .
-                    ', ' .
-                    json_encode($item->email ?? '') .
-                    ', ' .
-                    json_encode($item->address ?? '') .
-                    ', ' .
-                    json_encode($item->npwp ?? '') .
-                    ', ' .
-                    ($item->credit_limit ?? 0) .
-                    ', ' .
-                    ($item->is_active ? 'true' : 'false') .
-                    ")\" class=\"min-h-[44px] px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700\">Edit</button>";
-            }
-            if (auth()->user()?->hasPermission('customers', 'edit')) {
-                $buttons .=
-                    "<form method=\"POST\" action=\"" .
-                    route('customers.toggle', $item) .
-                    "\" class=\"inline\"><input type=\"hidden\" name=\"_token\" value=\"" .
-                    csrf_token() .
-                    "\"><input type=\"hidden\" name=\"_method\" value=\"PATCH\"><button type=\"submit\" class=\"min-h-[44px] px-3 py-2 text-sm " .
-                    ($item->is_active ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700') .
-                    " text-white rounded-lg\">" .
-                    ($item->is_active ? 'Aktif' : 'Nonaktif') .
-                    '</button></form>';
-            }
-            if (auth()->user()?->hasPermission('customers', 'delete')) {
-                $buttons .=
-                    "<form method=\"POST\" action=\"" .
-                    route('customers.destroy', $item) .
-                    "\" class=\"inline\" onsubmit=\"return confirm(\"Hapus customer " .
-                    addslashes($item->name) .
-                    "?\")\"><input type=\"hidden\" name=\"_token\" value=\"" .
-                    csrf_token() .
-                    "\"><input type=\"hidden\" name=\"_method\" value=\"DELETE\"><button type=\"submit\" class=\"min-h-[44px] px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700\">Hapus</button></form>";
-            }
-            return $buttons;
-        }' />
+    <div class="md:hidden space-y-3">
+        @forelse($customers as $c)
+            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-sm">
+                {{-- Header --}}
+                <div class="px-4 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">{{ $c->name }}</h3>
+                            @if($c->company)
+                                <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 truncate">{{ $c->company }}</p>
+                            @endif
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap {{ $c->is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' }}">
+                            {{ $c->is_active ? 'Aktif' : 'Nonaktif' }}
+                        </span>
+                    </div>
+                </div>
+                {{-- Body --}}
+                <div class="px-4 py-3 space-y-2.5">
+                    @if($c->npwp)
+                    <div class="flex justify-between gap-3">
+                        <span class="text-sm text-gray-500 dark:text-slate-400 shrink-0">NPWP</span>
+                        <span class="text-sm text-gray-900 dark:text-white text-right">{{ $c->npwp }}</span>
+                    </div>
+                    @endif
+                    <div class="flex justify-between gap-3">
+                        <span class="text-sm text-gray-500 dark:text-slate-400 shrink-0">Telepon</span>
+                        @if($c->phone)
+                            <a href="tel:{{ $c->phone }}" class="text-sm text-gray-900 dark:text-white text-right hover:text-blue-600">{{ $c->phone }}</a>
+                        @else
+                            <span class="text-sm text-gray-400">-</span>
+                        @endif
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span class="text-sm text-gray-500 dark:text-slate-400 shrink-0">Email</span>
+                        @if($c->email)
+                            <a href="mailto:{{ $c->email }}" class="text-sm text-gray-900 dark:text-white text-right break-all hover:text-blue-600">{{ $c->email }}</a>
+                        @else
+                            <span class="text-sm text-gray-400">-</span>
+                        @endif
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <span class="text-sm text-gray-500 dark:text-slate-400 shrink-0">Credit Limit</span>
+                        <span class="text-sm text-gray-900 dark:text-white text-right">
+                            {{ $c->credit_limit ? 'Rp ' . number_format($c->credit_limit, 0, ',', '.') : '-' }}
+                        </span>
+                    </div>
+                    @if($c->address)
+                    <div class="flex justify-between gap-3">
+                        <span class="text-sm  shrink-0">Alamat</span>
+                        <span class="text-sm text-gray-900 dark:text-white text-right">{{ $c->address }}</span>
+                    </div>
+                    @endif
+                </div>
+                {{-- Actions --}}
+                <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                    <div class="flex items-center justify-end gap-2">
+                        @canmodule('customers', 'edit')
+                        <button
+                            onclick="openEdit({{ $c->id }}, {{ json_encode($c->name) }}, {{ json_encode($c->company ?? '') }}, {{ json_encode($c->phone ?? '') }}, {{ json_encode($c->email ?? '') }}, {{ json_encode($c->address ?? '') }}, {{ json_encode($c->npwp ?? '') }}, {{ $c->credit_limit ?? 0 }}, {{ $c->is_active ? 'true' : 'false' }})"
+                            class="min-h-[44px] px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Edit
+                        </button>
+                        <form method="POST" action="{{ route('customers.toggle', $c) }}" class="inline">
+                            @csrf @method('PATCH')
+                            <button type="submit" class="min-h-[44px] px-3 py-2 text-sm {{ $c->is_active ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700' }} text-white rounded-lg">
+                                {{ $c->is_active ? 'Aktif' : 'Nonaktif' }}
+                            </button>
+                        </form>
+                        @endcanmodule
+                        @canmodule('customers', 'delete')
+                        <form method="POST" action="{{ route('customers.destroy', $c) }}" class="inline"
+                            onsubmit="return confirm('Hapus customer {{ addslashes($c->name) }}?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="min-h-[44px] px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Hapus
+                            </button>
+                        </form>
+                        @endcanmodule
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-12">
+                <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada customer.</p>
+                @canmodule('customers', 'create')
+                <button onclick="document.getElementById('modal-add').classList.remove('hidden')"
+                    class="text-blue-500 hover:underline ml-1 text-sm">Tambah sekarang</button>
+                @endcanmodule
+            </div>
+        @endforelse
+        @if($customers->hasPages())
+            <div class="py-3">{{ $customers->links() }}</div>
+        @endif
+    </div>
 
     {{-- Modal Tambah --}}
     <div id="modal-add" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

@@ -126,7 +126,12 @@ class ChatController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 Log::error('ChatController (no-tenant) error: ' . $e->getMessage());
-                return response()->json(['session_id' => $session->id, 'message' => 'Terjadi kesalahan pada sistem AI.'], 500);
+                $httpCode = $this->resolveHttpCode($e);
+                return response()->json([
+                    'session_id' => $session->id,
+                    'message'    => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI.',
+                    'error'      => app()->isLocal() ? $e->getMessage() : null,
+                ], $httpCode);
             }
         }
 
@@ -242,12 +247,13 @@ class ChatController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('ChatController error: ' . $e->getMessage());
+            $httpCode = $this->resolveHttpCode($e);
 
             return response()->json([
                 'session_id' => $session->id,
-                'message' => 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
-                'error' => app()->isLocal() ? $e->getMessage() : null,
-            ], 500);
+                'message'    => $e->getMessage() ?: 'Terjadi kesalahan pada sistem AI. Silakan coba lagi.',
+                'error'      => app()->isLocal() ? $e->getMessage() : null,
+            ], $httpCode);
         }
     }
 
@@ -453,9 +459,9 @@ class ChatController extends Controller
             Log::error('ChatController sendMedia error: ' . $e->getMessage());
             return response()->json([
                 'session_id' => $session->id,
-                'message' => 'Gagal memproses file. Pastikan format file didukung (JPG, PNG, PDF, TXT).',
+                'message' => $e->getMessage() ?: 'Gagal memproses file. Pastikan format file didukung (JPG, PNG, PDF, TXT).',
                 'error' => app()->isLocal() ? $e->getMessage() : null,
-            ], 500);
+            ], $this->resolveHttpCode($e));
         }
     }
     public function messages(Request $request, ChatSession $session): JsonResponse
@@ -1295,5 +1301,19 @@ class ChatController extends Controller
         ]);
 
         return $results;
+    }
+
+    /**
+     * Map exception code to a sensible HTTP status code.
+     * Prevents API key / quota errors from surfacing as 500.
+     */
+    protected function resolveHttpCode(\Throwable $e): int
+    {
+        $code = (int) $e->getCode();
+        return match (true) {
+            in_array($code, [400, 401, 403, 404, 422, 429, 503]) => $code,
+            $code >= 400 && $code < 600                          => $code,
+            default                                              => 503,
+        };
     }
 }

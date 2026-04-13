@@ -1350,7 +1350,7 @@
                     ]
                 },
                 <?php if(!$user?->isKasir() && !$user?->isGudang()): ?>
-                    ops: {
+                    operations: {
                         title: 'Operasional',
                         items: [
                             <?php if(($navTenant?->isModuleEnabled('pos') ?? true) && $canView('pos')): ?>
@@ -1365,12 +1365,12 @@
                                 {
                                     section: 'Manufacturing'
                                 }, {
-                                    label: '📊 Production Dashboard',
+                                    label: 'Production Dashboard',
                                     href: '<?php echo e(route('production.dashboard')); ?>',
                                     active: <?php echo e(request()->routeIs('production.dashboard*') ? 'true' : 'false'); ?>
 
                                 }, {
-                                    label: '📅 Gantt Chart',
+                                    label: 'Gantt Chart',
                                     href: '<?php echo e(route('production.gantt.index')); ?>',
                                     active: <?php echo e(request()->routeIs('production.gantt*') ? 'true' : 'false'); ?>
 
@@ -1385,12 +1385,12 @@
                                 {
                                     section: 'Quality Control'
                                 }, {
-                                    label: '🔍 QC Inspections',
+                                    label: 'QC Inspections',
                                     href: '<?php echo e(route('qc.inspections.index')); ?>',
                                     active: <?php echo e(request()->routeIs('qc.inspections*') ? 'true' : 'false'); ?>
 
                                 }, {
-                                    label: '📋 Test Templates',
+                                    label: 'Test Templates',
                                     href: '<?php echo e(route('qc.templates.index')); ?>',
                                     active: <?php echo e(request()->routeIs('qc.templates*') ? 'true' : 'false'); ?>
 
@@ -1701,12 +1701,9 @@
 
                                 },
                             <?php endif; ?>
-                        ]
-                    },
-                <?php endif; ?>
-                hrm: {
-                    title: 'SDM & Karyawan',
-                    items: [
+                            {
+                                section: 'SDM & Karyawan'
+                            },
                         <?php if($user?->isAdmin() || $user?->isManager()): ?>
                             <?php if(($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm')): ?>
                                 {
@@ -1819,6 +1816,7 @@
                         <?php endif; ?>
                     ]
                 },
+                <?php endif; ?>
                 <?php if(!$user?->isKasir() && !$user?->isGudang()): ?>
                     finance: {
                         title: 'Keuangan',
@@ -1956,79 +1954,71 @@
                         ]
                     },
                     <?php if(($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang()): ?>
-                        hotel: {
-                            title: 'Hotel PMS',
-                            items: [{
-                                label: 'Dashboard',
-                                href: '<?php echo e(route('hotel.dashboard')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.dashboard') ? 'true' : 'false'); ?>
-
-                            }, {
-                                section: 'Kamar'
-                            }, {
-                                label: 'Tipe Kamar',
-                                href: '<?php echo e(route('hotel.room-types.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.room-types*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                label: 'Kamar',
-                                href: '<?php echo e(route('hotel.rooms.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false'); ?>
-
-                            }, {
-                                label: 'Ketersediaan Kamar',
-                                href: '<?php echo e(route('hotel.rooms.availability')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                section: 'Reservasi & Tamu'
-                            }, {
-                                label: 'Reservasi',
-                                href: '<?php echo e(route('hotel.reservations.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                label: 'Tamu',
-                                href: '<?php echo e(route('hotel.guests.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.guests*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                label: 'Check-in / Check-out',
-                                href: '<?php echo e(route('hotel.checkin-out.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.checkin-out*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                section: 'Operasional'
-                            }, {
-                                label: 'Housekeeping',
-                                href: '<?php echo e(route('hotel.housekeeping.room-board')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.housekeeping*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                section: 'Tarif & Distribusi'
-                            }, {
-                                label: 'Tarif Kamar',
-                                href: '<?php echo e(route('hotel.rates.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.rates*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                label: 'Channel Distribution',
-                                href: '<?php echo e(route('hotel.channels.index')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.channels*') ? 'true' : 'false'); ?>
-
-                            }, {
-                                section: 'Pengaturan'
-                            }, {
-                                label: 'Pengaturan Hotel',
-                                href: '<?php echo e(route('hotel.settings.edit')); ?>',
-                                active: <?php echo e(request()->routeIs('hotel.settings*') ? 'true' : 'false'); ?>
-
-                            }, ]
-                        },
+                        
                     <?php endif; ?>
                     settings: {
                         title: 'Pengaturan',
                         items: [
+                            <?php if(($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang()): ?>
+                                {
+                                    section: 'Hotel PMS'
+                                }, {
+                                    label: 'Dashboard Hotel',
+                                    href: '<?php echo e(route('hotel.dashboard')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.dashboard') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Tipe Kamar',
+                                    href: '<?php echo e(route('hotel.room-types.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.room-types*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Kamar',
+                                    href: '<?php echo e(route('hotel.rooms.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Ketersediaan Kamar',
+                                    href: '<?php echo e(route('hotel.rooms.availability')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Reservasi',
+                                    href: '<?php echo e(route('hotel.reservations.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Tamu',
+                                    href: '<?php echo e(route('hotel.guests.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.guests*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Check-in / Check-out',
+                                    href: '<?php echo e(route('hotel.checkin-out.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.checkin-out*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Housekeeping',
+                                    href: '<?php echo e(route('hotel.housekeeping.room-board')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.housekeeping*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Tarif Kamar',
+                                    href: '<?php echo e(route('hotel.rates.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.rates*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Channel Distribution',
+                                    href: '<?php echo e(route('hotel.channels.index')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.channels*') ? 'true' : 'false'); ?>
+
+                                }, {
+                                    label: 'Pengaturan Hotel',
+                                    href: '<?php echo e(route('hotel.settings.edit')); ?>',
+                                    active: <?php echo e(request()->routeIs('hotel.settings*') ? 'true' : 'false'); ?>
+
+                                },
+                            <?php endif; ?>
                             <?php if($user?->isAdmin()): ?>
                                 {
                                     label: 'Profil Perusahaan',

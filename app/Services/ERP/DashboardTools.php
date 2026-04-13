@@ -126,7 +126,7 @@ class DashboardTools
             ->where('status', 'active')->count();
 
         $attendanceQuery = Attendance::where('tenant_id', $this->tenantId);
-        $attendanceQuery = $this->applyPeriod($attendanceQuery, $period);
+        $attendanceQuery = $this->applyPeriodByDate($attendanceQuery, $period);
 
         $attendance = $attendanceQuery
             ->selectRaw('status, count(*) as count')
@@ -143,6 +143,17 @@ class DashboardTools
     }
 
     private function applyPeriod($query, string $period)
+    {
+        return match ($period) {
+            'today'      => $query->whereDate('created_at', today()),
+            'this_week'  => $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]),
+            'this_month' => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year),
+            'last_month' => $query->whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year),
+            default      => $query->whereDate('created_at', today()),
+        };
+    }
+
+    private function applyPeriodByDate($query, string $period)
     {
         return match ($period) {
             'today'      => $query->whereDate('date', today()),

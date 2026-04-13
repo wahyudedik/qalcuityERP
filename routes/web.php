@@ -943,33 +943,28 @@ Route::middleware('auth')->group(function () {
 
     // Supplier Scorecard & Performance Management
     Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'index'])->name('scorecards.index');
 
         // Strategic Sourcing - MUST be before /{id} route
         Route::get('/strategic-sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'strategicSourcing'])->name('strategic-sourcing');
+
+        // Sourcing Dashboard
+        Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
+        Route::post('/opportunities', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'createOpportunity'])->name('opportunities.create');
+        Route::post('/opportunities/{id}/status', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'updateOpportunityStatus'])->name('opportunities.update-status');
+
+        // Generate & Export
+        Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
+        Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
+
+        // RFQ Analysis
+        Route::get('/rfq/{id}/analysis', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'analyzeRfq'])->name('rfq.analysis');
+
+        // Supplier Comparison
+        Route::post('/compare', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'compareSuppliers'])->name('compare');
+
+        // Supplier detail - MUST be last (matches numeric IDs only)
+        Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail')->where('id', '[0-9]+');
     });
-
-    // Supplier Performance Dashboard (New Enhanced System)
-    Route::prefix('supplier-performance')->name('supplier-performance.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\SupplierPerformanceController::class, 'dashboard'])->name('dashboard');
-        Route::get('/{supplier}', [\App\Http\Controllers\SupplierPerformanceController::class, 'detail'])->name('detail');
-        Route::post('/evaluate', [\App\Http\Controllers\SupplierPerformanceController::class, 'storeEvaluation'])->name('evaluate');
-        Route::post('/auto-evaluate/{po}', [\App\Http\Controllers\SupplierPerformanceController::class, 'autoEvaluateFromPO'])->name('auto-evaluate');
-    });
-    Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
-    Route::post('/opportunities', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'createOpportunity'])->name('opportunities.create');
-    Route::post('/opportunities/{id}/status', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'updateOpportunityStatus'])->name('opportunities.update-status');
-
-    // Supplier detail - MUST be after specific routes, only match numeric IDs
-    Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail')->where('id', '[0-9]+');
-    Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
-    Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
-
-    // RFQ Analysis
-    Route::get('/rfq/{id}/analysis', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'analyzeRfq'])->name('rfq.analysis');
-
-    // Supplier Comparison
-    Route::post('/compare', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'compareSuppliers'])->name('compare');
 });
 
 // Printing Industry Module

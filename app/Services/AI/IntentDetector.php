@@ -487,26 +487,109 @@ class IntentDetector
 
         // ── Bulk Operations ──────────────────────────────────────
         'bulk' => [
+            'bulk', 'massal', 'batch', 'banyak', 'semua', 'all',
+            'update semua', 'hapus semua', 'import', 'export',
+            'mass', 'multiple', 'mass update',
+        ],
+
+        // ── Agriculture & Farm ───────────────────────────────────
+        'farm' => [
             // Indonesian
-            'bulk',
-            'massal',
-            'batch',
-            'banyak',
-            'semua',
-            'all',
-            'update semua',
-            'hapus semua',
-            'import',
-            'export',
+            'lahan', 'kebun', 'sawah', 'ladang', 'blok', 'pertanian',
+            'tanam', 'panen', 'pupuk', 'pestisida', 'irigasi',
+            'siklus tanam', 'crop', 'harvest', 'padi', 'jagung',
+            'kelapa sawit', 'tebu', 'kopi', 'kakao', 'karet',
+            'hektar', 'are', 'plot', 'farm', 'agriculture',
+            'agrikultur', 'perkebunan', 'tanaman',
             // English
-            'bulk',
-            'batch',
-            'mass',
-            'multiple',
-            'all',
-            'import',
-            'export',
-            'mass update',
+            'farm', 'plot', 'crop', 'harvest', 'planting', 'field',
+            'agriculture', 'plantation', 'irrigation', 'fertilizer',
+        ],
+
+        // ── Livestock & Peternakan ───────────────────────────────
+        'livestock' => [
+            // Indonesian
+            'ternak', 'ayam', 'sapi', 'kambing', 'bebek', 'babi',
+            'kelinci', 'ikan', 'kandang', 'pakan', 'FCR',
+            'broiler', 'layer', 'DOC', 'populasi ternak',
+            'mortalitas', 'vaksin ternak', 'kesehatan ternak',
+            'peternakan', 'livestock', 'herd', 'flock',
+            // English
+            'livestock', 'cattle', 'poultry', 'chicken', 'cow',
+            'goat', 'feed', 'FCR', 'mortality', 'vaccination',
+            'herd', 'flock', 'breeding',
+        ],
+
+        // ── Hotel & Hospitality ──────────────────────────────────
+        'hotel' => [
+            // Indonesian
+            'hotel', 'kamar', 'reservasi', 'tamu', 'check-in',
+            'check-out', 'housekeeping', 'front office', 'tarif kamar',
+            'room', 'booking hotel', 'penginapan', 'resort',
+            'spa', 'restoran hotel', 'night audit',
+            // English
+            'hotel', 'room', 'reservation', 'guest', 'check-in',
+            'check-out', 'housekeeping', 'front desk', 'room rate',
+        ],
+
+        // ── Telecom & Network ────────────────────────────────────
+        'telecom' => [
+            // Indonesian
+            'internet', 'jaringan', 'network', 'router', 'bandwidth',
+            'paket internet', 'hotspot', 'voucher internet',
+            'pelanggan internet', 'ISP', 'mikrotik', 'switch',
+            'telecom', 'telekomunikasi', 'koneksi',
+            // English
+            'telecom', 'network', 'internet', 'bandwidth', 'router',
+            'hotspot', 'voucher', 'ISP', 'connection',
+        ],
+
+        // ── Healthcare & Medical ─────────────────────────────────
+        'healthcare' => [
+            // Indonesian
+            'pasien', 'dokter', 'klinik', 'rumah sakit', 'RS',
+            'rekam medis', 'EMR', 'resep', 'obat', 'apotek',
+            'rawat inap', 'rawat jalan', 'IGD', 'laboratorium',
+            'radiologi', 'BPJS', 'tagihan medis', 'jadwal dokter',
+            'telemedicine', 'konsultasi online',
+            // English
+            'patient', 'doctor', 'clinic', 'hospital', 'medical',
+            'prescription', 'medicine', 'pharmacy', 'EMR',
+            'inpatient', 'outpatient', 'lab', 'radiology',
+        ],
+
+        // ── Fisheries ────────────────────────────────────────────
+        'fisheries' => [
+            // Indonesian
+            'ikan', 'nelayan', 'kapal', 'kolam', 'tambak',
+            'budidaya ikan', 'panen ikan', 'cold storage ikan',
+            'ekspor ikan', 'perikanan', 'aquaculture',
+            'udang', 'bandeng', 'lele', 'nila', 'salmon',
+            // English
+            'fish', 'fishery', 'fishing', 'aquaculture', 'pond',
+            'vessel', 'catch', 'seafood', 'shrimp',
+        ],
+
+        // ── Tour & Travel ────────────────────────────────────────
+        'tour' => [
+            // Indonesian
+            'paket wisata', 'tour', 'travel', 'booking wisata',
+            'itinerary', 'destinasi', 'wisatawan', 'penumpang',
+            'tiket wisata', 'agen perjalanan',
+            // English
+            'tour', 'travel', 'package', 'itinerary', 'booking',
+            'tourist', 'destination', 'trip',
+        ],
+
+        // ── Cosmetic & Formula ───────────────────────────────────
+        'cosmetic' => [
+            // Indonesian
+            'formula kosmetik', 'batch kosmetik', 'BPOM',
+            'bahan baku kosmetik', 'produksi kosmetik',
+            'registrasi produk', 'QC kosmetik', 'kosmetik',
+            // English
+            'cosmetic', 'formula', 'batch record', 'BPOM',
+            'ingredient', 'formulation', 'beauty product',
         ],
     ];
 
@@ -601,6 +684,52 @@ class IntentDetector
         ],
         'bulk' => [
             'BulkTools',
+        ],
+
+        // ── Agriculture & Livestock ──────────────────────────────
+        'farm' => [
+            'FarmTools',
+            'InventoryTools',
+        ],
+        'livestock' => [
+            'FarmTools',
+            'InventoryTools',
+        ],
+
+        // ── Hotel ────────────────────────────────────────────────
+        'hotel' => [
+            'DashboardTools',
+            'ReportTools',
+        ],
+
+        // ── Telecom ──────────────────────────────────────────────
+        'telecom' => [
+            'DashboardTools',
+            'ReportTools',
+        ],
+
+        // ── Healthcare ───────────────────────────────────────────
+        'healthcare' => [
+            'DashboardTools',
+            'ReportTools',
+        ],
+
+        // ── Fisheries ────────────────────────────────────────────
+        'fisheries' => [
+            'FarmTools',
+            'InventoryTools',
+        ],
+
+        // ── Tour & Travel ────────────────────────────────────────
+        'tour' => [
+            'DashboardTools',
+            'ReportTools',
+        ],
+
+        // ── Cosmetic ─────────────────────────────────────────────
+        'cosmetic' => [
+            'ProductionTools',
+            'InventoryTools',
         ],
     ];
 

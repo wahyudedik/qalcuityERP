@@ -188,14 +188,25 @@ class FinanceTools
     {
         $query = Transaction::where('tenant_id', $this->tenantId)->where('type', $type);
 
+        // Normalize period aliases
+        $period = match (strtolower($period)) {
+            'tahun ini', 'this year', 'this_year', 'year' => 'this_year',
+            'bulan ini', 'this month', 'this_month'       => 'this_month',
+            'minggu ini', 'this week', 'this_week'        => 'this_week',
+            'hari ini', 'today'                           => 'today',
+            'bulan lalu', 'last month', 'last_month'      => 'last_month',
+            default                                       => $period,
+        };
+
         return match ($period) {
             'today'      => $query->whereDate('date', today()),
             'this_week'  => $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]),
             'this_month' => $query->whereMonth('date', now()->month)->whereYear('date', now()->year),
             'last_month' => $query->whereMonth('date', now()->subMonth()->month)->whereYear('date', now()->subMonth()->year),
+            'this_year'  => $query->whereYear('date', now()->year),
             default      => strlen($period) === 7
                 ? $query->whereYear('date', substr($period, 0, 4))->whereMonth('date', substr($period, 5, 2))
-                : $query,
+                : $query->whereYear('date', now()->year),
         };
     }
 }

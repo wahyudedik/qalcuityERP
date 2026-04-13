@@ -161,9 +161,9 @@ class ReportTools
             ->selectRaw('COALESCE(SUM(amount), 0) as total')
             ->value('total');
 
-        $expenseRows = Transaction::where('tenant_id', $this->tenantId)
-            ->where('type', 'expense')
-            ->whereBetween('date', [$start, $end])
+        $expenseRows = Transaction::where('transactions.tenant_id', $this->tenantId)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.date', [$start, $end])
             ->leftJoin('expense_categories', 'transactions.expense_category_id', '=', 'expense_categories.id')
             ->selectRaw('COALESCE(expense_categories.name, "Tidak Berkategori") as category, SUM(transactions.amount) as total')
             ->groupBy('category')
@@ -292,9 +292,9 @@ class ReportTools
     {
         [$start, $end] = $this->resolveDateRange($args);
 
-        $rows = Transaction::where('tenant_id', $this->tenantId)
-            ->where('type', 'expense')
-            ->whereBetween('date', [$start, $end])
+        $rows = Transaction::where('transactions.tenant_id', $this->tenantId)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.date', [$start, $end])
             ->leftJoin('expense_categories', 'transactions.expense_category_id', '=', 'expense_categories.id')
             ->selectRaw('COALESCE(expense_categories.name, "Tidak Berkategori") as category, SUM(transactions.amount) as total, COUNT(*) as count')
             ->groupBy('category')
@@ -566,15 +566,32 @@ class ReportTools
 
         $period = $args['period'] ?? 'this_month';
 
+        // Normalize common period aliases from Gemini
+        $period = match (true) {
+            in_array(strtolower($period), ['tahun ini', 'this year', 'this_year', 'year']) => 'this_year',
+            in_array(strtolower($period), ['bulan ini', 'this month', 'this_month', 'month']) => 'this_month',
+            in_array(strtolower($period), ['minggu ini', 'this week', 'this_week', 'week']) => 'this_week',
+            in_array(strtolower($period), ['hari ini', 'today', 'today']) => 'today',
+            in_array(strtolower($period), ['bulan lalu', 'last month', 'last_month']) => 'last_month',
+            preg_match('/^20\d{2}$/', $period) => 'year_' . $period, // e.g. "2026"
+            default => $period,
+        };
+
+        // Handle specific year like "2026"
+        if (str_starts_with($period, 'year_')) {
+            $year = substr($period, 5);
+            return [Carbon::createFromDate($year, 1, 1)->startOfYear(), Carbon::createFromDate($year, 12, 31)->endOfYear()];
+        }
+
         return match ($period) {
-            'today' => [today(), today()],
-            'this_week' => [now()->startOfWeek(), now()->endOfWeek()],
-            'last_7_days' => [now()->subDays(6), now()],
+            'today'        => [today(), today()],
+            'this_week'    => [now()->startOfWeek(), now()->endOfWeek()],
+            'last_7_days'  => [now()->subDays(6), now()],
             'last_30_days' => [now()->subDays(29), now()],
-            'this_month' => [now()->startOfMonth(), now()->endOfMonth()],
-            'last_month' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
-            'this_year' => [now()->startOfYear(), now()->endOfYear()],
-            default => [now()->startOfMonth(), now()->endOfMonth()],
+            'this_month'   => [now()->startOfMonth(), now()->endOfMonth()],
+            'last_month'   => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'this_year'    => [now()->startOfYear(), now()->endOfYear()],
+            default        => [now()->startOfMonth(), now()->endOfMonth()],
         };
     }
 

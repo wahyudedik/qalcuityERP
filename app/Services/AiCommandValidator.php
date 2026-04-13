@@ -75,8 +75,8 @@ class AiCommandValidator
             ];
         }
 
-        // Validate required parameters
-        $requiredParams = $toolDef['required'] ?? [];
+        // Validate required parameters — required is nested inside parameters
+        $requiredParams = $toolDef['parameters']['required'] ?? $toolDef['required'] ?? [];
         foreach ($requiredParams as $param) {
             if (!array_key_exists($param, $arguments)) {
                 $errors[] = "Missing required parameter: {$param}";
@@ -87,7 +87,8 @@ class AiCommandValidator
         $properties = $toolDef['parameters']['properties'] ?? [];
         foreach ($arguments as $paramName => $paramValue) {
             if (!isset($properties[$paramName])) {
-                $errors[] = "Unknown parameter: {$paramName}";
+                // Skip unknown parameters silently instead of blocking execution
+                Log::debug("AiCommandValidator: Skipping unknown parameter '{$paramName}' for tool '{$commandName}'");
                 continue;
             }
 
@@ -187,12 +188,12 @@ class AiCommandValidator
     protected function validateType(string $name, mixed $value, string $type): array
     {
         $typeChecks = [
-            'string' => 'is_string',
-            'integer' => 'is_int',
-            'number' => 'is_numeric',
+            'string'  => 'is_string',
+            'integer' => fn($v) => is_int($v) || (is_numeric($v) && floor((float)$v) == (float)$v),
+            'number'  => 'is_numeric',
             'boolean' => 'is_bool',
-            'array' => 'is_array',
-            'object' => 'is_object',
+            'array'   => 'is_array',
+            'object'  => fn($v) => is_array($v) || is_object($v),
         ];
 
         if (!isset($typeChecks[$type])) {
@@ -241,7 +242,7 @@ class AiCommandValidator
                 break;
 
             case 'integer':
-                $value = (int) $value;
+                $value = (int) round((float) $value);
                 break;
 
             case 'number':

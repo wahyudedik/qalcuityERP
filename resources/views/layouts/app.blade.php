@@ -1290,7 +1290,7 @@
                     ]
                 },
                 @if (!$user?->isKasir() && !$user?->isGudang())
-                    ops: {
+                    operations: {
                         title: 'Operasional',
                         items: [
                             @if (($navTenant?->isModuleEnabled('pos') ?? true) && $canView('pos'))
@@ -1304,11 +1304,11 @@
                                 {
                                     section: 'Manufacturing'
                                 }, {
-                                    label: '📊 Production Dashboard',
+                                    label: 'Production Dashboard',
                                     href: '{{ route('production.dashboard') }}',
                                     active: {{ request()->routeIs('production.dashboard*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '📅 Gantt Chart',
+                                    label: 'Gantt Chart',
                                     href: '{{ route('production.gantt.index') }}',
                                     active: {{ request()->routeIs('production.gantt*') ? 'true' : 'false' }}
                                 }, {
@@ -1321,11 +1321,11 @@
                                 {
                                     section: 'Quality Control'
                                 }, {
-                                    label: '🔍 QC Inspections',
+                                    label: 'QC Inspections',
                                     href: '{{ route('qc.inspections.index') }}',
                                     active: {{ request()->routeIs('qc.inspections*') ? 'true' : 'false' }}
                                 }, {
-                                    label: '📋 Test Templates',
+                                    label: 'Test Templates',
                                     href: '{{ route('qc.templates.index') }}',
                                     active: {{ request()->routeIs('qc.templates*') ? 'true' : 'false' }}
                                 },
@@ -1585,12 +1585,9 @@
                                     active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }}
                                 },
                             @endif
-                        ]
-                    },
-                @endif
-                hrm: {
-                    title: 'SDM & Karyawan',
-                    items: [
+                            {
+                                section: 'SDM & Karyawan'
+                            },
                         @if ($user?->isAdmin() || $user?->isManager())
                             @if (($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm'))
                                 {
@@ -1687,6 +1684,7 @@
                         @endif
                     ]
                 },
+                @endif
                 @if (!$user?->isKasir() && !$user?->isGudang())
                     finance: {
                         title: 'Keuangan',
@@ -1806,68 +1804,60 @@
                         ]
                     },
                     @if (($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang())
-                        hotel: {
-                            title: 'Hotel PMS',
-                            items: [{
-                                label: 'Dashboard',
-                                href: '{{ route('hotel.dashboard') }}',
-                                active: {{ request()->routeIs('hotel.dashboard') ? 'true' : 'false' }}
-                            }, {
-                                section: 'Kamar'
-                            }, {
-                                label: 'Tipe Kamar',
-                                href: '{{ route('hotel.room-types.index') }}',
-                                active: {{ request()->routeIs('hotel.room-types*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Kamar',
-                                href: '{{ route('hotel.rooms.index') }}',
-                                active: {{ request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Ketersediaan Kamar',
-                                href: '{{ route('hotel.rooms.availability') }}',
-                                active: {{ request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false' }}
-                            }, {
-                                section: 'Reservasi & Tamu'
-                            }, {
-                                label: 'Reservasi',
-                                href: '{{ route('hotel.reservations.index') }}',
-                                active: {{ request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Tamu',
-                                href: '{{ route('hotel.guests.index') }}',
-                                active: {{ request()->routeIs('hotel.guests*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Check-in / Check-out',
-                                href: '{{ route('hotel.checkin-out.index') }}',
-                                active: {{ request()->routeIs('hotel.checkin-out*') ? 'true' : 'false' }}
-                            }, {
-                                section: 'Operasional'
-                            }, {
-                                label: 'Housekeeping',
-                                href: '{{ route('hotel.housekeeping.room-board') }}',
-                                active: {{ request()->routeIs('hotel.housekeeping*') ? 'true' : 'false' }}
-                            }, {
-                                section: 'Tarif & Distribusi'
-                            }, {
-                                label: 'Tarif Kamar',
-                                href: '{{ route('hotel.rates.index') }}',
-                                active: {{ request()->routeIs('hotel.rates*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Channel Distribution',
-                                href: '{{ route('hotel.channels.index') }}',
-                                active: {{ request()->routeIs('hotel.channels*') ? 'true' : 'false' }}
-                            }, {
-                                section: 'Pengaturan'
-                            }, {
-                                label: 'Pengaturan Hotel',
-                                href: '{{ route('hotel.settings.edit') }}',
-                                active: {{ request()->routeIs('hotel.settings*') ? 'true' : 'false' }}
-                            }, ]
-                        },
+                        {{-- Hotel items merged into settings group below --}}
                     @endif
                     settings: {
                         title: 'Pengaturan',
                         items: [
+                            @if (($navTenant?->isModuleEnabled('hotel') ?? true) && !$user?->isKasir() && !$user?->isGudang())
+                                {
+                                    section: 'Hotel PMS'
+                                }, {
+                                    label: 'Dashboard Hotel',
+                                    href: '{{ route('hotel.dashboard') }}',
+                                    active: {{ request()->routeIs('hotel.dashboard') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Tipe Kamar',
+                                    href: '{{ route('hotel.room-types.index') }}',
+                                    active: {{ request()->routeIs('hotel.room-types*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Kamar',
+                                    href: '{{ route('hotel.rooms.index') }}',
+                                    active: {{ request()->routeIs('hotel.rooms.index', 'hotel.rooms.show', 'hotel.rooms.edit') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Ketersediaan Kamar',
+                                    href: '{{ route('hotel.rooms.availability') }}',
+                                    active: {{ request()->routeIs('hotel.rooms.availability*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Reservasi',
+                                    href: '{{ route('hotel.reservations.index') }}',
+                                    active: {{ request()->routeIs('hotel.reservations*') && !request()->routeIs('hotel.reservations.checkin*', 'hotel.reservations.checkout*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Tamu',
+                                    href: '{{ route('hotel.guests.index') }}',
+                                    active: {{ request()->routeIs('hotel.guests*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Check-in / Check-out',
+                                    href: '{{ route('hotel.checkin-out.index') }}',
+                                    active: {{ request()->routeIs('hotel.checkin-out*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Housekeeping',
+                                    href: '{{ route('hotel.housekeeping.room-board') }}',
+                                    active: {{ request()->routeIs('hotel.housekeeping*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Tarif Kamar',
+                                    href: '{{ route('hotel.rates.index') }}',
+                                    active: {{ request()->routeIs('hotel.rates*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Channel Distribution',
+                                    href: '{{ route('hotel.channels.index') }}',
+                                    active: {{ request()->routeIs('hotel.channels*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Pengaturan Hotel',
+                                    href: '{{ route('hotel.settings.edit') }}',
+                                    active: {{ request()->routeIs('hotel.settings*') ? 'true' : 'false' }}
+                                },
+                            @endif
                             @if ($user?->isAdmin())
                                 {
                                     label: 'Profil Perusahaan',
