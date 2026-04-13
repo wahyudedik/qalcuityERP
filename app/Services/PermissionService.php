@@ -198,6 +198,26 @@ class PermissionService
             'documents'    => ['view', 'create'],
             'reminders'    => ['view', 'create', 'delete'],
         ],
+
+        // Role hotel — housekeeping staff
+        'housekeeping' => [
+            'dashboard'  => ['view'],
+            'reminders'  => ['view', 'create', 'delete'],
+            'documents'  => ['view'],
+        ],
+
+        // Role hotel — maintenance staff
+        'maintenance' => [
+            'dashboard'  => ['view'],
+            'reminders'  => ['view', 'create', 'delete'],
+            'documents'  => ['view'],
+            'assets'     => ['view'],
+        ],
+
+        // Role affiliate
+        'affiliate' => [
+            'dashboard'  => ['view'],
+        ],
     ];
 
     /**

@@ -48,15 +48,15 @@ class TwoFactorService
 
     /**
      * Aktifkan 2FA setelah user konfirmasi kode pertama kali.
+     * Menggunakan direct assignment (bukan update()) karena two_factor_secret ada di $guarded.
      */
     public function enable(User $user, string $secret): void
     {
-        $user->update([
-            'two_factor_secret'       => encrypt($secret),
-            'two_factor_enabled'      => true,
-            'two_factor_confirmed_at' => now(),
-            'two_factor_recovery_codes' => $this->generateRecoveryCodes(),
-        ]);
+        $user->two_factor_secret         = encrypt($secret);
+        $user->two_factor_enabled        = true;
+        $user->two_factor_confirmed_at   = now();
+        $user->two_factor_recovery_codes = $this->generateRecoveryCodes();
+        $user->save();
     }
 
     /**
@@ -64,12 +64,11 @@ class TwoFactorService
      */
     public function disable(User $user): void
     {
-        $user->update([
-            'two_factor_secret'         => null,
-            'two_factor_enabled'        => false,
-            'two_factor_confirmed_at'   => null,
-            'two_factor_recovery_codes' => null,
-        ]);
+        $user->two_factor_secret         = null;
+        $user->two_factor_enabled        = false;
+        $user->two_factor_confirmed_at   = null;
+        $user->two_factor_recovery_codes = null;
+        $user->save();
     }
 
     /**
@@ -119,7 +118,8 @@ class TwoFactorService
     public function regenerateRecoveryCodes(User $user): array
     {
         $codes = $this->generateRecoveryCodes();
-        $user->update(['two_factor_recovery_codes' => $codes]);
+        $user->two_factor_recovery_codes = $codes;
+        $user->save();
         return $codes;
     }
 }

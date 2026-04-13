@@ -44,7 +44,7 @@ trait AuditsChanges
             );
 
             // TASK-022: Send notification for critical changes
-            $this->notifyCriticalChanges($model, $oldValues, $newValues, strtolower($label) . '_updated');
+            $model->notifyCriticalChanges($model, $oldValues, $newValues, strtolower($label) . '_updated');
 
             // Evaluate gamification achievements
             $user = Auth::user();
@@ -157,10 +157,15 @@ trait AuditsChanges
             $priority = 'critical';
         }
 
-        // Get all admins
-        $admins = \App\Models\User::where('role', 'admin')
-            ->orWhere('role', 'manager')
-            ->get();
+        // Get admins — scoped to same tenant as the model if possible
+        $tenantId = $model->tenant_id ?? null;
+        $adminQuery = \App\Models\User::where(function ($q) {
+            $q->where('role', 'admin')->orWhere('role', 'manager');
+        });
+        if ($tenantId) {
+            $adminQuery->where('tenant_id', $tenantId);
+        }
+        $admins = $adminQuery->get();
 
         // Send notifications
         foreach ($admins as $admin) {

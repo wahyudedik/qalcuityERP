@@ -134,8 +134,8 @@ Route::prefix('payment')->group(function () {
 });
 
 // ── Offline Sync endpoints (authenticated - Sanctum or Web Session) ──
-// Note: Authentication is handled in the controller to support both Sanctum and web session auth
-Route::middleware(['api.rate:api-write'])->prefix('offline')->group(function () {
+// Note: 'web' middleware dibutuhkan agar session cookie bisa dibaca dari browser
+Route::middleware(['web', 'auth', 'api.rate:api-write'])->prefix('offline')->group(function () {
     Route::get('/status', [OfflineSyncController::class, 'getStatus']);
     Route::post('/sync', [OfflineSyncController::class, 'bulkSync']);
     Route::delete('/failed', [OfflineSyncController::class, 'clearFailed']);

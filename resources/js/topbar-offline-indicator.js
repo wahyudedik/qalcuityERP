@@ -220,6 +220,9 @@ class TopbarOfflineIndicator {
      * Update conflict count from API
      */
     async updateConflictCount() {
+        // Hanya fetch jika online — tidak perlu cek konflik saat offline
+        if (!navigator.onLine) return;
+
         try {
             const response = await fetch('/api/offline/conflicts', {
                 credentials: 'same-origin', // Include cookies for session auth
@@ -228,6 +231,11 @@ class TopbarOfflineIndicator {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 },
             });
+
+            // Jika 401/403, user belum login atau session expired — skip silently
+            if (response.status === 401 || response.status === 403) {
+                return;
+            }
 
             if (response.ok) {
                 const data = await response.json();
