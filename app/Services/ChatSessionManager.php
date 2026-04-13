@@ -6,15 +6,26 @@ use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
 use App\Services\AiMemoryService;
+use App\Services\GeminiService;
+use Illuminate\Support\Facades\Log;
 
 class ChatSessionManager
 {
     // Batas history yang dikirim ke Gemini (hemat token)
     const MAX_HISTORY_MESSAGES = 20;
+    // Threshold untuk trigger summarization
+    const SUMMARIZATION_THRESHOLD = 15;
     // Batas maksimum messages yang disimpan per session (hard limit)
     const MAX_MESSAGES_PER_SESSION = 100;
     // Estimasi token per karakter (rough estimate)
     const CHARS_PER_TOKEN = 4;
+
+    protected GeminiService $gemini;
+
+    public function __construct(GeminiService $gemini)
+    {
+        $this->gemini = $gemini;
+    }
 
     public function getOrCreateSession(User $user, ?int $sessionId = null): ChatSession
     {
@@ -48,7 +59,7 @@ class ChatSessionManager
 
         // If session has too many messages, warn about truncation
         if ($totalMessages > self::MAX_MESSAGES_PER_SESSION) {
-            \Log::warning('Chat session exceeds max messages, truncating history', [
+            Log::warning('Chat session exceeds max messages, truncating history', [
                 'session_id' => $session->id,
                 'total_messages' => $totalMessages,
                 'max_allowed' => self::MAX_MESSAGES_PER_SESSION,
@@ -81,6 +92,135 @@ class ChatSessionManager
         }
 
         return $messages->map(fn($m) => ['role' => $m->role, 'text' => $m->content])->toArray();
+    }
+
+    /**
+     * TASK-020: Summarize old messages to reduce context window size.
+     * 
+     * When conversation exceeds SUMMARIZATION_THRESHOLD, older messages
+     * are summarized into a single context message to preserve meaning
+     * while reducing token usage.
+     * 
+     * @param ChatSession $session
+     * @return array Modified history with summary
+     */
+    public function getHistoryWithSummarization(ChatSession $session): array
+    {
+        $totalMessages = $session->messages()->count();
+
+        // If under threshold, use normal history
+        if ($totalMessages <= self::SUMMARIZATION_THRESHOLD) {
+            return $this->getHistory($session);
+        }
+
+        // Check if we already have a summary in session metadata
+        $existingSummary = $session->metadata['conversation_summary'] ?? null;
+
+        // Get recent messages (last 10)
+        $recentMessages = $session->messages()
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get(['id', 'role', 'content'])
+            ->sortBy('id')
+            ->values();
+
+        // Get messages to summarize (everything except recent 10)
+        $messagesToSummarize = $session->messages()
+            ->orderBy('id')
+            ->limit($totalMessages - 10)
+            ->get(['id', 'role', 'content']);
+
+        // If no existing summary and we have messages to summarize, create one
+        if (!$existingSummary && $messagesToSummarize->count() > 5) {
+            $existingSummary = $this->summarizeMessages($messagesToSummarize);
+
+            // Save summary to session metadata
+            if ($existingSummary) {
+                $metadata = $session->metadata ?? [];
+                $metadata['conversation_summary'] = $existingSummary;
+                $metadata['summary_created_at'] = now()->toISOString();
+                $metadata['summarized_message_count'] = $messagesToSummarize->count();
+                $session->metadata = $metadata;
+                $session->save();
+
+                Log::info('Created conversation summary', [
+                    'session_id' => $session->id,
+                    'summarized_messages' => $messagesToSummarize->count(),
+                    'summary_length' => strlen($existingSummary),
+                ]);
+            }
+        }
+
+        // Build history with summary
+        $history = [];
+
+        // Add summary as system message if exists
+        if ($existingSummary) {
+            $history[] = [
+                'role' => 'system',
+                'text' => "[RINGKASAN PERCAKAPAN SEBELUMNYA]\n{$existingSummary}\n\n[LANJUTAN PERCAKAPAN TERKINI]"
+            ];
+        }
+
+        // Add first message for initial context (if not already summarized)
+        if (!$existingSummary) {
+            $firstMessage = $messagesToSummarize->first();
+            if ($firstMessage) {
+                $history[] = ['role' => $firstMessage->role, 'text' => $firstMessage->content];
+            }
+        }
+
+        // Add recent messages
+        foreach ($recentMessages as $msg) {
+            $history[] = ['role' => $msg->role, 'text' => $msg->content];
+        }
+
+        return $history;
+    }
+
+    /**
+     * TASK-020: Use Gemini to summarize a collection of messages.
+     * 
+     * @param \Illuminate\Support\Collection $messages
+     * @return string|null Summary text
+     */
+    protected function summarizeMessages($messages): ?string
+    {
+        try {
+            // Build conversation text for summarization
+            $conversationText = $messages->map(function ($msg) {
+                $role = $msg->role === 'user' ? 'User' : 'Assistant';
+                return "{$role}: {$msg->content}";
+            })->join("\n\n");
+
+            // Truncate if too long (max ~8000 chars for summary input)
+            if (strlen($conversationText) > 8000) {
+                // Keep first 2000 and last 6000 chars
+                $conversationText = substr($conversationText, 0, 2000)
+                    . "\n\n... [conversation continues] ...\n\n"
+                    . substr($conversationText, -6000);
+            }
+
+            // Ask Gemini to summarize
+            $summaryPrompt = "Ringkas percakapan berikut dalam 3-5 kalimat bahasa Indonesia. Fokus pada:\n"
+                . "1. Topik utama yang dibahas\n"
+                . "2. Keputusan atau tindakan yang diambil\n"
+                . "3. Informasi penting yang perlu diingat\n\n"
+                . "Percakapan:\n{$conversationText}\n\n"
+                . "Ringkasan:";
+
+            $response = $this->gemini->chat($summaryPrompt, []);
+            $summary = trim($response['text'] ?? '');
+
+            return $summary ?: null;
+
+        } catch (\Throwable $e) {
+            Log::warning('Failed to summarize conversation', [
+                'error' => $e->getMessage(),
+                'message_count' => $messages->count(),
+            ]);
+            return null;
+        }
     }
 
     public function saveUserMessage(ChatSession $session, string $content): ChatMessage
@@ -246,7 +386,7 @@ class ChatSessionManager
                     ->whereIn('id', $messageIdsToDelete)
                     ->delete();
 
-                \Log::info('Auto-purged old chat messages', [
+                Log::info('Auto-purged old chat messages', [
                     'session_id' => $session->id,
                     'deleted_count' => $deletedCount,
                     'remaining_count' => $session->messages()->count(),
@@ -254,7 +394,7 @@ class ChatSessionManager
             }
         } catch (\Throwable $e) {
             // Don't let purge errors break the chat flow
-            \Log::error('Failed to purge old chat messages', [
+            Log::error('Failed to purge old chat messages', [
                 'session_id' => $session->id,
                 'error' => $e->getMessage(),
             ]);

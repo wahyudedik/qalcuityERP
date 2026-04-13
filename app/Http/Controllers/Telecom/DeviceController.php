@@ -7,6 +7,7 @@ use App\Models\NetworkDevice;
 use App\Services\Telecom\RouterIntegrationService;
 use App\Services\Telecom\BandwidthMonitoringService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +27,8 @@ class DeviceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = NetworkDevice::where('tenant_id', auth()->user()->tenant_id)
+        $tenantId = Auth::user()->tenant_id;
+        $query = NetworkDevice::where('tenant_id', $tenantId)
             ->withCount(['subscriptions', 'hotspotUsers']);
 
         // Filter by status
@@ -60,10 +62,10 @@ class DeviceController extends Controller
             ->withQueryString();
 
         $stats = [
-            'total' => NetworkDevice::where('tenant_id', auth()->user()->tenant_id)->count(),
-            'online' => NetworkDevice::where('tenant_id', auth()->user()->tenant_id)->where('status', 'online')->count(),
-            'offline' => NetworkDevice::where('tenant_id', auth()->user()->tenant_id)->where('status', 'offline')->count(),
-            'maintenance' => NetworkDevice::where('tenant_id', auth()->user()->tenant_id)->where('status', 'maintenance')->count(),
+            'total' => NetworkDevice::where('tenant_id', $tenantId)->count(),
+            'online' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'online')->count(),
+            'offline' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'offline')->count(),
+            'maintenance' => NetworkDevice::where('tenant_id', $tenantId)->where('status', 'maintenance')->count(),
         ];
 
         return view('telecom.devices.index', compact('devices', 'stats'));
@@ -74,7 +76,7 @@ class DeviceController extends Controller
      */
     public function create()
     {
-        $parentDevices = NetworkDevice::where('tenant_id', auth()->user()->tenant_id)
+        $parentDevices = NetworkDevice::where('tenant_id', Auth::user()->tenant_id)
             ->where('status', '!=', 'offline')
             ->get();
 
@@ -96,6 +98,9 @@ class DeviceController extends Controller
             'username' => 'required|string',
             'password' => 'required|string',
             'location' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'coverage_radius' => 'nullable|integer|min:1|max:50000',
             'description' => 'nullable|string',
             'parent_device_id' => 'nullable|exists:network_devices,id',
             'capabilities' => 'nullable|array',
@@ -104,7 +109,7 @@ class DeviceController extends Controller
 
         try {
             $device = NetworkDevice::create([
-                'tenant_id' => auth()->user()->tenant_id,
+                'tenant_id' => Auth::user()->tenant_id,
                 'name' => $validated['name'],
                 'brand' => $validated['brand'],
                 'model' => $validated['model'] ?? null,
@@ -114,6 +119,9 @@ class DeviceController extends Controller
                 'username' => $validated['username'],
                 'password' => $validated['password'],
                 'location' => $validated['location'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'coverage_radius' => $validated['coverage_radius'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'parent_device_id' => $validated['parent_device_id'] ?? null,
                 'capabilities' => $validated['capabilities'] ?? [],
@@ -122,7 +130,7 @@ class DeviceController extends Controller
             ]);
 
             // Test connection
-            $connectionTest = $this->integrationService->testConnection($device);
+            $connectionTest = $this->integrationService->checkDeviceHealth($device);
 
             if ($connectionTest['success']) {
                 $device->update(['status' => 'online']);
@@ -147,7 +155,7 @@ class DeviceController extends Controller
     public function show(NetworkDevice $device)
     {
         // Check tenant ownership
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 
@@ -179,11 +187,11 @@ class DeviceController extends Controller
      */
     public function edit(NetworkDevice $device)
     {
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 
-        $parentDevices = NetworkDevice::where('tenant_id', auth()->user()->tenant_id)
+        $parentDevices = NetworkDevice::where('tenant_id', Auth::user()->tenant_id)
             ->where('id', '!=', $device->id)
             ->where('status', '!=', 'offline')
             ->get();
@@ -196,7 +204,7 @@ class DeviceController extends Controller
      */
     public function update(Request $request, NetworkDevice $device)
     {
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 
@@ -210,6 +218,9 @@ class DeviceController extends Controller
             'username' => 'required|string',
             'password' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'coverage_radius' => 'nullable|integer|min:1|max:50000',
             'description' => 'nullable|string',
             'parent_device_id' => 'nullable|exists:network_devices,id',
             'status' => ['required', Rule::in(['online', 'offline', 'maintenance', 'pending'])],
@@ -225,6 +236,9 @@ class DeviceController extends Controller
                 'port' => $validated['port'],
                 'username' => $validated['username'],
                 'location' => $validated['location'] ?? null,
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+                'coverage_radius' => $validated['coverage_radius'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'parent_device_id' => $validated['parent_device_id'] ?? null,
                 'status' => $validated['status'],
@@ -239,7 +253,7 @@ class DeviceController extends Controller
 
             // Re-test connection if credentials changed
             if (!empty($validated['password']) || $device->wasChanged('ip_address') || $device->wasChanged('port')) {
-                $connectionTest = $this->integrationService->testConnection($device);
+                $connectionTest = $this->integrationService->checkDeviceHealth($device);
 
                 if ($connectionTest['success']) {
                     $device->update(['status' => 'online']);
@@ -260,7 +274,7 @@ class DeviceController extends Controller
      */
     public function destroy(NetworkDevice $device)
     {
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 
@@ -290,12 +304,12 @@ class DeviceController extends Controller
      */
     public function testConnection(NetworkDevice $device)
     {
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 
         try {
-            $result = $this->integrationService->testConnection($device);
+            $result = $this->integrationService->checkDeviceHealth($device);
 
             if ($result['success']) {
                 $device->update([
@@ -330,7 +344,7 @@ class DeviceController extends Controller
      */
     public function toggleMaintenance(NetworkDevice $device)
     {
-        if ($device->tenant_id !== auth()->user()->tenant_id) {
+        if ($device->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
 

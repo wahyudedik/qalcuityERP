@@ -265,7 +265,7 @@
                     'is_resolved'=>$err->is_resolved,
                     'created_at'=>$err->created_at->format('d M Y H:i:s'),
                     'tenant_id'=>$err->tenant_id,'user_id'=>$err->user_id,
-                ]) !!}</script>
+                ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                                     <td class="px-4 py-3">
                                         <span
                                             class="text-[11px] font-semibold px-2 py-0.5 rounded-full {{ $err->levelColor() }}">{{ strtoupper($err->level) }}</span>
@@ -446,7 +446,7 @@
                     'tokens'    => (int)$u->total_tokens,
                     'month'     => now()->format('F Y'),
                     'breakdown' => $breakdown,
-                ]) !!}</script>
+                ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                                     <td class="px-5 py-3">
                                         <p class="text-slate-200 font-medium text-xs">
                                             {{ $u->tenant?->name ?? 'Tenant #' . $u->tenant_id }}</p>
@@ -571,7 +571,7 @@
                                 @endphp
                                 <tr class="hover:bg-white/5 transition cursor-pointer"
                                     @click="show('activity', rowData($el))">
-                                    <script type="application/json" class="row-data">{!! json_encode($actData) !!}</script>
+                                    <script type="application/json" class="row-data">{!! json_encode($actData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                                     <td class="px-4 py-3">
                                         <span
                                             class="text-[11px] font-medium px-2 py-0.5 rounded-full {{ $actionColor }}">{{ $act->action }}</span>
@@ -663,7 +663,7 @@
                     @endphp
                     <div class="border rounded-2xl p-4 {{ $sevColor }} cursor-pointer hover:brightness-110 transition"
                         @click="show('anomaly', rowData($el))">
-                        <script type="application/json" class="row-data">{!! json_encode($anomalyData) !!}</script>
+                        <script type="application/json" class="row-data">{!! json_encode($anomalyData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 mb-1 flex-wrap">
@@ -708,7 +708,7 @@
                 {{-- Database --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Database','status'=>$health['db_ok']?'Online':'Error','ok'=>$health['db_ok'],'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Status','value'=>$health['db_ok']?'Online':'Error'],['label'=>'Latency','value'=>$health['db_latency_ms'].' ms'],['label'=>'Driver','value'=>config('database.default')],['label'=>'Database','value'=>config('database.connections.'.config('database.default').'.database')]]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Database','status'=>$health['db_ok']?'Online':'Error','ok'=>$health['db_ok'],'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Status','value'=>$health['db_ok']?'Online':'Error'],['label'=>'Latency','value'=>$health['db_latency_ms'].' ms'],['label'=>'Driver','value'=>config('database.default')],['label'=>'Database','value'=>config('database.connections.'.config('database.default').'.database')]]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-semibold text-slate-200">Database</p>
                         <span
@@ -724,7 +724,7 @@
                 {{-- Disk --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Disk','status'=>$health['disk_used_pct']>85?'Kritis':'Normal','ok'=>$health['disk_used_pct']<=85,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Terpakai','value'=>$health['disk_used_pct'].'%'],['label'=>'Bebas','value'=>$health['disk_free_gb'].' GB'],['label'=>'Total','value'=>$health['disk_total_gb'].' GB'],['label'=>'Digunakan','value'=>round($health['disk_total_gb']-$health['disk_free_gb'],1).' GB']]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Disk','status'=>$health['disk_used_pct']>85?'Kritis':'Normal','ok'=>$health['disk_used_pct']<=85,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Terpakai','value'=>$health['disk_used_pct'].'%'],['label'=>'Bebas','value'=>$health['disk_free_gb'].' GB'],['label'=>'Total','value'=>$health['disk_total_gb'].' GB'],['label'=>'Digunakan','value'=>round($health['disk_total_gb']-$health['disk_free_gb'],1).' GB']]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-semibold text-slate-200">Disk</p>
                         <span
@@ -743,7 +743,7 @@
                 {{-- Log File --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Log File','status'=>$health['log_size_mb']>100?'Besar':'Normal','ok'=>$health['log_size_mb']<=100,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Ukuran','value'=>$health['log_size_mb'].' MB'],['label'=>'Path','value'=>'storage/logs/laravel.log'],['label'=>'Status','value'=>$health['log_size_mb']>100?'Perlu dibersihkan':'Normal']]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Log File','status'=>$health['log_size_mb']>100?'Besar':'Normal','ok'=>$health['log_size_mb']<=100,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Ukuran','value'=>$health['log_size_mb'].' MB'],['label'=>'Path','value'=>'storage/logs/laravel.log'],['label'=>'Status','value'=>$health['log_size_mb']>100?'Perlu dibersihkan':'Normal']]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-semibold text-slate-200">Log File</p>
                         <span
@@ -759,7 +759,7 @@
                 {{-- Tenants --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Tenant','status'=>'Info','ok'=>true,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Total Tenant','value'=>$health['total_tenants']],['label'=>'Tenant Aktif','value'=>$health['active_tenants']],['label'=>'Tenant Nonaktif','value'=>$health['total_tenants']-$health['active_tenants']],['label'=>'Total User','value'=>$health['total_users']]]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Tenant','status'=>'Info','ok'=>true,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Total Tenant','value'=>$health['total_tenants']],['label'=>'Tenant Aktif','value'=>$health['active_tenants']],['label'=>'Tenant Nonaktif','value'=>$health['total_tenants']-$health['active_tenants']],['label'=>'Total User','value'=>$health['total_users']]]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <p class="text-sm font-semibold text-slate-200 mb-3">Tenant</p>
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs"><span class="text-slate-400">Total</span><span
@@ -774,7 +774,7 @@
                 {{-- Queue --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Queue','status'=>$health['queue_failed']>0?$health['queue_failed'].' Failed Jobs':'OK','ok'=>$health['queue_failed']===0,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Failed Jobs','value'=>$health['queue_failed']],['label'=>'Status','value'=>$health['queue_failed']>0?'Ada job gagal, perlu diperiksa':'Semua job berjalan normal']]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Queue','status'=>$health['queue_failed']>0?$health['queue_failed'].' Failed Jobs':'OK','ok'=>$health['queue_failed']===0,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'Failed Jobs','value'=>$health['queue_failed']],['label'=>'Status','value'=>$health['queue_failed']>0?'Ada job gagal, perlu diperiksa':'Semua job berjalan normal']]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-semibold text-slate-200">Queue</p>
                         <span
@@ -791,7 +791,7 @@
                 {{-- Server --}}
                 <div class="bg-[#1e293b] border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-white/20 transition"
                     @click="show('health', rowData($el))">
-                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Server','status'=>'Info','ok'=>true,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'PHP','value'=>$health['php_version']],['label'=>'Laravel','value'=>$health['laravel_version']],['label'=>'Uptime','value'=>$health['uptime']],['label'=>'Error Hari Ini','value'=>$health['errors_today']],['label'=>'Environment','value'=>app()->environment()],['label'=>'Debug Mode','value'=>config('app.debug')?'ON':'OFF']]]) !!}</script>
+                    <script type="application/json" class="row-data">{!! json_encode(['component'=>'Server','status'=>'Info','ok'=>true,'created_at'=>now()->format('d M Y H:i:s'),'details'=>[['label'=>'PHP','value'=>$health['php_version']],['label'=>'Laravel','value'=>$health['laravel_version']],['label'=>'Uptime','value'=>$health['uptime']],['label'=>'Error Hari Ini','value'=>$health['errors_today']],['label'=>'Environment','value'=>app()->environment()],['label'=>'Debug Mode','value'=>config('app.debug')?'ON':'OFF']]], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!}</script>
                     <p class="text-sm font-semibold text-slate-200 mb-3">Server</p>
                     <div class="space-y-2">
                         <div class="flex justify-between text-xs"><span class="text-slate-400">PHP</span><span

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class QualityCheck extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'work_order_id',

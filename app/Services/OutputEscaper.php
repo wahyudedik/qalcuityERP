@@ -92,10 +92,11 @@ class OutputEscaper
             return '';
         }
 
-        $defaultAllowed = '<p><br><strong><em><b><i><u><ul><ol><li><a><img>';
-        $allowedTagString = !empty($allowedTags) ? implode('', $allowedTags) : $defaultAllowed;
+        // PHP 8.x: strip_tags harus menggunakan array, bukan string
+        $defaultAllowed = ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'img'];
+        $allowed = !empty($allowedTags) ? $allowedTags : $defaultAllowed;
 
-        return strip_tags($value, $allowedTagString);
+        return strip_tags($value, $allowed);
     }
 
     /**

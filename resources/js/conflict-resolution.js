@@ -7,6 +7,9 @@
  * - Auto-resolve strategies (last-write-wins, role-priority)
  * - Manual resolution interface
  */
+
+import logger from './logger';
+
 class ConflictResolutionUI {
     constructor(options = {}) {
         this.apiBaseUrl = options.apiBaseUrl || '/api/offline';
@@ -26,7 +29,7 @@ class ConflictResolutionUI {
         this.createModalElement();
         this.setupEventListeners();
 
-        console.log('[ConflictResolution] UI initialized');
+        logger.debug('[ConflictResolution] UI initialized');
     }
 
     /**
@@ -168,7 +171,7 @@ class ConflictResolutionUI {
                 this.updateStatistics();
             }
         } catch (error) {
-            console.error('[ConflictResolution] Failed to load conflicts:', error);
+            logger.error('[ConflictResolution] Failed to load conflicts', error);
         }
     }
 
@@ -397,7 +400,7 @@ class ConflictResolutionUI {
                 throw new Error('Failed to resolve conflict');
             }
         } catch (error) {
-            console.error('[ConflictResolution] Resolution failed:', error);
+            logger.error('[ConflictResolution] Resolution failed', error);
             this.showNotification('Failed to resolve conflict', 'error');
         }
     }
@@ -452,7 +455,7 @@ class ConflictResolutionUI {
                 await this.loadConflicts();
             }
         } catch (error) {
-            console.error('[ConflictResolution] Auto-resolve failed:', error);
+            logger.error('[ConflictResolution] Auto-resolve failed', error);
             this.showNotification('Auto-resolve failed', 'error');
         }
     }
@@ -462,7 +465,7 @@ class ConflictResolutionUI {
      */
     updateAutoStrategy(strategy) {
         this.autoResolveStrategy = strategy;
-        console.log(`[ConflictResolution] Auto-strategy updated: ${strategy}`);
+        logger.debug(`[ConflictResolution] Auto-strategy updated: ${strategy}`);
     }
 
     /**

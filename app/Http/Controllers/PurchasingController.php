@@ -25,10 +25,7 @@ use Illuminate\Support\Str;
 
 class PurchasingController extends Controller
 {
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     /**
      * Create a Payable (AP) record when PO is received (credit payment only).

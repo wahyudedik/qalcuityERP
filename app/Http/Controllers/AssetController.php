@@ -11,10 +11,7 @@ use Illuminate\Http\Request;
 
 class AssetController extends Controller
 {
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function index(Request $request)
     {

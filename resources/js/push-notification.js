@@ -4,6 +4,9 @@
  * Mengelola push notifications untuk PWA.
  * Handle subscription, permission request, dan notification events.
  */
+
+import logger from './logger';
+
 class PushNotificationManager {
     constructor() {
         this.isSupported = 'PushManager' in window && 'serviceWorker' in navigator;
@@ -17,7 +20,7 @@ class PushNotificationManager {
      */
     async initialize(vapidPublicKey) {
         if (!this.isSupported) {
-            console.warn('[PushNotification] Push notifications not supported');
+            logger.warn('[PushNotification] Push notifications not supported');
             return false;
         }
 
@@ -27,7 +30,7 @@ class PushNotificationManager {
             // Check permission
             const permission = await this.requestPermission();
             if (permission !== 'granted') {
-                console.warn('[PushNotification] Permission denied');
+                logger.warn('[PushNotification] Permission denied');
                 return false;
             }
 
@@ -35,14 +38,14 @@ class PushNotificationManager {
             this.subscription = await this.getSubscription();
 
             if (this.subscription) {
-                console.log('[PushNotification] Already subscribed');
+                logger.debug('[PushNotification] Already subscribed');
                 await this.sendSubscriptionToServer(this.subscription);
                 return true;
             }
 
             return false;
         } catch (error) {
-            console.error('[PushNotification] Initialization error:', error);
+            logger.error('[PushNotification] Initialization error', error);
             return false;
         }
     }
@@ -57,7 +60,7 @@ class PushNotificationManager {
         }
 
         const permission = await Notification.requestPermission();
-        console.log('[PushNotification] Permission:', permission);
+        logger.debug(`[PushNotification] Permission: ${permission}`);
         return permission;
     }
 
@@ -77,13 +80,13 @@ class PushNotificationManager {
                     applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey),
                 });
 
-                console.log('[PushNotification] New subscription created');
+                logger.debug('[PushNotification] New subscription created');
             }
 
             this.subscription = subscription;
             return subscription;
         } catch (error) {
-            console.error('[PushNotification] Get subscription error:', error);
+            logger.error('[PushNotification] Get subscription error', error);
             return null;
         }
     }
@@ -94,7 +97,7 @@ class PushNotificationManager {
      */
     async subscribe() {
         if (!this.vapidPublicKey) {
-            console.error('[PushNotification] VAPID key not set');
+            logger.error('[PushNotification] VAPID key not set');
             return null;
         }
 
@@ -107,13 +110,13 @@ class PushNotificationManager {
             const subscription = await this.getSubscription();
             if (subscription) {
                 await this.sendSubscriptionToServer(subscription);
-                console.log('[PushNotification] Subscribed successfully');
+                logger.info('[PushNotification] Subscribed successfully');
                 return subscription;
             }
 
             return null;
         } catch (error) {
-            console.error('[PushNotification] Subscribe error:', error);
+            logger.error('[PushNotification] Subscribe error', error);
             return null;
         }
     }
@@ -130,13 +133,13 @@ class PushNotificationManager {
         try {
             const success = await this.subscription.unsubscribe();
             if (success) {
-                console.log('[PushNotification] Unsubscribed');
+                logger.debug('[PushNotification] Unsubscribed');
                 await this.removeSubscriptionFromServer();
                 this.subscription = null;
             }
             return success;
         } catch (error) {
-            console.error('[PushNotification] Unsubscribe error:', error);
+            logger.error('[PushNotification] Unsubscribe error', error);
             return false;
         }
     }
@@ -161,12 +164,12 @@ class PushNotificationManager {
             });
 
             if (response.ok) {
-                console.log('[PushNotification] Subscription sent to server');
+                logger.debug('[PushNotification] Subscription sent to server');
             } else {
-                console.warn('[PushNotification] Failed to send subscription to server');
+                logger.warn('[PushNotification] Failed to send subscription to server');
             }
         } catch (error) {
-            console.error('[PushNotification] Send subscription error:', error);
+            logger.error('[PushNotification] Send subscription error', error);
         }
     }
 
@@ -189,10 +192,10 @@ class PushNotificationManager {
             });
 
             if (response.ok) {
-                console.log('[PushNotification] Subscription removed from server');
+                logger.debug('[PushNotification] Subscription removed from server');
             }
         } catch (error) {
-            console.error('[PushNotification] Remove subscription error:', error);
+            logger.error('[PushNotification] Remove subscription error', error);
         }
     }
 
@@ -253,7 +256,7 @@ class PushNotificationManager {
      */
     showNotification({ title, body, icon = '/favicon.png', url = '/dashboard' }) {
         if (!('Notification' in window)) {
-            console.warn('[PushNotification] Notifications not supported');
+            logger.warn('[PushNotification] Notifications not supported');
             return;
         }
 

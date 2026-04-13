@@ -9,10 +9,7 @@ use Illuminate\Http\Request;
 
 class FbSuppliesController extends Controller
 {
-    private function tenantId(): int
-    {
-        return request()->user()->current_tenant_id ?? request()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     /**
      * Display F&B supplies inventory

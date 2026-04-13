@@ -4,6 +4,9 @@
  * Mengelola queue operasi offline untuk berbagai modul ERP.
  * Menyimpan mutations di IndexedDB dan auto-sync ketika online kembali.
  */
+
+import logger from './logger';
+
 class OfflineQueueManager {
     constructor() {
         this.dbName = 'qalcuity-erp';
@@ -52,12 +55,12 @@ class OfflineQueueManager {
 
             request.onsuccess = (event) => {
                 this.db = event.target.result;
-                console.log('[OfflineQueue] IndexedDB initialized');
+                logger.debug('[OfflineQueue] IndexedDB initialized');
                 resolve(this.db);
             };
 
             request.onerror = (event) => {
-                console.error('[OfflineQueue] IndexedDB error:', event.target.error);
+                logger.error('[OfflineQueue] IndexedDB error', event.target.error);
                 reject(event.target.error);
             };
         });
@@ -68,14 +71,14 @@ class OfflineQueueManager {
      */
     setupEventListeners() {
         window.addEventListener('online', () => {
-            console.log('[OfflineQueue] Connection restored');
+            logger.info('[OfflineQueue] Connection restored');
             this.isOnline = true;
             this.notifyListeners({ type: 'ONLINE' });
             this.autoSync();
         });
 
         window.addEventListener('offline', () => {
-            console.log('[OfflineQueue] Connection lost');
+            logger.warn('[OfflineQueue] Connection lost');
             this.isOnline = false;
             this.notifyListeners({ type: 'OFFLINE' });
         });
@@ -128,7 +131,7 @@ class OfflineQueueManager {
 
                 request.onsuccess = () => {
                     const id = request.result;
-                    console.log(`[OfflineQueue] Queued mutation #${id}: ${mutation.method} ${mutation.url}`);
+                    logger.debug(`[OfflineQueue] Queued mutation #${id}: ${mutation.method} ${mutation.url}`);
 
                     this.notifyListeners({
                         type: 'QUEUED',
@@ -141,12 +144,12 @@ class OfflineQueueManager {
                 };
 
                 request.onerror = (event) => {
-                    console.error('[OfflineQueue] Failed to queue mutation:', event.target.error);
+                    logger.error('[OfflineQueue] Failed to queue mutation', event.target.error);
                     reject(event.target.error);
                 };
             });
         } catch (error) {
-            console.error('[OfflineQueue] Enqueue error:', error);
+            logger.error('[OfflineQueue] Enqueue error', error);
             throw error;
         }
     }
@@ -187,12 +190,12 @@ class OfflineQueueManager {
      */
     async sync() {
         if (this.syncInProgress) {
-            console.log('[OfflineQueue] Sync already in progress');
+            logger.debug('[OfflineQueue] Sync already in progress');
             return { synced: 0, failed: 0 };
         }
 
         if (!this.isOnline) {
-            console.log('[OfflineQueue] Cannot sync: offline');
+            logger.warn('[OfflineQueue] Cannot sync: offline');
             return { synced: 0, failed: 0 };
         }
 
@@ -204,7 +207,7 @@ class OfflineQueueManager {
             let synced = 0;
             let failed = 0;
 
-            console.log(`[OfflineQueue] Starting sync: ${pending.length} mutations`);
+            logger.info(`[OfflineQueue] Starting sync: ${pending.length} mutations`);
 
             for (const mutation of pending) {
                 try {
@@ -215,7 +218,7 @@ class OfflineQueueManager {
                         failed++;
                     }
                 } catch (error) {
-                    console.error(`[OfflineQueue] Failed to process mutation #${mutation.id}:`, error);
+                    logger.error(`[OfflineQueue] Failed to process mutation #${mutation.id}`, error);
                     failed++;
 
                     // Update retry count
@@ -223,7 +226,7 @@ class OfflineQueueManager {
                 }
             }
 
-            console.log(`[OfflineQueue] Sync complete: ${synced} synced, ${failed} failed`);
+            logger.info(`[OfflineQueue] Sync complete: ${synced} synced, ${failed} failed`);
 
             this.notifyListeners({
                 type: 'SYNC_COMPLETE',
@@ -234,7 +237,7 @@ class OfflineQueueManager {
 
             return { synced, failed };
         } catch (error) {
-            console.error('[OfflineQueue] Sync error:', error);
+            logger.error('[OfflineQueue] Sync error', error);
             this.notifyListeners({ type: 'SYNC_ERROR', error: error.message });
             return { synced: 0, failed: 0 };
         } finally {
@@ -253,7 +256,7 @@ class OfflineQueueManager {
             if (mutation.next_retry_at) {
                 const nextRetry = new Date(mutation.next_retry_at);
                 if (new Date() < nextRetry) {
-                    console.log(`[OfflineQueue] Skipping mutation #${mutation.id} - next retry at ${nextRetry.toISOString()}`);
+                    logger.debug(`[OfflineQueue] Skipping mutation #${mutation.id} - next retry at ${nextRetry.toISOString()}`);
                     return false; // Not ready yet
                 }
             }
@@ -285,7 +288,7 @@ class OfflineQueueManager {
 
                 // BUG-OFF-001 FIX: Check for conflict warnings
                 if (result.conflict_warning) {
-                    console.warn(`[OfflineQueue] Conflict warning: ${result.conflict_warning}`);
+                    logger.warn(`[OfflineQueue] Conflict warning: ${result.conflict_warning}`);
                     this.notifyListeners({
                         type: 'CONFLICT_WARNING',
                         id: mutation.id,
@@ -305,7 +308,7 @@ class OfflineQueueManager {
                 return true;
             } else if (response.status === 409) {
                 // BUG-OFF-001 FIX: Conflict detected
-                console.warn(`[OfflineQueue] Conflict detected for mutation #${mutation.id}`);
+                logger.warn(`[OfflineQueue] Conflict detected for mutation #${mutation.id}`);
                 const result = await response.json().catch(() => ({}));
 
                 await this.markAsFailed(mutation.id, `Conflict: ${result.error || 'Conflict detected'}`);
@@ -322,7 +325,7 @@ class OfflineQueueManager {
                 return false;
             } else if (response.status === 419) {
                 // BUG-OFF-002 FIX: CSRF token expired, retry with fresh token
-                console.warn(`[OfflineQueue] CSRF token expired for mutation #${mutation.id}, retrying...`);
+                logger.warn(`[OfflineQueue] CSRF token expired for mutation #${mutation.id}, retrying...`);
 
                 // Get fresh token and retry
                 const freshToken = await this.getFreshCsrfToken();
@@ -354,25 +357,25 @@ class OfflineQueueManager {
                     return true;
                 } else {
                     // Still failed after retry
-                    console.error(`[OfflineQueue] Mutation #${mutation.id} failed after CSRF retry`);
+                    logger.error(`[OfflineQueue] Mutation #${mutation.id} failed after CSRF retry`);
                     await this.markAsFailed(mutation.id, 'CSRF retry failed');
                     return false;
                 }
             } else if (response.status === 422) {
                 // Validation error - don't retry
-                console.warn(`[OfflineQueue] Validation error for mutation #${mutation.id}`);
+                logger.warn(`[OfflineQueue] Validation error for mutation #${mutation.id}`);
                 await this.markAsFailed(mutation.id, 'Validation error');
                 return false;
             } else if (response.status === 401 || response.status === 403) {
                 // Auth error - re-queue for later
-                console.warn(`[OfflineQueue] Auth error for mutation #${mutation.id}, will retry`);
+                logger.warn(`[OfflineQueue] Auth error for mutation #${mutation.id}, will retry`);
                 return false;
             } else if (response.status === 429 || response.status >= 500) {
                 // TASK 1.4: Rate limit or server error - apply exponential backoff
                 const retryCount = mutation.retry_count + 1;
                 const delay = this.calculateBackoffDelay(retryCount, mutation.base_delay, mutation.max_delay);
 
-                console.warn(`[OfflineQueue] Rate limit/server error for mutation #${mutation.id}, retry ${retryCount}/${mutation.max_retries} in ${delay}ms`);
+                logger.warn(`[OfflineQueue] Rate limit/server error for mutation #${mutation.id}, retry ${retryCount}/${mutation.max_retries} in ${delay}ms`);
 
                 await this.updateRetryWithBackoff(mutation.id, retryCount, delay);
                 return false;
@@ -387,7 +390,7 @@ class OfflineQueueManager {
         } catch (error) {
             // Check if max retries exceeded
             if (mutation.retry_count >= mutation.max_retries) {
-                console.error(`[OfflineQueue] Max retries exceeded for mutation #${mutation.id}`);
+                logger.error(`[OfflineQueue] Max retries exceeded for mutation #${mutation.id}`);
                 await this.markAsFailed(mutation.id, error.message);
                 return false;
             }
@@ -451,7 +454,7 @@ class OfflineQueueManager {
         setTimeout(async () => {
             const queueLength = await this.getQueueLength();
             if (queueLength > 0) {
-                console.log(`[OfflineQueue] Auto-sync triggered: ${queueLength} pending mutations`);
+                logger.info(`[OfflineQueue] Auto-sync triggered: ${queueLength} pending mutations`);
                 await this.sync();
             }
         }, 2000);
@@ -481,7 +484,7 @@ class OfflineQueueManager {
             const request = store.put(item);
 
             request.onsuccess = () => {
-                console.log(`[OfflineQueue] Cached data: ${key}`);
+                logger.debug(`[OfflineQueue] Cached data: ${key}`);
                 resolve();
             };
 
@@ -514,7 +517,7 @@ class OfflineQueueManager {
 
                 // Check if expired
                 if (new Date(item.expires_at) < new Date()) {
-                    console.log(`[OfflineQueue] Cache expired: ${key}`);
+                    logger.debug(`[OfflineQueue] Cache expired: ${key}`);
                     this.removeCachedData(key);
                     resolve(null);
                     return;
@@ -648,7 +651,7 @@ class OfflineQueueManager {
             const request = store.clear();
 
             request.onsuccess = () => {
-                console.log('[OfflineQueue] Queue cleared');
+                logger.info('[OfflineQueue] Queue cleared');
                 this.notifyListeners({ type: 'QUEUE_CLEARED' });
                 resolve();
             };
@@ -678,7 +681,7 @@ class OfflineQueueManager {
             try {
                 callback(event);
             } catch (error) {
-                console.error('[OfflineQueue] Listener error:', error);
+                logger.error('[OfflineQueue] Listener error', error);
             }
         });
     }
@@ -729,16 +732,16 @@ class OfflineQueueManager {
                     document.head.appendChild(metaTag);
                 }
 
-                console.log('[OfflineQueue] CSRF token refreshed');
+                logger.debug('[OfflineQueue] CSRF token refreshed');
                 return token;
             }
 
             // Fallback to stored token (might fail)
-            console.warn('[OfflineQueue] Could not refresh CSRF token, using stored token');
+            logger.warn('[OfflineQueue] Could not refresh CSRF token, using stored token');
             return this.getLastStoredToken();
 
         } catch (error) {
-            console.error('[OfflineQueue] Error refreshing CSRF token:', error);
+            logger.error('[OfflineQueue] Error refreshing CSRF token', error);
             // Fallback to last stored token
             return this.getLastStoredToken();
         }
@@ -755,7 +758,7 @@ class OfflineQueueManager {
                 return pending[0].csrf_token || null;
             }
         } catch (error) {
-            console.error('[OfflineQueue] Error getting stored token:', error);
+            logger.error('[OfflineQueue] Error getting stored token', error);
         }
         return null;
     }

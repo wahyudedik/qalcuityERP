@@ -46,7 +46,6 @@ use App\Http\Controllers\ProjectBillingController;
 use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\QuotationController;
-use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\SalesOrderController;
@@ -60,6 +59,8 @@ use App\Http\Controllers\KpiController;
 use App\Http\Controllers\GamificationController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\Telecom\LocationTrackingController as TelecomLocationTrackingController;
+use App\Http\Controllers\Telecom\GeofencingController as TelecomGeofencingController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -73,6 +74,32 @@ Route::get('/', function () {
 Route::get('/documentation', function () {
     return view('documentation');
 })->name('documentation');
+
+// ═══════════════════════════════════════════════════════════
+// PUBLIC PAGES (Footer Links)
+// ═══════════════════════════════════════════════════════════
+Route::prefix('about')->name('about.')->group(function () {
+    Route::get('/', fn() => view('pages.about.index'))->name('index');
+    Route::get('/team', fn() => view('pages.about.team'))->name('team');
+    Route::get('/careers', fn() => view('pages.about.careers'))->name('careers');
+    Route::get('/partners', fn() => view('pages.about.partners'))->name('partners');
+});
+
+Route::prefix('resources')->name('resources.')->group(function () {
+    Route::get('/blog', fn() => view('pages.resources.blog'))->name('blog');
+    Route::get('/blog/{slug}', fn($slug) => view('pages.resources.blog-post', compact('slug')))->name('blog.post');
+    Route::get('/help', fn() => view('pages.resources.help'))->name('help');
+    Route::get('/community', fn() => view('pages.resources.community'))->name('community');
+    Route::get('/status', fn() => view('pages.resources.status'))->name('status');
+});
+
+Route::prefix('legal')->name('legal.')->group(function () {
+    Route::get('/privacy-policy', fn() => view('pages.legal.privacy-policy'))->name('privacy');
+    Route::get('/terms-of-service', fn() => view('pages.legal.terms-of-service'))->name('terms');
+    Route::get('/cookie-policy', fn() => view('pages.legal.cookie-policy'))->name('cookies');
+    Route::get('/security', fn() => view('pages.legal.security'))->name('security');
+    Route::get('/gdpr', fn() => view('pages.legal.gdpr'))->name('gdpr');
+});
 
 Route::get('/offline', fn() => response()->file(public_path('offline.html')))->name('offline');
 
@@ -122,6 +149,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Quick Search (Command Palette)
     Route::get('/api/quick-search', [\App\Http\Controllers\QuickSearchController::class, 'search'])
         ->name('quick-search.search');
+
+    // Saved Searches
+    Route::prefix('api/saved-searches')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SavedSearchController::class, 'index'])
+            ->name('saved-searches.index');
+        Route::post('/', [\App\Http\Controllers\SavedSearchController::class, 'store'])
+            ->name('saved-searches.store');
+        Route::get('/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'show'])
+            ->name('saved-searches.show');
+        Route::put('/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'update'])
+            ->name('saved-searches.update');
+        Route::delete('/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])
+            ->name('saved-searches.destroy');
+        Route::post('/{savedSearch}/execute', [\App\Http\Controllers\SavedSearchController::class, 'execute'])
+            ->name('saved-searches.execute');
+        Route::get('/suggestions/search', [\App\Http\Controllers\SavedSearchController::class, 'suggestions'])
+            ->name('saved-searches.suggestions');
+    });
 
     // Bulk Actions
     Route::post('/bulk-actions/execute', [\App\Http\Controllers\BulkActionsController::class, 'execute'])
@@ -254,7 +299,7 @@ Route::middleware('auth')->group(function () {
     // ============================================
     // ANALYTICS & INSIGHTS DASHBOARD
     // ============================================
-    Route::prefix('analytics')->name('analytics.')->middleware(['role:admin,manager,owner'])->group(function () {
+    Route::prefix('analytics')->name('analytics.')->middleware(['role:admin,manager'])->group(function () {
         // Main Dashboard
         Route::get('/', [\App\Http\Controllers\Analytics\AnalyticsDashboardController::class, 'index'])->name('dashboard');
 
@@ -513,10 +558,28 @@ Route::middleware('auth')->group(function () {
         Route::get('/reconciliation', [BankReconciliationController::class, 'index'])->name('reconciliation');
         Route::post('/import', [BankReconciliationController::class, 'import'])->name('import');
         Route::post('/statements/{statement}/match', [BankReconciliationController::class, 'match'])->name('match');
-        // AI
+
+        // Bank format info & samples
+        Route::get('/formats', [BankReconciliationController::class, 'getBankFormats'])->name('formats');
+        Route::get('/sample/{bank}', [BankReconciliationController::class, 'downloadSample'])->name('sample');
+
+        // AI Matching
         Route::get('/ai/match-all', [BankReconciliationController::class, 'aiMatchAll'])->name('ai.match-all')->middleware('ai.quota');
         Route::get('/ai/match/{statement}', [BankReconciliationController::class, 'aiMatchOne'])->name('ai.match-one')->middleware('ai.quota');
         Route::post('/ai/apply-match/{statement}', [BankReconciliationController::class, 'aiApplyMatch'])->name('ai.apply-match')->middleware('ai.quota');
+
+        // AI Journal Generation (NEW - Task 3)
+        Route::post('/ai/generate-journal/{statement}', [BankReconciliationController::class, 'aiGenerateJournal'])->name('ai.generate-journal')->middleware('ai.quota');
+        Route::post('/ai/generate-journals/bulk', [BankReconciliationController::class, 'aiGenerateJournalsBulk'])->name('ai.generate-journals-bulk')->middleware('ai.quota');
+        Route::post('/ai/preview-journal/{statement}', [BankReconciliationController::class, 'aiPreviewJournal'])->name('ai.preview-journal')->middleware('ai.quota');
+        Route::post('/ai/approve-and-post/{statement}', [BankReconciliationController::class, 'aiApproveAndPost'])->name('ai.approve-and-post')->middleware('ai.quota');
+        Route::post('/ai/approve-and-post/bulk', [BankReconciliationController::class, 'aiApproveAndPostBulk'])->name('ai.approve-and-post-bulk')->middleware('ai.quota');
+
+        // Bulk Auto-Generate with Background Job (Task 5)
+        Route::post('/ai/auto-generate-all', [BankReconciliationController::class, 'aiAutoGenerateAll'])->name('ai.auto-generate-all')->middleware('ai.quota');
+        Route::get('/ai/job-progress/{jobId}', [BankReconciliationController::class, 'aiJobProgress'])->name('ai.job-progress');
+        Route::get('/ai/job-results/{jobId}', [BankReconciliationController::class, 'aiJobResults'])->name('ai.job-results');
+        Route::delete('/ai/job-cleanup/{jobId}', [BankReconciliationController::class, 'aiJobCleanup'])->name('ai.job-cleanup');
     });
 
     // Bank Accounts (master data)
@@ -883,1429 +946,1579 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'index'])->name('scorecards.index');
 
         // Strategic Sourcing - MUST be before /{id} route
-        Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
-        Route::post('/opportunities', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'createOpportunity'])->name('opportunities.create');
-        Route::post('/opportunities/{id}/status', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'updateOpportunityStatus'])->name('opportunities.update-status');
-
-        // Supplier detail - MUST be after specific routes
-        Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail');
-        Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
-        Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
-
-        // RFQ Analysis
-        Route::get('/rfq/{id}/analysis', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'analyzeRfq'])->name('rfq.analysis');
-
-        // Supplier Comparison
-        Route::post('/compare', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'compareSuppliers'])->name('compare');
+        Route::get('/strategic-sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'strategicSourcing'])->name('strategic-sourcing');
     });
 
-    // Printing Industry Module
-    Route::prefix('printing')->name('printing.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'index'])->name('dashboard');
-        Route::get('/create', [\App\Http\Controllers\Printing\PrintJobController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'store'])->name('store');
-        Route::get('/{id}', [\App\Http\Controllers\Printing\PrintJobController::class, 'show'])->name('show');
+    // Supplier Performance Dashboard (New Enhanced System)
+    Route::prefix('supplier-performance')->name('supplier-performance.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\SupplierPerformanceController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{supplier}', [\App\Http\Controllers\SupplierPerformanceController::class, 'detail'])->name('detail');
+        Route::post('/evaluate', [\App\Http\Controllers\SupplierPerformanceController::class, 'storeEvaluation'])->name('evaluate');
+        Route::post('/auto-evaluate/{po}', [\App\Http\Controllers\SupplierPerformanceController::class, 'autoEvaluateFromPO'])->name('auto-evaluate');
+    });
+    Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
+    Route::post('/opportunities', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'createOpportunity'])->name('opportunities.create');
+    Route::post('/opportunities/{id}/status', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'updateOpportunityStatus'])->name('opportunities.update-status');
 
-        Route::post('/{id}/status', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateStatus'])->name('status');
-        Route::post('/{id}/assign', [\App\Http\Controllers\Printing\PrintJobController::class, 'assignOperator'])->name('assign');
-        Route::post('/{id}/approve-proof', [\App\Http\Controllers\Printing\PrintJobController::class, 'approveProof'])->name('approve-proof');
+    // Supplier detail - MUST be after specific routes, only match numeric IDs
+    Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail')->where('id', '[0-9]+');
+    Route::post('/generate', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'generate'])->name('scorecard.generate');
+    Route::get('/export/csv', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'export'])->name('scorecards.export');
 
-        Route::get('/{id}/press-run', [\App\Http\Controllers\Printing\PrintJobController::class, 'trackPressRun'])->name('press-tracking');
-        Route::post('/{id}/start-press', [\App\Http\Controllers\Printing\PrintJobController::class, 'startPressRun'])->name('start-press');
-        Route::post('/press-runs/{runId}/production', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateProduction'])->name('update-production');
+    // RFQ Analysis
+    Route::get('/rfq/{id}/analysis', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'analyzeRfq'])->name('rfq.analysis');
 
-        Route::get('/{id}/finishing', [\App\Http\Controllers\Printing\PrintJobController::class, 'finishingView'])->name('finishing');
+    // Supplier Comparison
+    Route::post('/compare', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'compareSuppliers'])->name('compare');
+});
 
-        Route::get('/estimates', [\App\Http\Controllers\Printing\PrintJobController::class, 'estimates'])->name('estimates');
-        Route::post('/estimate', [\App\Http\Controllers\Printing\PrintJobController::class, 'generateEstimate'])->name('estimate.create');
+// Printing Industry Module
+Route::prefix('printing')->name('printing.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'index'])->name('dashboard');
+    Route::get('/create', [\App\Http\Controllers\Printing\PrintJobController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'store'])->name('store');
+    Route::get('/{id}', [\App\Http\Controllers\Printing\PrintJobController::class, 'show'])->name('show');
 
-        Route::get('/web-orders', [\App\Http\Controllers\Printing\PrintJobController::class, 'webOrders'])->name('web-orders');
+    Route::post('/{id}/status', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateStatus'])->name('status');
+    Route::post('/{id}/assign', [\App\Http\Controllers\Printing\PrintJobController::class, 'assignOperator'])->name('assign');
+    Route::post('/{id}/approve-proof', [\App\Http\Controllers\Printing\PrintJobController::class, 'approveProof'])->name('approve-proof');
+
+    Route::get('/{id}/press-run', [\App\Http\Controllers\Printing\PrintJobController::class, 'trackPressRun'])->name('press-tracking');
+    Route::post('/{id}/start-press', [\App\Http\Controllers\Printing\PrintJobController::class, 'startPressRun'])->name('start-press');
+    Route::post('/press-runs/{runId}/production', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateProduction'])->name('update-production');
+
+    Route::get('/{id}/finishing', [\App\Http\Controllers\Printing\PrintJobController::class, 'finishingView'])->name('finishing');
+
+    Route::get('/estimates', [\App\Http\Controllers\Printing\PrintJobController::class, 'estimates'])->name('estimates');
+    Route::post('/estimate', [\App\Http\Controllers\Printing\PrintJobController::class, 'generateEstimate'])->name('estimate.create');
+
+    Route::get('/web-orders', [\App\Http\Controllers\Printing\PrintJobController::class, 'webOrders'])->name('web-orders');
+});
+
+// Tour & Travel Module
+Route::prefix('tour-travel')->name('tour-travel.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    // Tour Packages
+    Route::prefix('packages')->name('packages.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'update'])->name('update');
+        Route::post('/{id}/toggle-status', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{id}/itinerary-day', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'addItineraryDay'])->name('add-itinerary');
+        Route::post('/{id}/assign-supplier', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'assignSupplier'])->name('assign-supplier');
     });
 
-    // Tour & Travel Module
-    Route::prefix('tour-travel')->name('tour-travel.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        // Tour Packages
-        Route::prefix('packages')->name('packages.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'store'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'show'])->name('show');
-            Route::get('/{id}/edit', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'update'])->name('update');
-            Route::post('/{id}/toggle-status', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'toggleStatus'])->name('toggle-status');
-            Route::post('/{id}/itinerary-day', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'addItineraryDay'])->name('add-itinerary');
-            Route::post('/{id}/assign-supplier', [\App\Http\Controllers\TourTravel\TourPackageController::class, 'assignSupplier'])->name('assign-supplier');
-        });
-
-        // Tour Bookings
-        Route::prefix('bookings')->name('bookings.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'store'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'show'])->name('show');
-            Route::post('/{id}/confirm', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'confirm'])->name('confirm');
-            Route::post('/{id}/cancel', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'cancel'])->name('cancel');
-            Route::post('/{id}/payment', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'recordPayment'])->name('payment');
-            Route::post('/{id}/complete', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'complete'])->name('complete');
-            Route::post('/{id}/assign-guide', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'assignGuide'])->name('assign-guide');
-        });
-
-        // Tour Analytics
-        Route::get('/analytics', [\App\Http\Controllers\TourTravel\TourTravelAnalyticsController::class, 'index'])->name('analytics');
+    // Tour Bookings
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'show'])->name('show');
+        Route::post('/{id}/confirm', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'confirm'])->name('confirm');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'cancel'])->name('cancel');
+        Route::post('/{id}/payment', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'recordPayment'])->name('payment');
+        Route::post('/{id}/complete', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'complete'])->name('complete');
+        Route::post('/{id}/assign-guide', [\App\Http\Controllers\TourTravel\TourBookingController::class, 'assignGuide'])->name('assign-guide');
     });
 
-    // Livestock Enhancement Module (Dairy, Poultry, Breeding, Waste)
-    Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        // Dairy Management
-        Route::prefix('dairy')->name('dairy.')->group(function () {
-            Route::get('/milk-records', [\App\Http\Controllers\Livestock\DairyController::class, 'milkRecords'])->name('milk-records');
-            Route::post('/milk-records', [\App\Http\Controllers\Livestock\DairyController::class, 'storeMilkRecord'])->name('milk-records.store');
-            Route::get('/milking-sessions', [\App\Http\Controllers\Livestock\DairyController::class, 'milkingSessions'])->name('sessions');
-            Route::post('/milking-sessions', [\App\Http\Controllers\Livestock\DairyController::class, 'storeSession'])->name('sessions.store');
-        });
+    // Tour Analytics
+    Route::get('/analytics', [\App\Http\Controllers\TourTravel\TourTravelAnalyticsController::class, 'index'])->name('analytics');
+});
 
-        // Poultry Management
-        Route::prefix('poultry')->name('poultry.')->group(function () {
-            Route::get('/flocks', [\App\Http\Controllers\Livestock\PoultryController::class, 'flocks'])->name('flocks');
-            Route::get('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'eggProduction'])->name('egg-production');
-            Route::post('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'storeEggRecord'])->name('egg-production.store');
-            Route::get('/flock-performance', [\App\Http\Controllers\Livestock\PoultryController::class, 'flockPerformance'])->name('flock-performance');
-            Route::post('/flock-performance', [\App\Http\Controllers\Livestock\PoultryController::class, 'storePerformance'])->name('flock-performance.store');
-        });
-
-        // Breeding & Genetics
-        Route::prefix('breeding')->name('breeding.')->group(function () {
-            Route::get('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'index'])->name('records');
-            Route::post('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'store'])->name('records.store');
-            Route::get('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'pedigrees'])->name('pedigrees');
-            Route::post('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'storePedigree'])->name('pedigrees.store');
-        });
-
-        // Health & Vaccination
-        Route::prefix('health')->name('health.')->group(function () {
-            Route::get('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'treatments'])->name('treatments');
-            Route::post('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'storeTreatment'])->name('treatments.store');
-            Route::get('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'vaccinations'])->name('vaccinations');
-            Route::post('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'storeVaccination'])->name('vaccinations.store');
-        });
-
-        // Waste Management
-        Route::prefix('waste')->name('waste.')->group(function () {
-            Route::get('/logs', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'index'])->name('logs');
-            Route::post('/logs', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'store'])->name('logs.store');
-            Route::get('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'composting'])->name('composting');
-            Route::post('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'storeBatch'])->name('composting.store');
-        });
+// Livestock Enhancement Module (Dairy, Poultry, Breeding, Waste)
+Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    // Dairy Management
+    Route::prefix('dairy')->name('dairy.')->group(function () {
+        Route::get('/milk-records', [\App\Http\Controllers\Livestock\DairyController::class, 'milkRecords'])->name('milk-records');
+        Route::post('/milk-records', [\App\Http\Controllers\Livestock\DairyController::class, 'storeMilkRecord'])->name('milk-records.store');
+        Route::get('/milking-sessions', [\App\Http\Controllers\Livestock\DairyController::class, 'milkingSessions'])->name('sessions');
+        Route::post('/milking-sessions', [\App\Http\Controllers\Livestock\DairyController::class, 'storeSession'])->name('sessions.store');
     });
 
-    // Cosmetic Formula Management Module
-    Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth', 'tenant.isolation'])->group(function () {
-        // Formula Management
-        Route::prefix('formulas')->name('formulas.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'store'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'show'])->name('show');
-            Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'destroy'])->name('destroy');
-            Route::post('/{id}/status', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'updateStatus'])->name('update-status');
-            Route::post('/{id}/stability-test', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'addStabilityTest'])->name('stability-test.add');
-            Route::post('/stability-test/{testId}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'updateStabilityTest'])->name('stability-test.update');
-        });
+    // Poultry Management
+    Route::prefix('poultry')->name('poultry.')->group(function () {
+        Route::get('/flocks', [\App\Http\Controllers\Livestock\PoultryController::class, 'flocks'])->name('flocks');
+        Route::get('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'eggProduction'])->name('egg-production');
+        Route::post('/egg-production', [\App\Http\Controllers\Livestock\PoultryController::class, 'storeEggRecord'])->name('egg-production.store');
+        Route::get('/flock-performance', [\App\Http\Controllers\Livestock\PoultryController::class, 'flockPerformance'])->name('flock-performance');
+        Route::post('/flock-performance', [\App\Http\Controllers\Livestock\PoultryController::class, 'storePerformance'])->name('flock-performance.store');
+    });
 
-        // Batch Production Records
-        Route::prefix('batches')->name('batches.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Cosmetic\BatchController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Cosmetic\BatchController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\Cosmetic\BatchController::class, 'store'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'show'])->name('show');
-            Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'destroy'])->name('destroy');
-            Route::post('/{id}/status', [\App\Http\Controllers\Cosmetic\BatchController::class, 'updateStatus'])->name('update-status');
-            Route::post('/{id}/quality-check', [\App\Http\Controllers\Cosmetic\BatchController::class, 'addQualityCheck'])->name('quality-check.add');
-            Route::post('/quality-check/{checkId}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'updateQualityCheck'])->name('quality-check.update');
-            Route::post('/{id}/rework', [\App\Http\Controllers\Cosmetic\BatchController::class, 'addReworkLog'])->name('rework.add');
-            Route::post('/rework/{reworkId}/complete', [\App\Http\Controllers\Cosmetic\BatchController::class, 'completeRework'])->name('rework.complete');
-            Route::post('/{id}/release', [\App\Http\Controllers\Cosmetic\BatchController::class, 'releaseBatch'])->name('release');
-        });
+    // Breeding & Genetics
+    Route::prefix('breeding')->name('breeding.')->group(function () {
+        Route::get('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'index'])->name('records');
+        Route::post('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'store'])->name('records.store');
+        Route::get('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'pedigrees'])->name('pedigrees');
+        Route::post('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'storePedigree'])->name('pedigrees.store');
+    });
 
-        // QC Laboratory Routes
-        Route::prefix('qc')->name('qc.')->group(function () {
-            // QC Tests
-            Route::get('/tests', [\App\Http\Controllers\Cosmetic\QCController::class, 'index'])->name('tests');
-            Route::get('/tests/{id}', [\App\Http\Controllers\Cosmetic\QCController::class, 'showTest'])->name('tests.show');
-            Route::post('/tests', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeTest'])->name('tests.store');
-            Route::post('/tests/{id}/complete', [\App\Http\Controllers\Cosmetic\QCController::class, 'completeTest'])->name('tests.complete');
-            Route::post('/tests/{id}/approve', [\App\Http\Controllers\Cosmetic\QCController::class, 'approveTest'])->name('tests.approve');
+    // Health & Vaccination
+    Route::prefix('health')->name('health.')->group(function () {
+        Route::get('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'treatments'])->name('treatments');
+        Route::post('/treatments', [\App\Http\Controllers\Livestock\HealthController::class, 'storeTreatment'])->name('treatments.store');
+        Route::get('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'vaccinations'])->name('vaccinations');
+        Route::post('/vaccinations', [\App\Http\Controllers\Livestock\HealthController::class, 'storeVaccination'])->name('vaccinations.store');
+    });
 
-            // COA Certificates
-            Route::get('/coa', [\App\Http\Controllers\Cosmetic\QCController::class, 'coaIndex'])->name('coa');
-            Route::post('/coa/generate/{batchId}', [\App\Http\Controllers\Cosmetic\QCController::class, 'generateCoa'])->name('coa.generate');
-            Route::post('/coa/{id}/approve', [\App\Http\Controllers\Cosmetic\QCController::class, 'approveCoa'])->name('coa.approve');
+    // Waste Management
+    Route::prefix('waste')->name('waste.')->group(function () {
+        Route::get('/logs', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'index'])->name('logs');
+        Route::post('/logs', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'store'])->name('logs.store');
+        Route::get('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'composting'])->name('composting');
+        Route::post('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'storeBatch'])->name('composting.store');
+    });
+});
 
-            // OOS Investigations
-            Route::get('/oos', [\App\Http\Controllers\Cosmetic\QCController::class, 'oosIndex'])->name('oos');
-            Route::post('/oos', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeOos'])->name('oos.store');
-            Route::post('/oos/{id}/complete', [\App\Http\Controllers\Cosmetic\QCController::class, 'completeOos'])->name('oos.complete');
+// Cosmetic Formula Management Module
+Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    // Formula Management
+    Route::prefix('formulas')->name('formulas.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'show'])->name('show');
+        Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/status', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{id}/stability-test', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'addStabilityTest'])->name('stability-test.add');
+        Route::post('/stability-test/{testId}', [\App\Http\Controllers\Cosmetic\FormulaController::class, 'updateStabilityTest'])->name('stability-test.update');
 
-            // QC Templates
-            Route::get('/templates', [\App\Http\Controllers\Cosmetic\QCController::class, 'templatesIndex'])->name('templates');
-            Route::post('/templates', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeTemplate'])->name('templates.store');
-        });
+        // Formula Builder
+        Route::get('/builder', [\App\Http\Controllers\Cosmetic\FormulaBuilderController::class, 'create'])->name('builder');
+        Route::get('/builder/{formulaId?}', [\App\Http\Controllers\Cosmetic\FormulaBuilderController::class, 'create'])->name('builder.edit');
+        Route::post('/builder/search', [\App\Http\Controllers\Cosmetic\FormulaBuilderController::class, 'searchIngredients'])->name('builder.search');
+        Route::post('/builder/validate', [\App\Http\Controllers\Cosmetic\FormulaBuilderController::class, 'validateIngredient'])->name('builder.validate');
+        Route::post('/builder/calculate', [\App\Http\Controllers\Cosmetic\FormulaBuilderController::class, 'calculateTotals'])->name('builder.calculate');
+    });
 
-        // BPOM Registration Routes
-        Route::prefix('registrations')->name('registrations.')->group(function () {
-            // Product Registrations
-            Route::get('/', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'store'])->name('store');
-            Route::post('/{id}/submit', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'submit'])->name('submit');
-            Route::post('/{id}/approve', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'approve'])->name('approve');
+    // Batch Production Records
+    Route::prefix('batches')->name('batches.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\BatchController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Cosmetic\BatchController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\BatchController::class, 'store'])->name('store');
+        Route::post('/from-formula/{formulaId}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'createFromFormula'])->name('create-from-formula');
+        Route::get('/{id}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'show'])->name('show');
+        Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/status', [\App\Http\Controllers\Cosmetic\BatchController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{id}/start-production', [\App\Http\Controllers\Cosmetic\BatchController::class, 'startProduction'])->name('start-production');
+        Route::post('/{id}/record-quantity', [\App\Http\Controllers\Cosmetic\BatchController::class, 'recordQuantity'])->name('record-quantity');
+        Route::post('/{id}/submit-qc', [\App\Http\Controllers\Cosmetic\BatchController::class, 'submitForQC'])->name('submit-qc');
+        Route::get('/{id}/yield-analysis', [\App\Http\Controllers\Cosmetic\BatchController::class, 'yieldAnalysis'])->name('yield-analysis');
+        Route::post('/{id}/quality-check', [\App\Http\Controllers\Cosmetic\BatchController::class, 'addQualityCheck'])->name('quality-check.add');
+        Route::post('/quality-check/{checkId}', [\App\Http\Controllers\Cosmetic\BatchController::class, 'updateQualityCheck'])->name('quality-check.update');
+        Route::post('/{id}/rework', [\App\Http\Controllers\Cosmetic\BatchController::class, 'addReworkLog'])->name('rework.add');
+        Route::post('/rework/{reworkId}/complete', [\App\Http\Controllers\Cosmetic\BatchController::class, 'completeRework'])->name('rework.complete');
+        Route::post('/{id}/release', [\App\Http\Controllers\Cosmetic\BatchController::class, 'releaseBatch'])->name('release');
 
-            // Ingredient Restrictions
-            Route::get('/restrictions', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'restrictions'])->name('restrictions');
-            Route::post('/restrictions', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'storeRestriction'])->name('restrictions.store');
+        // PDF Exports
+        Route::get('/{id}/export-pdf', [\App\Http\Controllers\Cosmetic\BatchController::class, 'exportPdf'])->name('export-pdf');
+        Route::get('/{id}/export-coa', [\App\Http\Controllers\Cosmetic\BatchController::class, 'exportCoA'])->name('export-coa');
+        Route::get('/{id}/export-label', [\App\Http\Controllers\Cosmetic\BatchController::class, 'exportLabel'])->name('export-label');
+        Route::get('/formula/{formulaId}/yield-report', [\App\Http\Controllers\Cosmetic\BatchController::class, 'exportYieldReport'])->name('yield-report');
+    });
 
-            // Safety Data Sheets
-            Route::get('/sds', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'sdsIndex'])->name('sds');
-            Route::post('/sds', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'storeSds'])->name('sds.store');
-            Route::post('/sds/{id}/activate', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'activateSds'])->name('sds.activate');
-            Route::post('/sds/{id}/new-version', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'newSdsVersion'])->name('sds.new-version');
-        });
+    // Variant Matrix, Packaging & Distribution Routes
+    Route::prefix('variants')->name('variants.')->group(function () {
+        Route::get('/formula/{formulaId}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'variantMatrix'])->name('matrix');
+        Route::post('/formula/{formulaId}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'storeVariantMatrix'])->name('store');
+        Route::post('/{id}/toggle', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'toggleVariant'])->name('toggle');
+        Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'deleteVariant'])->name('delete');
+    });
 
-        // Product Variant Routes
-        Route::prefix('variants')->name('variants.')->group(function () {
-            // Variant Attributes
-            Route::get('/attributes', [\App\Http\Controllers\Cosmetic\VariantController::class, 'attributes'])->name('attributes');
-            Route::post('/attributes', [\App\Http\Controllers\Cosmetic\VariantController::class, 'storeAttribute'])->name('attributes.store');
+    Route::prefix('packaging')->name('packaging.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'packagingCompliance'])->name('compliance');
+        Route::post('/validate-label', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'validateLabel'])->name('validate-label');
+        Route::post('/requirements', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'getPackagingRequirements'])->name('requirements');
+        Route::post('/validate-batch', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'validateBatchNumber'])->name('validate-batch');
+    });
 
-            // Product Variants
-            Route::get('/', [\App\Http\Controllers\Cosmetic\VariantController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\Cosmetic\VariantController::class, 'store'])->name('store');
-            Route::post('/{id}/stock', [\App\Http\Controllers\Cosmetic\VariantController::class, 'updateStock'])->name('update-stock');
-            Route::get('/{id}/inventory', [\App\Http\Controllers\Cosmetic\VariantController::class, 'inventory'])->name('inventory');
+    Route::prefix('recall')->name('recall.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'recallDashboard'])->name('dashboard');
+        Route::get('/create', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'createRecall'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'storeRecall'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'showRecall'])->name('show');
+        Route::post('/{id}/status', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'updateRecallStatus'])->name('update-status');
+        Route::post('/auto-expire', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'autoExpireBatches'])->name('auto-expire');
+    });
 
-            // Variant Matrix
-            Route::post('/matrix', [\App\Http\Controllers\Cosmetic\VariantController::class, 'generateMatrix'])->name('matrix');
-            Route::post('/bulk-create', [\App\Http\Controllers\Cosmetic\VariantController::class, 'bulkCreate'])->name('bulk-create');
-        });
+    Route::prefix('distribution')->name('distribution.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'distributionDashboard'])->name('dashboard');
+        Route::get('/channel/{id}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'showChannel'])->name('channel.show');
+        Route::get('/channel/create', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'createChannel'])->name('channel.create');
+        Route::post('/channel', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'storeChannel'])->name('channel.store');
+        Route::post('/sale', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'recordSale'])->name('sale.record');
+        Route::post('/channel/{id}/toggle', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'toggleChannel'])->name('channel.toggle');
+    });
 
-        // Packaging & Labeling Routes
-        Route::prefix('packaging')->name('packaging.')->group(function () {
-            // Packaging Materials
-            Route::get('/', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'index'])->name('index');
-            Route::post('/materials', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'storeMaterial'])->name('materials.store');
-            Route::delete('/materials/{id}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'destroyMaterial'])->name('materials.destroy');
+    // BPOM & Regulatory Compliance Routes
+    Route::prefix('bpom')->name('bpom.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\BpomController::class, 'dashboard'])->name('dashboard');
+        Route::get('/create', [\App\Http\Controllers\Cosmetic\BpomController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\BpomController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Cosmetic\BpomController::class, 'show'])->name('show');
+        Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\BpomController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/submit', [\App\Http\Controllers\Cosmetic\BpomController::class, 'submit'])->name('submit');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Cosmetic\BpomController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\App\Http\Controllers\Cosmetic\BpomController::class, 'reject'])->name('reject');
+        Route::post('/{id}/upload-document', [\App\Http\Controllers\Cosmetic\BpomController::class, 'uploadDocument'])->name('upload-document');
 
-            // Label Versions
-            Route::get('/labels', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'labelsIndex'])->name('labels');
-            Route::post('/labels', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'storeLabel'])->name('labels.store');
-            Route::get('/labels/{id}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'showLabel'])->name('labels.show');
-            Route::post('/labels/{id}/submit', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'submitLabel'])->name('labels.submit');
-            Route::post('/labels/{id}/approve', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'approveLabel'])->name('labels.approve');
-            Route::post('/labels/{id}/activate', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'activateLabel'])->name('labels.activate');
-            Route::post('/labels/{id}/archive', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'archiveLabel'])->name('labels.archive');
+        // Compliance & QC
+        Route::get('/formula/{formulaId}/compliance', [\App\Http\Controllers\Cosmetic\BpomController::class, 'complianceChecklist'])->name('compliance');
+        Route::get('/qc-integration', [\App\Http\Controllers\Cosmetic\BpomController::class, 'qcIntegration'])->name('qc-integration');
+        Route::get('/coa/{batchId}', [\App\Http\Controllers\Cosmetic\BpomController::class, 'generateCoA'])->name('coa');
 
-            // Compliance Checks
-            Route::post('/labels/{labelId}/compliance', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'addComplianceCheck'])->name('compliance.store');
-            Route::post('/compliance/{checkId}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'updateComplianceCheck'])->name('compliance.update');
-        });
-
-        // Expiry Management Routes
-        Route::prefix('expiry')->name('expiry.')->group(function () {
-            // Dashboard
-            Route::get('/', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'dashboard'])->name('dashboard');
-            Route::post('/alerts/{id}/read', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'markAlertRead'])->name('alerts.read');
-            Route::post('/alerts/{id}/action', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'markAlertActioned'])->name('alerts.action');
-
-            // Recalls
-            Route::get('/recalls', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'recallsIndex'])->name('recalls');
-            Route::post('/recalls', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'storeRecall'])->name('recalls.store');
-            Route::post('/recalls/{id}/progress', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'updateRecallProgress'])->name('recalls.progress');
-            Route::post('/recalls/{id}/complete', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'completeRecall'])->name('recalls.complete');
-            Route::post('/recalls/{id}/cancel', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'cancelRecall'])->name('recalls.cancel');
-
-            // Reports
-            Route::get('/reports', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'reportsIndex'])->name('reports');
-            Route::post('/reports', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'generateReport'])->name('reports.generate');
-        });
-
-        // Distribution Management Routes
-        Route::prefix('distribution')->name('distribution.')->group(function () {
-            // Channels
-            Route::get('/', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'index'])->name('index');
-            Route::post('/channels', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'storeChannel'])->name('channels.store');
-
-            // Pricing
-            Route::get('/pricing', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'pricingIndex'])->name('pricing');
-            Route::post('/pricing', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'storePricing'])->name('pricing.store');
-
-            // Inventory
-            Route::get('/inventory', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'inventoryIndex'])->name('inventory');
-            Route::post('/inventory/{id}/restock', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'restock'])->name('inventory.restock');
-
-            // Performance
-            Route::get('/performance', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'performanceIndex'])->name('performance');
-            Route::post('/sales', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'recordSale'])->name('sales.record');
-        });
-
-        // Cosmetic Analytics & Reporting Routes
-        Route::prefix('analytics')->name('analytics.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'dashboard'])->name('dashboard');
-            Route::get('/batch-performance', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'batchPerformance'])->name('batch-performance');
-            Route::get('/qc-trend', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'qcTrendAnalysis'])->name('qc-trend');
-            Route::get('/regulatory', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'regulatoryDashboard'])->name('regulatory');
-            Route::get('/cost-analysis', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'formulaCostAnalysis'])->name('cost-analysis');
-            Route::get('/supplier-quality', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'supplierQualityReport'])->name('supplier-quality');
-            Route::get('/product-lifecycle', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'productLifecycle'])->name('product-lifecycle');
-            Route::get('/recall-report', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'recallReport'])->name('recall-report');
-            Route::get('/expiry-forecast', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'expiryForecast'])->name('expiry-forecast');
+        // Safety Data Sheets
+        Route::prefix('sds')->name('sds.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Cosmetic\BpomController::class, 'safetyDataSheets'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Cosmetic\BpomController::class, 'createSds'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Cosmetic\BpomController::class, 'storeSds'])->name('store');
+            Route::post('/{id}/activate', [\App\Http\Controllers\Cosmetic\BpomController::class, 'activateSds'])->name('activate');
         });
     });
 
-    // Customers (master data)
-    Route::prefix('customers')->name('customers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
-        Route::post('/bulk-action', [\App\Http\Controllers\CustomerController::class, 'bulkAction'])->name('bulk-action');
-        Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
-        Route::patch('/{customer}/toggle', [\App\Http\Controllers\CustomerController::class, 'toggleActive'])->name('toggle');
-        Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
+    // QC Laboratory Routes
+    Route::prefix('qc')->name('qc.')->group(function () {
+        // QC Tests
+        Route::get('/tests', [\App\Http\Controllers\Cosmetic\QCController::class, 'index'])->name('tests');
+        Route::get('/tests/{id}', [\App\Http\Controllers\Cosmetic\QCController::class, 'showTest'])->name('tests.show');
+        Route::post('/tests', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeTest'])->name('tests.store');
+        Route::post('/tests/{id}/complete', [\App\Http\Controllers\Cosmetic\QCController::class, 'completeTest'])->name('tests.complete');
+        Route::post('/tests/{id}/approve', [\App\Http\Controllers\Cosmetic\QCController::class, 'approveTest'])->name('tests.approve');
+
+        // COA Certificates
+        Route::get('/coa', [\App\Http\Controllers\Cosmetic\QCController::class, 'coaIndex'])->name('coa');
+        Route::post('/coa/generate/{batchId}', [\App\Http\Controllers\Cosmetic\QCController::class, 'generateCoa'])->name('coa.generate');
+        Route::post('/coa/{id}/approve', [\App\Http\Controllers\Cosmetic\QCController::class, 'approveCoa'])->name('coa.approve');
+
+        // OOS Investigations
+        Route::get('/oos', [\App\Http\Controllers\Cosmetic\QCController::class, 'oosIndex'])->name('oos');
+        Route::post('/oos', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeOos'])->name('oos.store');
+        Route::post('/oos/{id}/complete', [\App\Http\Controllers\Cosmetic\QCController::class, 'completeOos'])->name('oos.complete');
+
+        // QC Templates
+        Route::get('/templates', [\App\Http\Controllers\Cosmetic\QCController::class, 'templatesIndex'])->name('templates');
+        Route::post('/templates', [\App\Http\Controllers\Cosmetic\QCController::class, 'storeTemplate'])->name('templates.store');
     });
 
-    // Products (master data)
-    Route::prefix('products')->name('products.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
-        Route::post('/bulk-action', [\App\Http\Controllers\ProductController::class, 'bulkAction'])->name('bulk-action');
-        Route::put('/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
-        Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
-        Route::delete('/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
+    // BPOM Registration Routes
+    Route::prefix('registrations')->name('registrations.')->group(function () {
+        // Product Registrations
+        Route::get('/', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'store'])->name('store');
+        Route::post('/{id}/submit', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'submit'])->name('submit');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'approve'])->name('approve');
+
+        // Ingredient Restrictions
+        Route::get('/restrictions', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'restrictions'])->name('restrictions');
+        Route::post('/restrictions', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'storeRestriction'])->name('restrictions.store');
+
+        // Safety Data Sheets
+        Route::get('/sds', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'sdsIndex'])->name('sds');
+        Route::post('/sds', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'storeSds'])->name('sds.store');
+        Route::post('/sds/{id}/activate', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'activateSds'])->name('sds.activate');
+        Route::post('/sds/{id}/new-version', [\App\Http\Controllers\Cosmetic\RegistrationController::class, 'newSdsVersion'])->name('sds.new-version');
     });
 
-    // Product Categories (master data)
-    Route::prefix('categories')->name('categories.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\ProductCategoryController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\ProductCategoryController::class, 'store'])->name('store');
-        Route::put('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'update'])->name('update');
-        Route::delete('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'destroy'])->name('destroy');
+    // Product Variant Routes
+    Route::prefix('variants')->name('variants.')->group(function () {
+        // Variant Attributes
+        Route::get('/attributes', [\App\Http\Controllers\Cosmetic\VariantController::class, 'attributes'])->name('attributes');
+        Route::post('/attributes', [\App\Http\Controllers\Cosmetic\VariantController::class, 'storeAttribute'])->name('attributes.store');
+
+        // Product Variants
+        Route::get('/', [\App\Http\Controllers\Cosmetic\VariantController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Cosmetic\VariantController::class, 'store'])->name('store');
+        Route::post('/{id}/stock', [\App\Http\Controllers\Cosmetic\VariantController::class, 'updateStock'])->name('update-stock');
+        Route::get('/{id}/inventory', [\App\Http\Controllers\Cosmetic\VariantController::class, 'inventory'])->name('inventory');
+
+        // Variant Matrix
+        Route::post('/matrix', [\App\Http\Controllers\Cosmetic\VariantController::class, 'generateMatrix'])->name('matrix');
+        Route::post('/bulk-create', [\App\Http\Controllers\Cosmetic\VariantController::class, 'bulkCreate'])->name('bulk-create');
     });
 
-    // Warehouses (master data)
-    Route::prefix('warehouses')->name('warehouses.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('store');
-        Route::put('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('update');
-        Route::patch('/{warehouse}/toggle', [\App\Http\Controllers\WarehouseController::class, 'toggleActive'])->name('toggle');
-        Route::delete('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('destroy');
+    // Packaging & Labeling Routes
+    Route::prefix('packaging')->name('packaging.')->group(function () {
+        // Packaging Materials
+        Route::get('/', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'index'])->name('index');
+        Route::post('/materials', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'storeMaterial'])->name('materials.store');
+        Route::delete('/materials/{id}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'destroyMaterial'])->name('materials.destroy');
 
-        // IoT - RFID Management
-        Route::prefix('rfid')->name('rfid.')->group(function () {
-            Route::get('/tags', [\App\Http\Controllers\Inventory\RfidController::class, 'index'])->name('tags.index');
-            Route::post('/tags', [\App\Http\Controllers\Inventory\RfidController::class, 'store'])->name('tags.store');
-            Route::post('/tags/{tag}/assign', [\App\Http\Controllers\Inventory\RfidController::class, 'assignTag'])->name('tags.assign');
-            Route::post('/scan', [\App\Http\Controllers\Inventory\RfidController::class, 'scanTag'])->name('scan');
-            Route::get('/scanners', [\App\Http\Controllers\Inventory\RfidController::class, 'scanners'])->name('scanners.index');
-            Route::post('/scanners', [\App\Http\Controllers\Inventory\RfidController::class, 'storeScanner'])->name('scanners.store');
-            Route::get('/logs', [\App\Http\Controllers\Inventory\RfidController::class, 'logs'])->name('logs');
-        });
+        // Label Versions
+        Route::get('/labels', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'labelsIndex'])->name('labels');
+        Route::post('/labels', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'storeLabel'])->name('labels.store');
+        Route::get('/labels/{id}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'showLabel'])->name('labels.show');
+        Route::post('/labels/{id}/submit', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'submitLabel'])->name('labels.submit');
+        Route::post('/labels/{id}/approve', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'approveLabel'])->name('labels.approve');
+        Route::post('/labels/{id}/activate', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'activateLabel'])->name('labels.activate');
+        Route::post('/labels/{id}/archive', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'archiveLabel'])->name('labels.archive');
 
-        // IoT - CCTV Monitoring
-        Route::prefix('cctv')->name('cctv.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Security\CctvController::class, 'index'])->name('index');
-            Route::get('/camera/{cameraId}', [\App\Http\Controllers\Security\CctvController::class, 'viewCamera'])->name('camera');
-            Route::post('/camera/{cameraId}/snapshot', [\App\Http\Controllers\Security\CctvController::class, 'takeSnapshot'])->name('snapshot');
-            Route::get('/recordings', [\App\Http\Controllers\Security\CctvController::class, 'recordings'])->name('recordings');
-            Route::post('/motion-detect/{cameraId}', [\App\Http\Controllers\Security\CctvController::class, 'detectMotion'])->name('motion-detect');
-        });
+        // Compliance Checks
+        Route::post('/labels/{labelId}/compliance', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'addComplianceCheck'])->name('compliance.store');
+        Route::post('/compliance/{checkId}', [\App\Http\Controllers\Cosmetic\PackagingController::class, 'updateComplianceCheck'])->name('compliance.update');
     });
 
-    // CRM (admin + manager only)
-    Route::prefix('crm')->name('crm.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [CrmController::class, 'index'])->name('index');
-        Route::get('/kanban', [CrmController::class, 'kanban'])->name('kanban');
-        Route::post('/', [CrmController::class, 'store'])->name('store');
-        Route::patch('/{lead}/stage', [CrmController::class, 'updateStage'])->name('stage');
-        Route::patch('/{lead}/stage-drag', [CrmController::class, 'updateStageDrag'])->name('stage-drag');
-        Route::post('/{lead}/activity', [CrmController::class, 'logActivity'])->name('activity');
-        Route::post('/{lead}/convert-customer', [CrmController::class, 'convertToCustomer'])->name('convert-customer');
-        // BUG-CRM-001 FIX: Check duplicates before conversion
-        Route::get('/{lead}/check-duplicates', [CrmController::class, 'checkLeadDuplicates'])->name('check-duplicates');
-        Route::delete('/{lead}', [CrmController::class, 'destroy'])->name('destroy');
-        // AI
-        Route::get('/ai/score-all', [CrmAiController::class, 'scoreAll'])->name('ai.score-all')->middleware('ai.quota');
-        Route::get('/ai/score/{lead}', [CrmAiController::class, 'scoreLead'])->name('ai.score')->middleware('ai.quota');
-        Route::get('/ai/follow-up/{lead}', [CrmAiController::class, 'followUp'])->name('ai.follow-up')->middleware('ai.quota');
-    });
-
-    // Project Management (admin + manager only)
-    Route::prefix('projects')->name('projects.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [ProjectController::class, 'index'])->name('index');
-        Route::post('/', [ProjectController::class, 'store'])->name('store');
-        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
-        Route::put('/{project}', [ProjectController::class, 'update'])->name('update');
-        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
-        Route::post('/{project}/tasks', [ProjectController::class, 'storeTask'])->name('tasks.store');
-        Route::patch('/tasks/{task}/status', [ProjectController::class, 'updateTaskStatus'])->name('tasks.status');
-        Route::post('/tasks/{task}/volume', [ProjectController::class, 'recordVolume'])->name('tasks.volume');
-        Route::delete('/tasks/{task}', [ProjectController::class, 'destroyTask'])->name('tasks.destroy');
-        Route::post('/{project}/expenses', [ProjectController::class, 'storeExpense'])->name('expenses.store');
-
-        // RAB (Rencana Anggaran Biaya)
-        Route::get('/{project}/rab', [\App\Http\Controllers\RabController::class, 'index'])->name('rab')->middleware('permission:rab,view');
-        Route::post('/{project}/rab', [\App\Http\Controllers\RabController::class, 'store'])->name('rab.store')->middleware('permission:rab,create');
-        Route::put('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'update'])->name('rab.update')->middleware('permission:rab,edit');
-        Route::post('/rab/{rabItem}/actual', [\App\Http\Controllers\RabController::class, 'recordActual'])->name('rab.actual')->middleware('permission:rab,edit');
-        Route::delete('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'destroy'])->name('rab.destroy')->middleware('permission:rab,delete');
-        Route::get('/{project}/rab/export', [\App\Http\Controllers\RabController::class, 'export'])->name('rab.export')->middleware('permission:rab,view');
-        Route::post('/{project}/rab/import', [\App\Http\Controllers\RabController::class, 'import'])->name('rab.import')->middleware('permission:rab,create');
-    });
-
-    // Budget vs Actual (admin + manager only)
-    Route::prefix('budget')->name('budget.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [BudgetController::class, 'index'])->name('index');
-        Route::post('/', [BudgetController::class, 'store'])->name('store');
-        Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
-        Route::delete('/{budget}', [BudgetController::class, 'destroy'])->name('destroy');
-        // Budget AI — contextual (AJAX)
-        Route::get('/ai/overrun-prediction', [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun')->middleware('ai.quota');
-        Route::get('/ai/suggest-allocation', [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest')->middleware('ai.quota');
-    });
-
-    // Loyalty Program (admin + manager only)
-    Route::prefix('loyalty')->name('loyalty.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [LoyaltyController::class, 'index'])->name('index');
-        Route::post('/program', [LoyaltyController::class, 'saveProgram'])->name('program.save');
-        Route::post('/add-points', [LoyaltyController::class, 'addPoints'])->name('add-points');
-        Route::post('/redeem', [LoyaltyController::class, 'redeemPoints'])->name('redeem');
-        Route::get('/customer/{customer}/transactions', [LoyaltyController::class, 'transactions'])->name('transactions');
-        // BUG-CRM-003 FIX: Balance check and recalculation endpoints
-        Route::get('/customer/{customer}/balance', [LoyaltyController::class, 'getBalance'])->name('balance');
-        Route::post('/customer/{customer}/recalculate', [LoyaltyController::class, 'recalculateBalance'])->name('recalculate');
-    });
-
-    // Payroll
-    Route::prefix('payroll')->name('payroll.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [PayrollController::class, 'index'])->name('index');
-        Route::post('/process', [PayrollController::class, 'process'])->name('process');
-        Route::patch('/{run}/paid', [PayrollController::class, 'markPaid'])->name('paid');
-        Route::post('/{run}/gl-journal', [PayrollController::class, 'createGlJournal'])->name('gl-journal');
-        Route::post('/{run}/gl-payment-journal', [PayrollController::class, 'createPaymentGlJournal'])->name('gl-payment-journal');
-
-        // Komponen Gaji
-        Route::prefix('components')->name('components.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\SalaryComponentController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\SalaryComponentController::class, 'store'])->name('store');
-            Route::put('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'update'])->name('update');
-            Route::delete('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'destroy'])->name('destroy');
-            // Per karyawan
-            Route::get('/employee/{employee}/json', [\App\Http\Controllers\SalaryComponentController::class, 'employeeComponentsJson'])->name('employee.json');
-            Route::post('/employee/{employee}/save', [\App\Http\Controllers\SalaryComponentController::class, 'saveEmployeeComponents'])->name('employee.save');
-        });
-    });
-
-    // Slip Gaji Self-Service (semua role tenant)
-    Route::prefix('payroll/slip')->name('payroll.slip.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PayslipController::class, 'index'])->name('index');
-        Route::get('/{item}', [\App\Http\Controllers\PayslipController::class, 'show'])->name('show');
-    });
-
-    // Self-Service Karyawan: Cuti & Absensi (semua role tenant)
-    Route::prefix('self-service')->name('self-service.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
-        Route::get('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'profile'])->name('profile');
-        Route::post('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'updateProfile'])->name('profile.update');
-        Route::get('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveIndex'])->name('leave.index');
-        Route::post('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveStore'])->name('leave.store');
-        Route::delete('/leave/{leave}', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveCancel'])->name('leave.cancel');
-        Route::get('/attendance', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'attendanceIndex'])->name('attendance.index');
-        Route::post('/attendance/clock-in', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockIn'])->name('attendance.clock-in');
-        Route::post('/attendance/clock-out', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockOut'])->name('attendance.clock-out');
-    });
-
-    // Assets
-    Route::prefix('assets')->name('assets.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [AssetController::class, 'index'])->name('index');
-        Route::post('/', [AssetController::class, 'store'])->name('store');
-        Route::put('/{asset}', [AssetController::class, 'update'])->name('update');
-        Route::delete('/{asset}', [AssetController::class, 'destroy'])->name('destroy');
-        Route::get('/{asset}/schedule', [AssetController::class, 'schedule'])->name('schedule');
-        Route::post('/depreciate', [AssetController::class, 'depreciate'])->name('depreciate');
-        Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('maintenance');
-        Route::post('/maintenance', [AssetController::class, 'storeMaintenance'])->name('maintenance.store');
-        Route::patch('/maintenance/{maintenance}/status', [AssetController::class, 'updateMaintenanceStatus'])->name('maintenance.status');
-
-        // Asset Barcode & Scanning
-        Route::get('/scan-maintenance', [AssetController::class, 'scanForMaintenance'])->name('scan-maintenance')->middleware('permission:assets,create');
-        Route::post('/lookup-by-barcode', [AssetController::class, 'lookupByBarcode'])->name('lookup-barcode')->middleware('permission:assets,view');
-        Route::get('/{asset}/barcode', [AssetController::class, 'showBarcode'])->name('barcode.show')->middleware('permission:assets,view');
-        Route::post('/barcode/print', [AssetController::class, 'printBarcodes'])->name('barcode.print')->middleware('permission:assets,view');
-    });
-
-    // Import CSV (admin + manager only)
-    Route::prefix('import')->name('import.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [ImportController::class, 'index'])->name('index');
-        Route::post('/products', [ImportController::class, 'importProducts'])->name('products')->middleware('throttle:import');
-        Route::post('/employees', [ImportController::class, 'importEmployees'])->name('employees')->middleware('throttle:import');
-        Route::post('/customers', [ImportController::class, 'importCustomers'])->name('customers')->middleware('throttle:import');
-        Route::post('/suppliers', [ImportController::class, 'importSuppliers'])->name('suppliers')->middleware('throttle:import');
-        Route::post('/warehouses', [ImportController::class, 'importWarehouses'])->name('warehouses')->middleware('throttle:import');
-        Route::post('/coa', [ImportController::class, 'importChartOfAccounts'])->name('coa')->middleware('throttle:import');
-        Route::get('/template/{type}', [ImportController::class, 'downloadTemplate'])->name('template');
-        // Bulk export
-        Route::get('/export/products', [ImportController::class, 'exportProducts'])->name('export.products')->middleware('throttle:export');
-        Route::get('/export/customers', [ImportController::class, 'exportCustomers'])->name('export.customers')->middleware('throttle:export');
-        Route::get('/export/suppliers', [ImportController::class, 'exportSuppliers'])->name('export.suppliers')->middleware('throttle:export');
-        Route::get('/export/employees', [ImportController::class, 'exportEmployees'])->name('export.employees')->middleware('throttle:export');
-        Route::get('/export/warehouses', [ImportController::class, 'exportWarehouses'])->name('export.warehouses')->middleware('throttle:export');
-        Route::get('/export/coa', [ImportController::class, 'exportChartOfAccounts'])->name('export.coa')->middleware('throttle:export');
-    });
-
-    // Payment Gateway
-    Route::prefix('payment')->name('payment.')->middleware('role:admin')->group(function () {
-        Route::post('/midtrans/checkout', [\App\Http\Controllers\PaymentGatewayController::class, 'midtransCheckout'])->name('midtrans.checkout');
-        Route::get('/midtrans/finish', [\App\Http\Controllers\PaymentGatewayController::class, 'midtransFinish'])->name('midtrans.finish');
-        Route::post('/xendit/checkout', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditCheckout'])->name('xendit.checkout');
-        Route::get('/xendit/finish', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditFinish'])->name('xendit.finish');
-    });
-
-    // Invoices
-    Route::prefix('invoices')->name('invoices.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [InvoiceController::class, 'index'])->name('index');
-        Route::get('/create', [InvoiceController::class, 'create'])->name('create');
-        Route::post('/', [InvoiceController::class, 'store'])->name('store');
-        Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
-        Route::post('/{invoice}/payment', [InvoiceController::class, 'recordPayment'])->name('payment');
-        Route::get('/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('pdf');
-        Route::post('/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('send-email');
-        // Task 35: State machine actions
-        Route::post('/{invoice}/post', [InvoiceController::class, 'post'])->name('post');
-        Route::post('/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
-        Route::post('/{invoice}/void', [InvoiceController::class, 'void'])->name('void');
-    });
-
-    // Receivables & Payables (Piutang & Hutang)
-    Route::prefix('receivables')->name('receivables.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [ReceivablesController::class, 'receivables'])->name('index');
-        Route::post('/{invoice}/payment', [ReceivablesController::class, 'recordReceivablePayment'])->name('payment');
-        Route::get('/aging', [ReceivablesController::class, 'aging'])->name('aging');
-        Route::get('/{invoice}/installments', [ReceivablesController::class, 'installments'])->name('installments');
-        Route::post('/{invoice}/installments', [ReceivablesController::class, 'storeInstallments'])->name('installments.store');
-        Route::post('/installment/{installment}/pay', [ReceivablesController::class, 'payInstallment'])->name('installment.pay');
-    });
-    Route::prefix('payables')->name('payables.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [ReceivablesController::class, 'payables'])->name('index');
-        Route::post('/{payable}/payment', [ReceivablesController::class, 'recordPayablePayment'])->name('payment');
-    });
-
-    // Production / Work Orders
-    Route::prefix('production')->name('production.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [ProductionController::class, 'index'])->name('index');
-        Route::post('/', [ProductionController::class, 'store'])->name('store');
-        // Static routes HARUS sebelum {workOrder} wildcard
-        Route::get('/recipes', [ProductionController::class, 'recipes'])->name('recipes');
-        Route::post('/recipes', [ProductionController::class, 'storeRecipe'])->name('recipes.store');
-        // Dynamic routes
-        Route::get('/{workOrder}', [ProductionController::class, 'show'])->name('show');
-        Route::patch('/{workOrder}/status', [ProductionController::class, 'updateStatus'])->name('status');
-        Route::post('/{workOrder}/output', [ProductionController::class, 'recordOutput'])->name('output');
-    });
-
-    // Manufacturing (BOM, Work Centers, MRP)
-    Route::prefix('manufacturing')->name('manufacturing.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
-        Route::get('/bom', [ManufacturingController::class, 'bom'])->name('bom')->middleware('permission:manufacturing,view');
-        Route::post('/bom', [ManufacturingController::class, 'storeBom'])->name('bom.store')->middleware('permission:manufacturing,create');
-        Route::put('/bom/{bom}', [ManufacturingController::class, 'updateBom'])->name('bom.update')->middleware('permission:manufacturing,edit');
-        Route::delete('/bom/{bom}', [ManufacturingController::class, 'destroyBom'])->name('bom.destroy')->middleware('permission:manufacturing,delete');
-        Route::get('/work-centers', [ManufacturingController::class, 'workCenters'])->name('work-centers')->middleware('permission:manufacturing,view');
-        Route::post('/work-centers', [ManufacturingController::class, 'storeWorkCenter'])->name('work-centers.store')->middleware('permission:manufacturing,create');
-        Route::put('/work-centers/{workCenter}', [ManufacturingController::class, 'updateWorkCenter'])->name('work-centers.update')->middleware('permission:manufacturing,edit');
-        Route::delete('/work-centers/{workCenter}', [ManufacturingController::class, 'destroyWorkCenter'])->name('work-centers.destroy')->middleware('permission:manufacturing,delete');
-        Route::get('/mrp', [ManufacturingController::class, 'mrp'])->name('mrp')->middleware('permission:manufacturing,view');
-        Route::post('/{workOrder}/consume', [ManufacturingController::class, 'consumeMaterials'])->name('consume')->middleware('permission:manufacturing,create');
-
-        // Work Order Material Scanning
-        Route::get('/work-orders/{workOrder}/scan-materials', [ManufacturingController::class, 'scanMaterials'])->name('work-orders.scan-materials')->middleware('permission:manufacturing,create');
-        Route::post('/work-orders/{workOrder}/consume-scanned', [ManufacturingController::class, 'consumeScannedMaterials'])->name('work-orders.consume-scanned')->middleware('permission:manufacturing,create');
-
-        // Mix Design (Mutu Beton)
-        Route::get('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'index'])->name('mix-design')->middleware('permission:manufacturing,view');
-        Route::post('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'store'])->name('mix-design.store')->middleware('permission:manufacturing,create');
-        Route::post('/mix-design/seed-standards', [\App\Http\Controllers\ConcreteMixDesignController::class, 'seedStandards'])->name('mix-design.seed')->middleware('permission:manufacturing,create');
-        Route::put('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'update'])->name('mix-design.update')->middleware('permission:manufacturing,edit');
-        Route::delete('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'destroy'])->name('mix-design.destroy')->middleware('permission:manufacturing,delete');
-        Route::get('/mix-design/{mixDesign}/calculate', [\App\Http\Controllers\ConcreteMixDesignController::class, 'calculate'])->name('mix-design.calculate');
-        Route::post('/mix-design/{mixDesign}/generate-bom', [\App\Http\Controllers\ConcreteMixDesignController::class, 'generateBom'])->name('mix-design.generate-bom')->middleware('permission:manufacturing,create');
-
-        // Quality Control
-        Route::prefix('quality')->name('quality.')->group(function () {
-            Route::get('/dashboard', [ManufacturingController::class, 'qualityDashboard'])->name('dashboard')->middleware('permission:manufacturing,view');
-            Route::get('/dashboard-enhanced', [ManufacturingController::class, 'qcDashboardEnhanced'])->name('dashboard-enhanced')->middleware('permission:manufacturing,view');
-            Route::get('/checks', [ManufacturingController::class, 'qualityChecks'])->name('checks')->middleware('permission:manufacturing,view');
-            Route::get('/checks/create', [ManufacturingController::class, 'createQualityCheck'])->name('checks.create')->middleware('permission:manufacturing,create');
-            Route::post('/checks', [ManufacturingController::class, 'storeQualityCheck'])->name('checks.store')->middleware('permission:manufacturing,create');
-            Route::get('/checks/{qualityCheck}/edit', [ManufacturingController::class, 'editQualityCheck'])->name('checks.edit')->middleware('permission:manufacturing,edit');
-            Route::put('/checks/{qualityCheck}', [ManufacturingController::class, 'updateQualityCheck'])->name('checks.update')->middleware('permission:manufacturing,edit');
-            Route::get('/checks/{qualityCheck}/coa', [ManufacturingController::class, 'generateCOA'])->name('coa')->middleware('permission:manufacturing,view');
-            Route::get('/checks/{qualityCheck}/coa/print', [ManufacturingController::class, 'printCOA'])->name('coa.print')->middleware('permission:manufacturing,view');
-            Route::post('/defects', [ManufacturingController::class, 'recordDefect'])->name('defects.store')->middleware('permission:manufacturing,create');
-            Route::put('/defects/{defect}/resolve', [ManufacturingController::class, 'resolveDefect'])->name('defects.resolve')->middleware('permission:manufacturing,edit');
-            Route::post('/capa', [ManufacturingController::class, 'createCAPA'])->name('capa.store')->middleware('permission:manufacturing,create');
-            Route::get('/root-cause-templates', [ManufacturingController::class, 'getRootCauseTemplates'])->name('root-cause-templates')->middleware('permission:manufacturing,view');
-            Route::get('/defects', [ManufacturingController::class, 'defectRecords'])->name('defects')->middleware('permission:manufacturing,view');
-            Route::get('/standards', [ManufacturingController::class, 'qualityStandards'])->name('standards')->middleware('permission:manufacturing,view');
-            Route::post('/standards', [ManufacturingController::class, 'storeQualityStandard'])->name('standards.store')->middleware('permission:manufacturing,create');
-        });
-    });
-
-    // Farm / Agriculture — Manajemen Lahan
-    Route::prefix('farm')->name('farm.')->middleware('role:admin,manager,gudang')->group(function () {
-        Route::get('/plots', [\App\Http\Controllers\FarmPlotController::class, 'index'])->name('plots')->middleware('permission:agriculture,view');
-        Route::post('/plots', [\App\Http\Controllers\FarmPlotController::class, 'store'])->name('plots.store')->middleware('permission:agriculture,create');
-        Route::get('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'show'])->name('plots.show')->middleware('permission:agriculture,view');
-        Route::put('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'update'])->name('plots.update')->middleware('permission:agriculture,edit');
-        Route::patch('/plots/{farmPlot}/status', [\App\Http\Controllers\FarmPlotController::class, 'updateStatus'])->name('plots.status')->middleware('permission:agriculture,edit');
-        Route::delete('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'destroy'])->name('plots.destroy')->middleware('permission:agriculture,delete');
-        Route::post('/plots/{farmPlot}/activities', [\App\Http\Controllers\FarmPlotController::class, 'storeActivity'])->name('plots.activities.store')->middleware('permission:agriculture,create');
-        // Crop Cycles
-        Route::get('/cycles', [\App\Http\Controllers\CropCycleController::class, 'index'])->name('cycles')->middleware('permission:agriculture,view');
-        Route::post('/cycles', [\App\Http\Controllers\CropCycleController::class, 'store'])->name('cycles.store')->middleware('permission:agriculture,create');
-        Route::get('/cycles/{cropCycle}', [\App\Http\Controllers\CropCycleController::class, 'show'])->name('cycles.show')->middleware('permission:agriculture,view');
-        Route::patch('/cycles/{cropCycle}/phase', [\App\Http\Controllers\CropCycleController::class, 'advancePhase'])->name('cycles.phase')->middleware('permission:agriculture,edit');
-        Route::post('/cycles/{cropCycle}/activities', [\App\Http\Controllers\CropCycleController::class, 'storeActivity'])->name('cycles.activities.store')->middleware('permission:agriculture,create');
-        // Harvest Logs
-        Route::get('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'index'])->name('harvests')->middleware('permission:agriculture,view');
-        Route::post('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'store'])->name('harvests.store')->middleware('permission:agriculture,create');
-        Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show')->middleware('permission:agriculture,view');
-        // Analytics
-        Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics')->middleware('permission:agriculture,view');
-        // Livestock
-        Route::get('/livestock', [\App\Http\Controllers\LivestockController::class, 'index'])->name('livestock')->middleware('permission:agriculture,view');
-        Route::post('/livestock', [\App\Http\Controllers\LivestockController::class, 'store'])->name('livestock.store')->middleware('permission:agriculture,create');
-        Route::get('/livestock/{livestockHerd}', [\App\Http\Controllers\LivestockController::class, 'show'])->name('livestock.show')->middleware('permission:agriculture,view');
-        Route::post('/livestock/{livestockHerd}/movement', [\App\Http\Controllers\LivestockController::class, 'recordMovement'])->name('livestock.movement')->middleware('permission:agriculture,create');
-        Route::post('/livestock/{livestockHerd}/feed', [\App\Http\Controllers\LivestockController::class, 'storeFeedLog'])->name('livestock.feed.store')->middleware('permission:agriculture,create');
-        Route::post('/livestock/{livestockHerd}/health', [\App\Http\Controllers\LivestockController::class, 'storeHealthRecord'])->name('livestock.health.store')->middleware('permission:agriculture,create');
-        Route::post('/livestock/{livestockHerd}/vaccinations/generate', [\App\Http\Controllers\LivestockController::class, 'generateVaccinationSchedule'])->name('livestock.vaccinations.generate')->middleware('permission:agriculture,create');
-        Route::patch('/vaccinations/{vaccination}/record', [\App\Http\Controllers\LivestockController::class, 'recordVaccination'])->name('livestock.vaccinations.record')->middleware('permission:agriculture,edit');
-    });
-
-    // Fleet Management
-    Route::prefix('fleet')->name('fleet.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
-        Route::get('/', [FleetController::class, 'index'])->name('index')->middleware('permission:fleet,view');
-        Route::post('/vehicles', [FleetController::class, 'storeVehicle'])->name('vehicles.store')->middleware('permission:fleet,create');
-        Route::put('/vehicles/{fleetVehicle}', [FleetController::class, 'updateVehicle'])->name('vehicles.update')->middleware('permission:fleet,edit');
-        Route::delete('/vehicles/{fleetVehicle}', [FleetController::class, 'destroyVehicle'])->name('vehicles.destroy')->middleware('permission:fleet,delete');
-        Route::get('/drivers', [FleetController::class, 'drivers'])->name('drivers')->middleware('permission:fleet,view');
-        Route::post('/drivers', [FleetController::class, 'storeDriver'])->name('drivers.store')->middleware('permission:fleet,create');
-        Route::put('/drivers/{fleetDriver}', [FleetController::class, 'updateDriver'])->name('drivers.update')->middleware('permission:fleet,edit');
-        Route::delete('/drivers/{fleetDriver}', [FleetController::class, 'destroyDriver'])->name('drivers.destroy')->middleware('permission:fleet,delete');
-        Route::get('/trips', [FleetController::class, 'trips'])->name('trips')->middleware('permission:fleet,view');
-        Route::post('/trips', [FleetController::class, 'storeTrip'])->name('trips.store')->middleware('permission:fleet,create');
-        Route::patch('/trips/{fleetTrip}/complete', [FleetController::class, 'completeTrip'])->name('trips.complete')->middleware('permission:fleet,edit');
-        Route::get('/fuel-logs', [FleetController::class, 'fuelLogs'])->name('fuel-logs')->middleware('permission:fleet,view');
-        Route::post('/fuel-logs', [FleetController::class, 'storeFuelLog'])->name('fuel-logs.store')->middleware('permission:fleet,create');
-        Route::get('/maintenance', [FleetController::class, 'maintenance'])->name('maintenance')->middleware('permission:fleet,view');
-        Route::post('/maintenance', [FleetController::class, 'storeMaintenance'])->name('maintenance.store')->middleware('permission:fleet,create');
-        Route::patch('/maintenance/{fleetMaintenance}/complete', [FleetController::class, 'completeMaintenance'])->name('maintenance.complete')->middleware('permission:fleet,edit');
-        Route::delete('/maintenance/{fleetMaintenance}', [FleetController::class, 'destroyMaintenance'])->name('maintenance.destroy')->middleware('permission:fleet,delete');
-    });
-
-    // Contract Management
-    Route::prefix('contracts')->name('contracts.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [ContractController::class, 'index'])->name('index')->middleware('permission:contracts,view');
-        Route::post('/', [ContractController::class, 'store'])->name('store')->middleware('permission:contracts,create');
-        Route::get('/templates', [ContractController::class, 'templates'])->name('templates')->middleware('permission:contracts,view');
-        Route::post('/templates', [ContractController::class, 'storeTemplate'])->name('templates.store')->middleware('permission:contracts,create');
-        Route::delete('/templates/{contractTemplate}', [ContractController::class, 'destroyTemplate'])->name('templates.destroy')->middleware('permission:contracts,delete');
-        Route::get('/{contract}', [ContractController::class, 'show'])->name('show')->middleware('permission:contracts,view');
-        Route::patch('/{contract}/activate', [ContractController::class, 'activate'])->name('activate')->middleware('permission:contracts,edit');
-        Route::patch('/{contract}/terminate', [ContractController::class, 'terminate'])->name('terminate')->middleware('permission:contracts,edit');
-        Route::post('/{contract}/renew', [ContractController::class, 'renew'])->name('renew')->middleware('permission:contracts,create');
-        Route::post('/{contract}/billing', [ContractController::class, 'generateBilling'])->name('billing')->middleware('permission:contracts,create');
-        Route::post('/{contract}/sla', [ContractController::class, 'storeSlaLog'])->name('sla.store')->middleware('permission:contracts,create');
-        Route::patch('/sla/{contractSlaLog}/resolve', [ContractController::class, 'resolveSlaLog'])->name('sla.resolve')->middleware('permission:contracts,edit');
-        Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy')->middleware('permission:contracts,delete');
-    });
-
-    // Landed Cost
-    Route::prefix('landed-cost')->name('landed-cost.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [LandedCostController::class, 'index'])->name('index')->middleware('permission:landed_cost,view');
-        Route::post('/', [LandedCostController::class, 'store'])->name('store')->middleware('permission:landed_cost,create');
-        Route::get('/{landedCost}', [LandedCostController::class, 'show'])->name('show')->middleware('permission:landed_cost,view');
-        Route::post('/{landedCost}/allocate', [LandedCostController::class, 'allocate'])->name('allocate')->middleware('permission:landed_cost,edit');
-        Route::post('/{landedCost}/post', [LandedCostController::class, 'post'])->name('post')->middleware('permission:landed_cost,edit');
-        Route::patch('/allocation/{allocation}/weight', [LandedCostController::class, 'updateWeight'])->name('weight')->middleware('permission:landed_cost,edit');
-        Route::delete('/{landedCost}', [LandedCostController::class, 'destroy'])->name('destroy')->middleware('permission:landed_cost,delete');
-    });
-
-    // Consignment
-    Route::prefix('consignment')->name('consignment.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [ConsignmentController::class, 'index'])->name('index')->middleware('permission:consignment,view');
-        Route::post('/shipments', [ConsignmentController::class, 'storeShipment'])->name('shipments.store')->middleware('permission:consignment,create');
-        Route::get('/shipments/{consignmentShipment}', [ConsignmentController::class, 'show'])->name('shipments.show')->middleware('permission:consignment,view');
-        Route::post('/shipments/{consignmentShipment}/sales-report', [ConsignmentController::class, 'storeSalesReport'])->name('sales-report.store')->middleware('permission:consignment,create');
-        Route::post('/shipments/{consignmentShipment}/return', [ConsignmentController::class, 'returnItems'])->name('return')->middleware('permission:consignment,edit');
-        Route::get('/partners', [ConsignmentController::class, 'partners'])->name('partners')->middleware('permission:consignment,view');
-        Route::post('/partners', [ConsignmentController::class, 'storePartner'])->name('partners.store')->middleware('permission:consignment,create');
-        Route::delete('/partners/{consignmentPartner}', [ConsignmentController::class, 'destroyPartner'])->name('partners.destroy')->middleware('permission:consignment,delete');
-        Route::post('/settlement/{consignmentSalesReport}', [ConsignmentController::class, 'storeSettlement'])->name('settlement.store')->middleware('permission:consignment,create');
-    });
-
-    // Commission Management
-    Route::prefix('commission')->name('commission.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [CommissionController::class, 'index'])->name('index')->middleware('permission:commission,view');
-        Route::post('/calculate', [CommissionController::class, 'calculate'])->name('calculate')->middleware('permission:commission,create');
-        Route::post('/targets', [CommissionController::class, 'storeTarget'])->name('targets.store')->middleware('permission:commission,create');
-        Route::get('/rules', [CommissionController::class, 'rules'])->name('rules')->middleware('permission:commission,view');
-        Route::post('/rules', [CommissionController::class, 'storeRule'])->name('rules.store')->middleware('permission:commission,create');
-        Route::delete('/rules/{commissionRule}', [CommissionController::class, 'destroyRule'])->name('rules.destroy')->middleware('permission:commission,delete');
-        Route::patch('/{commissionCalculation}/approve', [CommissionController::class, 'approve'])->name('approve')->middleware('permission:commission,edit');
-        Route::post('/{commissionCalculation}/pay', [CommissionController::class, 'pay'])->name('pay')->middleware('permission:commission,edit');
-    });
-
-    // Helpdesk / Ticketing
-    Route::prefix('helpdesk')->name('helpdesk.')->middleware(['role:admin,manager,staff', 'tenant.isolation'])->group(function () {
-        Route::get('/', [HelpdeskController::class, 'index'])->name('index')->middleware('permission:helpdesk,view');
-        Route::post('/', [HelpdeskController::class, 'store'])->name('store')->middleware('permission:helpdesk,create');
-        Route::get('/knowledge-base', [HelpdeskController::class, 'knowledgeBase'])->name('kb')->middleware('permission:helpdesk,view');
-        Route::post('/knowledge-base', [HelpdeskController::class, 'storeArticle'])->name('kb.store')->middleware('permission:helpdesk,create');
-        Route::delete('/knowledge-base/{kbArticle}', [HelpdeskController::class, 'destroyArticle'])->name('kb.destroy')->middleware('permission:helpdesk,delete');
-        Route::get('/{helpdeskTicket}', [HelpdeskController::class, 'show'])->name('show')->middleware('permission:helpdesk,view');
-        Route::post('/{helpdeskTicket}/reply', [HelpdeskController::class, 'reply'])->name('reply')->middleware('permission:helpdesk,create');
-        Route::patch('/{helpdeskTicket}/status', [HelpdeskController::class, 'updateStatus'])->name('status')->middleware('permission:helpdesk,edit');
-        Route::patch('/{helpdeskTicket}/rate', [HelpdeskController::class, 'rate'])->name('rate')->middleware('permission:helpdesk,edit');
-    });
-
-    // Project Billing
-    Route::prefix('project-billing')->name('project-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [ProjectBillingController::class, 'index'])->name('index')->middleware('permission:project_billing,view');
-        Route::get('/{project}', [ProjectBillingController::class, 'show'])->name('show')->middleware('permission:project_billing,view');
-        Route::post('/{project}/config', [ProjectBillingController::class, 'saveConfig'])->name('config')->middleware('permission:project_billing,edit');
-        Route::post('/{project}/milestones', [ProjectBillingController::class, 'storeMilestone'])->name('milestones.store')->middleware('permission:project_billing,create');
-        Route::patch('/milestones/{projectMilestone}/complete', [ProjectBillingController::class, 'completeMilestone'])->name('milestones.complete')->middleware('permission:project_billing,edit');
-        Route::post('/milestones/{projectMilestone}/invoice', [ProjectBillingController::class, 'generateMilestone'])->name('milestones.invoice')->middleware('permission:project_billing,create');
-        Route::post('/{project}/time-material', [ProjectBillingController::class, 'generateTimeMaterial'])->name('time-material')->middleware('permission:project_billing,create');
-        Route::post('/{project}/retainer', [ProjectBillingController::class, 'generateRetainer'])->name('retainer')->middleware('permission:project_billing,create');
-        Route::post('/{project}/termin', [ProjectBillingController::class, 'generateTermin'])->name('termin')->middleware('permission:project_billing,create');
-        Route::post('/invoices/{projectInvoice}/release-retention', [ProjectBillingController::class, 'releaseRetention'])->name('release-retention')->middleware('permission:project_billing,edit');
-    });
-
-    // Subscription Billing
-    Route::prefix('subscription-billing')->name('subscription-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [SubscriptionBillingController::class, 'index'])->name('index')->middleware('permission:subscription_billing,view');
-        Route::post('/', [SubscriptionBillingController::class, 'store'])->name('store')->middleware('permission:subscription_billing,create');
-        Route::get('/plans', [SubscriptionBillingController::class, 'plans'])->name('plans')->middleware('permission:subscription_billing,view');
-        Route::post('/plans', [SubscriptionBillingController::class, 'storePlan'])->name('plans.store')->middleware('permission:subscription_billing,create');
-        Route::delete('/plans/{customerSubscriptionPlan}', [SubscriptionBillingController::class, 'destroyPlan'])->name('plans.destroy')->middleware('permission:subscription_billing,delete');
-        Route::post('/bulk-generate', [SubscriptionBillingController::class, 'bulkGenerate'])->name('bulk-generate')->middleware('permission:subscription_billing,create');
-        Route::get('/{customerSubscription}', [SubscriptionBillingController::class, 'show'])->name('show')->middleware('permission:subscription_billing,view');
-        Route::post('/{customerSubscription}/generate', [SubscriptionBillingController::class, 'generateBilling'])->name('generate')->middleware('permission:subscription_billing,create');
-        Route::patch('/{customerSubscription}/cancel', [SubscriptionBillingController::class, 'cancel'])->name('cancel')->middleware('permission:subscription_billing,edit');
-    });
-
-    // AI Forecasting
-    Route::get('/forecast', [ForecastController::class, 'index'])->name('forecast.index')
-        ->middleware(['role:admin,manager', 'permission:reports,view']);
-
-    // Quotations (Penawaran Harga)
-    Route::prefix('quotations')->name('quotations.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [QuotationController::class, 'index'])->name('index');
-        Route::post('/', [QuotationController::class, 'store'])->name('store');
-        Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
-        Route::put('/{quotation}', [QuotationController::class, 'update'])->name('update');
-        Route::patch('/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('status');
-        Route::post('/{quotation}/convert', [QuotationController::class, 'convertToOrder'])->name('convert');
-        Route::delete('/{quotation}', [QuotationController::class, 'destroy'])->name('destroy');
-    });
-
-    // Document Management
-    Route::prefix('documents')->name('documents.')->group(function () {
-        // Main document routes
-        Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
-        Route::get('/expired', [\App\Http\Controllers\DocumentController::class, 'expired'])->name('expired');
-        Route::get('/expiring-soon', [\App\Http\Controllers\DocumentController::class, 'expiringSoon'])->name('expiring-soon');
-        Route::post('/bulk-sign', [\App\Http\Controllers\DocumentController::class, 'bulkSign'])->name('bulk-sign');
-        Route::post('/bulk-generate', [\App\Http\Controllers\DocumentController::class, 'bulkGenerate'])->name('bulk-generate');
-        Route::post('/preview-template', [\App\Http\Controllers\DocumentController::class, 'previewTemplate'])->name('preview-template');
-        Route::get('/ocr-statistics', [\App\Http\Controllers\DocumentController::class, 'ocrStatistics'])->name('ocr-statistics');
-        Route::get('/signature-statistics', [\App\Http\Controllers\DocumentController::class, 'signatureStatistics'])->name('signature-statistics');
-        Route::get('/bulk-generation-stats', [\App\Http\Controllers\DocumentController::class, 'bulkGenerationStats'])->name('bulk-generation-stats');
-        Route::post('/search-ocr', [\App\Http\Controllers\DocumentController::class, 'searchOcr'])->name('search-ocr');
-        Route::get('/pending-approvals', [\App\Http\Controllers\DocumentApprovalController::class, 'pendingApprovals'])->name('pending-approvals');
-
-        // Document-specific routes
-        Route::prefix('{document}')->group(function () {
-            // Download
-            Route::get('/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
-            Route::delete('/', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
-
-            // OCR
-            Route::post('/process-ocr', [\App\Http\Controllers\DocumentController::class, 'processOcr'])->name('process-ocr');
-            Route::get('/verify-signature', [\App\Http\Controllers\DocumentController::class, 'verifySignature'])->name('verify-signature');
-
-            // Sign
-            Route::post('/sign', [\App\Http\Controllers\DocumentController::class, 'sign'])->name('sign');
-
-            // Versioning
-            Route::get('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'index'])->name('versions.index');
-            Route::get('/versions/api', [\App\Http\Controllers\DocumentVersionController::class, 'getVersions'])->name('versions.api');
-            Route::post('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'store'])->name('versions.store');
-            Route::post('/versions/{versionNumber}/rollback', [\App\Http\Controllers\DocumentVersionController::class, 'rollback'])->name('versions.rollback');
-            Route::get('/versions/compare/{version1}/{version2}', [\App\Http\Controllers\DocumentVersionController::class, 'compare'])->name('versions.compare');
-            Route::get('/versions/{versionNumber}/download', [\App\Http\Controllers\DocumentVersionController::class, 'download'])->name('versions.download');
-            Route::get('/versions/statistics', [\App\Http\Controllers\DocumentVersionController::class, 'statistics'])->name('versions.statistics');
-            Route::post('/versions/cleanup', [\App\Http\Controllers\DocumentVersionController::class, 'cleanup'])->name('versions.cleanup');
-
-            // Approval
-            Route::get('/approval', [\App\Http\Controllers\DocumentApprovalController::class, 'index'])->name('approval.index');
-            Route::get('/approval/history', [\App\Http\Controllers\DocumentApprovalController::class, 'getHistory'])->name('approval.history');
-            Route::post('/approval/submit', [\App\Http\Controllers\DocumentApprovalController::class, 'submit'])->name('approval.submit');
-            Route::post('/approval/{stepNumber}/approve', [\App\Http\Controllers\DocumentApprovalController::class, 'approve'])->name('approval.approve');
-            Route::post('/approval/{stepNumber}/reject', [\App\Http\Controllers\DocumentApprovalController::class, 'reject'])->name('approval.reject');
-        });
-
-        // Templates
-        Route::prefix('templates')->name('templates.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\DocumentTemplateController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\DocumentTemplateController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\DocumentTemplateController::class, 'store'])->name('store');
-            Route::get('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'show'])->name('show');
-            Route::get('/{template}/edit', [\App\Http\Controllers\DocumentTemplateController::class, 'edit'])->name('edit');
-            Route::put('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'update'])->name('update');
-            Route::delete('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'destroy'])->name('destroy');
-            Route::post('/{template}/duplicate', [\App\Http\Controllers\DocumentTemplateController::class, 'duplicate'])->name('duplicate');
-            Route::get('/{template}/api', [\App\Http\Controllers\DocumentTemplateController::class, 'getTemplate'])->name('api');
-            Route::get('/category/{category}', [\App\Http\Controllers\DocumentTemplateController::class, 'getByCategory'])->name('by-category');
-        });
-
-        // Approval Workflows
-        Route::prefix('workflows')->name('workflows.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\DocumentApprovalController::class, 'workflows'])->name('index');
-            Route::post('/', [\App\Http\Controllers\DocumentApprovalController::class, 'storeWorkflow'])->name('store');
-            Route::put('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'updateWorkflow'])->name('update');
-            Route::delete('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'destroyWorkflow'])->name('destroy');
-            Route::get('/{workflow}/statistics', [\App\Http\Controllers\DocumentApprovalController::class, 'workflowStatistics'])->name('statistics');
-        });
-
-        // Cloud Storage
-        Route::prefix('cloud-storage')->name('cloud-storage.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\CloudStorageController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\CloudStorageController::class, 'store'])->name('store');
-            Route::put('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'update'])->name('update');
-            Route::delete('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'destroy'])->name('destroy');
-            Route::post('/test-connection', [\App\Http\Controllers\CloudStorageController::class, 'testConnection'])->name('test-connection');
-            Route::post('/{config}/set-default', [\App\Http\Controllers\CloudStorageController::class, 'setDefault'])->name('set-default');
-            Route::get('/statistics', [\App\Http\Controllers\CloudStorageController::class, 'statistics'])->name('statistics');
-        });
-    });
-
-    // Timesheet
-    Route::prefix('timesheets')->name('timesheets.')->group(function () {
-        Route::get('/', [TimesheetController::class, 'index'])->name('index');
-        Route::post('/', [TimesheetController::class, 'store'])->name('store');
-        Route::delete('/{timesheet}', [TimesheetController::class, 'destroy'])->name('destroy');
-    });
-
-    // General Ledger & Accounting (admin + manager only)
-    Route::prefix('accounting')->name('accounting.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        // Chart of Accounts
-        Route::get('/coa', [AccountingController::class, 'coa'])->name('coa');
-        Route::post('/coa', [AccountingController::class, 'storeCoa'])->name('coa.store');
-        Route::put('/coa/{account}', [AccountingController::class, 'updateCoa'])->name('coa.update');
-        Route::delete('/coa/{account}', [AccountingController::class, 'destroyCoa'])->name('coa.destroy');
-        Route::post('/coa/seed-default', [AccountingController::class, 'seedDefaultCoa'])->name('coa.seed');
-
-        // Accounting Periods
-        Route::get('/periods', [AccountingController::class, 'periods'])->name('periods');
-        Route::post('/periods', [AccountingController::class, 'storePeriod'])->name('periods.store');
-        Route::patch('/periods/{period}/close', [AccountingController::class, 'closePeriod'])->name('periods.close');
-        Route::patch('/periods/{period}/lock', [AccountingController::class, 'lockPeriod'])->name('periods.lock');
-
-        // Period Lock & Fiscal Year Management (admin only)
-        Route::prefix('period-lock')->name('period-lock.')->middleware('role:admin')->group(function () {
-            Route::get('/', [\App\Http\Controllers\PeriodLockController::class, 'index'])->name('index');
-            // Fiscal Years
-            Route::post('/fiscal-years', [\App\Http\Controllers\PeriodLockController::class, 'storeFiscalYear'])->name('fiscal-years.store');
-            Route::patch('/fiscal-years/{fiscalYear}/close', [\App\Http\Controllers\PeriodLockController::class, 'closeFiscalYear'])->name('fiscal-years.close');
-            Route::patch('/fiscal-years/{fiscalYear}/lock', [\App\Http\Controllers\PeriodLockController::class, 'lockFiscalYear'])->name('fiscal-years.lock');
-            Route::patch('/fiscal-years/{fiscalYear}/reopen', [\App\Http\Controllers\PeriodLockController::class, 'reopenFiscalYear'])->name('fiscal-years.reopen');
-            // Period lock
-            Route::patch('/periods/{period}/lock', [\App\Http\Controllers\PeriodLockController::class, 'lockPeriod'])->name('periods.lock');
-            // Backups
-            Route::post('/backups', [\App\Http\Controllers\PeriodLockController::class, 'createBackup'])->name('backups.store');
-            Route::get('/backups/{periodBackup}/download', [\App\Http\Controllers\PeriodLockController::class, 'downloadBackup'])->name('backups.download');
-            Route::delete('/backups/{periodBackup}', [\App\Http\Controllers\PeriodLockController::class, 'destroyBackup'])->name('backups.destroy');
-        });
-
-        // Trial Balance
-        Route::get('/trial-balance', [AccountingController::class, 'trialBalance'])->name('trial-balance');
-
-        // Balance Sheet (Neraca)
-        Route::get('/balance-sheet', [AccountingController::class, 'balanceSheet'])->name('balance-sheet');
-        Route::get('/balance-sheet/pdf', [AccountingController::class, 'balanceSheetPdf'])->name('balance-sheet.pdf');
-
-        // Income Statement (Laba Rugi dari GL)
-        Route::get('/income-statement', [AccountingController::class, 'incomeStatement'])->name('income-statement');
-        Route::get('/income-statement/pdf', [AccountingController::class, 'incomeStatementPdf'])->name('income-statement.pdf');
-
-        // Cash Flow Statement (Arus Kas)
-        Route::get('/cash-flow', [AccountingController::class, 'cashFlow'])->name('cash-flow');
-        Route::get('/cash-flow/pdf', [AccountingController::class, 'cashFlowPdf'])->name('cash-flow.pdf');
-    });
-
-    // Journal Entries (admin + manager only)
-    Route::prefix('journals')->name('journals.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [JournalController::class, 'index'])->name('index');
-        Route::get('/create', [JournalController::class, 'create'])->name('create');
-        Route::post('/', [JournalController::class, 'store'])->name('store');
-        // Recurring — must be before /{journal} wildcard to avoid conflict
-        Route::get('/recurring/list', [JournalController::class, 'recurringIndex'])->name('recurring');
-        Route::post('/recurring', [JournalController::class, 'storeRecurring'])->name('recurring.store');
-        Route::patch('/recurring/{recurring}/toggle', [JournalController::class, 'toggleRecurring'])->name('recurring.toggle');
-        // Wildcard routes last
-        Route::get('/{journal}', [JournalController::class, 'show'])->name('show');
-        Route::patch('/{journal}/post', [JournalController::class, 'post'])->name('post');
-        Route::post('/{journal}/reverse', [JournalController::class, 'reverse'])->name('reverse');
-    });
-
-    // Reminders
-    Route::prefix('reminders')->name('reminders.')->group(function () {
-        Route::get('/', [ReminderController::class, 'index'])->name('index');
-        Route::post('/', [ReminderController::class, 'store'])->name('store');
-        Route::patch('/{reminder}/done', [ReminderController::class, 'markDone'])->name('done');
-        Route::delete('/{reminder}', [ReminderController::class, 'destroy'])->name('destroy');
-    });
-
-    // Sales Returns (Retur Penjualan)
-    Route::prefix('sales-returns')->name('sales-returns.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\SalesReturnController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\SalesReturnController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\SalesReturnController::class, 'store'])->name('store');
-        Route::post('/{salesReturn}/approve', [\App\Http\Controllers\SalesReturnController::class, 'approve'])->name('approve');
-        Route::post('/{salesReturn}/complete', [\App\Http\Controllers\SalesReturnController::class, 'complete'])->name('complete');
-        Route::post('/{salesReturn}/cancel', [\App\Http\Controllers\SalesReturnController::class, 'cancel'])->name('cancel');
-        Route::get('/invoice/{invoice}/items', [\App\Http\Controllers\SalesReturnController::class, 'invoiceItems'])->name('invoice-items');
-    });
-
-    // Purchase Returns (Retur Pembelian)
-    Route::prefix('purchase-returns')->name('purchase-returns.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PurchaseReturnController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\PurchaseReturnController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\PurchaseReturnController::class, 'store'])->name('store');
-        Route::post('/{purchaseReturn}/send', [\App\Http\Controllers\PurchaseReturnController::class, 'send'])->name('send');
-        Route::post('/{purchaseReturn}/complete', [\App\Http\Controllers\PurchaseReturnController::class, 'complete'])->name('complete');
-        Route::post('/{purchaseReturn}/cancel', [\App\Http\Controllers\PurchaseReturnController::class, 'cancel'])->name('cancel');
-        Route::get('/po/{purchaseOrder}/items', [\App\Http\Controllers\PurchaseReturnController::class, 'poItems'])->name('po-items');
-    });
-
-    // Down Payments (Uang Muka)
-    Route::prefix('down-payments')->name('down-payments.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\DownPaymentController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\DownPaymentController::class, 'store'])->name('store');
-        Route::post('/{downPayment}/apply', [\App\Http\Controllers\DownPaymentController::class, 'apply'])->name('apply');
-    });
-
-    // Bulk Payments
-    Route::prefix('bulk-payments')->name('bulk-payments.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\BulkPaymentController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\BulkPaymentController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\BulkPaymentController::class, 'store'])->name('store');
-        Route::get('/customer-invoices', [\App\Http\Controllers\BulkPaymentController::class, 'customerInvoices'])->name('customer-invoices');
-    });
-
-    // Cost Centers (Task 44)
-    Route::prefix('settings/cost-centers')->name('cost-centers.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\CostCenterController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\CostCenterController::class, 'store'])->name('store');
-        Route::put('/{costCenter}', [\App\Http\Controllers\CostCenterController::class, 'update'])->name('update');
-        Route::delete('/{costCenter}', [\App\Http\Controllers\CostCenterController::class, 'destroy'])->name('destroy');
-        Route::get('/report', [\App\Http\Controllers\CostCenterController::class, 'report'])->name('report');
-    });
-
-    // Business Constraints (Task 45)
-    Route::prefix('settings/constraints')->name('constraints.')->middleware('role:admin')->group(function () {
-        Route::get('/', [\App\Http\Controllers\BusinessConstraintController::class, 'index'])->name('index');
-        Route::put('/{businessConstraint}', [\App\Http\Controllers\BusinessConstraintController::class, 'update'])->name('update');
-        Route::post('/bulk', [\App\Http\Controllers\BusinessConstraintController::class, 'bulkUpdate'])->name('bulk');
-    });
-
-    // Transaction Chain (Task 46)
-    Route::prefix('transaction-chain')->name('transaction-chain.')->middleware('auth')->group(function () {
-        Route::get('/{type}/{id}', [\App\Http\Controllers\TransactionChainController::class, 'show'])->name('show');
-        Route::get('/{type}/{id}/timeline', [\App\Http\Controllers\TransactionChainController::class, 'timeline'])->name('timeline');
-    });
-
-    // Deferred Revenue & Prepaid Expense (Task 47)
-    Route::prefix('deferred')->name('deferred.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\DeferredItemController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\DeferredItemController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\DeferredItemController::class, 'store'])->name('store');
-        Route::get('/{deferredItem}', [\App\Http\Controllers\DeferredItemController::class, 'show'])->name('show');
-        Route::post('/schedules/{schedule}/post', [\App\Http\Controllers\DeferredItemController::class, 'postSchedule'])->name('schedule.post');
-        Route::patch('/{deferredItem}/cancel', [\App\Http\Controllers\DeferredItemController::class, 'cancel'])->name('cancel');
-    });
-
-    // Write-off Hutang/Piutang (Task 48)
-    Route::prefix('writeoffs')->name('writeoffs.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\WriteoffController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\WriteoffController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\WriteoffController::class, 'store'])->name('store');
-        Route::post('/{writeoff}/approve', [\App\Http\Controllers\WriteoffController::class, 'approve'])->name('approve');
-        Route::post('/{writeoff}/reject', [\App\Http\Controllers\WriteoffController::class, 'reject'])->name('reject');
-        Route::post('/{writeoff}/post', [\App\Http\Controllers\WriteoffController::class, 'post'])->name('post');
-    });
-
-    // Price List per Customer (Task 49)
-    Route::prefix('price-lists')->name('price-lists.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PriceListController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\PriceListController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\PriceListController::class, 'store'])->name('store');
-        Route::get('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'show'])->name('show');
-        Route::put('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'update'])->name('update');
-        Route::delete('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'destroy'])->name('destroy');
-        Route::post('/{priceList}/customers', [\App\Http\Controllers\PriceListController::class, 'assignCustomer'])->name('customers.assign');
-        Route::delete('/{priceList}/customers/{customer}', [\App\Http\Controllers\PriceListController::class, 'removeCustomer'])->name('customers.remove');
-        Route::get('/api/price', [\App\Http\Controllers\PriceListController::class, 'getPrice'])->name('api.price');
-    });
-
-    // Simulations — Task 50
-    Route::prefix('simulations')->name('simulations.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\SimulationController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\SimulationController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\SimulationController::class, 'store'])->name('store');
-        Route::get('/{simulation}', [\App\Http\Controllers\SimulationController::class, 'show'])->name('show');
-        Route::delete('/{simulation}', [\App\Http\Controllers\SimulationController::class, 'destroy'])->name('destroy');
-    });
-
-    // Anomaly Detection — Task 51
-    Route::prefix('anomalies')->name('anomalies.')->middleware('role:admin,manager')->group(function () {
-        Route::get('/', [\App\Http\Controllers\AnomalyController::class, 'index'])->name('index');
-        Route::post('/detect', [\App\Http\Controllers\AnomalyController::class, 'detect'])->name('detect');
-        Route::post('/{anomaly}/acknowledge', [\App\Http\Controllers\AnomalyController::class, 'acknowledge'])->name('acknowledge');
-        Route::post('/{anomaly}/resolve', [\App\Http\Controllers\AnomalyController::class, 'resolve'])->name('resolve');
-    });
-
-    // AI Memory — Task 52
-    Route::prefix('settings/ai-memory')->name('ai-memory.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\AiMemoryController::class, 'index'])->name('index');
-        Route::post('/reset', [\App\Http\Controllers\AiMemoryController::class, 'reset'])->name('reset');
-        Route::post('/prune', [\App\Http\Controllers\AiMemoryController::class, 'pruneStale'])->name('prune');
-        Route::post('/{memory}/lock', [\App\Http\Controllers\AiMemoryController::class, 'lock'])->name('lock');
-        Route::delete('/{aiMemory}', [\App\Http\Controllers\AiMemoryController::class, 'destroy'])->name('destroy');
-    });
-
-    // Delivery Orders (Surat Jalan)
-    Route::prefix('delivery-orders')->name('delivery-orders.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\DeliveryOrderController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\DeliveryOrderController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\DeliveryOrderController::class, 'store'])->name('store');
-        Route::post('/{deliveryOrder}/ship', [\App\Http\Controllers\DeliveryOrderController::class, 'ship'])->name('ship');
-        Route::post('/{deliveryOrder}/deliver', [\App\Http\Controllers\DeliveryOrderController::class, 'deliver'])->name('deliver');
-        Route::post('/{deliveryOrder}/invoice', [\App\Http\Controllers\DeliveryOrderController::class, 'createInvoice'])->name('invoice');
-        Route::get('/so/{salesOrder}/items', [\App\Http\Controllers\DeliveryOrderController::class, 'soItems'])->name('so-items');
-    });
-
-    // 2FA Setup — Task 53
-    Route::prefix('two-factor')->name('two-factor.')->group(function () {
-        Route::get('/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'setup'])->name('setup');
-        Route::post('/confirm', [\App\Http\Controllers\Auth\TwoFactorController::class, 'confirm'])->name('confirm');
-        Route::post('/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('disable');
-        Route::post('/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'regenerateCodes'])->name('recovery-codes');
-    });
-
-    // Custom Fields — Task 54
-    Route::prefix('settings/custom-fields')->name('custom-fields.')->middleware('role:admin')->group(function () {
-        Route::get('/', [\App\Http\Controllers\CustomFieldController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\CustomFieldController::class, 'store'])->name('store');
-        Route::put('/{customField}', [\App\Http\Controllers\CustomFieldController::class, 'update'])->name('update');
-        Route::delete('/{customField}', [\App\Http\Controllers\CustomFieldController::class, 'destroy'])->name('destroy');
-    });
-
-    // Multi Company — Enterprise Feature
-    Route::prefix('company-groups')->name('company-groups.')->middleware(['role:admin', 'permission:company_groups,view'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\CompanyGroupController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\CompanyGroupController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\CompanyGroupController::class, 'store'])->name('store');
-        Route::get('/{companyGroup}', [\App\Http\Controllers\CompanyGroupController::class, 'show'])->name('show');
-        Route::post('/{companyGroup}/members', [\App\Http\Controllers\CompanyGroupController::class, 'addMember'])->name('members.add');
-        Route::delete('/{companyGroup}/members/{tenant}', [\App\Http\Controllers\CompanyGroupController::class, 'removeMember'])->name('members.remove');
-        Route::post('/{companyGroup}/transactions', [\App\Http\Controllers\CompanyGroupController::class, 'storeTransaction'])->name('transactions.store');
-        Route::post('/transactions/{transaction}/post', [\App\Http\Controllers\CompanyGroupController::class, 'postTransaction'])->name('transactions.post');
-        Route::post('/transactions/{transaction}/void', [\App\Http\Controllers\CompanyGroupController::class, 'voidTransaction'])->name('transactions.void');
-        Route::get('/{companyGroup}/export', [\App\Http\Controllers\CompanyGroupController::class, 'exportCsv'])->name('export');
-    });
-
-    // Zero Input ERP — Task 56
-    Route::prefix('zero-input')->name('zero-input.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\ZeroInputController::class, 'index'])->name('index');
-        Route::post('/photo', [\App\Http\Controllers\ZeroInputController::class, 'uploadPhoto'])->name('photo');
-        Route::post('/text', [\App\Http\Controllers\ZeroInputController::class, 'processText'])->name('text');
-        Route::get('/{zeroInputLog}', [\App\Http\Controllers\ZeroInputController::class, 'show'])->name('show');
-        Route::post('/{zeroInputLog}/confirm', [\App\Http\Controllers\ZeroInputController::class, 'confirm'])->name('confirm');
-        Route::post('/{zeroInputLog}/reject', [\App\Http\Controllers\ZeroInputController::class, 'reject'])->name('reject');
-    });
-
-    // Multi-Company Consolidation — Enterprise Feature
-    Route::prefix('consolidation')->name('consolidation.')->middleware(['role:admin'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\ConsolidationController::class, 'index'])->name('index');
-
-        // Company Group Management
-        Route::get('/groups/create', [\App\Http\Controllers\ConsolidationController::class, 'createGroup'])->name('groups.create');
-        Route::post('/groups', [\App\Http\Controllers\ConsolidationController::class, 'storeGroup'])->name('groups.store');
-        Route::get('/groups/{group}', [\App\Http\Controllers\ConsolidationController::class, 'show'])->name('show');
-        Route::post('/groups/{group}/members', [\App\Http\Controllers\ConsolidationController::class, 'addMember'])->name('members.add');
-        Route::delete('/groups/{group}/members/{tenantId}', [\App\Http\Controllers\ConsolidationController::class, 'removeMember'])->name('members.remove');
-
-        // Consolidation Reports
-        Route::post('/groups/{group}/reports', [\App\Http\Controllers\ConsolidationController::class, 'generateReport'])->name('report.generate');
-        Route::get('/groups/{group}/reports/{report}', [\App\Http\Controllers\ConsolidationController::class, 'showReport'])->name('report.show');
-        Route::post('/groups/{group}/reports/{report}/finalize', [\App\Http\Controllers\ConsolidationController::class, 'finalizeReport'])->name('report.finalize');
-        Route::get('/groups/{group}/reports/{report}/export', [\App\Http\Controllers\ConsolidationController::class, 'exportReport'])->name('report.export');
-
-        // Master Chart of Accounts
-        Route::get('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'masterAccounts'])->name('master-accounts');
-        Route::post('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'storeMasterAccount'])->name('master-accounts.store');
-
-        // Account Mappings
-        Route::get('/groups/{group}/mappings', [\App\Http\Controllers\ConsolidationController::class, 'accountMappings'])->name('mappings');
-        Route::patch('/groups/{group}/mappings/{mapping}', [\App\Http\Controllers\ConsolidationController::class, 'updateMapping'])->name('mappings.update');
-
-        // Elimination Entries
-        Route::get('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'eliminations'])->name('eliminations');
-        Route::post('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'storeElimination'])->name('eliminations.store');
-
-        // Ownership Structure
-        Route::get('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'ownerships'])->name('ownerships');
-        Route::post('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'storeOwnership'])->name('ownerships.store');
-    });
-
-    // =============================================
-    // HOTEL PMS MODULE
-    // =============================================
-    Route::prefix('hotel')->name('hotel.')->middleware('tenant.isolation')->group(function () {
+    // Expiry Management Routes
+    Route::prefix('expiry')->name('expiry.')->group(function () {
         // Dashboard
-        Route::get('/', [App\Http\Controllers\Hotel\HotelDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'dashboard'])->name('dashboard');
+        Route::post('/alerts/{id}/read', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'markAlertRead'])->name('alerts.read');
+        Route::post('/alerts/{id}/action', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'markAlertActioned'])->name('alerts.action');
 
-        // Settings
-        Route::get('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'edit'])->name('settings.edit');
-        Route::put('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'update'])->name('settings.update');
+        // Recalls
+        Route::get('/recalls', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'recallsIndex'])->name('recalls');
+        Route::post('/recalls', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'storeRecall'])->name('recalls.store');
+        Route::post('/recalls/{id}/progress', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'updateRecallProgress'])->name('recalls.progress');
+        Route::post('/recalls/{id}/complete', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'completeRecall'])->name('recalls.complete');
+        Route::post('/recalls/{id}/cancel', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'cancelRecall'])->name('recalls.cancel');
 
-        // Room Types
-        Route::resource('room-types', App\Http\Controllers\Hotel\RoomTypeController::class)->except(['show', 'edit', 'create'])->names('room-types');
-
-        // Rooms
-        Route::get('rooms/availability', [App\Http\Controllers\Hotel\RoomController::class, 'availability'])->name('rooms.availability');
-        Route::patch('rooms/{room}/status', [App\Http\Controllers\Hotel\RoomController::class, 'updateStatus'])->name('rooms.status');
-        Route::resource('rooms', App\Http\Controllers\Hotel\RoomController::class)->except(['show', 'edit', 'create'])->names('rooms');
-
-        // Reservations
-        Route::get('reservations/calendar', [App\Http\Controllers\Hotel\ReservationController::class, 'calendar'])->name('reservations.calendar');
-        Route::post('reservations/calculate-rate', [App\Http\Controllers\Hotel\ReservationController::class, 'calculateRate'])->name('reservations.calculate-rate');
-        Route::patch('reservations/{reservation}/confirm', [App\Http\Controllers\Hotel\ReservationController::class, 'confirm'])->name('reservations.confirm');
-        Route::patch('reservations/{reservation}/cancel', [App\Http\Controllers\Hotel\ReservationController::class, 'cancel'])->name('reservations.cancel');
-
-        // Reservation room changes and early/late requests
-        Route::get('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'showRoomChange'])->name('reservations.room-change');
-        Route::post('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'processRoomChange'])->name('reservations.process-room-change');
-        Route::post('reservations/{reservation}/early-late-request', [App\Http\Controllers\Hotel\ReservationController::class, 'requestEarlyLate'])->name('reservations.request-early-late');
-        Route::post('reservations/early-late/{request}/approve', [App\Http\Controllers\Hotel\ReservationController::class, 'approveEarlyLate'])->name('reservations.approve-early-late');
-        Route::post('reservations/early-late/{request}/reject', [App\Http\Controllers\Hotel\ReservationController::class, 'rejectEarlyLate'])->name('reservations.reject-early-late');
-        Route::get('reservations/early-late/pending', [App\Http\Controllers\Hotel\ReservationController::class, 'getPendingRequests'])->name('reservations.pending-early-late');
-        Route::post('reservations/{reservation}/record-check-in', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckIn'])->name('reservations.record-check-in');
-        Route::post('reservations/{reservation}/record-check-out', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckOut'])->name('reservations.record-check-out');
-        Route::get('reservations/{reservation}/room-changes', [App\Http\Controllers\Hotel\ReservationController::class, 'getRoomChanges'])->name('reservations.room-changes');
-
-        Route::resource('reservations', App\Http\Controllers\Hotel\ReservationController::class)->names('reservations');
-
-        // Guests
-        Route::get('guests/search', [App\Http\Controllers\Hotel\GuestController::class, 'search'])->name('guests.search');
-        Route::get('guests/{guest}/history', [App\Http\Controllers\Hotel\GuestController::class, 'history'])->name('guests.history');
-        Route::get('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'preferences'])->name('guests.preferences');
-        Route::post('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'storePreference'])->name('guests.store-preference');
-        Route::patch('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'updatePreference'])->name('guests.update-preference');
-        Route::delete('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'destroyPreference'])->name('guests.destroy-preference');
-        Route::get('guests/{guest}/suggestions', [App\Http\Controllers\Hotel\GuestController::class, 'getSuggestions'])->name('guests.suggestions');
-        Route::post('guests/{guest}/apply-suggestion', [App\Http\Controllers\Hotel\GuestController::class, 'applySuggestion'])->name('guests.apply-suggestion');
-        Route::post('guests/{guest}/award-points', [App\Http\Controllers\Hotel\GuestController::class, 'awardPoints'])->name('guests.award-points');
-        Route::post('guests/{guest}/redeem-points', [App\Http\Controllers\Hotel\GuestController::class, 'redeemPoints'])->name('guests.redeem-points');
-        Route::patch('guests/{guest}/vip-level', [App\Http\Controllers\Hotel\GuestController::class, 'updateVipLevel'])->name('guests.update-vip-level');
-        Route::resource('guests', App\Http\Controllers\Hotel\GuestController::class)->names('guests');
-
-        // Group Bookings
-        Route::get('group-bookings/search', [App\Http\Controllers\Hotel\GroupBookingController::class, 'search'])->name('group-bookings.search');
-        Route::post('group-bookings/{groupBooking}/add-reservation', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addReservation'])->name('group-bookings.add-reservation');
-        Route::post('group-bookings/{groupBooking}/confirm', [App\Http\Controllers\Hotel\GroupBookingController::class, 'confirm'])->name('group-bookings.confirm');
-        Route::post('group-bookings/{groupBooking}/cancel', [App\Http\Controllers\Hotel\GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
-        Route::post('group-bookings/{groupBooking}/payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'processPayment'])->name('group-bookings.payment');
-        Route::post('group-bookings/{groupBooking}/add-benefit', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addBenefit'])->name('group-bookings.add-benefit');
-        Route::delete('reservations/{reservation}/remove-from-group', [App\Http\Controllers\Hotel\GroupBookingController::class, 'removeReservation'])->name('group-bookings.remove-reservation');
-        Route::resource('group-bookings', App\Http\Controllers\Hotel\GroupBookingController::class)->names('group-bookings');
-
-        // Group Booking Enhanced Features
-        Route::post('group-bookings/{groupBooking}/create-room-block', [App\Http\Controllers\Hotel\GroupBookingController::class, 'createRoomBlock'])->name('group-bookings.create-room-block');
-        Route::get('group-bookings/{groupBooking}/billing', [App\Http\Controllers\Hotel\GroupBookingController::class, 'billing'])->name('group-bookings.billing');
-        Route::post('group-bookings/{groupBooking}/split-bill', [App\Http\Controllers\Hotel\GroupBookingController::class, 'splitBill'])->name('group-bookings.split-bill');
-        Route::post('group-bookings/{groupBooking}/group-payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'groupPayment'])->name('group-bookings.group-payment');
-        Route::post('group-bookings/{groupBooking}/check-in-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkInMember'])->name('group-bookings.check-in-member');
-        Route::post('group-bookings/{groupBooking}/check-out-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkOutMember'])->name('group-bookings.check-out-member');
-
-        // Walk-in Reservations
-        Route::get('walk-ins/statistics', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'statistics'])->name('walk-ins.statistics');
-        Route::post('walk-ins/quick-check-in', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'quickCheckIn'])->name('walk-ins.quick-check-in');
-        Route::resource('walk-ins', App\Http\Controllers\Hotel\WalkInReservationController::class)->except(['create', 'store'])->names('walk-ins');
-
-        // Check-in / Check-out
-        Route::get('check-in-out', [App\Http\Controllers\Hotel\CheckInOutController::class, 'index'])->name('checkin-out.index');
-        Route::get('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkInForm'])->name('checkin.form');
-        Route::post('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckIn'])->name('checkin.process');
-        Route::get('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkOutForm'])->name('checkout.form');
-        Route::post('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckOut'])->name('checkout.process');
-
-        // Room Changes
-        Route::get('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'showChangeForm'])->name('room-change.form');
-        Route::post('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'processRoomChange'])->name('room-change.process');
-        Route::get('room-map', [App\Http\Controllers\Hotel\RoomChangeController::class, 'roomMap'])->name('room-map');
-        Route::get('available-rooms', [App\Http\Controllers\Hotel\RoomChangeController::class, 'getAvailableRooms'])->name('available-rooms');
-        Route::get('reservations/{reservation}/room-change-history', [App\Http\Controllers\Hotel\RoomChangeController::class, 'history'])->name('room-change.history');
-
-        // Pre-Arrival Forms
-        Route::get('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'preArrivalForm'])->name('checkin.pre-arrival');
-        Route::post('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'submitPreArrival'])->name('checkin.pre-arrival.submit');
-        Route::post('pre-arrival/{form}/verify', [App\Http\Controllers\Hotel\CheckInOutController::class, 'verifyPreArrival'])->name('pre-arrival.verify');
-
-        // Quick Check-in
-        Route::post('check-in/{reservation}/quick', [App\Http\Controllers\Hotel\CheckInOutController::class, 'quickCheckIn'])->name('checkin.quick');
-
-        // Housekeeping Module
-        Route::prefix('housekeeping')->name('housekeeping.')->group(function () {
-            // Dashboard & Room Board
-            Route::get('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'index'])->name('index');
-            Route::get('room-board', [App\Http\Controllers\Hotel\HousekeepingController::class, 'roomBoard'])->name('room-board');
-            Route::post('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'store'])->name('store');
-            Route::post('rooms/{roomId}/status', [App\Http\Controllers\Hotel\HousekeepingController::class, 'updateRoomStatus'])->name('rooms.status');
-
-            // Tasks Management
-            Route::get('tasks', [App\Http\Controllers\Hotel\HousekeepingController::class, 'tasks'])->name('tasks.index');
-            Route::post('tasks/{taskId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignTask'])->name('tasks.assign');
-            Route::post('tasks/{taskId}/start', [App\Http\Controllers\Hotel\HousekeepingController::class, 'startTask'])->name('tasks.start');
-            Route::post('tasks/{taskId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeTask'])->name('tasks.complete');
-
-            // Maintenance Requests
-            Route::get('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'maintenance'])->name('maintenance.index');
-            Route::post('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'createMaintenanceRequest'])->name('maintenance.store');
-            Route::post('maintenance/{requestId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignMaintenanceRequest'])->name('maintenance.assign');
-            Route::post('maintenance/{requestId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeMaintenanceRequest'])->name('maintenance.complete');
-
-            // Linen Inventory
-            Route::get('linen', [App\Http\Controllers\Hotel\HousekeepingController::class, 'linenInventory'])->name('linen.index');
-            Route::post('linen/movement', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordLinenMovement'])->name('linen.movement');
-
-            // Supplies Inventory
-            Route::get('supplies', [App\Http\Controllers\Hotel\HousekeepingController::class, 'supplies'])->name('supplies.index');
-            Route::post('supplies/usage', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordSupplyUsage'])->name('supplies.usage');
-
-            // Reports
-            Route::get('daily-report', [App\Http\Controllers\Hotel\HousekeepingController::class, 'dailyReport'])->name('daily-report');
-        });
-
-        // Rate Management
-        Route::get('rates/calendar', [App\Http\Controllers\Hotel\RateController::class, 'calendar'])->name('rates.calendar');
-        Route::post('rates/bulk-update', [App\Http\Controllers\Hotel\RateController::class, 'bulkUpdate'])->name('rates.bulk-update');
-        Route::resource('rates', App\Http\Controllers\Hotel\RateController::class)->except(['show', 'edit', 'create'])->names('rates');
-
-        // Revenue Management
-        Route::prefix('revenue')->name('revenue.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'dashboard'])->name('dashboard');
-
-            // Rate Plans
-            Route::get('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'ratePlans'])->name('rate-plans');
-            Route::post('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeRatePlan'])->name('rate-plans.store');
-            Route::put('rate-plans/{ratePlan}', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'updateRatePlan'])->name('rate-plans.update');
-
-            // Pricing Rules
-            Route::get('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'pricingRules'])->name('pricing-rules');
-            Route::post('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storePricingRule'])->name('pricing-rules.store');
-
-            // Forecasts
-            Route::get('forecasts', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'forecasts'])->name('forecasts');
-            Route::post('forecasts/generate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'generateForecasts'])->name('forecasts.generate');
-
-            // Competitor Rates
-            Route::get('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'competitorRates'])->name('competitor-rates');
-            Route::post('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeCompetitorRate'])->name('competitor-rates.store');
-
-            // Special Events
-            Route::get('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'specialEvents'])->name('special-events');
-            Route::post('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeSpecialEvent'])->name('special-events.store');
-
-            // Recommendations
-            Route::get('recommendations', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'recommendations'])->name('recommendations');
-            Route::post('recommendations/{recommendation}/apply', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'applyRecommendation'])->name('recommendations.apply');
-            Route::post('recommendations/{recommendation}/reject', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rejectRecommendation'])->name('recommendations.reject');
-
-            // Rate Calendar
-            Route::get('rate-calendar', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rateCalendar'])->name('rate-calendar');
-
-            // Yield Optimization
-            Route::get('yield-optimization', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'yieldOptimization'])->name('yield-optimization');
-
-            // Reports
-            Route::get('reports', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'reports'])->name('reports');
-
-            // Bulk Updates
-            Route::post('bulk-rate-update', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'bulkRateUpdate'])->name('bulk-rate-update');
-
-            // API Endpoints
-            Route::get('api/optimal-rate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getOptimalRate'])->name('api.optimal-rate');
-            Route::get('api/rate-range', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getRateRange'])->name('api.rate-range');
-        });
-
-        // Food & Beverage Module
-        Route::prefix('fb')->name('fb.')->group(function () {
-            // Restaurant POS
-            Route::get('restaurant', [App\Http\Controllers\Hotel\RestaurantController::class, 'index'])->name('restaurant.index');
-            Route::post('restaurant/orders', [App\Http\Controllers\Hotel\RestaurantController::class, 'createOrder'])->name('restaurant.orders.store');
-            Route::get('restaurant/orders/{id}', [App\Http\Controllers\Hotel\RestaurantController::class, 'showOrder'])->name('restaurant.orders.show');
-            Route::patch('restaurant/orders/{id}/status', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateOrderStatus'])->name('restaurant.orders.status');
-
-            // Menus Management
-            Route::get('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'menus'])->name('menus.index');
-            Route::post('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenu'])->name('menus.store');
-            Route::put('menus/{menu}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenu'])->name('menus.update');
-            Route::get('menus/{menu}/items', [App\Http\Controllers\Hotel\RestaurantController::class, 'menuItems'])->name('menus.items');
-            Route::post('menu-items', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenuItem'])->name('menu-items.store');
-            Route::put('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenuItem'])->name('menu-items.update');
-            Route::delete('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'destroyMenuItem'])->name('menu-items.destroy');
-
-            // Room Service
-            Route::get('roomservice', [App\Http\Controllers\Hotel\RoomServiceController::class, 'index'])->name('roomservice.index');
-            Route::post('roomservice/orders', [App\Http\Controllers\Hotel\RoomServiceController::class, 'createOrder'])->name('roomservice.orders.store');
-            Route::get('roomservice/orders/{id}', [App\Http\Controllers\Hotel\RoomServiceController::class, 'showOrder'])->name('roomservice.orders.show');
-            Route::post('roomservice/orders/{id}/deliver', [App\Http\Controllers\Hotel\RoomServiceController::class, 'deliverOrder'])->name('roomservice.orders.deliver');
-            Route::post('roomservice/orders/{id}/charge', [App\Http\Controllers\Hotel\RoomServiceController::class, 'chargeToRoom'])->name('roomservice.orders.charge');
-            Route::get('roomservice/menu-items', [App\Http\Controllers\Hotel\RoomServiceController::class, 'availableMenuItems'])->name('roomservice.menu-items');
-
-            // Mini-bar
-            Route::get('minibar', [App\Http\Controllers\Hotel\MinibarController::class, 'index'])->name('minibar.index');
-            Route::get('minibar/room/{roomNumber}', [App\Http\Controllers\Hotel\MinibarController::class, 'roomStock'])->name('minibar.room-stock');
-            Route::post('minibar/consumption', [App\Http\Controllers\Hotel\MinibarController::class, 'recordConsumption'])->name('minibar.consumption');
-            Route::post('minibar/restock', [App\Http\Controllers\Hotel\MinibarController::class, 'restock'])->name('minibar.restock');
-            Route::get('minibar/reservation/{reservationId}/charges', [App\Http\Controllers\Hotel\MinibarController::class, 'reservationCharges'])->name('minibar.charges');
-            Route::post('minibar/reservation/{reservationId}/bill-all', [App\Http\Controllers\Hotel\MinibarController::class, 'billAllCharges'])->name('minibar.bill-all');
-
-            // Banquet & Events
-            Route::get('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'index'])->name('banquet.index');
-            Route::get('banquet/create', [App\Http\Controllers\Hotel\BanquetController::class, 'create'])->name('banquet.create');
-            Route::post('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'store'])->name('banquet.store');
-            Route::get('banquet/{id}', [App\Http\Controllers\Hotel\BanquetController::class, 'show'])->name('banquet.show');
-            Route::post('banquet/{id}/confirm', [App\Http\Controllers\Hotel\BanquetController::class, 'confirmEvent'])->name('banquet.confirm');
-            Route::post('banquet/{id}/complete', [App\Http\Controllers\Hotel\BanquetController::class, 'completeEvent'])->name('banquet.complete');
-            Route::post('banquet/{id}/cancel', [App\Http\Controllers\Hotel\BanquetController::class, 'cancelEvent'])->name('banquet.cancel');
-            Route::patch('banquet/{id}/guest-count', [App\Http\Controllers\Hotel\BanquetController::class, 'updateGuestCount'])->name('banquet.guest-count');
-
-            // F&B Inventory/Supplies
-            Route::get('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'index'])->name('supplies.index');
-            Route::post('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'store'])->name('supplies.store');
-            Route::put('supplies/{supply}', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'update'])->name('supplies.update');
-            Route::post('supplies/{supply}/add-stock', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'addStock'])->name('supplies.add-stock');
-            Route::post('supplies/{supply}/usage', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'recordUsage'])->name('supplies.usage');
-            Route::get('supplies/{supply}/transactions', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'transactions'])->name('supplies.transactions');
-
-            // F&B Reports
-            Route::get('reports', [App\Http\Controllers\Hotel\FbReportsController::class, 'index'])->name('reports.index');
-            Route::get('reports/export', [App\Http\Controllers\Hotel\FbReportsController::class, 'export'])->name('reports.export');
-        });
-
-        // Spa & Recreation Module
-        Route::prefix('spa')->name('spa.')->group(function () {
-            // Dashboard
-            Route::get('/', [App\Http\Controllers\Hotel\SpaController::class, 'dashboard'])->name('dashboard');
-
-            // Treatments
-            Route::get('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'treatments'])->name('treatments.index');
-            Route::post('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'storeTreatment'])->name('treatments.store');
-            Route::put('treatments/{treatment}', [App\Http\Controllers\Hotel\SpaController::class, 'updateTreatment'])->name('treatments.update');
-
-            // Packages
-            Route::get('packages', [App\Http\Controllers\Hotel\SpaController::class, 'packages'])->name('packages.index');
-            Route::get('packages/create', [App\Http\Controllers\Hotel\SpaController::class, 'createPackage'])->name('packages.create');
-            Route::post('packages', [App\Http\Controllers\Hotel\SpaController::class, 'storePackage'])->name('packages.store');
-            Route::get('packages/{package}', [App\Http\Controllers\Hotel\SpaController::class, 'showPackage'])->name('packages.show');
-
-            // Therapists
-            Route::get('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'therapists'])->name('therapists.index');
-            Route::post('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'storeTherapist'])->name('therapists.store');
-            Route::get('therapists/{therapist}/schedule', [App\Http\Controllers\Hotel\SpaController::class, 'therapistSchedule'])->name('therapists.schedule');
-
-            // Bookings
-            Route::get('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'bookings'])->name('bookings.index');
-            Route::get('bookings/create', [App\Http\Controllers\Hotel\SpaController::class, 'createBooking'])->name('bookings.create');
-            Route::post('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'storeBooking'])->name('bookings.store');
-            Route::post('bookings/{booking}/confirm', [App\Http\Controllers\Hotel\SpaController::class, 'confirmBooking'])->name('bookings.confirm');
-            Route::post('bookings/{booking}/complete', [App\Http\Controllers\Hotel\SpaController::class, 'completeBooking'])->name('bookings.complete');
-            Route::post('bookings/{booking}/cancel', [App\Http\Controllers\Hotel\SpaController::class, 'cancelBooking'])->name('bookings.cancel');
-
-            // Product Sales
-            Route::get('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'productSales'])->name('product-sales.index');
-            Route::post('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'recordProductSale'])->name('product-sales.store');
-
-            // Reports
-            Route::get('reports', [App\Http\Controllers\Hotel\SpaController::class, 'reports'])->name('reports.index');
-        });
-
-        // Hotel Reports & Analytics Module
-        Route::prefix('reports')->name('reports.')->group(function () {
-            // Dashboard
-            Route::get('/', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dashboard'])->name('dashboard');
-
-            // Daily Operations Report
-            Route::get('daily-operations', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dailyOperations'])->name('daily-operations');
-
-            // Revenue Report
-            Route::get('revenue', [App\Http\Controllers\Hotel\HotelReportsController::class, 'revenue'])->name('revenue');
-
-            // Occupancy Analytics
-            Route::get('occupancy', [App\Http\Controllers\Hotel\HotelReportsController::class, 'occupancy'])->name('occupancy');
-
-            // Guest Analytics
-            Route::get('guest-analytics', [App\Http\Controllers\Hotel\HotelReportsController::class, 'guestAnalytics'])->name('guest-analytics');
-
-            // Staff Performance
-            Route::get('staff-performance', [App\Http\Controllers\Hotel\HotelReportsController::class, 'staffPerformance'])->name('staff-performance');
-        });
-
-        // Night Audit Module
-        Route::prefix('night-audit')->name('night-audit.')->group(function () {
-            // Dashboard
-            Route::get('/', [App\Http\Controllers\Hotel\NightAuditController::class, 'index'])->name('index');
-
-            // Audit Batch Processing
-            Route::post('start', [App\Http\Controllers\Hotel\NightAuditController::class, 'startAudit'])->name('start');
-            Route::get('batch/{id}', [App\Http\Controllers\Hotel\NightAuditController::class, 'showBatch'])->name('batch');
-            Route::post('batch/{id}/post-room-charges', [App\Http\Controllers\Hotel\NightAuditController::class, 'postRoomCharges'])->name('post-room-charges');
-            Route::post('batch/{id}/post-fb-revenue', [App\Http\Controllers\Hotel\NightAuditController::class, 'postFBRevenue'])->name('post-fb-revenue');
-            Route::post('batch/{id}/post-minibar', [App\Http\Controllers\Hotel\NightAuditController::class, 'postMinibarCharges'])->name('post-minibar');
-            Route::post('batch/{id}/calculate-occupancy', [App\Http\Controllers\Hotel\NightAuditController::class, 'calculateOccupancy'])->name('calculate-occupancy');
-            Route::post('batch/{id}/complete', [App\Http\Controllers\Hotel\NightAuditController::class, 'completeAudit'])->name('complete');
-            Route::post('batch/{id}/retry', [App\Http\Controllers\Hotel\NightAuditController::class, 'retryFailedAudit'])->name('retry');
-            Route::post('batch/{id}/cancel', [App\Http\Controllers\Hotel\NightAuditController::class, 'cancelAudit'])->name('cancel');
-
-            // Revenue Postings
-            Route::get('revenue-postings', [App\Http\Controllers\Hotel\NightAuditController::class, 'revenuePostings'])->name('revenue-postings');
-            Route::post('revenue-postings/{id}/void', [App\Http\Controllers\Hotel\NightAuditController::class, 'voidPosting'])->name('void-posting');
-
-            // Statistics & Reports
-            Route::get('statistics', [App\Http\Controllers\Hotel\NightAuditController::class, 'statistics'])->name('statistics');
-            Route::post('recalculate-rates', [App\Http\Controllers\Hotel\NightAuditController::class, 'recalculateRates'])->name('recalculate-rates');
-        });
-
-        // Channel Manager
-        Route::get('channels', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'index'])->name('channels.index');
-        Route::get('channels/logs', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'logs'])->name('channels.logs');
-        Route::get('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'configure'])->name('channels.configure');
-        Route::put('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'updateConfig'])->name('channels.update-config');
-        Route::post('channels/{channel}/sync', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'sync'])->name('channels.sync');
+        // Reports
+        Route::get('/reports', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'reportsIndex'])->name('reports');
+        Route::post('/reports', [\App\Http\Controllers\Cosmetic\ExpiryController::class, 'generateReport'])->name('reports.generate');
     });
+
+    // Distribution Management Routes
+    Route::prefix('distribution')->name('distribution.')->group(function () {
+        // Channels
+        Route::get('/', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'index'])->name('index');
+        Route::post('/channels', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'storeChannel'])->name('channels.store');
+
+        // Pricing
+        Route::get('/pricing', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'pricingIndex'])->name('pricing');
+        Route::post('/pricing', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'storePricing'])->name('pricing.store');
+
+        // Inventory
+        Route::get('/inventory', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'inventoryIndex'])->name('inventory');
+        Route::post('/inventory/{id}/restock', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'restock'])->name('inventory.restock');
+
+        // Performance
+        Route::get('/performance', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'performanceIndex'])->name('performance');
+        Route::post('/sales', [\App\Http\Controllers\Cosmetic\DistributionController::class, 'recordSale'])->name('sales.record');
+    });
+
+    // Cosmetic Analytics & Reporting Routes
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'dashboard'])->name('dashboard');
+        Route::get('/batch-performance', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'batchPerformance'])->name('batch-performance');
+        Route::get('/qc-trend', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'qcTrendAnalysis'])->name('qc-trend');
+        Route::get('/regulatory', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'regulatoryDashboard'])->name('regulatory');
+        Route::get('/cost-analysis', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'formulaCostAnalysis'])->name('cost-analysis');
+        Route::get('/supplier-quality', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'supplierQualityReport'])->name('supplier-quality');
+        Route::get('/product-lifecycle', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'productLifecycle'])->name('product-lifecycle');
+        Route::get('/recall-report', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'recallReport'])->name('recall-report');
+        Route::get('/expiry-forecast', [\App\Http\Controllers\Cosmetic\CosmeticAnalyticsController::class, 'expiryForecast'])->name('expiry-forecast');
+    });
+});
+
+// Customers (master data)
+Route::prefix('customers')->name('customers.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\CustomerController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\CustomerController::class, 'store'])->name('store');
+    Route::post('/bulk-action', [\App\Http\Controllers\CustomerController::class, 'bulkAction'])->name('bulk-action');
+    Route::put('/{customer}', [\App\Http\Controllers\CustomerController::class, 'update'])->name('update');
+    Route::patch('/{customer}/toggle', [\App\Http\Controllers\CustomerController::class, 'toggleActive'])->name('toggle');
+    Route::delete('/{customer}', [\App\Http\Controllers\CustomerController::class, 'destroy'])->name('destroy');
+});
+
+// Products (master data)
+Route::prefix('products')->name('products.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ProductController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\ProductController::class, 'store'])->name('store');
+    Route::post('/bulk-action', [\App\Http\Controllers\ProductController::class, 'bulkAction'])->name('bulk-action');
+    Route::put('/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('update');
+    Route::patch('/{product}/toggle', [\App\Http\Controllers\ProductController::class, 'toggleActive'])->name('toggle');
+    Route::delete('/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('destroy');
+});
+
+// Product Categories (master data)
+Route::prefix('categories')->name('categories.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ProductCategoryController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\ProductCategoryController::class, 'store'])->name('store');
+    Route::put('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [\App\Http\Controllers\ProductCategoryController::class, 'destroy'])->name('destroy');
+});
+
+// Warehouses (master data)
+Route::prefix('warehouses')->name('warehouses.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('store');
+    Route::put('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('update');
+    Route::patch('/{warehouse}/toggle', [\App\Http\Controllers\WarehouseController::class, 'toggleActive'])->name('toggle');
+    Route::delete('/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('destroy');
+
+    // IoT - RFID Management
+    Route::prefix('rfid')->name('rfid.')->group(function () {
+        Route::get('/tags', [\App\Http\Controllers\Inventory\RfidController::class, 'index'])->name('tags.index');
+        Route::post('/tags', [\App\Http\Controllers\Inventory\RfidController::class, 'store'])->name('tags.store');
+        Route::post('/tags/{tag}/assign', [\App\Http\Controllers\Inventory\RfidController::class, 'assignTag'])->name('tags.assign');
+        Route::post('/scan', [\App\Http\Controllers\Inventory\RfidController::class, 'scanTag'])->name('scan');
+        Route::get('/scanners', [\App\Http\Controllers\Inventory\RfidController::class, 'scanners'])->name('scanners.index');
+        Route::post('/scanners', [\App\Http\Controllers\Inventory\RfidController::class, 'storeScanner'])->name('scanners.store');
+        Route::get('/logs', [\App\Http\Controllers\Inventory\RfidController::class, 'logs'])->name('logs');
+    });
+
+    // IoT - CCTV Monitoring
+    Route::prefix('cctv')->name('cctv.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Security\CctvController::class, 'index'])->name('index');
+        Route::get('/camera/{cameraId}', [\App\Http\Controllers\Security\CctvController::class, 'viewCamera'])->name('camera');
+        Route::post('/camera/{cameraId}/snapshot', [\App\Http\Controllers\Security\CctvController::class, 'takeSnapshot'])->name('snapshot');
+        Route::get('/recordings', [\App\Http\Controllers\Security\CctvController::class, 'recordings'])->name('recordings');
+        Route::post('/motion-detect/{cameraId}', [\App\Http\Controllers\Security\CctvController::class, 'detectMotion'])->name('motion-detect');
+    });
+});
+
+// CRM (admin + manager only)
+Route::prefix('crm')->name('crm.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [CrmController::class, 'index'])->name('index');
+    Route::get('/kanban', [CrmController::class, 'kanban'])->name('kanban');
+    Route::post('/', [CrmController::class, 'store'])->name('store');
+    Route::patch('/{lead}/stage', [CrmController::class, 'updateStage'])->name('stage');
+    Route::patch('/{lead}/stage-drag', [CrmController::class, 'updateStageDrag'])->name('stage-drag');
+    Route::post('/{lead}/activity', [CrmController::class, 'logActivity'])->name('activity');
+    Route::post('/{lead}/convert-customer', [CrmController::class, 'convertToCustomer'])->name('convert-customer');
+    // BUG-CRM-001 FIX: Check duplicates before conversion
+    Route::get('/{lead}/check-duplicates', [CrmController::class, 'checkLeadDuplicates'])->name('check-duplicates');
+    Route::delete('/{lead}', [CrmController::class, 'destroy'])->name('destroy');
+    // AI
+    Route::get('/ai/score-all', [CrmAiController::class, 'scoreAll'])->name('ai.score-all')->middleware('ai.quota');
+    Route::get('/ai/score/{lead}', [CrmAiController::class, 'scoreLead'])->name('ai.score')->middleware('ai.quota');
+    Route::get('/ai/follow-up/{lead}', [CrmAiController::class, 'followUp'])->name('ai.follow-up')->middleware('ai.quota');
+});
+
+// Project Management (admin + manager only)
+Route::prefix('projects')->name('projects.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [ProjectController::class, 'index'])->name('index');
+    Route::post('/', [ProjectController::class, 'store'])->name('store');
+    Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+    Route::put('/{project}', [ProjectController::class, 'update'])->name('update');
+    Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
+    Route::post('/{project}/tasks', [ProjectController::class, 'storeTask'])->name('tasks.store');
+    Route::patch('/tasks/{task}/status', [ProjectController::class, 'updateTaskStatus'])->name('tasks.status');
+    Route::post('/tasks/{task}/volume', [ProjectController::class, 'recordVolume'])->name('tasks.volume');
+    Route::delete('/tasks/{task}', [ProjectController::class, 'destroyTask'])->name('tasks.destroy');
+    Route::post('/{project}/expenses', [ProjectController::class, 'storeExpense'])->name('expenses.store');
+
+    // RAB (Rencana Anggaran Biaya)
+    Route::get('/{project}/rab', [\App\Http\Controllers\RabController::class, 'index'])->name('rab')->middleware('permission:rab,view');
+    Route::post('/{project}/rab', [\App\Http\Controllers\RabController::class, 'store'])->name('rab.store')->middleware('permission:rab,create');
+    Route::put('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'update'])->name('rab.update')->middleware('permission:rab,edit');
+    Route::post('/rab/{rabItem}/actual', [\App\Http\Controllers\RabController::class, 'recordActual'])->name('rab.actual')->middleware('permission:rab,edit');
+    Route::delete('/rab/{rabItem}', [\App\Http\Controllers\RabController::class, 'destroy'])->name('rab.destroy')->middleware('permission:rab,delete');
+    Route::get('/{project}/rab/export', [\App\Http\Controllers\RabController::class, 'export'])->name('rab.export')->middleware('permission:rab,view');
+    Route::post('/{project}/rab/import', [\App\Http\Controllers\RabController::class, 'import'])->name('rab.import')->middleware('permission:rab,create');
+});
+
+// Budget vs Actual (admin + manager only)
+Route::prefix('budget')->name('budget.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [BudgetController::class, 'index'])->name('index');
+    Route::post('/', [BudgetController::class, 'store'])->name('store');
+    Route::put('/{budget}', [BudgetController::class, 'update'])->name('update');
+    Route::delete('/{budget}', [BudgetController::class, 'destroy'])->name('destroy');
+    // Budget AI — contextual (AJAX)
+    Route::get('/ai/overrun-prediction', [\App\Http\Controllers\BudgetAiController::class, 'overrunPrediction'])->name('ai.overrun')->middleware('ai.quota');
+    Route::get('/ai/suggest-allocation', [\App\Http\Controllers\BudgetAiController::class, 'suggestAllocation'])->name('ai.suggest')->middleware('ai.quota');
+});
+
+// Loyalty Program (admin + manager only)
+Route::prefix('loyalty')->name('loyalty.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [LoyaltyController::class, 'index'])->name('index');
+    Route::post('/program', [LoyaltyController::class, 'saveProgram'])->name('program.save');
+    Route::post('/add-points', [LoyaltyController::class, 'addPoints'])->name('add-points');
+    Route::post('/redeem', [LoyaltyController::class, 'redeemPoints'])->name('redeem');
+    Route::get('/customer/{customer}/transactions', [LoyaltyController::class, 'transactions'])->name('transactions');
+    // BUG-CRM-003 FIX: Balance check and recalculation endpoints
+    Route::get('/customer/{customer}/balance', [LoyaltyController::class, 'getBalance'])->name('balance');
+    Route::post('/customer/{customer}/recalculate', [LoyaltyController::class, 'recalculateBalance'])->name('recalculate');
+});
+
+// Payroll
+Route::prefix('payroll')->name('payroll.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [PayrollController::class, 'index'])->name('index');
+    Route::post('/process', [PayrollController::class, 'process'])->name('process');
+    Route::patch('/{run}/paid', [PayrollController::class, 'markPaid'])->name('paid');
+    Route::post('/{run}/gl-journal', [PayrollController::class, 'createGlJournal'])->name('gl-journal');
+    Route::post('/{run}/gl-payment-journal', [PayrollController::class, 'createPaymentGlJournal'])->name('gl-payment-journal');
+
+    // Komponen Gaji
+    Route::prefix('components')->name('components.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SalaryComponentController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\SalaryComponentController::class, 'store'])->name('store');
+        Route::put('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'update'])->name('update');
+        Route::delete('/{component}', [\App\Http\Controllers\SalaryComponentController::class, 'destroy'])->name('destroy');
+        // Per karyawan
+        Route::get('/employee/{employee}/json', [\App\Http\Controllers\SalaryComponentController::class, 'employeeComponentsJson'])->name('employee.json');
+        Route::post('/employee/{employee}/save', [\App\Http\Controllers\SalaryComponentController::class, 'saveEmployeeComponents'])->name('employee.save');
+    });
+});
+
+// Slip Gaji Self-Service (semua role tenant)
+Route::prefix('payroll/slip')->name('payroll.slip.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PayslipController::class, 'index'])->name('index');
+    Route::get('/{item}', [\App\Http\Controllers\PayslipController::class, 'show'])->name('show');
+});
+
+// Self-Service Karyawan: Cuti & Absensi (semua role tenant)
+Route::prefix('self-service')->name('self-service.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'profile'])->name('profile');
+    Route::post('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveIndex'])->name('leave.index');
+    Route::post('/leave', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveStore'])->name('leave.store');
+    Route::delete('/leave/{leave}', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'leaveCancel'])->name('leave.cancel');
+    Route::get('/attendance', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'attendanceIndex'])->name('attendance.index');
+    Route::post('/attendance/clock-in', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockIn'])->name('attendance.clock-in');
+    Route::post('/attendance/clock-out', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockOut'])->name('attendance.clock-out');
+});
+
+// Assets
+Route::prefix('assets')->name('assets.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [AssetController::class, 'index'])->name('index');
+    Route::post('/', [AssetController::class, 'store'])->name('store');
+    Route::put('/{asset}', [AssetController::class, 'update'])->name('update');
+    Route::delete('/{asset}', [AssetController::class, 'destroy'])->name('destroy');
+    Route::get('/{asset}/schedule', [AssetController::class, 'schedule'])->name('schedule');
+    Route::post('/depreciate', [AssetController::class, 'depreciate'])->name('depreciate');
+    Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('maintenance');
+    Route::post('/maintenance', [AssetController::class, 'storeMaintenance'])->name('maintenance.store');
+    Route::patch('/maintenance/{maintenance}/status', [AssetController::class, 'updateMaintenanceStatus'])->name('maintenance.status');
+
+    // Asset Barcode & Scanning
+    Route::get('/scan-maintenance', [AssetController::class, 'scanForMaintenance'])->name('scan-maintenance')->middleware('permission:assets,create');
+    Route::post('/lookup-by-barcode', [AssetController::class, 'lookupByBarcode'])->name('lookup-barcode')->middleware('permission:assets,view');
+    Route::get('/{asset}/barcode', [AssetController::class, 'showBarcode'])->name('barcode.show')->middleware('permission:assets,view');
+    Route::post('/barcode/print', [AssetController::class, 'printBarcodes'])->name('barcode.print')->middleware('permission:assets,view');
+});
+
+// Import CSV (admin + manager only)
+Route::prefix('import')->name('import.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [ImportController::class, 'index'])->name('index');
+    Route::post('/products', [ImportController::class, 'importProducts'])->name('products')->middleware('throttle:import');
+    Route::post('/employees', [ImportController::class, 'importEmployees'])->name('employees')->middleware('throttle:import');
+    Route::post('/customers', [ImportController::class, 'importCustomers'])->name('customers')->middleware('throttle:import');
+    Route::post('/suppliers', [ImportController::class, 'importSuppliers'])->name('suppliers')->middleware('throttle:import');
+    Route::post('/warehouses', [ImportController::class, 'importWarehouses'])->name('warehouses')->middleware('throttle:import');
+    Route::post('/coa', [ImportController::class, 'importChartOfAccounts'])->name('coa')->middleware('throttle:import');
+    Route::get('/template/{type}', [ImportController::class, 'downloadTemplate'])->name('template');
+    // Bulk export
+    Route::get('/export/products', [ImportController::class, 'exportProducts'])->name('export.products')->middleware('throttle:export');
+    Route::get('/export/customers', [ImportController::class, 'exportCustomers'])->name('export.customers')->middleware('throttle:export');
+    Route::get('/export/suppliers', [ImportController::class, 'exportSuppliers'])->name('export.suppliers')->middleware('throttle:export');
+    Route::get('/export/employees', [ImportController::class, 'exportEmployees'])->name('export.employees')->middleware('throttle:export');
+    Route::get('/export/warehouses', [ImportController::class, 'exportWarehouses'])->name('export.warehouses')->middleware('throttle:export');
+    Route::get('/export/coa', [ImportController::class, 'exportChartOfAccounts'])->name('export.coa')->middleware('throttle:export');
+});
+
+// Payment Gateway
+Route::prefix('payment')->name('payment.')->middleware('role:admin')->group(function () {
+    Route::post('/midtrans/checkout', [\App\Http\Controllers\PaymentGatewayController::class, 'midtransCheckout'])->name('midtrans.checkout');
+    Route::get('/midtrans/finish', [\App\Http\Controllers\PaymentGatewayController::class, 'midtransFinish'])->name('midtrans.finish');
+    Route::post('/xendit/checkout', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditCheckout'])->name('xendit.checkout');
+    Route::get('/xendit/finish', [\App\Http\Controllers\PaymentGatewayController::class, 'xenditFinish'])->name('xendit.finish');
+});
+
+// Invoices
+Route::prefix('invoices')->name('invoices.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [InvoiceController::class, 'index'])->name('index');
+    Route::get('/create', [InvoiceController::class, 'create'])->name('create');
+    Route::post('/', [InvoiceController::class, 'store'])->name('store');
+    Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
+    Route::post('/{invoice}/payment', [InvoiceController::class, 'recordPayment'])->name('payment');
+    Route::get('/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('pdf');
+    Route::post('/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('send-email');
+    // Task 35: State machine actions
+    Route::post('/{invoice}/post', [InvoiceController::class, 'post'])->name('post');
+    Route::post('/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('cancel');
+    Route::post('/{invoice}/void', [InvoiceController::class, 'void'])->name('void');
+});
+
+// Receivables & Payables (Piutang & Hutang)
+Route::prefix('receivables')->name('receivables.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [ReceivablesController::class, 'receivables'])->name('index');
+    Route::post('/{invoice}/payment', [ReceivablesController::class, 'recordReceivablePayment'])->name('payment');
+    Route::get('/aging', [ReceivablesController::class, 'aging'])->name('aging');
+    Route::get('/{invoice}/installments', [ReceivablesController::class, 'installments'])->name('installments');
+    Route::post('/{invoice}/installments', [ReceivablesController::class, 'storeInstallments'])->name('installments.store');
+    Route::post('/installment/{installment}/pay', [ReceivablesController::class, 'payInstallment'])->name('installment.pay');
+});
+Route::prefix('payables')->name('payables.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [ReceivablesController::class, 'payables'])->name('index');
+    Route::post('/{payable}/payment', [ReceivablesController::class, 'recordPayablePayment'])->name('payment');
+});
+
+// Production / Work Orders
+Route::prefix('production')->name('production.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [ProductionController::class, 'index'])->name('index');
+    Route::post('/', [ProductionController::class, 'store'])->name('store');
+    // Static routes HARUS sebelum {workOrder} wildcard
+    Route::get('/recipes', [ProductionController::class, 'recipes'])->name('recipes');
+    Route::post('/recipes', [ProductionController::class, 'storeRecipe'])->name('recipes.store');
+
+    // TASK-2.18: Production Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Manufacturing\ProductionDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/analytics', [\App\Http\Controllers\Manufacturing\ProductionDashboardController::class, 'analytics'])->name('dashboard.analytics');
+
+    // TASK-2.15: Production Gantt Chart
+    Route::prefix('gantt')->name('gantt.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'index'])->name('index');
+        Route::get('/data', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'getData'])->name('data');
+        Route::post('/optimize', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'optimize'])->name('optimize');
+        Route::post('/reschedule-overdue', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'rescheduleOverdue'])->name('reschedule-overdue');
+        Route::post('/conflicts', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'detectConflicts'])->name('conflicts');
+        Route::get('/capacity', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'capacityUtilization'])->name('capacity');
+    });
+
+    // TASK-2.16 & 2.17: Progress & Scrap/Waste Tracking
+    Route::patch('/{workOrder}/progress', [ProductionController::class, 'updateProgress'])->name('progress');
+    Route::post('/{workOrder}/scrap', [ProductionController::class, 'recordScrap'])->name('scrap');
+    Route::post('/{workOrder}/rework', [ProductionController::class, 'recordRework'])->name('rework');
+
+    // Dynamic routes (harus di paling akhir)
+    Route::get('/{workOrder}', [ProductionController::class, 'show'])->name('show');
+    Route::patch('/{workOrder}/status', [ProductionController::class, 'updateStatus'])->name('status');
+    Route::post('/{workOrder}/output', [ProductionController::class, 'recordOutput'])->name('output');
+    Route::post('/{workOrder}/schedule', [\App\Http\Controllers\Manufacturing\ProductionGanttController::class, 'schedule'])->name('schedule');
+});
+
+// TASK-2.19 to 2.21: Quality Control (QC) Routes
+Route::prefix('qc')->name('qc.')->middleware(['role:admin,manager,quality_control', 'tenant.isolation'])->group(function () {
+    // QC Inspections
+    Route::prefix('inspections')->name('inspections.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'store'])->name('store');
+        Route::get('/{inspection}', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'show'])->name('show');
+        Route::get('/{inspection}/edit', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'edit'])->name('edit');
+        Route::put('/{inspection}', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'update'])->name('update');
+        Route::post('/{inspection}/pass', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'pass'])->name('pass');
+        Route::post('/{inspection}/fail', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'fail'])->name('fail');
+        Route::post('/{inspection}/conditional-pass', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'conditionalPass'])->name('conditional-pass');
+        Route::get('/analytics/data', [\App\Http\Controllers\Manufacturing\QcInspectionController::class, 'analytics'])->name('analytics');
+    });
+
+    // QC Test Templates
+    Route::prefix('templates')->name('templates.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'show'])->name('show');
+        Route::get('/{template}/edit', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{template}', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'update'])->name('update');
+        Route::delete('/{template}', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{template}/toggle', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'toggleStatus'])->name('toggle');
+        Route::post('/{template}/calculate-sample', [\App\Http\Controllers\Manufacturing\QcTestTemplateController::class, 'calculateSampleSize'])->name('calculate-sample');
+    });
+});
+
+// Manufacturing (BOM, Work Centers, MRP)
+Route::prefix('manufacturing')->name('manufacturing.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
+    Route::get('/bom', [ManufacturingController::class, 'bom'])->name('bom')->middleware('permission:manufacturing,view');
+    Route::post('/bom', [ManufacturingController::class, 'storeBom'])->name('bom.store')->middleware('permission:manufacturing,create');
+    Route::put('/bom/{bom}', [ManufacturingController::class, 'updateBom'])->name('bom.update')->middleware('permission:manufacturing,edit');
+    Route::delete('/bom/{bom}', [ManufacturingController::class, 'destroyBom'])->name('bom.destroy')->middleware('permission:manufacturing,delete');
+    Route::get('/mix-design', [ManufacturingController::class, 'mixDesign'])->name('mix-design')->middleware('permission:manufacturing,view');
+    Route::post('/mix-design', [ManufacturingController::class, 'storeMixDesign'])->name('mix-design.store')->middleware('permission:manufacturing,create');
+    Route::put('/mix-design/{mixDesign}', [ManufacturingController::class, 'updateMixDesign'])->name('mix-design.update')->middleware('permission:manufacturing,edit');
+    Route::delete('/mix-design/{mixDesign}', [ManufacturingController::class, 'deleteMixDesign'])->name('mix-design.destroy')->middleware('permission:manufacturing,delete');
+    Route::get('/mix-design/{mixDesign}/versions', [ManufacturingController::class, 'mixDesignVersionHistory'])->name('mix-design.versions')->middleware('permission:manufacturing,view');
+    Route::post('/mix-design/versions/{version}/approve', [ManufacturingController::class, 'approveMixDesignVersion'])->name('mix-design.versions.approve')->middleware('permission:manufacturing,edit');
+    Route::post('/mix-design/export-pdf', [\App\Http\Controllers\Manufacturing\MixDesignPdfController::class, 'exportCalculation'])->name('mix-design.export-pdf')->middleware('permission:manufacturing,view');
+    Route::get('/work-centers', [ManufacturingController::class, 'workCenters'])->name('work-centers')->middleware('permission:manufacturing,view');
+    Route::post('/work-centers', [ManufacturingController::class, 'storeWorkCenter'])->name('work-centers.store')->middleware('permission:manufacturing,create');
+    Route::put('/work-centers/{workCenter}', [ManufacturingController::class, 'updateWorkCenter'])->name('work-centers.update')->middleware('permission:manufacturing,edit');
+    Route::delete('/work-centers/{workCenter}', [ManufacturingController::class, 'destroyWorkCenter'])->name('work-centers.destroy')->middleware('permission:manufacturing,delete');
+    Route::get('/mrp', [ManufacturingController::class, 'mrp'])->name('mrp')->middleware('permission:manufacturing,view');
+    Route::get('/mrp/accuracy', [ManufacturingController::class, 'mrpAccuracyDashboard'])->name('mrp.accuracy')->middleware('permission:manufacturing,view');
+    Route::get('/mrp/predictive', [\App\Http\Controllers\Manufacturing\PredictiveMRPController::class, 'dashboard'])->name('mrp.predictive')->middleware('permission:manufacturing,view');
+    Route::post('/mrp/predictive/refresh', [\App\Http\Controllers\Manufacturing\PredictiveMRPController::class, 'refreshForecast'])->name('mrp.predictive.refresh')->middleware('permission:manufacturing,view');
+    Route::post('/mrp/create-po', [ManufacturingController::class, 'createPurchaseOrderFromMRP'])->name('mrp.create-po')->middleware('permission:manufacturing,create');
+    Route::post('/mrp/export-pdf', [\App\Http\Controllers\Manufacturing\MixDesignPdfController::class, 'exportMrpReport'])->name('mrp.export-pdf')->middleware('permission:manufacturing,view');
+    Route::post('/{workOrder}/consume', [ManufacturingController::class, 'consumeMaterials'])->name('consume')->middleware('permission:manufacturing,create');
+
+    // Work Order Material Scanning
+    Route::get('/work-orders/{workOrder}/scan-materials', [ManufacturingController::class, 'scanMaterials'])->name('work-orders.scan-materials')->middleware('permission:manufacturing,create');
+    Route::post('/work-orders/{workOrder}/consume-scanned', [ManufacturingController::class, 'consumeScannedMaterials'])->name('work-orders.consume-scanned')->middleware('permission:manufacturing,create');
+
+    // Mix Design (Mutu Beton)
+    Route::get('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'index'])->name('mix-design')->middleware('permission:manufacturing,view');
+    Route::post('/mix-design', [\App\Http\Controllers\ConcreteMixDesignController::class, 'store'])->name('mix-design.store')->middleware('permission:manufacturing,create');
+    Route::post('/mix-design/seed-standards', [\App\Http\Controllers\ConcreteMixDesignController::class, 'seedStandards'])->name('mix-design.seed')->middleware('permission:manufacturing,create');
+    Route::put('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'update'])->name('mix-design.update')->middleware('permission:manufacturing,edit');
+    Route::delete('/mix-design/{mixDesign}', [\App\Http\Controllers\ConcreteMixDesignController::class, 'destroy'])->name('mix-design.destroy')->middleware('permission:manufacturing,delete');
+    Route::get('/mix-design/{mixDesign}/calculate', [\App\Http\Controllers\ConcreteMixDesignController::class, 'calculate'])->name('mix-design.calculate');
+    Route::post('/mix-design/{mixDesign}/generate-bom', [\App\Http\Controllers\ConcreteMixDesignController::class, 'generateBom'])->name('mix-design.generate-bom')->middleware('permission:manufacturing,create');
+
+    // Quality Control
+    Route::prefix('quality')->name('quality.')->group(function () {
+        Route::get('/dashboard', [ManufacturingController::class, 'qualityDashboard'])->name('dashboard')->middleware('permission:manufacturing,view');
+        Route::get('/dashboard-enhanced', [ManufacturingController::class, 'qcDashboardEnhanced'])->name('dashboard-enhanced')->middleware('permission:manufacturing,view');
+        Route::get('/checks', [ManufacturingController::class, 'qualityChecks'])->name('checks')->middleware('permission:manufacturing,view');
+        Route::get('/checks/create', [ManufacturingController::class, 'createQualityCheck'])->name('checks.create')->middleware('permission:manufacturing,create');
+        Route::post('/checks', [ManufacturingController::class, 'storeQualityCheck'])->name('checks.store')->middleware('permission:manufacturing,create');
+        Route::get('/checks/{qualityCheck}/edit', [ManufacturingController::class, 'editQualityCheck'])->name('checks.edit')->middleware('permission:manufacturing,edit');
+        Route::put('/checks/{qualityCheck}', [ManufacturingController::class, 'updateQualityCheck'])->name('checks.update')->middleware('permission:manufacturing,edit');
+        Route::get('/checks/{qualityCheck}/coa', [ManufacturingController::class, 'generateCOA'])->name('coa')->middleware('permission:manufacturing,view');
+        Route::get('/checks/{qualityCheck}/coa/print', [ManufacturingController::class, 'printCOA'])->name('coa.print')->middleware('permission:manufacturing,view');
+        Route::post('/defects', [ManufacturingController::class, 'recordDefect'])->name('defects.store')->middleware('permission:manufacturing,create');
+        Route::put('/defects/{defect}/resolve', [ManufacturingController::class, 'resolveDefect'])->name('defects.resolve')->middleware('permission:manufacturing,edit');
+        Route::post('/capa', [ManufacturingController::class, 'createCAPA'])->name('capa.store')->middleware('permission:manufacturing,create');
+        Route::get('/root-cause-templates', [ManufacturingController::class, 'getRootCauseTemplates'])->name('root-cause-templates')->middleware('permission:manufacturing,view');
+        Route::get('/defects', [ManufacturingController::class, 'defectRecords'])->name('defects')->middleware('permission:manufacturing,view');
+        Route::get('/standards', [ManufacturingController::class, 'qualityStandards'])->name('standards')->middleware('permission:manufacturing,view');
+        Route::post('/standards', [ManufacturingController::class, 'storeQualityStandard'])->name('standards.store')->middleware('permission:manufacturing,create');
+    });
+});
+
+// Farm / Agriculture — Manajemen Lahan
+Route::prefix('farm')->name('farm.')->middleware('role:admin,manager,gudang')->group(function () {
+    Route::get('/plots', [\App\Http\Controllers\FarmPlotController::class, 'index'])->name('plots')->middleware('permission:agriculture,view');
+    Route::post('/plots', [\App\Http\Controllers\FarmPlotController::class, 'store'])->name('plots.store')->middleware('permission:agriculture,create');
+    Route::get('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'show'])->name('plots.show')->middleware('permission:agriculture,view');
+    Route::put('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'update'])->name('plots.update')->middleware('permission:agriculture,edit');
+    Route::patch('/plots/{farmPlot}/status', [\App\Http\Controllers\FarmPlotController::class, 'updateStatus'])->name('plots.status')->middleware('permission:agriculture,edit');
+    Route::delete('/plots/{farmPlot}', [\App\Http\Controllers\FarmPlotController::class, 'destroy'])->name('plots.destroy')->middleware('permission:agriculture,delete');
+    Route::post('/plots/{farmPlot}/activities', [\App\Http\Controllers\FarmPlotController::class, 'storeActivity'])->name('plots.activities.store')->middleware('permission:agriculture,create');
+    // Crop Cycles
+    Route::get('/cycles', [\App\Http\Controllers\CropCycleController::class, 'index'])->name('cycles')->middleware('permission:agriculture,view');
+    Route::post('/cycles', [\App\Http\Controllers\CropCycleController::class, 'store'])->name('cycles.store')->middleware('permission:agriculture,create');
+    Route::get('/cycles/{cropCycle}', [\App\Http\Controllers\CropCycleController::class, 'show'])->name('cycles.show')->middleware('permission:agriculture,view');
+    Route::patch('/cycles/{cropCycle}/phase', [\App\Http\Controllers\CropCycleController::class, 'advancePhase'])->name('cycles.phase')->middleware('permission:agriculture,edit');
+    Route::post('/cycles/{cropCycle}/activities', [\App\Http\Controllers\CropCycleController::class, 'storeActivity'])->name('cycles.activities.store')->middleware('permission:agriculture,create');
+    // Harvest Logs
+    Route::get('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'index'])->name('harvests')->middleware('permission:agriculture,view');
+    Route::post('/harvests', [\App\Http\Controllers\HarvestLogController::class, 'store'])->name('harvests.store')->middleware('permission:agriculture,create');
+    Route::get('/harvests/{harvestLog}', [\App\Http\Controllers\HarvestLogController::class, 'show'])->name('harvests.show')->middleware('permission:agriculture,view');
+    // Analytics
+    Route::get('/analytics', [\App\Http\Controllers\FarmPlotController::class, 'analytics'])->name('analytics')->middleware('permission:agriculture,view');
+    // Livestock
+    Route::get('/livestock', [\App\Http\Controllers\LivestockController::class, 'index'])->name('livestock')->middleware('permission:agriculture,view');
+    Route::post('/livestock', [\App\Http\Controllers\LivestockController::class, 'store'])->name('livestock.store')->middleware('permission:agriculture,create');
+    Route::get('/livestock/{livestockHerd}', [\App\Http\Controllers\LivestockController::class, 'show'])->name('livestock.show')->middleware('permission:agriculture,view');
+    Route::post('/livestock/{livestockHerd}/movement', [\App\Http\Controllers\LivestockController::class, 'recordMovement'])->name('livestock.movement')->middleware('permission:agriculture,create');
+    Route::post('/livestock/{livestockHerd}/feed', [\App\Http\Controllers\LivestockController::class, 'storeFeedLog'])->name('livestock.feed.store')->middleware('permission:agriculture,create');
+    Route::post('/livestock/{livestockHerd}/health', [\App\Http\Controllers\LivestockController::class, 'storeHealthRecord'])->name('livestock.health.store')->middleware('permission:agriculture,create');
+    Route::post('/livestock/{livestockHerd}/vaccinations/generate', [\App\Http\Controllers\LivestockController::class, 'generateVaccinationSchedule'])->name('livestock.vaccinations.generate')->middleware('permission:agriculture,create');
+    Route::patch('/vaccinations/{vaccination}/record', [\App\Http\Controllers\LivestockController::class, 'recordVaccination'])->name('livestock.vaccinations.record')->middleware('permission:agriculture,edit');
+});
+
+// Fleet Management
+Route::prefix('fleet')->name('fleet.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
+    Route::get('/', [FleetController::class, 'index'])->name('index')->middleware('permission:fleet,view');
+    Route::post('/vehicles', [FleetController::class, 'storeVehicle'])->name('vehicles.store')->middleware('permission:fleet,create');
+    Route::put('/vehicles/{fleetVehicle}', [FleetController::class, 'updateVehicle'])->name('vehicles.update')->middleware('permission:fleet,edit');
+    Route::delete('/vehicles/{fleetVehicle}', [FleetController::class, 'destroyVehicle'])->name('vehicles.destroy')->middleware('permission:fleet,delete');
+    Route::get('/drivers', [FleetController::class, 'drivers'])->name('drivers')->middleware('permission:fleet,view');
+    Route::post('/drivers', [FleetController::class, 'storeDriver'])->name('drivers.store')->middleware('permission:fleet,create');
+    Route::put('/drivers/{fleetDriver}', [FleetController::class, 'updateDriver'])->name('drivers.update')->middleware('permission:fleet,edit');
+    Route::delete('/drivers/{fleetDriver}', [FleetController::class, 'destroyDriver'])->name('drivers.destroy')->middleware('permission:fleet,delete');
+    Route::get('/trips', [FleetController::class, 'trips'])->name('trips')->middleware('permission:fleet,view');
+    Route::post('/trips', [FleetController::class, 'storeTrip'])->name('trips.store')->middleware('permission:fleet,create');
+    Route::patch('/trips/{fleetTrip}/complete', [FleetController::class, 'completeTrip'])->name('trips.complete')->middleware('permission:fleet,edit');
+    Route::get('/fuel-logs', [FleetController::class, 'fuelLogs'])->name('fuel-logs')->middleware('permission:fleet,view');
+    Route::post('/fuel-logs', [FleetController::class, 'storeFuelLog'])->name('fuel-logs.store')->middleware('permission:fleet,create');
+    Route::get('/maintenance', [FleetController::class, 'maintenance'])->name('maintenance')->middleware('permission:fleet,view');
+    Route::post('/maintenance', [FleetController::class, 'storeMaintenance'])->name('maintenance.store')->middleware('permission:fleet,create');
+    Route::patch('/maintenance/{fleetMaintenance}/complete', [FleetController::class, 'completeMaintenance'])->name('maintenance.complete')->middleware('permission:fleet,edit');
+    Route::delete('/maintenance/{fleetMaintenance}', [FleetController::class, 'destroyMaintenance'])->name('maintenance.destroy')->middleware('permission:fleet,delete');
+});
+
+// Contract Management
+Route::prefix('contracts')->name('contracts.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [ContractController::class, 'index'])->name('index')->middleware('permission:contracts,view');
+    Route::post('/', [ContractController::class, 'store'])->name('store')->middleware('permission:contracts,create');
+    Route::get('/templates', [ContractController::class, 'templates'])->name('templates')->middleware('permission:contracts,view');
+    Route::post('/templates', [ContractController::class, 'storeTemplate'])->name('templates.store')->middleware('permission:contracts,create');
+    Route::delete('/templates/{contractTemplate}', [ContractController::class, 'destroyTemplate'])->name('templates.destroy')->middleware('permission:contracts,delete');
+    Route::get('/{contract}', [ContractController::class, 'show'])->name('show')->middleware('permission:contracts,view');
+    Route::patch('/{contract}/activate', [ContractController::class, 'activate'])->name('activate')->middleware('permission:contracts,edit');
+    Route::patch('/{contract}/terminate', [ContractController::class, 'terminate'])->name('terminate')->middleware('permission:contracts,edit');
+    Route::post('/{contract}/renew', [ContractController::class, 'renew'])->name('renew')->middleware('permission:contracts,create');
+    Route::post('/{contract}/billing', [ContractController::class, 'generateBilling'])->name('billing')->middleware('permission:contracts,create');
+    Route::post('/{contract}/sla', [ContractController::class, 'storeSlaLog'])->name('sla.store')->middleware('permission:contracts,create');
+    Route::patch('/sla/{contractSlaLog}/resolve', [ContractController::class, 'resolveSlaLog'])->name('sla.resolve')->middleware('permission:contracts,edit');
+    Route::delete('/{contract}', [ContractController::class, 'destroy'])->name('destroy')->middleware('permission:contracts,delete');
+});
+
+// Landed Cost
+Route::prefix('landed-cost')->name('landed-cost.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [LandedCostController::class, 'index'])->name('index')->middleware('permission:landed_cost,view');
+    Route::post('/', [LandedCostController::class, 'store'])->name('store')->middleware('permission:landed_cost,create');
+    Route::get('/{landedCost}', [LandedCostController::class, 'show'])->name('show')->middleware('permission:landed_cost,view');
+    Route::post('/{landedCost}/allocate', [LandedCostController::class, 'allocate'])->name('allocate')->middleware('permission:landed_cost,edit');
+    Route::post('/{landedCost}/post', [LandedCostController::class, 'post'])->name('post')->middleware('permission:landed_cost,edit');
+    Route::patch('/allocation/{allocation}/weight', [LandedCostController::class, 'updateWeight'])->name('weight')->middleware('permission:landed_cost,edit');
+    Route::delete('/{landedCost}', [LandedCostController::class, 'destroy'])->name('destroy')->middleware('permission:landed_cost,delete');
+});
+
+// Consignment
+Route::prefix('consignment')->name('consignment.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [ConsignmentController::class, 'index'])->name('index')->middleware('permission:consignment,view');
+    Route::post('/shipments', [ConsignmentController::class, 'storeShipment'])->name('shipments.store')->middleware('permission:consignment,create');
+    Route::get('/shipments/{consignmentShipment}', [ConsignmentController::class, 'show'])->name('shipments.show')->middleware('permission:consignment,view');
+    Route::post('/shipments/{consignmentShipment}/sales-report', [ConsignmentController::class, 'storeSalesReport'])->name('sales-report.store')->middleware('permission:consignment,create');
+    Route::post('/shipments/{consignmentShipment}/return', [ConsignmentController::class, 'returnItems'])->name('return')->middleware('permission:consignment,edit');
+    Route::get('/partners', [ConsignmentController::class, 'partners'])->name('partners')->middleware('permission:consignment,view');
+    Route::post('/partners', [ConsignmentController::class, 'storePartner'])->name('partners.store')->middleware('permission:consignment,create');
+    Route::delete('/partners/{consignmentPartner}', [ConsignmentController::class, 'destroyPartner'])->name('partners.destroy')->middleware('permission:consignment,delete');
+    Route::post('/settlement/{consignmentSalesReport}', [ConsignmentController::class, 'storeSettlement'])->name('settlement.store')->middleware('permission:consignment,create');
+});
+
+// Commission Management
+Route::prefix('commission')->name('commission.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [CommissionController::class, 'index'])->name('index')->middleware('permission:commission,view');
+    Route::post('/calculate', [CommissionController::class, 'calculate'])->name('calculate')->middleware('permission:commission,create');
+    Route::post('/targets', [CommissionController::class, 'storeTarget'])->name('targets.store')->middleware('permission:commission,create');
+    Route::get('/rules', [CommissionController::class, 'rules'])->name('rules')->middleware('permission:commission,view');
+    Route::post('/rules', [CommissionController::class, 'storeRule'])->name('rules.store')->middleware('permission:commission,create');
+    Route::delete('/rules/{commissionRule}', [CommissionController::class, 'destroyRule'])->name('rules.destroy')->middleware('permission:commission,delete');
+    Route::patch('/{commissionCalculation}/approve', [CommissionController::class, 'approve'])->name('approve')->middleware('permission:commission,edit');
+    Route::post('/{commissionCalculation}/pay', [CommissionController::class, 'pay'])->name('pay')->middleware('permission:commission,edit');
+});
+
+// Helpdesk / Ticketing
+Route::prefix('helpdesk')->name('helpdesk.')->middleware(['role:admin,manager,staff', 'tenant.isolation'])->group(function () {
+    Route::get('/', [HelpdeskController::class, 'index'])->name('index')->middleware('permission:helpdesk,view');
+    Route::post('/', [HelpdeskController::class, 'store'])->name('store')->middleware('permission:helpdesk,create');
+    Route::get('/knowledge-base', [HelpdeskController::class, 'knowledgeBase'])->name('kb')->middleware('permission:helpdesk,view');
+    Route::post('/knowledge-base', [HelpdeskController::class, 'storeArticle'])->name('kb.store')->middleware('permission:helpdesk,create');
+    Route::delete('/knowledge-base/{kbArticle}', [HelpdeskController::class, 'destroyArticle'])->name('kb.destroy')->middleware('permission:helpdesk,delete');
+    Route::get('/{helpdeskTicket}', [HelpdeskController::class, 'show'])->name('show')->middleware('permission:helpdesk,view');
+    Route::post('/{helpdeskTicket}/reply', [HelpdeskController::class, 'reply'])->name('reply')->middleware('permission:helpdesk,create');
+    Route::patch('/{helpdeskTicket}/status', [HelpdeskController::class, 'updateStatus'])->name('status')->middleware('permission:helpdesk,edit');
+    Route::patch('/{helpdeskTicket}/rate', [HelpdeskController::class, 'rate'])->name('rate')->middleware('permission:helpdesk,edit');
+});
+
+// Project Billing
+Route::prefix('project-billing')->name('project-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [ProjectBillingController::class, 'index'])->name('index')->middleware('permission:project_billing,view');
+    Route::get('/{project}', [ProjectBillingController::class, 'show'])->name('show')->middleware('permission:project_billing,view');
+    Route::post('/{project}/config', [ProjectBillingController::class, 'saveConfig'])->name('config')->middleware('permission:project_billing,edit');
+    Route::post('/{project}/milestones', [ProjectBillingController::class, 'storeMilestone'])->name('milestones.store')->middleware('permission:project_billing,create');
+    Route::patch('/milestones/{projectMilestone}/complete', [ProjectBillingController::class, 'completeMilestone'])->name('milestones.complete')->middleware('permission:project_billing,edit');
+    Route::post('/milestones/{projectMilestone}/invoice', [ProjectBillingController::class, 'generateMilestone'])->name('milestones.invoice')->middleware('permission:project_billing,create');
+    Route::post('/{project}/time-material', [ProjectBillingController::class, 'generateTimeMaterial'])->name('time-material')->middleware('permission:project_billing,create');
+    Route::post('/{project}/retainer', [ProjectBillingController::class, 'generateRetainer'])->name('retainer')->middleware('permission:project_billing,create');
+    Route::post('/{project}/termin', [ProjectBillingController::class, 'generateTermin'])->name('termin')->middleware('permission:project_billing,create');
+    Route::post('/invoices/{projectInvoice}/release-retention', [ProjectBillingController::class, 'releaseRetention'])->name('release-retention')->middleware('permission:project_billing,edit');
+});
+
+// Subscription Billing
+Route::prefix('subscription-billing')->name('subscription-billing.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [SubscriptionBillingController::class, 'index'])->name('index')->middleware('permission:subscription_billing,view');
+    Route::post('/', [SubscriptionBillingController::class, 'store'])->name('store')->middleware('permission:subscription_billing,create');
+    Route::get('/plans', [SubscriptionBillingController::class, 'plans'])->name('plans')->middleware('permission:subscription_billing,view');
+    Route::post('/plans', [SubscriptionBillingController::class, 'storePlan'])->name('plans.store')->middleware('permission:subscription_billing,create');
+    Route::delete('/plans/{customerSubscriptionPlan}', [SubscriptionBillingController::class, 'destroyPlan'])->name('plans.destroy')->middleware('permission:subscription_billing,delete');
+    Route::post('/bulk-generate', [SubscriptionBillingController::class, 'bulkGenerate'])->name('bulk-generate')->middleware('permission:subscription_billing,create');
+    Route::get('/{customerSubscription}', [SubscriptionBillingController::class, 'show'])->name('show')->middleware('permission:subscription_billing,view');
+    Route::post('/{customerSubscription}/generate', [SubscriptionBillingController::class, 'generateBilling'])->name('generate')->middleware('permission:subscription_billing,create');
+    Route::patch('/{customerSubscription}/cancel', [SubscriptionBillingController::class, 'cancel'])->name('cancel')->middleware('permission:subscription_billing,edit');
+});
+
+// AI Forecasting
+Route::get('/forecast', [ForecastController::class, 'index'])->name('forecast.index')
+    ->middleware(['role:admin,manager', 'permission:reports,view']);
+
+// Quotations (Penawaran Harga)
+Route::prefix('quotations')->name('quotations.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [QuotationController::class, 'index'])->name('index');
+    Route::post('/', [QuotationController::class, 'store'])->name('store');
+    Route::get('/{quotation}', [QuotationController::class, 'show'])->name('show');
+    Route::put('/{quotation}', [QuotationController::class, 'update'])->name('update');
+    Route::patch('/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('status');
+    Route::post('/{quotation}/convert', [QuotationController::class, 'convertToOrder'])->name('convert');
+    Route::delete('/{quotation}', [QuotationController::class, 'destroy'])->name('destroy');
+});
+
+// Document Management
+Route::prefix('documents')->name('documents.')->group(function () {
+    // Main document routes
+    Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
+    Route::get('/expired', [\App\Http\Controllers\DocumentController::class, 'expired'])->name('expired');
+    Route::get('/expiring-soon', [\App\Http\Controllers\DocumentController::class, 'expiringSoon'])->name('expiring-soon');
+    Route::post('/bulk-sign', [\App\Http\Controllers\DocumentController::class, 'bulkSign'])->name('bulk-sign');
+    Route::post('/bulk-generate', [\App\Http\Controllers\DocumentController::class, 'bulkGenerate'])->name('bulk-generate');
+    Route::post('/preview-template', [\App\Http\Controllers\DocumentController::class, 'previewTemplate'])->name('preview-template');
+    Route::get('/ocr-statistics', [\App\Http\Controllers\DocumentController::class, 'ocrStatistics'])->name('ocr-statistics');
+    Route::get('/signature-statistics', [\App\Http\Controllers\DocumentController::class, 'signatureStatistics'])->name('signature-statistics');
+    Route::get('/bulk-generation-stats', [\App\Http\Controllers\DocumentController::class, 'bulkGenerationStats'])->name('bulk-generation-stats');
+    Route::post('/search-ocr', [\App\Http\Controllers\DocumentController::class, 'searchOcr'])->name('search-ocr');
+    Route::get('/pending-approvals', [\App\Http\Controllers\DocumentApprovalController::class, 'pendingApprovals'])->name('pending-approvals');
+
+    // Document-specific routes
+    Route::prefix('{document}')->group(function () {
+        // Download
+        Route::get('/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
+        Route::delete('/', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
+
+        // OCR
+        Route::post('/process-ocr', [\App\Http\Controllers\DocumentController::class, 'processOcr'])->name('process-ocr');
+        Route::get('/verify-signature', [\App\Http\Controllers\DocumentController::class, 'verifySignature'])->name('verify-signature');
+
+        // Sign
+        Route::post('/sign', [\App\Http\Controllers\DocumentController::class, 'sign'])->name('sign');
+
+        // Versioning
+        Route::get('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'index'])->name('versions.index');
+        Route::get('/versions/api', [\App\Http\Controllers\DocumentVersionController::class, 'getVersions'])->name('versions.api');
+        Route::post('/versions', [\App\Http\Controllers\DocumentVersionController::class, 'store'])->name('versions.store');
+        Route::post('/versions/{versionNumber}/rollback', [\App\Http\Controllers\DocumentVersionController::class, 'rollback'])->name('versions.rollback');
+        Route::get('/versions/compare/{version1}/{version2}', [\App\Http\Controllers\DocumentVersionController::class, 'compare'])->name('versions.compare');
+        Route::get('/versions/{versionNumber}/download', [\App\Http\Controllers\DocumentVersionController::class, 'download'])->name('versions.download');
+        Route::get('/versions/statistics', [\App\Http\Controllers\DocumentVersionController::class, 'statistics'])->name('versions.statistics');
+        Route::post('/versions/cleanup', [\App\Http\Controllers\DocumentVersionController::class, 'cleanup'])->name('versions.cleanup');
+
+        // Approval
+        Route::get('/approval', [\App\Http\Controllers\DocumentApprovalController::class, 'index'])->name('approval.index');
+        Route::get('/approval/history', [\App\Http\Controllers\DocumentApprovalController::class, 'getHistory'])->name('approval.history');
+        Route::post('/approval/submit', [\App\Http\Controllers\DocumentApprovalController::class, 'submit'])->name('approval.submit');
+        Route::post('/approval/{stepNumber}/approve', [\App\Http\Controllers\DocumentApprovalController::class, 'approve'])->name('approval.approve');
+        Route::post('/approval/{stepNumber}/reject', [\App\Http\Controllers\DocumentApprovalController::class, 'reject'])->name('approval.reject');
+    });
+
+    // Templates
+    Route::prefix('templates')->name('templates.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DocumentTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\DocumentTemplateController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\DocumentTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'show'])->name('show');
+        Route::get('/{template}/edit', [\App\Http\Controllers\DocumentTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'update'])->name('update');
+        Route::delete('/{template}', [\App\Http\Controllers\DocumentTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{template}/duplicate', [\App\Http\Controllers\DocumentTemplateController::class, 'duplicate'])->name('duplicate');
+        Route::get('/{template}/api', [\App\Http\Controllers\DocumentTemplateController::class, 'getTemplate'])->name('api');
+        Route::get('/category/{category}', [\App\Http\Controllers\DocumentTemplateController::class, 'getByCategory'])->name('by-category');
+    });
+
+    // Approval Workflows
+    Route::prefix('workflows')->name('workflows.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DocumentApprovalController::class, 'workflows'])->name('index');
+        Route::post('/', [\App\Http\Controllers\DocumentApprovalController::class, 'storeWorkflow'])->name('store');
+        Route::put('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'updateWorkflow'])->name('update');
+        Route::delete('/{workflow}', [\App\Http\Controllers\DocumentApprovalController::class, 'destroyWorkflow'])->name('destroy');
+        Route::get('/{workflow}/statistics', [\App\Http\Controllers\DocumentApprovalController::class, 'workflowStatistics'])->name('statistics');
+    });
+
+    // Cloud Storage
+    Route::prefix('cloud-storage')->name('cloud-storage.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\CloudStorageController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\CloudStorageController::class, 'store'])->name('store');
+        Route::put('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'update'])->name('update');
+        Route::delete('/{config}', [\App\Http\Controllers\CloudStorageController::class, 'destroy'])->name('destroy');
+        Route::post('/test-connection', [\App\Http\Controllers\CloudStorageController::class, 'testConnection'])->name('test-connection');
+        Route::post('/{config}/set-default', [\App\Http\Controllers\CloudStorageController::class, 'setDefault'])->name('set-default');
+        Route::get('/statistics', [\App\Http\Controllers\CloudStorageController::class, 'statistics'])->name('statistics');
+    });
+});
+
+// Timesheet
+Route::prefix('timesheets')->name('timesheets.')->group(function () {
+    Route::get('/', [TimesheetController::class, 'index'])->name('index');
+    Route::post('/', [TimesheetController::class, 'store'])->name('store');
+    Route::delete('/{timesheet}', [TimesheetController::class, 'destroy'])->name('destroy');
+});
+
+// General Ledger & Accounting (admin + manager only)
+Route::prefix('accounting')->name('accounting.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    // Chart of Accounts
+    Route::get('/coa', [AccountingController::class, 'coa'])->name('coa');
+    Route::post('/coa', [AccountingController::class, 'storeCoa'])->name('coa.store');
+    Route::put('/coa/{account}', [AccountingController::class, 'updateCoa'])->name('coa.update');
+    Route::delete('/coa/{account}', [AccountingController::class, 'destroyCoa'])->name('coa.destroy');
+    Route::post('/coa/seed-default', [AccountingController::class, 'seedDefaultCoa'])->name('coa.seed');
+
+    // Accounting Periods
+    Route::get('/periods', [AccountingController::class, 'periods'])->name('periods');
+    Route::post('/periods', [AccountingController::class, 'storePeriod'])->name('periods.store');
+    Route::patch('/periods/{period}/close', [AccountingController::class, 'closePeriod'])->name('periods.close');
+    Route::patch('/periods/{period}/lock', [AccountingController::class, 'lockPeriod'])->name('periods.lock');
+
+    // Period Lock & Fiscal Year Management (admin only)
+    Route::prefix('period-lock')->name('period-lock.')->middleware('role:admin')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PeriodLockController::class, 'index'])->name('index');
+        // Fiscal Years
+        Route::post('/fiscal-years', [\App\Http\Controllers\PeriodLockController::class, 'storeFiscalYear'])->name('fiscal-years.store');
+        Route::patch('/fiscal-years/{fiscalYear}/close', [\App\Http\Controllers\PeriodLockController::class, 'closeFiscalYear'])->name('fiscal-years.close');
+        Route::patch('/fiscal-years/{fiscalYear}/lock', [\App\Http\Controllers\PeriodLockController::class, 'lockFiscalYear'])->name('fiscal-years.lock');
+        Route::patch('/fiscal-years/{fiscalYear}/reopen', [\App\Http\Controllers\PeriodLockController::class, 'reopenFiscalYear'])->name('fiscal-years.reopen');
+        // Period lock
+        Route::patch('/periods/{period}/lock', [\App\Http\Controllers\PeriodLockController::class, 'lockPeriod'])->name('periods.lock');
+        // Backups
+        Route::post('/backups', [\App\Http\Controllers\PeriodLockController::class, 'createBackup'])->name('backups.store');
+        Route::get('/backups/{periodBackup}/download', [\App\Http\Controllers\PeriodLockController::class, 'downloadBackup'])->name('backups.download');
+        Route::delete('/backups/{periodBackup}', [\App\Http\Controllers\PeriodLockController::class, 'destroyBackup'])->name('backups.destroy');
+    });
+
+    // Trial Balance
+    Route::get('/trial-balance', [AccountingController::class, 'trialBalance'])->name('trial-balance');
+
+    // Balance Sheet (Neraca)
+    Route::get('/balance-sheet', [AccountingController::class, 'balanceSheet'])->name('balance-sheet');
+    Route::get('/balance-sheet/pdf', [AccountingController::class, 'balanceSheetPdf'])->name('balance-sheet.pdf');
+
+    // Income Statement (Laba Rugi dari GL)
+    Route::get('/income-statement', [AccountingController::class, 'incomeStatement'])->name('income-statement');
+    Route::get('/income-statement/pdf', [AccountingController::class, 'incomeStatementPdf'])->name('income-statement.pdf');
+
+    // Cash Flow Statement (Arus Kas)
+    Route::get('/cash-flow', [AccountingController::class, 'cashFlow'])->name('cash-flow');
+    Route::get('/cash-flow/pdf', [AccountingController::class, 'cashFlowPdf'])->name('cash-flow.pdf');
+});
+
+// Journal Entries (admin + manager only)
+Route::prefix('journals')->name('journals.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [JournalController::class, 'index'])->name('index');
+    Route::get('/create', [JournalController::class, 'create'])->name('create');
+    Route::post('/', [JournalController::class, 'store'])->name('store');
+    // Recurring — must be before /{journal} wildcard to avoid conflict
+    Route::get('/recurring/list', [JournalController::class, 'recurringIndex'])->name('recurring');
+    Route::post('/recurring', [JournalController::class, 'storeRecurring'])->name('recurring.store');
+    Route::patch('/recurring/{recurring}/toggle', [JournalController::class, 'toggleRecurring'])->name('recurring.toggle');
+    // Wildcard routes last
+    Route::get('/{journal}', [JournalController::class, 'show'])->name('show');
+    Route::patch('/{journal}/post', [JournalController::class, 'post'])->name('post');
+    Route::post('/{journal}/reverse', [JournalController::class, 'reverse'])->name('reverse');
+});
+
+// Reminders
+Route::prefix('reminders')->name('reminders.')->group(function () {
+    Route::get('/', [ReminderController::class, 'index'])->name('index');
+    Route::post('/', [ReminderController::class, 'store'])->name('store');
+    Route::patch('/{reminder}/done', [ReminderController::class, 'markDone'])->name('done');
+    Route::delete('/{reminder}', [ReminderController::class, 'destroy'])->name('destroy');
+});
+
+// Sales Returns (Retur Penjualan)
+Route::prefix('sales-returns')->name('sales-returns.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\SalesReturnController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\SalesReturnController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\SalesReturnController::class, 'store'])->name('store');
+    Route::post('/{salesReturn}/approve', [\App\Http\Controllers\SalesReturnController::class, 'approve'])->name('approve');
+    Route::post('/{salesReturn}/complete', [\App\Http\Controllers\SalesReturnController::class, 'complete'])->name('complete');
+    Route::post('/{salesReturn}/cancel', [\App\Http\Controllers\SalesReturnController::class, 'cancel'])->name('cancel');
+    Route::get('/invoice/{invoice}/items', [\App\Http\Controllers\SalesReturnController::class, 'invoiceItems'])->name('invoice-items');
+});
+
+// Purchase Returns (Retur Pembelian)
+Route::prefix('purchase-returns')->name('purchase-returns.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PurchaseReturnController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\PurchaseReturnController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\PurchaseReturnController::class, 'store'])->name('store');
+    Route::post('/{purchaseReturn}/send', [\App\Http\Controllers\PurchaseReturnController::class, 'send'])->name('send');
+    Route::post('/{purchaseReturn}/complete', [\App\Http\Controllers\PurchaseReturnController::class, 'complete'])->name('complete');
+    Route::post('/{purchaseReturn}/cancel', [\App\Http\Controllers\PurchaseReturnController::class, 'cancel'])->name('cancel');
+    Route::get('/po/{purchaseOrder}/items', [\App\Http\Controllers\PurchaseReturnController::class, 'poItems'])->name('po-items');
+});
+
+// Down Payments (Uang Muka)
+Route::prefix('down-payments')->name('down-payments.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\DownPaymentController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\DownPaymentController::class, 'store'])->name('store');
+    Route::post('/{downPayment}/apply', [\App\Http\Controllers\DownPaymentController::class, 'apply'])->name('apply');
+});
+
+// Bulk Payments
+Route::prefix('bulk-payments')->name('bulk-payments.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\BulkPaymentController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\BulkPaymentController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\BulkPaymentController::class, 'store'])->name('store');
+    Route::get('/customer-invoices', [\App\Http\Controllers\BulkPaymentController::class, 'customerInvoices'])->name('customer-invoices');
+});
+
+// Cost Centers (Task 44)
+Route::prefix('settings/cost-centers')->name('cost-centers.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CostCenterController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\CostCenterController::class, 'store'])->name('store');
+    Route::put('/{costCenter}', [\App\Http\Controllers\CostCenterController::class, 'update'])->name('update');
+    Route::delete('/{costCenter}', [\App\Http\Controllers\CostCenterController::class, 'destroy'])->name('destroy');
+    Route::get('/report', [\App\Http\Controllers\CostCenterController::class, 'report'])->name('report');
+});
+
+// Business Constraints (Task 45)
+Route::prefix('settings/constraints')->name('constraints.')->middleware('role:admin')->group(function () {
+    Route::get('/', [\App\Http\Controllers\BusinessConstraintController::class, 'index'])->name('index');
+    Route::put('/{businessConstraint}', [\App\Http\Controllers\BusinessConstraintController::class, 'update'])->name('update');
+    Route::post('/bulk', [\App\Http\Controllers\BusinessConstraintController::class, 'bulkUpdate'])->name('bulk');
+});
+
+// Transaction Chain (Task 46)
+Route::prefix('transaction-chain')->name('transaction-chain.')->middleware('auth')->group(function () {
+    Route::get('/{type}/{id}', [\App\Http\Controllers\TransactionChainController::class, 'show'])->name('show');
+    Route::get('/{type}/{id}/timeline', [\App\Http\Controllers\TransactionChainController::class, 'timeline'])->name('timeline');
+});
+
+// Deferred Revenue & Prepaid Expense (Task 47)
+Route::prefix('deferred')->name('deferred.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\DeferredItemController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\DeferredItemController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\DeferredItemController::class, 'store'])->name('store');
+    Route::get('/{deferredItem}', [\App\Http\Controllers\DeferredItemController::class, 'show'])->name('show');
+    Route::post('/schedules/{schedule}/post', [\App\Http\Controllers\DeferredItemController::class, 'postSchedule'])->name('schedule.post');
+    Route::patch('/{deferredItem}/cancel', [\App\Http\Controllers\DeferredItemController::class, 'cancel'])->name('cancel');
+});
+
+// Write-off Hutang/Piutang (Task 48)
+Route::prefix('writeoffs')->name('writeoffs.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\WriteoffController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\WriteoffController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\WriteoffController::class, 'store'])->name('store');
+    Route::post('/{writeoff}/approve', [\App\Http\Controllers\WriteoffController::class, 'approve'])->name('approve');
+    Route::post('/{writeoff}/reject', [\App\Http\Controllers\WriteoffController::class, 'reject'])->name('reject');
+    Route::post('/{writeoff}/post', [\App\Http\Controllers\WriteoffController::class, 'post'])->name('post');
+});
+
+// Price List per Customer (Task 49)
+Route::prefix('price-lists')->name('price-lists.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PriceListController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\PriceListController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\PriceListController::class, 'store'])->name('store');
+    Route::get('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'show'])->name('show');
+    Route::put('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'update'])->name('update');
+    Route::delete('/{priceList}', [\App\Http\Controllers\PriceListController::class, 'destroy'])->name('destroy');
+    Route::post('/{priceList}/customers', [\App\Http\Controllers\PriceListController::class, 'assignCustomer'])->name('customers.assign');
+    Route::delete('/{priceList}/customers/{customer}', [\App\Http\Controllers\PriceListController::class, 'removeCustomer'])->name('customers.remove');
+    Route::get('/api/price', [\App\Http\Controllers\PriceListController::class, 'getPrice'])->name('api.price');
+});
+
+// Simulations — Task 50
+Route::prefix('simulations')->name('simulations.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\SimulationController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\SimulationController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\SimulationController::class, 'store'])->name('store');
+    Route::get('/{simulation}', [\App\Http\Controllers\SimulationController::class, 'show'])->name('show');
+    Route::delete('/{simulation}', [\App\Http\Controllers\SimulationController::class, 'destroy'])->name('destroy');
+});
+
+// Anomaly Detection — Task 51
+Route::prefix('anomalies')->name('anomalies.')->middleware('role:admin,manager')->group(function () {
+    Route::get('/', [\App\Http\Controllers\AnomalyController::class, 'index'])->name('index');
+    Route::post('/detect', [\App\Http\Controllers\AnomalyController::class, 'detect'])->name('detect');
+    Route::post('/{anomaly}/acknowledge', [\App\Http\Controllers\AnomalyController::class, 'acknowledge'])->name('acknowledge');
+    Route::post('/{anomaly}/resolve', [\App\Http\Controllers\AnomalyController::class, 'resolve'])->name('resolve');
+});
+
+// AI Memory — Task 52
+Route::prefix('settings/ai-memory')->name('ai-memory.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\AiMemoryController::class, 'index'])->name('index');
+    Route::post('/reset', [\App\Http\Controllers\AiMemoryController::class, 'reset'])->name('reset');
+    Route::post('/prune', [\App\Http\Controllers\AiMemoryController::class, 'pruneStale'])->name('prune');
+    Route::post('/{memory}/lock', [\App\Http\Controllers\AiMemoryController::class, 'lock'])->name('lock');
+    Route::delete('/{aiMemory}', [\App\Http\Controllers\AiMemoryController::class, 'destroy'])->name('destroy');
+});
+
+// Delivery Orders (Surat Jalan)
+Route::prefix('delivery-orders')->name('delivery-orders.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\DeliveryOrderController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\DeliveryOrderController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\DeliveryOrderController::class, 'store'])->name('store');
+    Route::post('/{deliveryOrder}/ship', [\App\Http\Controllers\DeliveryOrderController::class, 'ship'])->name('ship');
+    Route::post('/{deliveryOrder}/deliver', [\App\Http\Controllers\DeliveryOrderController::class, 'deliver'])->name('deliver');
+    Route::post('/{deliveryOrder}/invoice', [\App\Http\Controllers\DeliveryOrderController::class, 'createInvoice'])->name('invoice');
+    Route::get('/so/{salesOrder}/items', [\App\Http\Controllers\DeliveryOrderController::class, 'soItems'])->name('so-items');
+});
+
+// 2FA Setup — Task 53
+// Middleware 'auth' wajib — route ini hanya untuk user yang sudah login
+Route::middleware('auth')->prefix('two-factor')->name('two-factor.')->group(function () {
+    Route::get('/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'setup'])->name('setup');
+    Route::post('/confirm', [\App\Http\Controllers\Auth\TwoFactorController::class, 'confirm'])->name('confirm');
+    Route::post('/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('disable');
+    Route::post('/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'regenerateCodes'])->name('recovery-codes');
+});
+
+// Custom Fields — Task 54
+Route::prefix('settings/custom-fields')->name('custom-fields.')->middleware('role:admin')->group(function () {
+    Route::get('/', [\App\Http\Controllers\CustomFieldController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\CustomFieldController::class, 'store'])->name('store');
+    Route::put('/{customField}', [\App\Http\Controllers\CustomFieldController::class, 'update'])->name('update');
+    Route::delete('/{customField}', [\App\Http\Controllers\CustomFieldController::class, 'destroy'])->name('destroy');
+});
+
+// Multi Company — Enterprise Feature
+Route::prefix('company-groups')->name('company-groups.')->middleware(['role:admin', 'permission:company_groups,view'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\CompanyGroupController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\CompanyGroupController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\CompanyGroupController::class, 'store'])->name('store');
+    Route::get('/{companyGroup}', [\App\Http\Controllers\CompanyGroupController::class, 'show'])->name('show');
+    Route::post('/{companyGroup}/members', [\App\Http\Controllers\CompanyGroupController::class, 'addMember'])->name('members.add');
+    Route::delete('/{companyGroup}/members/{tenant}', [\App\Http\Controllers\CompanyGroupController::class, 'removeMember'])->name('members.remove');
+    Route::post('/{companyGroup}/transactions', [\App\Http\Controllers\CompanyGroupController::class, 'storeTransaction'])->name('transactions.store');
+    Route::post('/transactions/{transaction}/post', [\App\Http\Controllers\CompanyGroupController::class, 'postTransaction'])->name('transactions.post');
+    Route::post('/transactions/{transaction}/void', [\App\Http\Controllers\CompanyGroupController::class, 'voidTransaction'])->name('transactions.void');
+    Route::get('/{companyGroup}/export', [\App\Http\Controllers\CompanyGroupController::class, 'exportCsv'])->name('export');
+});
+
+// Zero Input ERP — Task 56
+Route::prefix('zero-input')->name('zero-input.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\ZeroInputController::class, 'index'])->name('index');
+    Route::post('/photo', [\App\Http\Controllers\ZeroInputController::class, 'uploadPhoto'])->name('photo');
+    Route::post('/text', [\App\Http\Controllers\ZeroInputController::class, 'processText'])->name('text');
+    Route::get('/{zeroInputLog}', [\App\Http\Controllers\ZeroInputController::class, 'show'])->name('show');
+    Route::post('/{zeroInputLog}/confirm', [\App\Http\Controllers\ZeroInputController::class, 'confirm'])->name('confirm');
+    Route::post('/{zeroInputLog}/reject', [\App\Http\Controllers\ZeroInputController::class, 'reject'])->name('reject');
+});
+
+// Multi-Company Consolidation — Enterprise Feature
+Route::prefix('consolidation')->name('consolidation.')->middleware(['role:admin'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ConsolidationController::class, 'index'])->name('index');
+
+    // Company Group Management
+    Route::get('/groups/create', [\App\Http\Controllers\ConsolidationController::class, 'createGroup'])->name('groups.create');
+    Route::post('/groups', [\App\Http\Controllers\ConsolidationController::class, 'storeGroup'])->name('groups.store');
+    Route::get('/groups/{group}', [\App\Http\Controllers\ConsolidationController::class, 'show'])->name('show');
+    Route::post('/groups/{group}/members', [\App\Http\Controllers\ConsolidationController::class, 'addMember'])->name('members.add');
+    Route::delete('/groups/{group}/members/{tenantId}', [\App\Http\Controllers\ConsolidationController::class, 'removeMember'])->name('members.remove');
+
+    // Consolidation Reports
+    Route::post('/groups/{group}/reports', [\App\Http\Controllers\ConsolidationController::class, 'generateReport'])->name('report.generate');
+    Route::get('/groups/{group}/reports/{report}', [\App\Http\Controllers\ConsolidationController::class, 'showReport'])->name('report.show');
+    Route::post('/groups/{group}/reports/{report}/finalize', [\App\Http\Controllers\ConsolidationController::class, 'finalizeReport'])->name('report.finalize');
+    Route::get('/groups/{group}/reports/{report}/export', [\App\Http\Controllers\ConsolidationController::class, 'exportReport'])->name('report.export');
+
+    // Master Chart of Accounts
+    Route::get('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'masterAccounts'])->name('master-accounts');
+    Route::post('/groups/{group}/master-accounts', [\App\Http\Controllers\ConsolidationController::class, 'storeMasterAccount'])->name('master-accounts.store');
+
+    // Account Mappings
+    Route::get('/groups/{group}/mappings', [\App\Http\Controllers\ConsolidationController::class, 'accountMappings'])->name('mappings');
+    Route::patch('/groups/{group}/mappings/{mapping}', [\App\Http\Controllers\ConsolidationController::class, 'updateMapping'])->name('mappings.update');
+
+    // Elimination Entries
+    Route::get('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'eliminations'])->name('eliminations');
+    Route::post('/groups/{group}/eliminations', [\App\Http\Controllers\ConsolidationController::class, 'storeElimination'])->name('eliminations.store');
+
+    // Ownership Structure
+    Route::get('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'ownerships'])->name('ownerships');
+    Route::post('/groups/{group}/ownerships', [\App\Http\Controllers\ConsolidationController::class, 'storeOwnership'])->name('ownerships.store');
+});
+
+// =============================================
+// HOTEL PMS MODULE
+// =============================================
+Route::prefix('hotel')->name('hotel.')->middleware('tenant.isolation')->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\Hotel\HotelDashboardController::class, 'index'])->name('dashboard');
+
+    // Settings
+    Route::get('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'edit'])->name('settings.edit');
+    Route::put('settings', [App\Http\Controllers\Hotel\HotelSettingController::class, 'update'])->name('settings.update');
+
+    // Room Types
+    Route::resource('room-types', App\Http\Controllers\Hotel\RoomTypeController::class)->except(['show', 'edit', 'create'])->names('room-types');
+
+    // Rooms
+    Route::get('rooms/availability', [App\Http\Controllers\Hotel\RoomController::class, 'availability'])->name('rooms.availability');
+    Route::patch('rooms/{room}/status', [App\Http\Controllers\Hotel\RoomController::class, 'updateStatus'])->name('rooms.status');
+    Route::resource('rooms', App\Http\Controllers\Hotel\RoomController::class)->except(['show', 'edit', 'create'])->names('rooms');
+
+    // Reservations
+    Route::get('reservations/calendar', [App\Http\Controllers\Hotel\ReservationController::class, 'calendar'])->name('reservations.calendar');
+    Route::post('reservations/calculate-rate', [App\Http\Controllers\Hotel\ReservationController::class, 'calculateRate'])->name('reservations.calculate-rate');
+    Route::patch('reservations/{reservation}/confirm', [App\Http\Controllers\Hotel\ReservationController::class, 'confirm'])->name('reservations.confirm');
+    Route::patch('reservations/{reservation}/cancel', [App\Http\Controllers\Hotel\ReservationController::class, 'cancel'])->name('reservations.cancel');
+
+    // Reservation room changes and early/late requests
+    Route::get('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'showRoomChange'])->name('reservations.room-change');
+    Route::post('reservations/{reservation}/room-change', [App\Http\Controllers\Hotel\ReservationController::class, 'processRoomChange'])->name('reservations.process-room-change');
+    Route::post('reservations/{reservation}/early-late-request', [App\Http\Controllers\Hotel\ReservationController::class, 'requestEarlyLate'])->name('reservations.request-early-late');
+    Route::post('reservations/early-late/{request}/approve', [App\Http\Controllers\Hotel\ReservationController::class, 'approveEarlyLate'])->name('reservations.approve-early-late');
+    Route::post('reservations/early-late/{request}/reject', [App\Http\Controllers\Hotel\ReservationController::class, 'rejectEarlyLate'])->name('reservations.reject-early-late');
+    Route::get('reservations/early-late/pending', [App\Http\Controllers\Hotel\ReservationController::class, 'getPendingRequests'])->name('reservations.pending-early-late');
+    Route::post('reservations/{reservation}/record-check-in', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckIn'])->name('reservations.record-check-in');
+    Route::post('reservations/{reservation}/record-check-out', [App\Http\Controllers\Hotel\ReservationController::class, 'recordCheckOut'])->name('reservations.record-check-out');
+    Route::get('reservations/{reservation}/room-changes', [App\Http\Controllers\Hotel\ReservationController::class, 'getRoomChanges'])->name('reservations.room-changes');
+
+    Route::resource('reservations', App\Http\Controllers\Hotel\ReservationController::class)->names('reservations');
+
+    // Guests
+    Route::get('guests/search', [App\Http\Controllers\Hotel\GuestController::class, 'search'])->name('guests.search');
+    Route::get('guests/{guest}/history', [App\Http\Controllers\Hotel\GuestController::class, 'history'])->name('guests.history');
+    Route::get('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'preferences'])->name('guests.preferences');
+    Route::post('guests/{guest}/preferences', [App\Http\Controllers\Hotel\GuestController::class, 'storePreference'])->name('guests.store-preference');
+    Route::patch('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'updatePreference'])->name('guests.update-preference');
+    Route::delete('guests/{guest}/preferences/{preference}', [App\Http\Controllers\Hotel\GuestController::class, 'destroyPreference'])->name('guests.destroy-preference');
+    Route::get('guests/{guest}/suggestions', [App\Http\Controllers\Hotel\GuestController::class, 'getSuggestions'])->name('guests.suggestions');
+    Route::post('guests/{guest}/apply-suggestion', [App\Http\Controllers\Hotel\GuestController::class, 'applySuggestion'])->name('guests.apply-suggestion');
+    Route::post('guests/{guest}/award-points', [App\Http\Controllers\Hotel\GuestController::class, 'awardPoints'])->name('guests.award-points');
+    Route::post('guests/{guest}/redeem-points', [App\Http\Controllers\Hotel\GuestController::class, 'redeemPoints'])->name('guests.redeem-points');
+    Route::patch('guests/{guest}/vip-level', [App\Http\Controllers\Hotel\GuestController::class, 'updateVipLevel'])->name('guests.update-vip-level');
+    Route::resource('guests', App\Http\Controllers\Hotel\GuestController::class)->names('guests');
+
+    // Group Bookings
+    Route::get('group-bookings/search', [App\Http\Controllers\Hotel\GroupBookingController::class, 'search'])->name('group-bookings.search');
+    Route::post('group-bookings/{groupBooking}/add-reservation', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addReservation'])->name('group-bookings.add-reservation');
+    Route::post('group-bookings/{groupBooking}/confirm', [App\Http\Controllers\Hotel\GroupBookingController::class, 'confirm'])->name('group-bookings.confirm');
+    Route::post('group-bookings/{groupBooking}/cancel', [App\Http\Controllers\Hotel\GroupBookingController::class, 'cancel'])->name('group-bookings.cancel');
+    Route::post('group-bookings/{groupBooking}/payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'processPayment'])->name('group-bookings.payment');
+    Route::post('group-bookings/{groupBooking}/add-benefit', [App\Http\Controllers\Hotel\GroupBookingController::class, 'addBenefit'])->name('group-bookings.add-benefit');
+    Route::delete('reservations/{reservation}/remove-from-group', [App\Http\Controllers\Hotel\GroupBookingController::class, 'removeReservation'])->name('group-bookings.remove-reservation');
+    Route::resource('group-bookings', App\Http\Controllers\Hotel\GroupBookingController::class)->names('group-bookings');
+
+    // Group Booking Enhanced Features
+    Route::post('group-bookings/{groupBooking}/create-room-block', [App\Http\Controllers\Hotel\GroupBookingController::class, 'createRoomBlock'])->name('group-bookings.create-room-block');
+    Route::get('group-bookings/{groupBooking}/billing', [App\Http\Controllers\Hotel\GroupBookingController::class, 'billing'])->name('group-bookings.billing');
+    Route::post('group-bookings/{groupBooking}/split-bill', [App\Http\Controllers\Hotel\GroupBookingController::class, 'splitBill'])->name('group-bookings.split-bill');
+    Route::post('group-bookings/{groupBooking}/group-payment', [App\Http\Controllers\Hotel\GroupBookingController::class, 'groupPayment'])->name('group-bookings.group-payment');
+    Route::post('group-bookings/{groupBooking}/check-in-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkInMember'])->name('group-bookings.check-in-member');
+    Route::post('group-bookings/{groupBooking}/check-out-member/{reservation}', [App\Http\Controllers\Hotel\GroupBookingController::class, 'checkOutMember'])->name('group-bookings.check-out-member');
+
+    // Walk-in Reservations
+    Route::get('walk-ins/statistics', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'statistics'])->name('walk-ins.statistics');
+    Route::post('walk-ins/quick-check-in', [App\Http\Controllers\Hotel\WalkInReservationController::class, 'quickCheckIn'])->name('walk-ins.quick-check-in');
+    Route::resource('walk-ins', App\Http\Controllers\Hotel\WalkInReservationController::class)->except(['create', 'store'])->names('walk-ins');
+
+    // Check-in / Check-out
+    Route::get('check-in-out', [App\Http\Controllers\Hotel\CheckInOutController::class, 'index'])->name('checkin-out.index');
+    Route::get('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkInForm'])->name('checkin.form');
+    Route::post('check-in/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckIn'])->name('checkin.process');
+    Route::get('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'checkOutForm'])->name('checkout.form');
+    Route::post('check-out/{reservation}', [App\Http\Controllers\Hotel\CheckInOutController::class, 'processCheckOut'])->name('checkout.process');
+
+    // Room Changes
+    Route::get('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'showChangeForm'])->name('room-change.form');
+    Route::post('reservations/{reservation}/change-room', [App\Http\Controllers\Hotel\RoomChangeController::class, 'processRoomChange'])->name('room-change.process');
+    Route::get('room-map', [App\Http\Controllers\Hotel\RoomChangeController::class, 'roomMap'])->name('room-map');
+    Route::get('available-rooms', [App\Http\Controllers\Hotel\RoomChangeController::class, 'getAvailableRooms'])->name('available-rooms');
+    Route::get('reservations/{reservation}/room-change-history', [App\Http\Controllers\Hotel\RoomChangeController::class, 'history'])->name('room-change.history');
+
+    // Pre-Arrival Forms
+    Route::get('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'preArrivalForm'])->name('checkin.pre-arrival');
+    Route::post('check-in/{reservation}/pre-arrival', [App\Http\Controllers\Hotel\CheckInOutController::class, 'submitPreArrival'])->name('checkin.pre-arrival.submit');
+    Route::post('pre-arrival/{form}/verify', [App\Http\Controllers\Hotel\CheckInOutController::class, 'verifyPreArrival'])->name('pre-arrival.verify');
+
+    // Quick Check-in
+    Route::post('check-in/{reservation}/quick', [App\Http\Controllers\Hotel\CheckInOutController::class, 'quickCheckIn'])->name('checkin.quick');
+
+    // Housekeeping Module
+    Route::prefix('housekeeping')->name('housekeeping.')->group(function () {
+        // Dashboard & Room Board
+        Route::get('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'index'])->name('index');
+        Route::get('room-board', [App\Http\Controllers\Hotel\HousekeepingController::class, 'roomBoard'])->name('room-board');
+        Route::post('/', [App\Http\Controllers\Hotel\HousekeepingController::class, 'store'])->name('store');
+        Route::post('rooms/{roomId}/status', [App\Http\Controllers\Hotel\HousekeepingController::class, 'updateRoomStatus'])->name('rooms.status');
+
+        // Tasks Management
+        Route::get('tasks', [App\Http\Controllers\Hotel\HousekeepingController::class, 'tasks'])->name('tasks.index');
+        Route::post('tasks/{taskId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignTask'])->name('tasks.assign');
+        Route::post('tasks/{taskId}/start', [App\Http\Controllers\Hotel\HousekeepingController::class, 'startTask'])->name('tasks.start');
+        Route::post('tasks/{taskId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeTask'])->name('tasks.complete');
+
+        // Maintenance Requests
+        Route::get('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'maintenance'])->name('maintenance.index');
+        Route::post('maintenance', [App\Http\Controllers\Hotel\HousekeepingController::class, 'createMaintenanceRequest'])->name('maintenance.store');
+        Route::post('maintenance/{requestId}/assign', [App\Http\Controllers\Hotel\HousekeepingController::class, 'assignMaintenanceRequest'])->name('maintenance.assign');
+        Route::post('maintenance/{requestId}/complete', [App\Http\Controllers\Hotel\HousekeepingController::class, 'completeMaintenanceRequest'])->name('maintenance.complete');
+
+        // Linen Inventory
+        Route::get('linen', [App\Http\Controllers\Hotel\HousekeepingController::class, 'linenInventory'])->name('linen.index');
+        Route::post('linen/movement', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordLinenMovement'])->name('linen.movement');
+
+        // Supplies Inventory
+        Route::get('supplies', [App\Http\Controllers\Hotel\HousekeepingController::class, 'supplies'])->name('supplies.index');
+        Route::post('supplies/usage', [App\Http\Controllers\Hotel\HousekeepingController::class, 'recordSupplyUsage'])->name('supplies.usage');
+
+        // Reports
+        Route::get('daily-report', [App\Http\Controllers\Hotel\HousekeepingController::class, 'dailyReport'])->name('daily-report');
+    });
+
+    // Rate Management
+    Route::get('rates/calendar', [App\Http\Controllers\Hotel\RateController::class, 'calendar'])->name('rates.calendar');
+    Route::post('rates/bulk-update', [App\Http\Controllers\Hotel\RateController::class, 'bulkUpdate'])->name('rates.bulk-update');
+    Route::resource('rates', App\Http\Controllers\Hotel\RateController::class)->except(['show', 'edit', 'create'])->names('rates');
+
+    // Revenue Management
+    Route::prefix('revenue')->name('revenue.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'dashboard'])->name('dashboard');
+
+        // Rate Plans
+        Route::get('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'ratePlans'])->name('rate-plans');
+        Route::post('rate-plans', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeRatePlan'])->name('rate-plans.store');
+        Route::put('rate-plans/{ratePlan}', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'updateRatePlan'])->name('rate-plans.update');
+
+        // Pricing Rules
+        Route::get('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'pricingRules'])->name('pricing-rules');
+        Route::post('pricing-rules', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storePricingRule'])->name('pricing-rules.store');
+
+        // Forecasts
+        Route::get('forecasts', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'forecasts'])->name('forecasts');
+        Route::post('forecasts/generate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'generateForecasts'])->name('forecasts.generate');
+
+        // Competitor Rates
+        Route::get('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'competitorRates'])->name('competitor-rates');
+        Route::post('competitor-rates', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeCompetitorRate'])->name('competitor-rates.store');
+
+        // Special Events
+        Route::get('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'specialEvents'])->name('special-events');
+        Route::post('special-events', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'storeSpecialEvent'])->name('special-events.store');
+
+        // Recommendations
+        Route::get('recommendations', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'recommendations'])->name('recommendations');
+        Route::post('recommendations/{recommendation}/apply', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'applyRecommendation'])->name('recommendations.apply');
+        Route::post('recommendations/{recommendation}/reject', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rejectRecommendation'])->name('recommendations.reject');
+
+        // Rate Calendar
+        Route::get('rate-calendar', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'rateCalendar'])->name('rate-calendar');
+
+        // Yield Optimization
+        Route::get('yield-optimization', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'yieldOptimization'])->name('yield-optimization');
+
+        // Reports
+        Route::get('reports', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'reports'])->name('reports');
+
+        // Bulk Updates
+        Route::post('bulk-rate-update', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'bulkRateUpdate'])->name('bulk-rate-update');
+
+        // API Endpoints
+        Route::get('api/optimal-rate', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getOptimalRate'])->name('api.optimal-rate');
+        Route::get('api/rate-range', [App\Http\Controllers\Hotel\RevenueManagementController::class, 'getRateRange'])->name('api.rate-range');
+    });
+
+    // Food & Beverage Module
+    Route::prefix('fb')->name('fb.')->group(function () {
+        // Restaurant POS
+        Route::get('restaurant', [App\Http\Controllers\Hotel\RestaurantController::class, 'index'])->name('restaurant.index');
+        Route::post('restaurant/orders', [App\Http\Controllers\Hotel\RestaurantController::class, 'createOrder'])->name('restaurant.orders.store');
+        Route::get('restaurant/orders/{id}', [App\Http\Controllers\Hotel\RestaurantController::class, 'showOrder'])->name('restaurant.orders.show');
+        Route::patch('restaurant/orders/{id}/status', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateOrderStatus'])->name('restaurant.orders.status');
+
+        // Menus Management
+        Route::get('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'menus'])->name('menus.index');
+        Route::post('menus', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenu'])->name('menus.store');
+        Route::put('menus/{menu}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenu'])->name('menus.update');
+        Route::get('menus/{menu}/items', [App\Http\Controllers\Hotel\RestaurantController::class, 'menuItems'])->name('menus.items');
+        Route::post('menu-items', [App\Http\Controllers\Hotel\RestaurantController::class, 'storeMenuItem'])->name('menu-items.store');
+        Route::put('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'updateMenuItem'])->name('menu-items.update');
+        Route::delete('menu-items/{menuItem}', [App\Http\Controllers\Hotel\RestaurantController::class, 'destroyMenuItem'])->name('menu-items.destroy');
+
+        // Room Service
+        Route::get('roomservice', [App\Http\Controllers\Hotel\RoomServiceController::class, 'index'])->name('roomservice.index');
+        Route::post('roomservice/orders', [App\Http\Controllers\Hotel\RoomServiceController::class, 'createOrder'])->name('roomservice.orders.store');
+        Route::get('roomservice/orders/{id}', [App\Http\Controllers\Hotel\RoomServiceController::class, 'showOrder'])->name('roomservice.orders.show');
+        Route::post('roomservice/orders/{id}/deliver', [App\Http\Controllers\Hotel\RoomServiceController::class, 'deliverOrder'])->name('roomservice.orders.deliver');
+        Route::post('roomservice/orders/{id}/charge', [App\Http\Controllers\Hotel\RoomServiceController::class, 'chargeToRoom'])->name('roomservice.orders.charge');
+        Route::get('roomservice/menu-items', [App\Http\Controllers\Hotel\RoomServiceController::class, 'availableMenuItems'])->name('roomservice.menu-items');
+
+        // Mini-bar
+        Route::get('minibar', [App\Http\Controllers\Hotel\MinibarController::class, 'index'])->name('minibar.index');
+        Route::get('minibar/room/{roomNumber}', [App\Http\Controllers\Hotel\MinibarController::class, 'roomStock'])->name('minibar.room-stock');
+        Route::post('minibar/consumption', [App\Http\Controllers\Hotel\MinibarController::class, 'recordConsumption'])->name('minibar.consumption');
+        Route::post('minibar/restock', [App\Http\Controllers\Hotel\MinibarController::class, 'restock'])->name('minibar.restock');
+        Route::get('minibar/reservation/{reservationId}/charges', [App\Http\Controllers\Hotel\MinibarController::class, 'reservationCharges'])->name('minibar.charges');
+        Route::post('minibar/reservation/{reservationId}/bill-all', [App\Http\Controllers\Hotel\MinibarController::class, 'billAllCharges'])->name('minibar.bill-all');
+
+        // Banquet & Events
+        Route::get('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'index'])->name('banquet.index');
+        Route::get('banquet/create', [App\Http\Controllers\Hotel\BanquetController::class, 'create'])->name('banquet.create');
+        Route::post('banquet', [App\Http\Controllers\Hotel\BanquetController::class, 'store'])->name('banquet.store');
+        Route::get('banquet/{id}', [App\Http\Controllers\Hotel\BanquetController::class, 'show'])->name('banquet.show');
+        Route::post('banquet/{id}/confirm', [App\Http\Controllers\Hotel\BanquetController::class, 'confirmEvent'])->name('banquet.confirm');
+        Route::post('banquet/{id}/complete', [App\Http\Controllers\Hotel\BanquetController::class, 'completeEvent'])->name('banquet.complete');
+        Route::post('banquet/{id}/cancel', [App\Http\Controllers\Hotel\BanquetController::class, 'cancelEvent'])->name('banquet.cancel');
+        Route::patch('banquet/{id}/guest-count', [App\Http\Controllers\Hotel\BanquetController::class, 'updateGuestCount'])->name('banquet.guest-count');
+
+        // F&B Inventory/Supplies
+        Route::get('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'index'])->name('supplies.index');
+        Route::post('supplies', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'store'])->name('supplies.store');
+        Route::put('supplies/{supply}', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'update'])->name('supplies.update');
+        Route::post('supplies/{supply}/add-stock', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'addStock'])->name('supplies.add-stock');
+        Route::post('supplies/{supply}/usage', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'recordUsage'])->name('supplies.usage');
+        Route::get('supplies/{supply}/transactions', [App\Http\Controllers\Hotel\FbSuppliesController::class, 'transactions'])->name('supplies.transactions');
+
+        // F&B Reports
+        Route::get('reports', [App\Http\Controllers\Hotel\FbReportsController::class, 'index'])->name('reports.index');
+        Route::get('reports/export', [App\Http\Controllers\Hotel\FbReportsController::class, 'export'])->name('reports.export');
+    });
+
+    // Spa & Recreation Module
+    Route::prefix('spa')->name('spa.')->group(function () {
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\Hotel\SpaController::class, 'dashboard'])->name('dashboard');
+
+        // Treatments
+        Route::get('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'treatments'])->name('treatments.index');
+        Route::post('treatments', [App\Http\Controllers\Hotel\SpaController::class, 'storeTreatment'])->name('treatments.store');
+        Route::put('treatments/{treatment}', [App\Http\Controllers\Hotel\SpaController::class, 'updateTreatment'])->name('treatments.update');
+
+        // Packages
+        Route::get('packages', [App\Http\Controllers\Hotel\SpaController::class, 'packages'])->name('packages.index');
+        Route::get('packages/create', [App\Http\Controllers\Hotel\SpaController::class, 'createPackage'])->name('packages.create');
+        Route::post('packages', [App\Http\Controllers\Hotel\SpaController::class, 'storePackage'])->name('packages.store');
+        Route::get('packages/{package}', [App\Http\Controllers\Hotel\SpaController::class, 'showPackage'])->name('packages.show');
+
+        // Therapists
+        Route::get('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'therapists'])->name('therapists.index');
+        Route::post('therapists', [App\Http\Controllers\Hotel\SpaController::class, 'storeTherapist'])->name('therapists.store');
+        Route::get('therapists/{therapist}/schedule', [App\Http\Controllers\Hotel\SpaController::class, 'therapistSchedule'])->name('therapists.schedule');
+
+        // Bookings
+        Route::get('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'bookings'])->name('bookings.index');
+        Route::get('bookings/create', [App\Http\Controllers\Hotel\SpaController::class, 'createBooking'])->name('bookings.create');
+        Route::post('bookings', [App\Http\Controllers\Hotel\SpaController::class, 'storeBooking'])->name('bookings.store');
+        Route::post('bookings/{booking}/confirm', [App\Http\Controllers\Hotel\SpaController::class, 'confirmBooking'])->name('bookings.confirm');
+        Route::post('bookings/{booking}/complete', [App\Http\Controllers\Hotel\SpaController::class, 'completeBooking'])->name('bookings.complete');
+        Route::post('bookings/{booking}/cancel', [App\Http\Controllers\Hotel\SpaController::class, 'cancelBooking'])->name('bookings.cancel');
+
+        // Product Sales
+        Route::get('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'productSales'])->name('product-sales.index');
+        Route::post('product-sales', [App\Http\Controllers\Hotel\SpaController::class, 'recordProductSale'])->name('product-sales.store');
+
+        // Reports
+        Route::get('reports', [App\Http\Controllers\Hotel\SpaController::class, 'reports'])->name('reports.index');
+    });
+
+    // Hotel Reports & Analytics Module
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dashboard'])->name('dashboard');
+
+        // Daily Operations Report
+        Route::get('daily-operations', [App\Http\Controllers\Hotel\HotelReportsController::class, 'dailyOperations'])->name('daily-operations');
+
+        // Revenue Report
+        Route::get('revenue', [App\Http\Controllers\Hotel\HotelReportsController::class, 'revenue'])->name('revenue');
+
+        // Occupancy Analytics
+        Route::get('occupancy', [App\Http\Controllers\Hotel\HotelReportsController::class, 'occupancy'])->name('occupancy');
+
+        // Guest Analytics
+        Route::get('guest-analytics', [App\Http\Controllers\Hotel\HotelReportsController::class, 'guestAnalytics'])->name('guest-analytics');
+
+        // Staff Performance
+        Route::get('staff-performance', [App\Http\Controllers\Hotel\HotelReportsController::class, 'staffPerformance'])->name('staff-performance');
+    });
+
+    // Night Audit Module
+    Route::prefix('night-audit')->name('night-audit.')->group(function () {
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\Hotel\NightAuditController::class, 'index'])->name('index');
+
+        // Audit Batch Processing
+        Route::post('start', [App\Http\Controllers\Hotel\NightAuditController::class, 'startAudit'])->name('start');
+        Route::get('batch/{id}', [App\Http\Controllers\Hotel\NightAuditController::class, 'showBatch'])->name('batch');
+        Route::post('batch/{id}/post-room-charges', [App\Http\Controllers\Hotel\NightAuditController::class, 'postRoomCharges'])->name('post-room-charges');
+        Route::post('batch/{id}/post-fb-revenue', [App\Http\Controllers\Hotel\NightAuditController::class, 'postFBRevenue'])->name('post-fb-revenue');
+        Route::post('batch/{id}/post-minibar', [App\Http\Controllers\Hotel\NightAuditController::class, 'postMinibarCharges'])->name('post-minibar');
+        Route::post('batch/{id}/calculate-occupancy', [App\Http\Controllers\Hotel\NightAuditController::class, 'calculateOccupancy'])->name('calculate-occupancy');
+        Route::post('batch/{id}/complete', [App\Http\Controllers\Hotel\NightAuditController::class, 'completeAudit'])->name('complete');
+        Route::post('batch/{id}/retry', [App\Http\Controllers\Hotel\NightAuditController::class, 'retryFailedAudit'])->name('retry');
+        Route::post('batch/{id}/cancel', [App\Http\Controllers\Hotel\NightAuditController::class, 'cancelAudit'])->name('cancel');
+
+        // Revenue Postings
+        Route::get('revenue-postings', [App\Http\Controllers\Hotel\NightAuditController::class, 'revenuePostings'])->name('revenue-postings');
+        Route::post('revenue-postings/{id}/void', [App\Http\Controllers\Hotel\NightAuditController::class, 'voidPosting'])->name('void-posting');
+
+        // Statistics & Reports
+        Route::get('statistics', [App\Http\Controllers\Hotel\NightAuditController::class, 'statistics'])->name('statistics');
+        Route::post('recalculate-rates', [App\Http\Controllers\Hotel\NightAuditController::class, 'recalculateRates'])->name('recalculate-rates');
+    });
+
+    // Channel Manager
+    Route::get('channels', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'index'])->name('channels.index');
+    Route::get('channels/logs', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'logs'])->name('channels.logs');
+    Route::get('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'configure'])->name('channels.configure');
+    Route::put('channels/{channel}/configure', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'updateConfig'])->name('channels.update-config');
+    Route::post('channels/{channel}/sync', [App\Http\Controllers\Hotel\ChannelManagerController::class, 'sync'])->name('channels.sync');
 });
 
 require __DIR__ . '/auth.php';
@@ -2319,6 +2532,7 @@ use App\Http\Controllers\Telecom\DashboardController as TelecomDashboardControll
 use App\Http\Controllers\Telecom\CustomerController as TelecomCustomerController;
 use App\Http\Controllers\Telecom\VoucherController as TelecomVoucherController;
 use App\Http\Controllers\Telecom\ReportsController as TelecomReportsController;
+use App\Http\Controllers\Telecom\MapsController as TelecomMapsController;
 
 Route::prefix('mobile')->name('mobile.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [MobileController::class, 'hub'])->name('hub');
@@ -2400,6 +2614,38 @@ Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified', 'ten
     Route::post('subscriptions/{subscription}/suspend', [TelecomSubscriptionController::class, 'suspend'])->name('subscriptions.suspend');
     Route::post('subscriptions/{subscription}/reactivate', [TelecomSubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
     Route::post('subscriptions/{subscription}/reset-quota', [TelecomSubscriptionController::class, 'resetQuota'])->name('subscriptions.reset-quota');
+
+    // Network Maps
+    Route::get('maps', [TelecomMapsController::class, 'index'])->name('maps');
+    Route::get('maps/api/devices', [TelecomMapsController::class, 'getDevices'])->name('maps.api.devices');
+    Route::get('maps/api/devices/{id}', [TelecomMapsController::class, 'getDeviceDetail'])->name('maps.api.device-detail');
+    Route::get('maps/api/nearby', [TelecomMapsController::class, 'getDevicesNearby'])->name('maps.api.nearby');
+    Route::get('maps/export-pdf', [TelecomMapsController::class, 'exportToPdf'])->name('maps.export-pdf');
+
+    // Location Tracking & Geofencing
+    Route::prefix('api/location')->name('api.location.')->group(function () {
+        Route::post('update', [TelecomLocationTrackingController::class, 'updateLocation'])->name('update');
+        Route::get('history/{deviceId}', [TelecomLocationTrackingController::class, 'getLocationHistory'])->name('history');
+        Route::post('track-mobile', [TelecomLocationTrackingController::class, 'trackMobileDevice'])->name('track-mobile');
+        Route::get('route/{deviceId}', [TelecomLocationTrackingController::class, 'getRouteTracking'])->name('route');
+        Route::get('route/{deviceId}/sessions', [TelecomLocationTrackingController::class, 'getTrackingSessions'])->name('route.sessions');
+        Route::get('geofence-alerts/{deviceId}', [TelecomLocationTrackingController::class, 'getGeofenceAlerts'])->name('geofence-alerts');
+    });
+
+    // Geofencing Zone Management
+    Route::prefix('geofencing')->name('geofencing.')->group(function () {
+        Route::get('/', [TelecomGeofencingController::class, 'index'])->name('index');
+        Route::get('create', [TelecomGeofencingController::class, 'create'])->name('create');
+        Route::post('/', [TelecomGeofencingController::class, 'store'])->name('store');
+        Route::get('{id}', [TelecomGeofencingController::class, 'show'])->name('show');
+        Route::get('{id}/edit', [TelecomGeofencingController::class, 'edit'])->name('edit');
+        Route::put('{id}', [TelecomGeofencingController::class, 'update'])->name('update');
+        Route::delete('{id}', [TelecomGeofencingController::class, 'destroy'])->name('destroy');
+        Route::post('{id}/toggle-status', [TelecomGeofencingController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('{id}/assign-devices', [TelecomGeofencingController::class, 'assignDevices'])->name('assign-devices');
+        Route::delete('{zoneId}/devices/{deviceId}', [TelecomGeofencingController::class, 'removeDevice'])->name('remove-device');
+        Route::get('{id}/map-preview', [TelecomGeofencingController::class, 'getMapPreview'])->name('map-preview');
+    });
 });
 
 // ── F&B Industry Workflows ──────────────────────────────────────────────────
@@ -3218,3 +3464,10 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
 |--------------------------------------------------------------------------
 */
 require __DIR__ . '/healthcare.php';
+
+/*
+|--------------------------------------------------------------------------
+| Temporary Cookie Clear Route (DELETE AFTER USE)
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/clear-cookies-temp.php';

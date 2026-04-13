@@ -40,14 +40,15 @@ class AiStreamingService
         string $message,
         array $history = [],
         array $toolDeclarations = [],
-        ?callable $onChunk = null
+        ?callable $onChunk = null,
+        ?callable $onComplete = null
     ): StreamedResponse {
         // Track accumulated text for error recovery
         $accumulatedText = '';
         $model = 'unknown';
         $functionCalls = [];
 
-        return response()->stream(function () use ($message, $history, $toolDeclarations, $onChunk, &$accumulatedText, &$model, &$functionCalls) {
+        return response()->stream(function () use ($message, $history, $toolDeclarations, $onChunk, $onComplete, &$accumulatedText, &$model, &$functionCalls) {
             try {
                 // BUG-AI-005 FIX: Check if client disconnected before starting
                 if (connection_aborted()) {
@@ -153,6 +154,11 @@ class AiStreamingService
                         'model' => $model,
                         'function_calls' => $functionCalls,
                     ]);
+
+                    // Invoke onComplete callback to persist message to history
+                    if ($onComplete) {
+                        $onComplete($text, $model);
+                    }
                 }
 
             } catch (\Throwable $e) {

@@ -427,42 +427,57 @@
             @php
                 $user = auth()->user();
                 $navTenant = $user?->tenant;
+                // TASK-016: Simplified menu structure - Max 7 top-level groups
                 // Active group detection
                 // IMPORTANT: Order matters — more specific patterns must come before generic ones.
                 // Each route prefix should appear in exactly ONE group to avoid conflicts.
                 $activeGroup = match (true) {
-                    request()->routeIs('dashboard') => 'home',
-                    request()->routeIs('reports*', 'kpi*', 'forecast*', 'anomalies*', 'zero-input*', 'simulations*')
+                    // 1. Dashboard & Analytics (merged)
+                    request()->routeIs(
+                        'dashboard',
+                        'reports*',
+                        'kpi*',
+                        'forecast*',
+                        'anomalies*',
+                        'zero-input*',
+                        'simulations*',
+                    )
                         => 'home',
+                    // 2. AI Assistant
                     request()->routeIs('chat*') => 'ai',
+                    // 3. Transaksi (Sales + Purchasing + POS merged)
                     request()->routeIs(
                         'quotations*',
                         'invoices*',
                         'delivery-orders*',
                         'down-payments*',
                         'sales-returns*',
-                        'crm*',
-                        'loyalty*',
-                        'pos*',
-                        'commission*',
-                        'helpdesk*',
-                        'subscription-billing*',
                         'sales.*',
                         'sales.index',
                         'price-lists*',
-                    )
-                        => 'sales',
-                    request()->routeIs(
-                        'inventory*',
                         'purchasing*',
                         'purchase-returns*',
+                        'pos*',
+                    )
+                        => 'transactions',
+                    // 4. Inventori & Master Data (merged)
+                    request()->routeIs(
+                        'inventory*',
+                        'wms*',
+                        'customers*',
+                        'suppliers*',
+                        'products*',
+                        'warehouses*',
                         'landed-cost*',
                         'consignment*',
-                        'wms*',
                     )
                         => 'inventory',
-                    request()->routeIs('customers*', 'suppliers*', 'products*', 'warehouses*') => 'masterdata',
+                    // 5. SDM & Operasional (HRM + Operations merged)
                     request()->routeIs(
+                        'hrm*',
+                        'payroll*',
+                        'self-service*',
+                        'reimbursement*',
                         'production*',
                         'manufacturing*',
                         'printing*',
@@ -480,9 +495,14 @@
                         'timesheets*',
                         'project-billing*',
                         'farm*',
+                        'crm*',
+                        'loyalty*',
+                        'commission*',
+                        'helpdesk*',
+                        'subscription-billing*',
                     )
-                        => 'ops',
-                    request()->routeIs('hrm*', 'payroll*', 'self-service*', 'reimbursement*') => 'hrm',
+                        => 'operations',
+                    // 6. Keuangan (Finance + Accounting merged)
                     request()->routeIs(
                         'accounting*',
                         'expenses*',
@@ -498,7 +518,7 @@
                         'writeoffs*',
                     )
                         => 'finance',
-                    request()->routeIs('hotel*') => 'hotel',
+                    // 7. Pengaturan (Settings + Hotel + Industry)
                     request()->routeIs(
                         'company-profile*',
                         'settings*',
@@ -516,8 +536,10 @@
                         'custom-fields*',
                         'constraints*',
                         'company-groups*',
+                        'hotel*',
                     )
                         => 'settings',
+                    // Super Admin (special case, not counted in 7)
                     request()->routeIs('super-admin*') => 'superadmin',
                     default => '',
                 };
@@ -541,6 +563,7 @@
                     'label' => 'Dashboard',
                 ])
             @else
+                {{-- TASK-016: Simplified to 7 top-level groups --}}
                 @include('layouts._rail_btn', [
                     'group' => 'home',
                     'icon' => 'home',
@@ -548,17 +571,10 @@
                 ])
                 @include('layouts._rail_btn', ['group' => 'ai', 'icon' => 'sparkle', 'label' => 'AI Chat'])
                 @include('layouts._rail_btn', [
-                    'group' => 'masterdata',
-                    'icon' => 'database',
-                    'label' => 'Master Data',
+                    'group' => 'transactions',
+                    'icon' => 'tag',
+                    'label' => 'Transaksi',
                 ])
-                @if (!$user?->isGudang())
-                    @include('layouts._rail_btn', [
-                        'group' => 'sales',
-                        'icon' => 'tag',
-                        'label' => 'Penjualan',
-                    ])
-                @endif
                 @include('layouts._rail_btn', [
                     'group' => 'inventory',
                     'icon' => 'cube',
@@ -566,30 +582,15 @@
                 ])
                 @if (!$user?->isKasir() && !$user?->isGudang())
                     @include('layouts._rail_btn', [
-                        'group' => 'ops',
+                        'group' => 'operations',
                         'icon' => 'cog',
                         'label' => 'Operasional',
                     ])
-                @endif
-                @include('layouts._rail_btn', ['group' => 'hrm', 'icon' => 'users', 'label' => 'SDM'])
-                @if (!$user?->isKasir() && !$user?->isGudang())
                     @include('layouts._rail_btn', [
                         'group' => 'finance',
                         'icon' => 'currency',
                         'label' => 'Keuangan',
                     ])
-                    @include('layouts._rail_btn', [
-                        'group' => 'analytics',
-                        'icon' => 'chart',
-                        'label' => 'Analitik',
-                    ])
-                    @if ($navTenant?->isModuleEnabled('hotel') ?? true)
-                        @include('layouts._rail_btn', [
-                            'group' => 'hotel',
-                            'icon' => 'hotel',
-                            'label' => 'Hotel PMS',
-                        ])
-                    @endif
                     @include('layouts._rail_btn', [
                         'group' => 'settings',
                         'icon' => 'gear',
@@ -750,6 +751,8 @@
                     @php
                         // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
                         $unreadCount = $sidebarBadges['notifications'] ?? 0;
+                        $notifTenantId = $user->tenant_id ?? null;
+                        $authUser = $user;
                     @endphp
                     <div class="relative" id="notif-wrapper">
                         <button onclick="toggleNotif()"
@@ -1051,13 +1054,17 @@
                                 label: 'Supplier Scorecard',
                                 href: '{{ route('suppliers.scorecards.index') }}',
                                 active: {{ request()->routeIs('suppliers.scorecards*') ? 'true' : 'false' }}
+                            }, {
+                                label: 'Supplier Performance',
+                                href: '{{ route('supplier-performance.dashboard') }}',
+                                active: {{ request()->routeIs('supplier-performance*') ? 'true' : 'false' }}
                             },
                         @endif
                         @if ($canView('suppliers'))
                             {
                                 label: 'Strategic Sourcing',
-                                href: '{{ route('suppliers.sourcing') }}',
-                                active: {{ request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
+                                href: '{{ route('suppliers.strategic-sourcing') }}',
+                                active: {{ request()->routeIs('suppliers.strategic-sourcing*') ? 'true' : 'false' }}
                             },
                         @endif {
                             section: 'Produk & Gudang'
@@ -1301,9 +1308,30 @@
                                 {
                                     section: 'Manufacturing'
                                 }, {
+                                    label: '📊 Production Dashboard',
+                                    href: '{{ route('production.dashboard') }}',
+                                    active: {{ request()->routeIs('production.dashboard*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '📅 Gantt Chart',
+                                    href: '{{ route('production.gantt.index') }}',
+                                    active: {{ request()->routeIs('production.gantt*') ? 'true' : 'false' }}
+                                }, {
                                     label: 'Produksi / WO',
                                     href: '{{ route('production.index') }}',
-                                    active: {{ request()->routeIs('production*') ? 'true' : 'false' }}
+                                    active: {{ request()->routeIs('production.*') && !request()->routeIs('production.dashboard*') && !request()->routeIs('production.gantt*') ? 'true' : 'false' }}
+                                },
+                            @endif
+                            @if (($navTenant?->isModuleEnabled('production') ?? true) && $canView('production'))
+                                {
+                                    section: 'Quality Control'
+                                }, {
+                                    label: '🔍 QC Inspections',
+                                    href: '{{ route('qc.inspections.index') }}',
+                                    active: {{ request()->routeIs('qc.inspections*') ? 'true' : 'false' }}
+                                }, {
+                                    label: '📋 Test Templates',
+                                    href: '{{ route('qc.templates.index') }}',
+                                    active: {{ request()->routeIs('qc.templates*') ? 'true' : 'false' }}
                                 },
                             @endif
                             @if (($navTenant?->isModuleEnabled('manufacturing') ?? true) && $canView('manufacturing'))
@@ -1323,6 +1351,14 @@
                                     label: 'MRP Planning',
                                     href: '{{ route('manufacturing.mrp') }}',
                                     active: {{ request()->routeIs('manufacturing.mrp*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'MRP Accuracy',
+                                    href: '{{ route('manufacturing.mrp.accuracy') }}',
+                                    active: {{ request()->routeIs('manufacturing.mrp.accuracy*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Predictive MRP (AI)',
+                                    href: '{{ route('manufacturing.mrp.predictive') }}',
+                                    active: {{ request()->routeIs('manufacturing.mrp.predictive*') ? 'true' : 'false' }}
                                 },
                             @endif
                             @if ($canView('printing'))
@@ -2215,6 +2251,105 @@
 
     {{-- Hidden logout form --}}
     <form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">@csrf</form>
+
+    {{-- TASK-015: Contextual Help System Modal --}}
+    <div id="help-modal" class="fixed inset-0 z-[9999] hidden" x-data="{ show: false }"
+        @show-help.window="show = true; $dispatch('help-show-topic', $event.detail)"
+        @keydown.escape.window="show = false">
+        <div x-show="show" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            @click="show = false">
+        </div>
+
+        <div x-show="show" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95" class="fixed inset-0 z-10 overflow-y-auto"
+            @help-show-topic.window="$nextTick(() => loadTopic($event.detail?.topic))">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div
+                    class="relative w-full max-w-2xl rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-2xl">
+                    {{-- Header --}}
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
+                                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 id="help-title" class="text-lg font-semibold text-gray-900 dark:text-white">Bantuan
+                            </h3>
+                        </div>
+                        <button type="button" @click="show = false"
+                            class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Content --}}
+                    <div class="px-6 py-5">
+                        <div id="help-content" class="prose prose-sm dark:prose-invert max-w-none">
+                            <p class="text-gray-600 dark:text-gray-400">Pilih topik bantuan untuk melihat panduan
+                                lengkap.</p>
+                        </div>
+
+                        {{-- Tips Section --}}
+                        <div id="help-tips" class="mt-6 hidden">
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">💡 Tips:</h4>
+                            <ul id="help-tips-list" class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                                <!-- Tips will be inserted here -->
+                            </ul>
+                        </div>
+
+                        {{-- Video Section --}}
+                        <div id="help-video" class="mt-6 hidden">
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">🎥 Video Tutorial:
+                            </h4>
+                            <div class="aspect-video rounded-xl bg-gray-900 flex items-center justify-center">
+                                <p class="text-gray-400 text-sm">Video akan tersedia segera</p>
+                            </div>
+                        </div>
+
+                        {{-- Documentation Link --}}
+                        <div id="help-docs" class="mt-6 hidden">
+                            <a id="help-docs-link" href="#" target="_blank"
+                                class="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Lihat dokumentasi lengkap
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div
+                        class="border-t border-gray-200 dark:border-white/10 px-6 py-4 flex items-center justify-between">
+                        <button type="button" onclick="window.helpSystem?.openSearch()"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            🔍 Cari topik lain
+                        </button>
+                        <button type="button" @click="show = false"
+                            class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                            Mengerti
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>

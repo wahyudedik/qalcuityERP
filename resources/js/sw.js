@@ -3,9 +3,9 @@
  * Advanced caching strategies for optimal performance
  */
 
-const CACHE_NAME = 'qalcuity-erp-v1';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const CACHE_NAME = 'qalcuity-erp-v2';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
 const OFFLINE_PAGE = '/offline.html';
 
 // Assets to cache immediately on install
@@ -57,6 +57,25 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+// Routes yang TIDAK boleh di-cache sama sekali (auth, session-sensitive)
+const NO_CACHE_PATHS = [
+    '/login', '/logout', '/register',
+    '/forgot-password', '/reset-password',
+    '/two-factor', '/verify-email',
+    '/auth/google', '/dashboard',
+    '/clear-cookies-temp',
+];
+
+function isNoCachePath(url) {
+    return NO_CACHE_PATHS.some(path => url.pathname.startsWith(path));
+}
+
+// Cek apakah response mengandung Set-Cookie (jangan di-cache)
+function hasCookieHeader(response) {
+    return response.headers.has('set-cookie') ||
+        response.headers.has('Set-Cookie');
+}
+
 // Fetch event - serve from cache with network fallback
 self.addEventListener('fetch', (event) => {
     const { request } = event;
@@ -64,6 +83,12 @@ self.addEventListener('fetch', (event) => {
 
     // Skip cross-origin requests
     if (url.origin !== location.origin) {
+        return;
+    }
+
+    // JANGAN cache auth pages dan session-sensitive routes
+    if (isNoCachePath(url)) {
+        event.respondWith(fetch(request));
         return;
     }
 
@@ -79,8 +104,8 @@ self.addEventListener('fetch', (event) => {
             // JavaScript: Cache first (versioned files)
             event.respondWith(cacheFirstStrategy(request));
         } else if (isHTMLRequest(request)) {
-            // HTML: Network first, cache fallback
-            event.respondWith(networkFirstStrategy(request));
+            // HTML: Network only — jangan cache HTML karena mengandung CSRF token & Set-Cookie
+            event.respondWith(networkOnlyWithOfflineFallback(request));
         } else if (isAPIRequest(request)) {
             // API calls: Network first, cache fallback for offline
             event.respondWith(networkFirstStrategy(request, { timeout: 5000 }));
@@ -90,6 +115,21 @@ self.addEventListener('fetch', (event) => {
         }
     }
 });
+
+// Network Only with Offline Fallback
+// Untuk HTML pages — tidak pernah cache, tapi tampilkan offline page jika gagal
+async function networkOnlyWithOfflineFallback(request) {
+    try {
+        const response = await fetch(request);
+        return response;
+    } catch (error) {
+        console.log('[SW] Network failed for HTML, serving offline page:', request.url);
+        if (request.mode === 'navigate') {
+            return caches.match(OFFLINE_PAGE);
+        }
+        throw error;
+    }
+}
 
 // Cache First Strategy
 // Best for: Static assets, versioned files, images
@@ -153,8 +193,8 @@ async function networkFirstStrategy(request, options = {}) {
             const responseClone = networkResponse.clone();
             const cache = await caches.open(DYNAMIC_CACHE);
 
-            // Don't cache non-success responses or non-GET requests
-            if (request.method === 'GET') {
+            // Don't cache non-success responses, non-GET requests, or responses with Set-Cookie
+            if (request.method === 'GET' && !hasCookieHeader(networkResponse)) {
                 cache.put(request, responseClone);
             }
         }

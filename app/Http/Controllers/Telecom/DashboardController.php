@@ -10,7 +10,7 @@ use App\Models\UsageTracking;
 use App\Models\NetworkAlert;
 use App\Models\InternetPackage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -19,7 +19,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         // Overall Stats — grouped queries to reduce round-trips
         $deviceCounts = NetworkDevice::where('tenant_id', $tenantId)
@@ -151,7 +151,8 @@ class DashboardController extends Controller
             ->withCount([
                 'subscriptions as active_subs' => function ($q) {
                     $q->where('status', 'active');
-                }
+                },
+                'hotspotUsers as hotspot_users_count'
             ])
             ->orderBy('active_subs', 'desc')
             ->limit($limit)
@@ -163,7 +164,7 @@ class DashboardController extends Controller
                     'ip_address' => $device->ip_address,
                     'status' => $device->status,
                     'active_subscriptions' => $device->active_subs,
-                    'hotspot_users' => $device->hotspotUsers()->count(),
+                    'hotspot_users' => $device->hotspot_users_count,
                 ];
             })
             ->toArray();
@@ -175,7 +176,7 @@ class DashboardController extends Controller
     protected function getNetworkTopologyData(int $tenantId): array
     {
         $devices = NetworkDevice::where('tenant_id', $tenantId)
-            ->select('id', 'name', 'device_type', 'brand', 'ip_address', 'status', 'parent_device_id')
+            ->select('id', 'name', 'device_type', 'brand', 'ip_address', 'status', 'parent_device_id', 'location', 'latitude', 'longitude')
             ->get();
 
         $nodes = [];
@@ -189,6 +190,8 @@ class DashboardController extends Controller
                 'brand' => $device->brand,
                 'ip' => $device->ip_address,
                 'status' => $device->status,
+                'location' => $device->location,
+                'has_coordinates' => $device->latitude !== null && $device->longitude !== null,
             ];
 
             if ($device->parent_device_id) {
@@ -239,7 +242,7 @@ class DashboardController extends Controller
      */
     public function getDeviceStatus(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $devices = NetworkDevice::where('tenant_id', $tenantId)
             ->select('id', 'name', 'status', 'last_seen_at', 'ip_address')
@@ -266,7 +269,7 @@ class DashboardController extends Controller
      */
     public function getBandwidthData(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
         $deviceId = $request->get('device_id');
 
         if ($deviceId) {

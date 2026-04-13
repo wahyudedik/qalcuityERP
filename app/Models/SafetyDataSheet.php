@@ -3,16 +3,14 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SafetyDataSheet extends Model
 {
-    use BelongsToTenant;
-    use HasFactory, SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -39,72 +37,11 @@ class SafetyDataSheet extends Model
         'precautionary_statements' => 'array',
     ];
 
-    // Status labels
-    public function getStatusLabelAttribute(): string
+    public function tenant(): BelongsTo
     {
-        return match ($this->status) {
-            'active' => 'Active',
-            'outdated' => 'Outdated',
-            default => 'Draft'
-        };
+        return $this->belongsTo(Tenant::class);
     }
 
-    // Check if needs review (older than 3 years)
-    public function needsReview(): bool
-    {
-        if (!$this->review_date) {
-            return $this->issue_date->diffInYears(now()) >= 3;
-        }
-        return $this->review_date->isPast();
-    }
-
-    // Activate SDS
-    public function activate(): void
-    {
-        $this->status = 'active';
-        $this->save();
-    }
-
-    // Mark as outdated
-    public function markOutdated(): void
-    {
-        $this->status = 'outdated';
-        $this->save();
-    }
-
-    // Create new version
-    public function createNewVersion(): self
-    {
-        $newVersion = $this->replicate();
-        $currentVersion = floatval($this->version);
-        $newVersion->version = number_format($currentVersion + 0.1, 1);
-        $newVersion->sds_number = self::getNextSdsNumber();
-        $newVersion->issue_date = now();
-        $newVersion->status = 'draft';
-        $newVersion->save();
-
-        // Mark old as outdated
-        $this->markOutdated();
-
-        return $newVersion;
-    }
-
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
-
-    public function scopeNeedsReview($query)
-    {
-        return $query->where('status', 'active')
-            ->where(function ($q) {
-                $q->whereNull('review_date')
-                    ->orWhere('review_date', '<=', now());
-            });
-    }
-
-    // Relationships
     public function formula(): BelongsTo
     {
         return $this->belongsTo(CosmeticFormula::class, 'formula_id');
@@ -115,11 +52,57 @@ class SafetyDataSheet extends Model
         return $this->belongsTo(ProductRegistration::class, 'registration_id');
     }
 
-    // Generate next SDS number
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isOutdated(): bool
+    {
+        return $this->status === 'outdated';
+    }
+
+    public function needsReview(): bool
+    {
+        if (!$this->review_date) {
+            return false;
+        }
+
+        return now()->gt($this->review_date);
+    }
+
+    public function activate(): void
+    {
+        $this->status = 'active';
+        $this->save();
+    }
+
+    public function markOutdated(): void
+    {
+        $this->status = 'outdated';
+        $this->save();
+    }
+
     public static function getNextSdsNumber(): string
     {
         $year = now()->format('Y');
         $count = self::whereYear('created_at', $year)->count() + 1;
         return 'SDS-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeNeedsReview($query)
+    {
+        return $query->whereNotNull('review_date')
+            ->where('review_date', '<=', now());
     }
 }

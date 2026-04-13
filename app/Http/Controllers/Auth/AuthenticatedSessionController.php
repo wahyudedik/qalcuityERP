@@ -46,6 +46,7 @@ class AuthenticatedSessionController extends Controller
         GamificationService::onLogin($user);
 
         // Admin wajib 2FA — paksa setup sebelum bisa akses apapun
+        // session()->regenerate() sudah dipanggil di atas agar auth state tersimpan
         if ($user->isAdmin() && !$user->two_factor_enabled) {
             return redirect()->route('two-factor.setup')
                 ->with('warning', 'Sebagai Admin, Anda wajib mengaktifkan Two-Factor Authentication sebelum melanjutkan.');

@@ -317,6 +317,16 @@ class OfflineSyncController extends Controller
     public function getConflicts(Request $request)
     {
         try {
+            // Support both Sanctum and web session auth
+            $user = $request->user() ?: auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+
             $conflicts = $this->conflictResolutionService->getPendingConflicts();
             $statistics = $this->conflictResolutionService->getStatistics();
 

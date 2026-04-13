@@ -3,92 +3,60 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DistributionChannel extends Model
 {
-    use BelongsToTenant;
-    use HasFactory, SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
         'channel_name',
         'channel_type',
-        'channel_code',
-        'description',
         'contact_person',
         'contact_email',
         'contact_phone',
+        'address',
+        'region',
+        'status',
         'commission_rate',
-        'discount_rate',
-        'is_active',
+        'priority',
     ];
 
     protected $casts = [
         'commission_rate' => 'decimal:2',
-        'discount_rate' => 'decimal:2',
-        'is_active' => 'boolean',
     ];
 
-    // Type labels
-    public function getTypeLabelAttribute(): string
+    public function tenant(): BelongsTo
     {
-        return match ($this->channel_type) {
-            'retail' => 'Retail Store',
-            'online_marketplace' => 'Online Marketplace',
-            'distributor' => 'Distributor',
-            'reseller_mlm' => 'Reseller/MLM',
-            default => ucfirst(str_replace('_', ' ', $this->channel_type))
-        };
+        return $this->belongsTo(Tenant::class);
     }
 
-    // Generate next channel code
-    public static function getNextChannelCode(): string
+    public function sales(): HasMany
     {
-        $count = self::count() + 1;
-        return 'CHN-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        return $this->hasMany(ChannelSale::class, 'channel_id');
     }
 
-    // Calculate commission for amount
-    public function calculateCommission(float $amount): float
+    public function isActive(): bool
     {
-        return round($amount * ($this->commission_rate / 100), 2);
+        return $this->status === 'active';
     }
 
-    // Calculate discounted price
-    public function calculateDiscountedPrice(float $basePrice): float
-    {
-        return round($basePrice * (1 - ($this->discount_rate / 100)), 2);
-    }
-
-    // Scopes
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', 'active');
     }
 
-    public function scopeByType($query, $type)
+    public function getTotalSalesAttribute(): float
     {
-        return $query->where('channel_type', $type);
+        return $this->sales()->where('status', 'completed')->sum('total_amount');
     }
 
-    // Relationships
-    public function pricing()
+    public function getTotalQuantitySoldAttribute(): int
     {
-        return $this->hasMany(ChannelPricing::class);
-    }
-
-    public function inventory()
-    {
-        return $this->hasMany(ChannelInventory::class);
-    }
-
-    public function salesPerformance()
-    {
-        return $this->hasMany(ChannelSalesPerformance::class);
+        return $this->sales()->where('status', 'completed')->sum('quantity_sold');
     }
 }

@@ -8,6 +8,8 @@
  * - Persistence with localStorage
  */
 
+import logger from './logger';
+
 export class ThemeManager {
     constructor() {
         this.themes = ['light', 'dark', 'system'];
@@ -56,7 +58,7 @@ export class ThemeManager {
             detail: { theme, isDark }
         }));
 
-        console.log(`[ThemeManager] Applied theme: ${theme} (${isDark ? 'dark' : 'light'})`);
+        logger.debug(`[ThemeManager] Applied theme: ${theme} (${isDark ? 'dark' : 'light'})`);
     }
 
     /**

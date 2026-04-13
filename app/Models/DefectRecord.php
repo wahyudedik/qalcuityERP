@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class DefectRecord extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'quality_check_id',

@@ -105,11 +105,15 @@ class ConflictResolutionService
      */
     public function getPendingConflicts(int $limit = 20): array
     {
-        if (!Auth::check()) {
+        $user = Auth::user();
+        if (!$user) {
             return [];
         }
 
-        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $tenantId = $user->tenant_id;
+        if (!$tenantId) {
+            return [];
+        }
 
         return EditConflict::where('tenant_id', $tenantId)
             ->where('status', 'pending')
@@ -125,7 +129,8 @@ class ConflictResolutionService
      */
     public function getStatistics(): array
     {
-        if (!Auth::check()) {
+        $user = Auth::user();
+        if (!$user) {
             return [
                 'pending_conflicts' => 0,
                 'resolved_today' => 0,
@@ -133,7 +138,14 @@ class ConflictResolutionService
             ];
         }
 
-        $tenantId = Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
+        $tenantId = $user->tenant_id;
+        if (!$tenantId) {
+            return [
+                'pending_conflicts' => 0,
+                'resolved_today' => 0,
+                'total_conflicts' => 0,
+            ];
+        }
 
         return [
             'pending_conflicts' => EditConflict::where('tenant_id', $tenantId)

@@ -32,10 +32,7 @@ class CheckInOutController extends Controller
         $this->availabilityService = $availabilityService;
     }
 
-    private function tenantId(): int
-    {
-        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
-    }
+    // tenantId() inherited from parent Controller
 
     /**
      * Get authenticated user ID safely

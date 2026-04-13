@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Bom;
 use App\Models\BomLine;
+use App\Models\ConcreteMixDesign;
+use App\Models\MixDesignVersion;
+use App\Models\MrpAccuracy;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\WorkCenter;
 use App\Models\WorkOrder;
 use App\Models\QualityCheck;
 use App\Models\QualityCheckStandard;
 use App\Models\DefectRecord;
 use App\Services\GlPostingService;
+use App\Services\Manufacturing\MixDesignCalculatorService;
+use App\Services\Manufacturing\MrpPlanningService;
 use App\Services\MrpService;
 use App\Services\Manufacturing\QualityControlService;
 use Illuminate\Http\Request;
@@ -318,29 +324,291 @@ class ManufacturingController extends Controller
         return back()->with('success', 'Work Center berhasil dihapus.');
     }
 
+    // ── Mix Design Beton ──────────────────────────────────────────
+
+    public function mixDesign(Request $request, MixDesignCalculatorService $calculator)
+    {
+        $tenantId = $this->tid();
+
+        // Get all mix designs
+        $mixDesigns = ConcreteMixDesign::where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->orderBy('grade')
+            ->get();
+
+        // If standard grades don't exist, seed them
+        if ($mixDesigns->isEmpty()) {
+            ConcreteMixDesign::seedStandards($tenantId);
+            $mixDesigns = ConcreteMixDesign::where('tenant_id', $tenantId)
+                ->where('is_active', true)
+                ->orderBy('grade')
+                ->get();
+        }
+
+        $selectedMix = null;
+        $calculation = null;
+        $costAnalysis = null;
+        $availability = null;
+        $comparison = null;
+
+        // Handle calculation request
+        if ($request->filled('mix_design_id')) {
+            $selectedMix = ConcreteMixDesign::find($request->mix_design_id);
+
+            if ($selectedMix && $selectedMix->tenant_id === $tenantId) {
+                $volume = (float) ($request->volume ?? 1);
+                $waste = (float) ($request->waste_percent ?? 5);
+
+                // Calculate needs
+                $calculation = $calculator->calculateForVolume($selectedMix, $volume, $waste);
+
+                // Calculate cost
+                $costAnalysis = $calculator->calculateCostAnalysis($selectedMix, $volume, $tenantId);
+
+                // Check availability
+                $availability = $calculator->checkMaterialAvailability($selectedMix, $volume, $tenantId);
+            }
+        }
+
+        // Handle comparison request
+        if ($request->filled('compare_ids') && is_array($request->compare_ids)) {
+            $volume = (float) ($request->compare_volume ?? 1);
+            $comparison = $calculator->compareMixDesigns($tenantId, $request->compare_ids, $volume);
+        }
+
+        // Handle recommendation request
+        $recommendation = null;
+        if ($request->filled('required_strength') && $request->filled('rec_volume')) {
+            $recommendation = $calculator->generateRecommendationReport(
+                $tenantId,
+                (float) $request->rec_volume,
+                (float) $request->required_strength,
+                $request->filled('max_budget') ? (float) $request->max_budget : null
+            );
+        }
+
+        return view('manufacturing.mix-design', compact(
+            'mixDesigns',
+            'selectedMix',
+            'calculation',
+            'costAnalysis',
+            'availability',
+            'comparison',
+            'recommendation'
+        ));
+    }
+
+    public function storeMixDesign(Request $request)
+    {
+        $data = $request->validate([
+            'grade' => 'required|string|max:20',
+            'name' => 'required|string|max:255',
+            'target_strength' => 'required|numeric|min:0',
+            'strength_unit' => 'required|in:K,MPa',
+            'slump_min' => 'nullable|numeric|min:0',
+            'slump_max' => 'nullable|numeric|min:0',
+            'water_cement_ratio' => 'required|numeric|min:0|max:1',
+            'cement_kg' => 'required|numeric|min:0',
+            'water_liter' => 'required|numeric|min:0',
+            'fine_agg_kg' => 'required|numeric|min:0',
+            'coarse_agg_kg' => 'required|numeric|min:0',
+            'admixture_liter' => 'nullable|numeric|min:0',
+            'cement_type' => 'required|in:PCC,OPC,Type I,Type II,Type III',
+            'agg_max_size' => 'required|in:10mm,20mm,40mm',
+            'notes' => 'nullable|string',
+        ]);
+
+        $data['tenant_id'] = $this->tid();
+        $data['is_standard'] = false;
+        $data['is_active'] = true;
+
+        ConcreteMixDesign::create($data);
+
+        return back()->with('success', 'Mix Design berhasil ditambahkan.');
+    }
+
+    public function updateMixDesign(Request $request, ConcreteMixDesign $mixDesign)
+    {
+        abort_if($mixDesign->tenant_id !== $this->tid(), 403);
+
+        if ($mixDesign->is_standard) {
+            return back()->with('error', 'Mix Design standar tidak dapat diubah. Buat custom mix design baru.');
+        }
+
+        $data = $request->validate([
+            'grade' => 'required|string|max:20',
+            'name' => 'required|string|max:255',
+            'target_strength' => 'required|numeric|min:0',
+            'strength_unit' => 'required|in:K,MPa',
+            'slump_min' => 'nullable|numeric|min:0',
+            'slump_max' => 'nullable|numeric|min:0',
+            'water_cement_ratio' => 'required|numeric|min:0|max:1',
+            'cement_kg' => 'required|numeric|min:0',
+            'water_liter' => 'required|numeric|min:0',
+            'fine_agg_kg' => 'required|numeric|min:0',
+            'coarse_agg_kg' => 'required|numeric|min:0',
+            'admixture_liter' => 'nullable|numeric|min:0',
+            'cement_type' => 'required|in:PCC,OPC,Type I,Type II,Type III',
+            'agg_max_size' => 'required|in:10mm,20mm,40mm',
+            'notes' => 'nullable|string',
+            'is_active' => 'boolean',
+            'change_reason' => 'required|string|max:500',
+        ]);
+
+        // Create version before updating
+        $changeReason = $data['change_reason'];
+        unset($data['change_reason']);
+
+        $mixDesign->updateWithVersion($data, $changeReason);
+
+        return back()->with('success', 'Mix Design berhasil diupdate (Version ' . ($mixDesign->current_version + 1) . ' created).');
+    }
+
+    public function deleteMixDesign(ConcreteMixDesign $mixDesign)
+    {
+        abort_if($mixDesign->tenant_id !== $this->tid(), 403);
+
+        if ($mixDesign->is_standard) {
+            return back()->with('error', 'Mix Design standar tidak dapat dihapus.');
+        }
+
+        $mixDesign->delete();
+
+        return back()->with('success', 'Mix Design berhasil dihapus.');
+    }
+
+    public function mixDesignVersionHistory(ConcreteMixDesign $mixDesign)
+    {
+        abort_if($mixDesign->tenant_id !== $this->tid(), 403);
+
+        $versions = MixDesignVersion::where('mix_design_id', $mixDesign->id)
+            ->with(['createdBy', 'approvedBy'])
+            ->orderByDesc('version_number')
+            ->get();
+
+        return view('manufacturing.mix-design-versions', compact('mixDesign', 'versions'));
+    }
+
+    public function approveMixDesignVersion(Request $request, MixDesignVersion $version)
+    {
+        abort_if($version->tenant_id !== $this->tid(), 403);
+
+        $version->approve(Auth::id());
+
+        return back()->with('success', "Version {$version->version_label} approved successfully.");
+    }
+
     // ── MRP ───────────────────────────────────────────────────────
 
-    public function mrp(Request $request, MrpService $mrpService)
+    public function mrp(Request $request, MrpService $mrpService, MrpPlanningService $planningService)
     {
-        $boms = Bom::where('tenant_id', $this->tid())->where('is_active', true)->orderBy('name')->get();
+        $tenantId = $this->tid();
+        $boms = Bom::where('tenant_id', $tenantId)->where('is_active', true)->orderBy('name')->get();
         $results = null;
         $selectedBom = null;
         $quantity = $request->quantity ?? 1;
+        $planningReport = null;
 
         if ($request->filled('bom_id')) {
-            $selectedBom = Bom::with('lines.product')->where('tenant_id', $this->tid())->find($request->bom_id);
+            $selectedBom = Bom::with('lines.product')->where('tenant_id', $tenantId)->find($request->bom_id);
             if ($selectedBom) {
-                $results = $mrpService->calculate($selectedBom, (float) $quantity, $this->tid());
+                $results = $mrpService->calculate($selectedBom, (float) $quantity, $tenantId);
+
+                // Generate planning report
+                $planningReport = $planningService->generatePlanningReport($tenantId, $selectedBom->id, (float) $quantity);
             }
         }
 
         // Full MRP — all pending WOs
         $fullMrp = null;
         if ($request->has('full_mrp')) {
-            $fullMrp = $mrpService->runFullMrp($this->tid());
+            $fullMrp = $mrpService->runFullMrp($tenantId);
+
+            // Generate full planning report
+            $planningReport = $planningService->generatePlanningReport($tenantId);
         }
 
-        return view('manufacturing.mrp', compact('boms', 'results', 'selectedBom', 'quantity', 'fullMrp'));
+        // Dashboard data
+        $dashboardData = $planningService->getDashboardData($tenantId);
+
+        return view('manufacturing.mrp', compact(
+            'boms',
+            'results',
+            'selectedBom',
+            'quantity',
+            'fullMrp',
+            'planningReport',
+            'dashboardData'
+        ));
+    }
+
+    public function createPurchaseOrderFromMRP(Request $request)
+    {
+        $tenantId = $this->tid();
+
+        $data = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|numeric|min:0.01',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'expected_date' => 'nullable|date|after:today',
+            'notes' => 'nullable|string',
+        ]);
+
+        $product = Product::find($data['product_id']);
+        abort_if($product->tenant_id !== $tenantId, 403);
+
+        $po = PurchaseOrder::create([
+            'tenant_id' => $tenantId,
+            'supplier_id' => $data['supplier_id'] ?? null,
+            'user_id' => Auth::id(),
+            'order_date' => now(),
+            'expected_date' => $data['expected_date'] ?? now()->addDays(7),
+            'status' => 'draft',
+            'notes' => $data['notes'] ?? 'Auto-generated from MRP Planning',
+        ]);
+
+        // Add PO item
+        $po->items()->create([
+            'product_id' => $data['product_id'],
+            'quantity_ordered' => $data['quantity'],
+            'quantity_received' => 0,
+            'unit_price' => $product->price_buy ?? 0,
+            'notes' => "MRP shortage fulfillment",
+        ]);
+
+        return back()->with('success', "Purchase Order {$po->number} created successfully.");
+    }
+
+    public function mrpAccuracyDashboard()
+    {
+        $tenantId = $this->tid();
+        $dashboardData = MrpAccuracy::getDashboardData($tenantId);
+
+        // Get recent accuracy records
+        $recentRecords = MrpAccuracy::where('tenant_id', $tenantId)
+            ->with(['workOrder', 'product'])
+            ->orderByDesc('tracking_date')
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        // Get top variance products
+        $topVarianceProducts = MrpAccuracy::where('tenant_id', $tenantId)
+            ->selectRaw('product_id, AVG(ABS(variance_percent)) as avg_abs_variance, COUNT(*) as record_count')
+            ->groupBy('product_id')
+            ->orderByDesc('avg_abs_variance')
+            ->limit(10)
+            ->get()
+            ->map(function ($item) {
+                $item->product_name = Product::find($item->product_id)?->name ?? 'Unknown';
+                return $item;
+            });
+
+        return view('manufacturing.mrp-accuracy', compact(
+            'dashboardData',
+            'recentRecords',
+            'topVarianceProducts'
+        ));
     }
 
     // ── Material Consumption (called from ProductionController) ──

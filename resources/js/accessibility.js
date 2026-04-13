@@ -9,6 +9,8 @@
  * - ARIA live regions
  */
 
+import logger from './logger';
+
 export class AccessibilityManager {
     constructor() {
         this.announcementsElement = null;
@@ -22,7 +24,7 @@ export class AccessibilityManager {
         this.respectReducedMotion();
         this.setupKeyboardNavigation();
 
-        console.log('[AccessibilityManager] Initialized - WCAG 2.1 AA');
+        logger.debug('[AccessibilityManager] Initialized - WCAG 2.1 AA');
     }
 
     /**
@@ -59,7 +61,7 @@ export class AccessibilityManager {
             this.announcementsElement.textContent = message;
         }, 100);
 
-        console.log(`[a11y] Announced (${priority}): ${message}`);
+        logger.debug(`[a11y] Announced (${priority}): ${message}`);
     }
 
     /**

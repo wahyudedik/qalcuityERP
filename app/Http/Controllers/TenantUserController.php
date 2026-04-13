@@ -16,10 +16,7 @@ class TenantUserController extends Controller
 {
     public function __construct(private PermissionService $permissions) {}
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function index(): View
     {

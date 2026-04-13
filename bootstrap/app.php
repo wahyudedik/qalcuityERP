@@ -44,10 +44,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // CheckTenantActive di-append ke web group agar berjalan di semua request
         // EnforceTenantIsolation TIDAK di-append global — dipakai per-route group saja
         // karena middleware ini butuh route parameters yang belum tersedia di level global
+        // CATATAN: VerifyCsrfToken TIDAK di-append ulang — sudah ada di web group default Laravel
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\CheckTenantActive::class,
             \App\Http\Middleware\HandleOfflineSync::class,
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
             \App\Http\Middleware\AddSecurityHeaders::class,
         ]);
 

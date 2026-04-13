@@ -21,7 +21,7 @@ class AddSecurityHeaders
         $response = $next($request);
 
         // Prevent clickjacking
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-Frame-Options', 'DENY');
 
         // Prevent MIME type sniffing
         $response->headers->set('X-Content-Type-Options', 'nosniff');
@@ -48,23 +48,38 @@ class AddSecurityHeaders
 
     /**
      * Build Content Security Policy string.
+     *
+     * CATATAN: Alpine.js v3 menggunakan new Function() / eval() secara internal
+     * untuk mengevaluasi ekspresi di x-data, x-show, @click, :class, dll.
+     * Ini adalah arsitektur Alpine v3 yang tidak bisa dihindari — 'unsafe-eval'
+     * WAJIB ada agar Alpine berfungsi. XSS tetap dicegah via:
+     * - Output escaping di Blade ({{ }} auto-escape)
+     * - DOMPurify untuk konten AI/user-generated
+     * - OutputEscaper service untuk semua output dinamis
+     * - Tidak ada user input yang dirender sebagai Alpine expression
+     *
+     * Referensi: https://alpinejs.dev/advanced/csp
+     * Alpine v4 (CSP mode) akan menghilangkan kebutuhan ini — pertimbangkan upgrade.
      */
     protected function buildCspPolicy(): string
     {
-        // Check if in development mode (Vite running on localhost:5173)
         $isDevelopment = config('app.debug', false);
 
-        // Add Vite dev server to allowed sources in development
-        $viteDevSrc = $isDevelopment ? ' http://localhost:5173 ws://localhost:5173' : '';
+        $viteDevSrc = '';
+        if ($isDevelopment) {
+            $appUrl = config('app.url', 'http://localhost');
+            $appDomain = parse_url($appUrl, PHP_URL_HOST);
+            $viteDevSrc = " http://localhost:5173 ws://localhost:5173 http://{$appDomain}:5173 ws://{$appDomain}:5173";
+        }
 
-        // Define allowed sources for different content types
         $policies = [
             "default-src 'self'",
+            // 'unsafe-eval' diperlukan Alpine.js v3 untuk evaluasi ekspresi x-data/x-show/@click
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com{$viteDevSrc}",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net{$viteDevSrc}",
             "font-src 'self' https://fonts.gstatic.com https://fonts.bunny.net",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://api.gemini.google.com https://cdn.jsdelivr.net{$viteDevSrc}",
+            "connect-src 'self' https://generativelanguage.googleapis.com https://cdn.jsdelivr.net{$viteDevSrc}",
             "worker-src 'self' blob:",
             "frame-src 'self'",
             "object-src 'none'",

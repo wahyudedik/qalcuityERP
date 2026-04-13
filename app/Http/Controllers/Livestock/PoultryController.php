@@ -13,10 +13,7 @@ class PoultryController extends Controller
     /**
      * Get authenticated user's tenant ID
      */
-    private function tenantId(): int
-    {
-        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
-    }
+    // tenantId() inherited from parent Controller
 
     /**
      * Get authenticated user's ID

@@ -210,6 +210,130 @@
         @endif
     </div>
 
+    {{-- Mobile Card View (md:hidden) --}}
+    <div class="md:hidden">
+        <div class="space-y-3">
+            @forelse($products as $product)
+                @php
+                    $totalStk = $product->productStocks->sum('quantity');
+                    $isLow = $totalStk <= $product->stock_min;
+                @endphp
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden shadow-sm">
+                    {{-- Card Header --}}
+                    <div class="px-4 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start gap-3 flex-1 min-w-0">
+                                @if ($product->image)
+                                    <img src="{{ $product->image }}" alt="{{ $product->name }}"
+                                        class="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-white/10">
+                                @else
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center shrink-0">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
+                                        {{ $product->name }}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+                                        {{ $product->category ?? 'Tanpa Kategori' }}</p>
+                                </div>
+                            </div>
+                            <span
+                                class="px-2.5 py-1 rounded-full text-xs font-medium {{ $product->is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' }}">
+                                {{ $product->is_active ? 'Aktif' : 'Nonaktif' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Card Body --}}
+                    <div class="px-4 py-3 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500 dark:text-slate-400">SKU</span>
+                            <span
+                                class="text-sm font-mono text-gray-900 dark:text-white">{{ $product->sku ?? '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500 dark:text-slate-400">Harga Jual</span>
+                            <span class="text-sm font-semibold text-green-600 dark:text-green-400">Rp
+                                {{ number_format($product->price_sell, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500 dark:text-slate-400">Harga Beli</span>
+                            <span class="text-sm text-gray-900 dark:text-white">Rp
+                                {{ number_format($product->price_buy, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500 dark:text-slate-400">Stok</span>
+                            <span
+                                class="text-sm font-semibold {{ $isLow ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">
+                                {{ $totalStk }} {{ $product->unit }}
+                                @if ($isLow)
+                                    <span class="text-xs">(Menipis)</span>
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Card Actions --}}
+                    <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="printBarcode({{ $product->id }})"
+                                class="p-2.5 rounded-lg text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                title="Print Barcode">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                            </button>
+                            @canmodule('products', 'edit')
+                            <button
+                                onclick="openEditProduct({{ $product->id }}, @js($product->name), @js($product->sku ?? ''), @js($product->category ?? ''), @js($product->unit), {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }}, @js($product->image ?? ''), @js($product->description ?? ''))"
+                                class="p-2.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            @endcanmodule
+                            @canmodule('products', 'delete')
+                            <form method="POST" action="{{ route('products.destroy', $product) }}"
+                                onsubmit="return confirm('Hapus produk ini?')">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                    class="p-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    title="Hapus">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                            @endcanmodule
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <x-mobile-empty-state title="Belum ada produk"
+                    description="Klik tombol '+ Produk' untuk menambahkan produk pertama Anda" icon="package"
+                    action-url="{{ route('products.create') }}" action-text="Tambah Produk" />
+            @endforelse
+        </div>
+
+        {{-- Mobile Pagination --}}
+        @if ($products->hasPages())
+            <div class="mt-4">
+                <x-mobile-pagination :paginator="$products" />
+            </div>
+        @endif
+    </div>
+
     {{-- Modal Tambah Produk --}}
     <div id="modal-add-product" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
@@ -442,7 +566,7 @@
             }
 
             function openEditProduct(id, name, sku, category, unit, priceSell, priceBuy, stockMin, isActive, image,
-            description) {
+                description) {
                 const form = document.getElementById('form-edit-product');
                 form.action = '/products/' + id;
                 document.getElementById('edit-name').value = name;

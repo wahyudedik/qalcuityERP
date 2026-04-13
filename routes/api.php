@@ -133,8 +133,9 @@ Route::prefix('payment')->group(function () {
     });
 });
 
-// ── Offline Sync endpoints (authenticated) ──────────────────────
-Route::middleware(['auth:sanctum', 'api.rate:api-write'])->prefix('offline')->group(function () {
+// ── Offline Sync endpoints (authenticated - Sanctum or Web Session) ──
+// Note: Authentication is handled in the controller to support both Sanctum and web session auth
+Route::middleware(['api.rate:api-write'])->prefix('offline')->group(function () {
     Route::get('/status', [OfflineSyncController::class, 'getStatus']);
     Route::post('/sync', [OfflineSyncController::class, 'bulkSync']);
     Route::delete('/failed', [OfflineSyncController::class, 'clearFailed']);
@@ -166,12 +167,17 @@ use App\Http\Controllers\Api\LivestockApiController;
 use App\Http\Controllers\Api\CosmeticsApiController;
 use App\Http\Controllers\Api\TourTravelApiController;
 
-// ── Health Check endpoints (public, no auth required) ───────────
+// ── Health Check endpoints ───────────────────────────────────────
+// /health dan /live: public (dipakai load balancer & uptime monitor)
+// /detailed dan /ready: dilindungi auth — mengekspos info sensitif (DB version, Redis, queue)
 Route::prefix('health')->group(function () {
     Route::get('/', [HealthCheckController::class, 'health']);
+    Route::get('/live', [HealthCheckController::class, 'live']);
+});
+
+Route::prefix('health')->middleware('auth:sanctum')->group(function () {
     Route::get('/detailed', [HealthCheckController::class, 'detailed']);
     Route::get('/ready', [HealthCheckController::class, 'ready']);
-    Route::get('/live', [HealthCheckController::class, 'live']);
 });
 
 // ── Healthcare Module API Endpoints ──────────────────────────────────────
@@ -197,11 +203,18 @@ Route::prefix('healthcare')->middleware(['auth:sanctum', 'api.rate:api-read'])->
     Route::get('/lab-results', [HealthcareApiController::class, 'labResults']);
     Route::get('/lab-results/{id}', [HealthcareApiController::class, 'labResult']);
     Route::post('/lab-results', [HealthcareApiController::class, 'createLabResult'])->middleware('api.rate:api-write');
+    Route::post('/lab-results/{id}/approve', [HealthcareApiController::class, 'approveLabResult'])->middleware('api.rate:api-write');
+
+    // Lab Orders & Equipment
+    Route::get('/lab-orders/{id}/results', [HealthcareApiController::class, 'getLabOrderResults']);
+    Route::get('/lab-equipment/calibration-due', [HealthcareApiController::class, 'getLabEquipmentCalibrationDue']);
+    Route::post('/lab-samples/{id}/process', [HealthcareApiController::class, 'processLabSample'])->middleware('api.rate:api-write');
 
     // Prescriptions
     Route::get('/prescriptions', [HealthcareApiController::class, 'prescriptions']);
     Route::get('/prescriptions/{id}', [HealthcareApiController::class, 'prescription']);
     Route::post('/prescriptions', [HealthcareApiController::class, 'createPrescription'])->middleware('api.rate:api-write');
+    Route::post('/prescriptions/{id}/dispense', [HealthcareApiController::class, 'dispensePrescription'])->middleware('api.rate:api-write');
 
     // EMR (Electronic Medical Records)
     Route::get('/emr/{patientId}', [HealthcareApiController::class, 'getEmr']);
@@ -210,11 +223,26 @@ Route::prefix('healthcare')->middleware(['auth:sanctum', 'api.rate:api-read'])->
     // Admissions
     Route::get('/admissions', [HealthcareApiController::class, 'admissions']);
     Route::post('/admissions', [HealthcareApiController::class, 'createAdmission'])->middleware('api.rate:api-write');
-    Route::patch('/admissions/{id}/discharge', [HealthcareApiController::class, 'dischargePatient'])->middleware('api.rate:api-write');
+    Route::post('/admissions/{id}/transfer-ward', [HealthcareApiController::class, 'transferWard'])->middleware('api.rate:api-write');
+    Route::post('/admissions/{id}/discharge', [HealthcareApiController::class, 'dischargeAdmission'])->middleware('api.rate:api-write');
 
     // Beds
-    Route::get('/beds/availability', [HealthcareApiController::class, 'bedAvailability']);
+    Route::get('/beds/availability', [HealthcareApiController::class, 'getBedAvailability']);
     Route::get('/beds/{id}', [HealthcareApiController::class, 'bedDetail']);
+
+    // Radiology APIs
+    Route::get('/radiology-exams/{id}/images', [HealthcareApiController::class, 'getRadiologyExamImages']);
+    Route::get('/pacs/studies', [HealthcareApiController::class, 'getPacsStudies']);
+    Route::post('/radiology-reports/{id}/finalize', [HealthcareApiController::class, 'finalizeRadiologyReport'])->middleware('api.rate:api-write');
+
+    // Surgery APIs
+    Route::get('/operating-rooms/availability', [HealthcareApiController::class, 'getOperatingRoomsAvailability']);
+    Route::post('/surgery-schedules/{id}/assign-team', [HealthcareApiController::class, 'assignSurgeryTeam'])->middleware('api.rate:api-write');
+    Route::post('/surgery-schedules/{id}/complete', [HealthcareApiController::class, 'completeSurgery'])->middleware('api.rate:api-write');
+
+    // Pharmacy APIs
+    Route::get('/medications/expiring', [HealthcareApiController::class, 'getExpiringMedications']);
+    Route::post('/pharmacy/stock-opname', [HealthcareApiController::class, 'createPharmacyStockOpname'])->middleware('api.rate:api-write');
 });
 
 // ── Hotel Module API Endpoints ──────────────────────────────────────
@@ -321,6 +349,11 @@ Route::prefix('manufacturing')->middleware(['auth:sanctum', 'api.rate:api-read']
     Route::get('/boms', [ManufacturingApiController::class, 'boms']);
     Route::get('/boms/{id}', [ManufacturingApiController::class, 'bomDetail']);
     Route::post('/boms', [ManufacturingApiController::class, 'createBom'])->middleware('api.rate:api-write');
+
+    // Mix Design
+    Route::get('/mix-design', [ManufacturingApiController::class, 'mixDesigns']);
+    Route::get('/mix-design/{id}', [ManufacturingApiController::class, 'mixDesignDetail']);
+    Route::post('/mix-design/calculate', [ManufacturingApiController::class, 'calculateMixDesign'])->middleware('api.rate:api-write');
 
     // MRP
     Route::post('/mrp/calculate', [ManufacturingApiController::class, 'runMrp'])->middleware('api.rate:api-write');
@@ -435,42 +468,4 @@ Route::prefix('tour-travel')->middleware(['auth:sanctum', 'api.rate:api-read'])-
     Route::post('/vehicles', [TourTravelApiController::class, 'createVehicle'])->middleware('api.rate:api-write');
 });
 
-// ── Healthcare Module API Endpoints ──────────────────────────────────────
-Route::prefix('healthcare')->middleware(['auth:sanctum', 'api.rate:api-read'])->group(function () {
 
-    // Laboratory APIs
-    Route::get('/lab-orders/{id}/results', [HealthcareApiController::class, 'getLabOrderResults']);
-    Route::get('/lab-equipment/calibration-due', [HealthcareApiController::class, 'getLabEquipmentCalibrationDue']);
-
-    // Lab Results (write operations)
-    Route::post('/lab-results/{id}/approve', [HealthcareApiController::class, 'approveLabResult'])->middleware('api.rate:api-write');
-    Route::post('/lab-samples/{id}/process', [HealthcareApiController::class, 'processLabSample'])->middleware('api.rate:api-write');
-
-    // Radiology APIs
-    Route::get('/radiology-exams/{id}/images', [HealthcareApiController::class, 'getRadiologyExamImages']);
-    Route::get('/pacs/studies', [HealthcareApiController::class, 'getPacsStudies']);
-
-    // Radiology Reports (write operations)
-    Route::post('/radiology-reports/{id}/finalize', [HealthcareApiController::class, 'finalizeRadiologyReport'])->middleware('api.rate:api-write');
-
-    // Surgery APIs
-    Route::get('/operating-rooms/availability', [HealthcareApiController::class, 'getOperatingRoomsAvailability']);
-
-    // Surgery (write operations)
-    Route::post('/surgery-schedules/{id}/assign-team', [HealthcareApiController::class, 'assignSurgeryTeam'])->middleware('api.rate:api-write');
-    Route::post('/surgery-schedules/{id}/complete', [HealthcareApiController::class, 'completeSurgery'])->middleware('api.rate:api-write');
-
-    // Pharmacy APIs
-    Route::get('/medications/expiring', [HealthcareApiController::class, 'getExpiringMedications']);
-
-    // Pharmacy (write operations)
-    Route::post('/prescriptions/{id}/dispense', [HealthcareApiController::class, 'dispensePrescription'])->middleware('api.rate:api-write');
-    Route::post('/pharmacy/stock-opname', [HealthcareApiController::class, 'createPharmacyStockOpname'])->middleware('api.rate:api-write');
-
-    // Inpatient APIs
-    Route::get('/beds/availability', [HealthcareApiController::class, 'getBedAvailability']);
-
-    // Inpatient (write operations)
-    Route::post('/admissions/{id}/transfer-ward', [HealthcareApiController::class, 'transferWard'])->middleware('api.rate:api-write');
-    Route::post('/admissions/{id}/discharge', [HealthcareApiController::class, 'dischargeAdmission'])->middleware('api.rate:api-write');
-});

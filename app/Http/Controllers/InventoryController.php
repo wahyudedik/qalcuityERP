@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,10 +17,7 @@ class InventoryController extends Controller
 {
     use \App\Traits\DispatchesWebhooks;
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // Remove duplicate tenantId() - already defined in parent Controller
 
     public function index(Request $request)
     {
@@ -60,6 +58,8 @@ class InventoryController extends Controller
 
     public function store(Request $request)
     {
+        $tid = $this->tenantId();
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:100',
@@ -72,14 +72,14 @@ class InventoryController extends Controller
             'has_expiry' => 'boolean',
             'expiry_alert_days' => 'nullable|integer|min:1|max:365',
             'initial_stock' => 'nullable|integer|min:0',
-            'warehouse_id' => 'nullable|exists:warehouses,id',
+            // FIX BUG-004: warehouse_id harus divalidasi dengan filter tenant_id
+            // agar user tidak bisa menggunakan warehouse milik tenant lain
+            'warehouse_id' => ['nullable', \Illuminate\Validation\Rule::exists('warehouses', 'id')->where('tenant_id', $tid)],
             'batch_number' => 'nullable|string|max:100',
             'expiry_date' => 'nullable|date|after:today',
             'manufacture_date' => 'nullable|date',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
-
-        $tid = $this->tenantId();
 
         if (Product::where('tenant_id', $tid)->where('name', $data['name'])->exists()) {
             return back()->withErrors(['name' => 'Produk dengan nama ini sudah ada.'])->withInput();
@@ -120,7 +120,7 @@ class InventoryController extends Controller
                 'tenant_id' => $tid,
                 'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'type' => 'in',
                 'quantity' => $data['initial_stock'],
                 'quantity_before' => 0,
@@ -251,7 +251,7 @@ class InventoryController extends Controller
                     'tenant_id' => $this->tenantId(),
                     'product_id' => $product->id,
                     'warehouse_id' => $data['warehouse_id'],
-                    'user_id' => auth()->id(),
+                    'user_id' => Auth::id(),
                     'type' => 'in',
                     'quantity' => $data['quantity'],
                     'quantity_before' => $before,

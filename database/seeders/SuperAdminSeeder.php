@@ -14,7 +14,7 @@ class SuperAdminSeeder extends Seeder
             ['email' => 'info@qalcuity.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('Wahyu123456789@'),
+                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', \Illuminate\Support\Str::random(32))),
                 'role' => 'super_admin',
                 'tenant_id' => null, 
                 'is_active' => true,

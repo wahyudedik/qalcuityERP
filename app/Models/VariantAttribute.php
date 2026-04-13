@@ -3,80 +3,27 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VariantAttribute extends Model
 {
     use BelongsToTenant;
-    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
+        'variant_id',
         'attribute_name',
-        'attribute_type',
-        'attribute_values',
-        'is_required',
-        'sort_order',
+        'attribute_value',
     ];
 
-    protected $casts = [
-        'attribute_values' => 'array',
-        'is_required' => 'boolean',
-    ];
-
-    // Type labels
-    public function getTypeLabelAttribute(): string
+    public function tenant(): BelongsTo
     {
-        return match ($this->attribute_type) {
-            'select' => 'Dropdown Select',
-            'color' => 'Color Picker',
-            'text' => 'Text Input',
-            'number' => 'Number Input',
-            default => ucfirst($this->attribute_type)
-        };
+        return $this->belongsTo(Tenant::class);
     }
 
-    // Scopes
-    public function scopeRequired($query)
+    public function variant(): BelongsTo
     {
-        return $query->where('is_required', true);
-    }
-
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('sort_order');
-    }
-
-    // Add value to attribute
-    public function addValue(string $value): void
-    {
-        $values = $this->attribute_values ?? [];
-        if (!in_array($value, $values)) {
-            $values[] = $value;
-            $this->attribute_values = $values;
-            $this->save();
-        }
-    }
-
-    // Remove value from attribute
-    public function removeValue(string $value): void
-    {
-        $values = $this->attribute_values ?? [];
-        $this->attribute_values = array_values(array_diff($values, [$value]));
-        $this->save();
-    }
-
-    // Validate value
-    public function isValidValue($value): bool
-    {
-        if ($this->attribute_type === 'text') {
-            return true;
-        }
-
-        $values = $this->attribute_values ?? [];
-        return in_array($value, $values);
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 }

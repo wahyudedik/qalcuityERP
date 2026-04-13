@@ -8,21 +8,67 @@ use App\Models\ProductStock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\ActivityLog;
+use App\Services\QueryCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     use \App\Traits\DispatchesWebhooks;
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
+    public function __construct(
+        protected QueryCacheService $cacheService
+    ) {
     }
+
+    // tenantId() inherited from parent Controller
 
     public function index(Request $request)
     {
         $tid = $this->tenantId();
+
+        // Use cache for dropdown data (changes infrequently)
+        $categories = $this->cacheService->remember("product_categories:{$tid}", function () use ($tid) {
+            return Product::where('tenant_id', $tid)
+                ->whereNotNull('category')
+                ->distinct()
+                ->pluck('category');
+        }, 7200); // 2 hours
+
+        $warehouses = $this->cacheService->remember("warehouses_list:{$tid}", function () use ($tid) {
+            return Warehouse::where('tenant_id', $tid)
+                ->where('is_active', true)
+                ->get();
+        }, 7200); // 2 hours
+
+        // Products list - cache for 5 minutes (frequently changing)
+        $filters = $request->only(['search', 'category', 'status']);
+        $cacheKey = "products_index:{$tid}:" . md5(json_encode($filters));
+
+        if ($request->has('no_cache')) {
+            // Bypass cache for fresh data
+            $products = $this->getProductsQuery($tid, $request)->orderBy('name')->paginate(20)->withQueryString();
+        } else {
+            $products = $this->cacheService->remember($cacheKey, function () use ($tid, $request) {
+                return $this->getProductsQuery($tid, $request)->orderBy('name')->paginate(20)->withQueryString();
+            }, 300); // 5 minutes
+        }
+
+        $lowCount = $this->cacheService->remember("products_low_count:{$tid}", function () use ($tid) {
+            return Product::where('tenant_id', $tid)
+                ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
+                ->count();
+        }, 120); // 2 minutes
+
+        return view('products.index', compact('products', 'categories', 'warehouses', 'lowCount'));
+    }
+
+    /**
+     * Build products query (extracted for reuse)
+     */
+    protected function getProductsQuery(int $tid, Request $request)
+    {
         $query = Product::where('tenant_id', $tid)->with('productStocks');
 
         if ($request->search) {
@@ -40,14 +86,7 @@ class ProductController extends Controller
             $query->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'));
         }
 
-        $products = $query->orderBy('name')->paginate(20)->withQueryString();
-        $categories = Product::where('tenant_id', $tid)->whereNotNull('category')->distinct()->pluck('category');
-        $warehouses = Warehouse::where('tenant_id', $tid)->where('is_active', true)->get();
-        $lowCount = Product::where('tenant_id', $tid)
-            ->whereHas('productStocks', fn($q) => $q->whereColumn('quantity', '<=', 'products.stock_min'))
-            ->count();
-
-        return view('products.index', compact('products', 'categories', 'warehouses', 'lowCount'));
+        return $query;
     }
 
     /**
@@ -102,9 +141,10 @@ class ProductController extends Controller
                     $price = $request->price;
                     $priceType = $request->price_type ?? 'fixed';
 
+                    // Update prices in bulk for better performance
                     foreach ($products as $product) {
                         $newPrice = $this->calculateNewPrice($product->selling_price, $price, $priceType);
-                        $product->update(['selling_price' => $newPrice]);
+                        Product::where('id', $product->id)->update(['selling_price' => $newPrice]);
                         $affected++;
                     }
                     break;
@@ -113,7 +153,7 @@ class ProductController extends Controller
             // Log activity
             ActivityLog::create([
                 'tenant_id' => $tenantId,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'action' => "bulk_{$action}",
                 'description' => "Bulk {$action} performed on {$affected} products",
                 'metadata' => [
@@ -218,7 +258,7 @@ class ProductController extends Controller
                 'tenant_id' => $tid,
                 'product_id' => $product->id,
                 'warehouse_id' => $data['warehouse_id'],
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'type' => 'in',
                 'quantity' => $data['initial_stock'],
                 'quantity_before' => 0,

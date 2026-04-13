@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Filterable Trait
@@ -123,8 +124,8 @@ trait Filterable
             'created_at' => now(),
         ];
 
-        // Save to user preferences or dedicated table
-        return \Cache::put("filter_preset:{$userId}:{$name}", $preset, now()->addDays(30));
+        // Save to cache (30 days TTL)
+        return Cache::put("filter_preset:{$userId}:{$name}", $preset, now()->addDays(30));
     }
 
     /**
@@ -132,7 +133,7 @@ trait Filterable
      */
     public static function loadFilterPreset($userId, string $name): ?array
     {
-        $preset = \Cache::get("filter_preset:{$userId}:{$name}");
+        $preset = Cache::get("filter_preset:{$userId}:{$name}");
         return $preset['filters'] ?? null;
     }
 

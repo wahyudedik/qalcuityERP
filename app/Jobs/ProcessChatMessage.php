@@ -5,10 +5,10 @@ namespace App\Jobs;
 use App\Models\AiUsageLog;
 use App\Models\ChatSession;
 use App\Models\User;
+use App\Services\AI\IntentDetector;
 use App\Services\ChatSessionManager;
 use App\Services\ERP\ToolRegistry;
 use App\Services\GeminiService;
-use App\Services\GeminiWriteValidator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -57,7 +57,13 @@ class ProcessChatMessage implements ShouldQueue
             $registry = new ToolRegistry($tenantId, $user->id);
             $context = $this->buildContext($user);
 
-            $response = $gemini->chatWithTools($context, $history, $registry->getDeclarations());
+            // OPTIMIZATION 3: Intent-based tool selection for queued messages
+            $intentDetector = new IntentDetector();
+            $intent = $intentDetector->detect($this->message);
+            $allowedTools = $user->allowedAiTools();
+            $toolDeclarations = $registry->getDeclarationsForIntent($intent, $allowedTools);
+
+            $response = $gemini->chatWithTools($context, $history, $toolDeclarations);
             $functionCalls = $response['function_calls'] ?? [];
 
             if (empty($functionCalls)) {
@@ -87,7 +93,7 @@ class ProcessChatMessage implements ShouldQueue
             $finalResponse = $gemini->sendFunctionResults(
                 $this->message,
                 $history,
-                $registry->getDeclarations(),
+                $toolDeclarations,
                 $functionResults
             );
 

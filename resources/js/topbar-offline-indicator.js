@@ -7,6 +7,9 @@
  * - Quick sync button with progress
  * - Conflict notification badge
  */
+
+import logger from './logger';
+
 class TopbarOfflineIndicator {
     constructor(options = {}) {
         this.containerSelector = options.containerSelector || '#topbar-offline-indicator';
@@ -26,7 +29,7 @@ class TopbarOfflineIndicator {
         this.setupEventListeners();
         await this.updateStatus();
 
-        console.log('[TopbarOfflineIndicator] Initialized');
+        logger.debug('[TopbarOfflineIndicator] Initialized');
     }
 
     /**
@@ -35,7 +38,7 @@ class TopbarOfflineIndicator {
     render() {
         const container = document.querySelector(this.containerSelector);
         if (!container) {
-            console.warn('[TopbarOfflineIndicator] Container not found:', this.containerSelector);
+            logger.warn('[TopbarOfflineIndicator] Container not found', { selector: this.containerSelector });
             return;
         }
 
@@ -219,6 +222,7 @@ class TopbarOfflineIndicator {
     async updateConflictCount() {
         try {
             const response = await fetch('/api/offline/conflicts', {
+                credentials: 'same-origin', // Include cookies for session auth
                 headers: {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
@@ -242,7 +246,7 @@ class TopbarOfflineIndicator {
                 }
             }
         } catch (error) {
-            console.error('[TopbarOfflineIndicator] Failed to update conflict count:', error);
+            logger.error('[TopbarOfflineIndicator] Failed to update conflict count', error);
         }
     }
 
@@ -326,7 +330,7 @@ class TopbarOfflineIndicator {
             await this.updateStatus();
 
         } catch (error) {
-            console.error('[TopbarOfflineIndicator] Sync failed:', error);
+            logger.error('[TopbarOfflineIndicator] Sync failed', error);
             this.showNotification('Sync failed. Please try again.', 'error');
         } finally {
             this.syncInProgress = false;
@@ -370,7 +374,7 @@ class TopbarOfflineIndicator {
             });
         } else {
             // Fallback to simple alert
-            console.log(`[Notification] ${type}: ${message}`);
+            logger.debug(`[Notification] ${type}: ${message}`);
         }
     }
 }

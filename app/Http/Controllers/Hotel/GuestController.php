@@ -24,10 +24,7 @@ class GuestController extends Controller
         $this->preferenceService = $preferenceService;
     }
 
-    private function tenantId(): int
-    {
-        return Auth::user()->tenant_id ?? abort(401, 'Unauthenticated.');
-    }
+    // tenantId() inherited from parent Controller
 
     public function index(Request $request)
     {

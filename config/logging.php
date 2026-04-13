@@ -164,14 +164,6 @@ return [
             'replace_placeholders' => true,
             'processors' => [
                 PsrLogMessageProcessor::class,
-                // Add custom processor for tenant context
-                function ($record) {
-                    if (auth()->check()) {
-                        $record['context']['user_id'] = auth()->id();
-                        $record['context']['tenant_id'] = auth()->user()->tenant_id ?? null;
-                    }
-                    return $record;
-                },
             ],
         ],
 
@@ -187,14 +179,6 @@ return [
             'replace_placeholders' => true,
             'processors' => [
                 PsrLogMessageProcessor::class,
-                function ($record) {
-                    if (auth()->check()) {
-                        $record['context']['user_id'] = auth()->id();
-                        $record['context']['user_email'] = auth()->user()->email ?? null;
-                        $record['context']['ip_address'] = request()->ip();
-                    }
-                    return $record;
-                },
             ],
         ],
 

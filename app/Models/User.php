@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, AuditsChanges;
+    use HasFactory, Notifiable, AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
@@ -28,15 +29,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'bio',
         'google_id',
-        'two_factor_secret',
+        // FIX BUG-008: two_factor_secret dan recovery_codes TIDAK boleh di fillable
+        // untuk mencegah mass assignment attack yang bisa menimpa secret 2FA
+        // Set hanya via TwoFactorService dengan explicit assignment
         'two_factor_enabled',
         'two_factor_confirmed_at',
-        'two_factor_recovery_codes',
         'digest_frequency',
         'digest_day',
         'digest_time',
         'gamification_points',
         'gamification_level',
+    ];
+
+    protected $guarded = [
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     protected $hidden = [
@@ -47,12 +54,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at'          => 'datetime',
-            'password'                   => 'hashed',
-            'is_active'                  => 'boolean',
-            'two_factor_enabled'         => 'boolean',
-            'two_factor_recovery_codes'  => 'array',
-            'two_factor_confirmed_at'    => 'datetime',
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+            'two_factor_enabled' => 'boolean',
+            'two_factor_recovery_codes' => 'array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 
@@ -143,13 +150,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return match ($this->role) {
             'super_admin' => 'Super Admin',
-            'admin'       => 'Admin',
-            'manager'     => 'Manager',
-            'staff'       => 'Staff',
-            'kasir'       => 'Kasir',
-            'gudang'      => 'Gudang',
-            'affiliate'   => 'Affiliate',
-            default       => ucfirst($this->role),
+            'admin' => 'Admin',
+            'manager' => 'Manager',
+            'staff' => 'Staff',
+            'kasir' => 'Kasir',
+            'gudang' => 'Gudang',
+            'affiliate' => 'Affiliate',
+            default => ucfirst($this->role),
         };
     }
 

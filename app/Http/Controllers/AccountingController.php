@@ -43,18 +43,19 @@ class AccountingController extends Controller
 
     public function storeCoa(Request $request)
     {
+        $tid = $this->tid();
+
         $data = $request->validate([
             'code'           => 'required|string|max:20',
             'name'           => 'required|string|max:100',
             'type'           => 'required|in:asset,liability,equity,revenue,expense',
             'normal_balance' => 'required|in:debit,credit',
-            'parent_id'      => 'nullable|exists:chart_of_accounts,id',
+            // FIX BUG-015: Validasi parent_id harus filter tenant_id agar tidak bisa pakai COA tenant lain
+            'parent_id'      => ['nullable', \Illuminate\Validation\Rule::exists('chart_of_accounts', 'id')->where('tenant_id', $tid)],
             'level'          => 'required|integer|min:1|max:5',
             'is_header'      => 'boolean',
             'description'    => 'nullable|string|max:255',
         ]);
-
-        $tid = $this->tid();
 
         if (ChartOfAccount::where('tenant_id', $tid)->where('code', $data['code'])->exists()) {
             return back()->withErrors(['code' => 'Kode akun sudah digunakan.'])->withInput();
@@ -114,14 +115,26 @@ class AccountingController extends Controller
 
     public function storePeriod(Request $request)
     {
+        $tid = $this->tid();
+
         $data = $request->validate([
             'name'       => 'required|string|max:50',
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after:start_date',
         ]);
 
+        // FIX BUG-018: Cegah periode yang overlap dengan periode yang sudah ada
+        $overlap = AccountingPeriod::where('tenant_id', $tid)
+            ->where('start_date', '<=', $data['end_date'])
+            ->where('end_date', '>=', $data['start_date'])
+            ->exists();
+
+        if ($overlap) {
+            return back()->withErrors(['start_date' => 'Periode ini tumpang tindih dengan periode akuntansi yang sudah ada.'])->withInput();
+        }
+
         AccountingPeriod::create(array_merge($data, [
-            'tenant_id' => $this->tid(),
+            'tenant_id' => $tid,
             'status'    => 'open',
         ]));
 

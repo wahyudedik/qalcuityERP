@@ -17,11 +17,13 @@ trait AuditsChanges
     {
         static::updated(function ($model) {
             $dirty = $model->getDirty();
-            if (empty($dirty)) return;
+            if (empty($dirty))
+                return;
 
             $exclude = $model->auditExclude ?? ['password', 'remember_token', 'two_factor_secret'];
-            $dirty   = array_diff_key($dirty, array_flip($exclude));
-            if (empty($dirty)) return;
+            $dirty = array_diff_key($dirty, array_flip($exclude));
+            if (empty($dirty))
+                return;
 
             $oldValues = [];
             $newValues = [];
@@ -31,7 +33,7 @@ trait AuditsChanges
             }
 
             $label = class_basename(get_class($model));
-            $name  = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
+            $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
                 action: strtolower($label) . '_updated',
@@ -40,6 +42,9 @@ trait AuditsChanges
                 oldValues: $oldValues,
                 newValues: $newValues,
             );
+
+            // TASK-022: Send notification for critical changes
+            $this->notifyCriticalChanges($model, $oldValues, $newValues, strtolower($label) . '_updated');
 
             // Evaluate gamification achievements
             $user = Auth::user();
@@ -53,7 +58,7 @@ trait AuditsChanges
             $snapshot = array_diff_key($model->toArray(), array_flip($exclude));
 
             $label = class_basename(get_class($model));
-            $name  = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
+            $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
                 action: strtolower($label) . '_deleted',
@@ -75,7 +80,7 @@ trait AuditsChanges
             $snapshot = array_diff_key($model->toArray(), array_flip($exclude));
 
             $label = class_basename(get_class($model));
-            $name  = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
+            $name = $model->name ?? $model->number ?? $model->title ?? "#{$model->id}";
 
             ActivityLog::record(
                 action: strtolower($label) . '_created',
@@ -100,5 +105,73 @@ trait AuditsChanges
     public function getAuditExcludeAttribute(): array
     {
         return $this->auditExclude ?? ['password', 'remember_token', 'two_factor_secret'];
+    }
+
+    /**
+     * TASK-022: Send notification for critical audit changes.
+     * 
+     * Triggers notifications to admins when sensitive models or fields are modified.
+     */
+    protected function notifyCriticalChanges($model, array $oldValues, array $newValues, string $action): void
+    {
+        // Only notify for critical models
+        $criticalModels = [
+            'User',
+            'Role',
+            'Permission',
+            'Tenant',
+            'BankAccount',
+            'Invoice',
+            'Payment'
+        ];
+
+        $modelClass = class_basename(get_class($model));
+
+        if (!in_array($modelClass, $criticalModels)) {
+            return;
+        }
+
+        // Check for sensitive field changes
+        $sensitiveFields = ['password', 'role', 'permissions', 'is_active', 'email', 'status'];
+        $changedFields = array_keys($newValues);
+        $hasSensitiveChange = !empty(array_intersect($sensitiveFields, $changedFields));
+
+        if (!$hasSensitiveChange) {
+            return;
+        }
+
+        // Get latest activity log
+        $latestLog = \App\Models\ActivityLog::where('model_type', get_class($model))
+            ->where('model_id', $model->id)
+            ->where('action', $action)
+            ->latest()
+            ->first();
+
+        if (!$latestLog) {
+            return;
+        }
+
+        // Determine priority
+        $priority = 'high';
+        if (in_array($modelClass, ['User', 'Role', 'Permission'])) {
+            $priority = 'critical';
+        }
+
+        // Get all admins
+        $admins = \App\Models\User::where('role', 'admin')
+            ->orWhere('role', 'manager')
+            ->get();
+
+        // Send notifications
+        foreach ($admins as $admin) {
+            try {
+                $admin->notify(new \App\Notifications\CriticalAuditChange($latestLog, $priority));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to send critical audit notification', [
+                    'user_id' => $admin->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 }

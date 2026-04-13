@@ -333,6 +333,14 @@ Schedule::job(new CheckQuotaExpiryJob())
     ->onOneServer()
     ->name('telecom-check-quota-expiry');
 
+// Check geofence violations — setiap 5 menit
+Schedule::command('geofencing:check')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/telecom/geofencing-check.log'))
+    ->name('telecom-geofencing-check');
+
 // ─── Automation & Workflow Builder ──────────────────────────────────────
 
 // Process scheduled workflows — every minute

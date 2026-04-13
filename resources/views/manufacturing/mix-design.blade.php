@@ -1,295 +1,658 @@
 <x-app-layout>
-    <x-slot name="header">Mix Design — Mutu Beton</x-slot>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
+                🧮 Mix Design Beton - Kalkulator Mutu Beton SNI
+            </h2>
+            <div class="flex gap-2">
+                @if ($calculation)
+                    <form method="POST" action="{{ route('manufacturing.mix-design.export-pdf') }}" target="_blank"
+                        class="inline">
+                        @csrf
+                        <input type="hidden" name="mix_design_id" value="{{ $selectedMix->id }}">
+                        <input type="hidden" name="volume" value="{{ $calculation['adjusted']['volume_m3'] }}">
+                        <input type="hidden" name="waste_percent"
+                            value="{{ $calculation['adjusted']['waste_percent'] }}">
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                            📄 Export PDF
+                        </button>
+                    </form>
+                @endif
+                <button onclick="document.getElementById('addMixModal').showModal()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    + Tambah Custom Mix
+                </button>
+            </div>
+        </div>
+    </x-slot>
 
-    @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">
-            {{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div
-            class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-700 dark:text-red-400">
-            {{ session('error') }}</div>
-    @endif
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-    {{-- Actions --}}
-    <div class="flex items-center justify-between mb-5">
-        <p class="text-sm text-gray-500 dark:text-slate-400">Komposisi material per 1 m³ beton untuk setiap mutu.</p>
-        <div class="flex items-center gap-2">
-            <form method="POST" action="{{ route('manufacturing.mix-design.seed') }}">
-                @csrf
-                <button type="submit"
-                    class="px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">Load
-                    Standar SNI</button>
-            </form>
-            <button onclick="document.getElementById('addModal').classList.remove('hidden')"
-                class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">+ Tambah Mix
-                Design</button>
+            {{-- Success/Error Messages --}}
+            @if (session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            {{-- Calculator Form --}}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">📊 Kalkulator Kebutuhan Material</h3>
+
+                    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Mutu Beton</label>
+                            <select name="mix_design_id" class="w-full border rounded px-3 py-2" required>
+                                <option value="">-- Pilih Mutu --</option>
+                                @foreach ($mixDesigns as $mix)
+                                    <option value="{{ $mix->id }}"
+                                        {{ request('mix_design_id') == $mix->id ? 'selected' : '' }}>
+                                        {{ $mix->grade }} - {{ $mix->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Volume (m³)</label>
+                            <input type="number" name="volume" step="0.1" min="0.1"
+                                value="{{ request('volume', 1) }}" class="w-full border rounded px-3 py-2" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Waste Factor (%)</label>
+                            <input type="number" name="waste_percent" step="0.5" min="0" max="50"
+                                value="{{ request('waste_percent', 5) }}" class="w-full border rounded px-3 py-2">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                🔍 Hitung Kebutuhan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Calculation Results --}}
+            @if ($calculation)
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {{-- Material Needs --}}
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold mb-4">📦 Kebutuhan Material</h3>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <span class="font-medium">🏭 Semen</span>
+                                    <div class="text-right">
+                                        <div class="font-bold">
+                                            {{ number_format($calculation['adjusted']['cement_kg'], 1) }} kg</div>
+                                        <div class="text-sm text-gray-500">{{ $calculation['adjusted']['cement_sak'] }}
+                                            sak (@50kg)</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <span class="font-medium">💧 Air</span>
+                                    <div class="text-right">
+                                        <div class="font-bold">
+                                            {{ number_format($calculation['adjusted']['water_liter'], 1) }} liter</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <span class="font-medium">🪨 Pasir (Agregat Halus)</span>
+                                    <div class="text-right">
+                                        <div class="font-bold">
+                                            {{ number_format($calculation['adjusted']['fine_agg_kg'], 1) }} kg</div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ $calculation['adjusted']['fine_agg_m3'] }} m³</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <span class="font-medium">🪨 Split (Agregat Kasar)</span>
+                                    <div class="text-right">
+                                        <div class="font-bold">
+                                            {{ number_format($calculation['adjusted']['coarse_agg_kg'], 1) }} kg</div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ $calculation['adjusted']['coarse_agg_m3'] }} m³</div>
+                                    </div>
+                                </div>
+                                @if ($calculation['adjusted']['admixture_liter'] > 0)
+                                    <div
+                                        class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                        <span class="font-medium">⚗️ Admixture</span>
+                                        <div class="text-right">
+                                            <div class="font-bold">
+                                                {{ number_format($calculation['adjusted']['admixture_liter'], 2) }}
+                                                liter</div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded text-sm">
+                                <strong>Volume:</strong> {{ $calculation['adjusted']['volume_m3'] }} m³ |
+                                <strong>Waste:</strong> {{ $calculation['adjusted']['waste_percent'] }}% |
+                                <strong>Grade:</strong> {{ $calculation['adjusted']['grade'] }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Cost Analysis --}}
+                    @if ($costAnalysis)
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                            <div class="p-6">
+                                <h3 class="text-lg font-semibold mb-4">💰 Analisis Biaya</h3>
+
+                                <div class="text-center mb-4">
+                                    <div class="text-3xl font-bold text-green-600">
+                                        Rp {{ number_format($costAnalysis['total_cost'], 0, ',', '.') }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">Total Biaya</div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span>Biaya per m³</span>
+                                        <span class="font-semibold">Rp
+                                            {{ number_format($costAnalysis['cost_per_m3']['total'], 0, ',', '.') }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Biaya per sak semen</span>
+                                        <span class="font-semibold">Rp
+                                            {{ number_format($costAnalysis['cost_per_sack_cement'], 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h4 class="font-medium mb-2">Breakdown Biaya:</h4>
+                                    <div class="space-y-2">
+                                        @foreach ($costAnalysis['cost_per_m3'] as $item => $cost)
+                                            @if ($item !== 'total' && $cost > 0)
+                                                <div>
+                                                    <div class="flex justify-between text-sm mb-1">
+                                                        <span>{{ ucfirst(str_replace('_', ' ', $item)) }}</span>
+                                                        <span>Rp {{ number_format($cost, 0, ',', '.') }}</span>
+                                                    </div>
+                                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                                        <div class="bg-blue-600 h-2 rounded-full"
+                                                            style="width: {{ $costAnalysis['breakdown_percent'][$item] }}%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Material Availability --}}
+                @if ($availability)
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                📋 Ketersediaan Material
+                                @if ($availability['all_available'])
+                                    <span class="ml-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">✓
+                                        Semua Tersedia</span>
+                                @else
+                                    <span class="ml-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">✗ Ada
+                                        Kekurangan</span>
+                                @endif
+                            </h3>
+
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left">Material</th>
+                                            <th class="px-4 py-2 text-right">Dibutuhkan</th>
+                                            <th class="px-4 py-2 text-right">Tersedia</th>
+                                            <th class="px-4 py-2 text-right">Kekurangan</th>
+                                            <th class="px-4 py-2 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($availability['availability'] as $material => $data)
+                                            <tr class="border-t">
+                                                <td class="px-4 py-3 font-medium">
+                                                    {{ ucfirst(str_replace('_', ' ', $material)) }}</td>
+                                                <td class="px-4 py-3 text-right">
+                                                    {{ number_format($data['required'], 1) }} {{ $data['unit'] }}</td>
+                                                <td class="px-4 py-3 text-right">
+                                                    {{ number_format($data['available'], 1) }} {{ $data['unit'] }}
+                                                </td>
+                                                <td
+                                                    class="px-4 py-3 text-right {{ $data['shortage'] > 0 ? 'text-red-600 font-bold' : '' }}">
+                                                    {{ $data['shortage'] > 0 ? number_format($data['shortage'], 1) : '-' }}
+                                                    {{ $data['unit'] }}
+                                                </td>
+                                                <td class="px-4 py-3 text-center">
+                                                    @if ($data['sufficient'])
+                                                        <span
+                                                            class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">✓
+                                                            Cukup</span>
+                                                    @else
+                                                        <span
+                                                            class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">✗
+                                                            Kurang</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
+            {{-- Recommendation Tool --}}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">🎯 Rekomendasi Mix Design</h3>
+
+                    <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Mutu Required (K)</label>
+                            <input type="number" name="required_strength" step="1" min="100"
+                                placeholder="e.g. 300" class="w-full border rounded px-3 py-2"
+                                value="{{ request('required_strength') }}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Volume (m³)</label>
+                            <input type="number" name="rec_volume" step="0.1" min="0.1"
+                                placeholder="e.g. 10" class="w-full border rounded px-3 py-2"
+                                value="{{ request('rec_volume') }}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Max Budget (Rp/m³)</label>
+                            <input type="number" name="max_budget" step="1000" min="0"
+                                placeholder="Optional" class="w-full border rounded px-3 py-2"
+                                value="{{ request('max_budget') }}">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit"
+                                class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                🎯 Cari Rekomendasi
+                            </button>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="document.getElementById('compareModal').showModal()"
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+                                ⚖️ Bandingkan
+                            </button>
+                        </div>
+                    </form>
+
+                    @if ($recommendation && $recommendation['status'] === 'success')
+                        <div class="mt-4 p-4 bg-green-50 dark:bg-green-900 rounded border border-green-300">
+                            <h4 class="font-bold text-green-800 mb-2">✓ Rekomendasi Terbaik</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-600">Grade</div>
+                                    <div class="font-bold">{{ $recommendation['recommended_mix']->grade }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Kuat Tekan</div>
+                                    <div class="font-bold">{{ $recommendation['recommended_mix']->target_strength }} K
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Biaya/m³</div>
+                                    <div class="font-bold">Rp
+                                        {{ number_format($recommendation['cost_analysis']['cost_per_m3']['total'], 0, ',', '.') }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Total Biaya</div>
+                                    <div class="font-bold">Rp
+                                        {{ number_format($recommendation['cost_analysis']['total_cost'], 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Mix Design List --}}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">📚 Daftar Mix Design</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach ($mixDesigns as $mix)
+                            <div
+                                class="border rounded-lg p-4 hover:shadow-md transition {{ $mix->is_standard ? 'bg-blue-50 dark:bg-blue-900' : 'bg-white dark:bg-gray-700' }}">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-bold text-lg">{{ $mix->grade }}</h4>
+                                    @if ($mix->is_standard)
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Standar
+                                            SNI</span>
+                                    @endif
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">{{ $mix->name }}</p>
+
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Kuat Tekan:</span>
+                                        <span class="font-semibold">{{ $mix->target_strength }}
+                                            {{ $mix->strength_unit }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>W/C Ratio:</span>
+                                        <span class="font-semibold">{{ $mix->water_cement_ratio }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Semen:</span>
+                                        <span class="font-semibold">{{ $mix->cement_kg }} kg/m³</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Slump:</span>
+                                        <span class="font-semibold">{{ $mix->slump_min }} - {{ $mix->slump_max }}
+                                            cm</span>
+                                    </div>
+                                </div>
+
+                                @if (!$mix->is_standard)
+                                    <div class="mt-3 flex gap-2">
+                                        <button onclick="editMixDesign({{ $mix->id }})"
+                                            class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">
+                                            Edit
+                                        </button>
+                                        <button onclick="deleteMixDesign({{ $mix->id }})"
+                                            class="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                            Hapus
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    {{-- Mix Design Cards --}}
-    @if ($designs->isEmpty())
-        <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
-            <p class="text-3xl mb-3">🏗️</p>
-            <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada mix design. Klik "Load Standar SNI" untuk
-                memuat mutu beton standar Indonesia (K-175 s/d K-500).</p>
-        </div>
-    @else
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            @foreach ($designs as $d)
-                <div
-                    class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                    {{-- Header --}}
-                    <div
-                        class="px-5 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
-                        <div>
-                            <span class="text-lg font-bold text-gray-900 dark:text-white">{{ $d->grade }}</span>
-                            @if ($d->is_standard)
-                                <span
-                                    class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">SNI</span>
-                            @endif
-                        </div>
-                        <span class="text-xs text-gray-400 dark:text-slate-500">{{ $d->target_strength }}
-                            {{ $d->strength_unit === 'K' ? 'kg/cm²' : 'MPa' }}</span>
-                    </div>
-
-                    {{-- Composition per m³ --}}
-                    <div class="px-5 py-3 space-y-2">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                            Komposisi per 1 m³</p>
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                            <div class="flex justify-between"><span
-                                    class="text-gray-500 dark:text-slate-400">Semen</span><span
-                                    class="font-mono text-gray-700 dark:text-slate-300">{{ number_format($d->cement_kg, 0) }}
-                                    kg</span></div>
-                            <div class="flex justify-between"><span
-                                    class="text-gray-500 dark:text-slate-400">Air</span><span
-                                    class="font-mono text-gray-700 dark:text-slate-300">{{ number_format($d->water_liter, 0) }}
-                                    L</span></div>
-                            <div class="flex justify-between"><span
-                                    class="text-gray-500 dark:text-slate-400">Pasir</span><span
-                                    class="font-mono text-gray-700 dark:text-slate-300">{{ number_format($d->fine_agg_kg, 0) }}
-                                    kg</span></div>
-                            <div class="flex justify-between"><span
-                                    class="text-gray-500 dark:text-slate-400">Kerikil</span><span
-                                    class="font-mono text-gray-700 dark:text-slate-300">{{ number_format($d->coarse_agg_kg, 0) }}
-                                    kg</span></div>
-                            @if ($d->admixture_liter > 0)
-                                <div class="flex justify-between col-span-2"><span
-                                        class="text-gray-500 dark:text-slate-400">Admixture</span><span
-                                        class="font-mono text-gray-700 dark:text-slate-300">{{ $d->admixture_liter }}
-                                        L</span></div>
-                            @endif
-                        </div>
-                        <div
-                            class="flex items-center gap-3 text-[10px] text-gray-400 dark:text-slate-500 pt-1 border-t border-gray-100 dark:border-white/5">
-                            <span>w/c: {{ $d->water_cement_ratio }}</span>
-                            <span>Slump: {{ $d->slump_min }}–{{ $d->slump_max }} cm</span>
-                            <span>{{ $d->cement_type }}</span>
-                        </div>
-                    </div>
-
-                    {{-- Actions --}}
-                    <div class="px-5 py-3 border-t border-gray-100 dark:border-white/10 flex items-center gap-2">
-                        <button onclick="openCalcModal({{ $d->id }}, '{{ $d->grade }}')"
-                            class="text-xs text-blue-500 hover:text-blue-600 transition">🧮 Hitung</button>
-                        @if (!$d->bom_id)
-                            <form method="POST" action="{{ route('manufacturing.mix-design.generate-bom', $d) }}"
-                                class="inline">
-                                @csrf
-                                <button type="submit"
-                                    class="text-xs text-emerald-500 hover:text-emerald-600 transition">📦 Generate
-                                    BOM</button>
-                            </form>
-                        @else
-                            <span class="text-xs text-gray-400">✅ BOM terhubung</span>
-                        @endif
-                        <form method="POST" action="{{ route('manufacturing.mix-design.destroy', $d) }}"
-                            onsubmit="return confirm('Hapus mix design ini?')" class="inline ml-auto">
-                            @csrf @method('DELETE')
-                            <button type="submit"
-                                class="text-xs text-red-400 hover:text-red-500 transition">Hapus</button>
-                        </form>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-        <div class="mt-4">{{ $designs->links() }}</div>
-    @endif
-
-    {{-- Add Modal --}}
-    <div id="addModal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Tambah Mix Design</h3>
-                <button onclick="document.getElementById('addModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
-            </div>
-            <form method="POST" action="{{ route('manufacturing.mix-design.store') }}" class="space-y-4">
+    {{-- Add Mix Design Modal --}}
+    <dialog id="addMixModal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-lg mb-4">Tambah Custom Mix Design</h3>
+            <form method="POST" action="{{ route('manufacturing.mix-design.store') }}">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Mutu / Grade
-                            *</label>
-                        <input type="text" name="grade" required placeholder="K-300"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">Grade *</label>
+                        <input type="text" name="grade" required class="w-full border rounded px-3 py-2"
+                            placeholder="e.g. K-300">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama *</label>
-                        <input type="text" name="name" required placeholder="Beton Mutu K-300"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-                    </div>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kuat Tekan
-                            *</label>
-                        <input type="number" name="target_strength" required step="0.01" placeholder="300"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">Nama *</label>
+                        <input type="text" name="name" required class="w-full border rounded px-3 py-2"
+                            placeholder="e.g. Beton K-300">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Satuan</label>
-                        <select name="strength_unit"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-                            <option value="K">K (kg/cm²)</option>
-                            <option value="fc">fc' (MPa)</option>
+                        <label class="block text-sm font-medium mb-1">Kuat Tekan (K) *</label>
+                        <input type="number" name="target_strength" step="1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Satuan Kuat *</label>
+                        <select name="strength_unit" required class="w-full border rounded px-3 py-2">
+                            <option value="K">K</option>
+                            <option value="MPa">MPa</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">w/c
-                            Ratio</label>
-                        <input type="number" name="water_cement_ratio" step="0.01" value="0.50"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-                    </div>
-                </div>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 pt-2">
-                    Komposisi per 1 m³</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Semen (kg)
-                            *</label>
-                        <input type="number" name="cement_kg" required step="0.01" placeholder="413"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">Semen (kg/m³) *</label>
+                        <input type="number" name="cement_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Air (liter)
-                            *</label>
-                        <input type="number" name="water_liter" required step="0.01" placeholder="215"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">Air (liter/m³) *</label>
+                        <input type="number" name="water_liter" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Pasir / Agregat
-                            Halus (kg) *</label>
-                        <input type="number" name="fine_agg_kg" required step="0.01" placeholder="681"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">W/C Ratio *</label>
+                        <input type="number" name="water_cement_ratio" step="0.01" min="0"
+                            max="1" required class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kerikil /
-                            Agregat Kasar (kg) *</label>
-                        <input type="number" name="coarse_agg_kg" required step="0.01" placeholder="1021"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Admixture
-                            (liter)</label>
-                        <input type="number" name="admixture_liter" step="0.001" value="0"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe
-                            Semen</label>
-                        <select name="cement_type"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        <label class="block text-sm font-medium mb-1">Tipe Semen *</label>
+                        <select name="cement_type" required class="w-full border rounded px-3 py-2">
                             <option value="PCC">PCC</option>
                             <option value="OPC">OPC</option>
-                            <option value="PPC">PPC</option>
+                            <option value="Type I">Type I</option>
+                            <option value="Type II">Type II</option>
+                            <option value="Type III">Type III</option>
                         </select>
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Slump Min
-                            (cm)</label>
+                        <label class="block text-sm font-medium mb-1">Pasir (kg/m³) *</label>
+                        <input type="number" name="fine_agg_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Split (kg/m³) *</label>
+                        <input type="number" name="coarse_agg_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Admixture (liter/m³)</label>
+                        <input type="number" name="admixture_liter" step="0.001" value="0"
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Ukuran Agregat *</label>
+                        <select name="agg_max_size" required class="w-full border rounded px-3 py-2">
+                            <option value="10mm">10mm</option>
+                            <option value="20mm">20mm</option>
+                            <option value="40mm">40mm</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Slump Min (cm)</label>
                         <input type="number" name="slump_min" step="0.1" value="8"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Slump Max
-                            (cm)</label>
+                        <label class="block text-sm font-medium mb-1">Slump Max (cm)</label>
                         <input type="number" name="slump_max" step="0.1" value="12"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full border rounded px-3 py-2">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
-                    <textarea name="notes" rows="2"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"></textarea>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium mb-1">Catatan</label>
+                    <textarea name="notes" rows="2" class="w-full border rounded px-3 py-2"></textarea>
                 </div>
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')"
-                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
-                    <button type="submit"
-                        class="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium">Simpan</button>
+                <div class="modal-action">
+                    <button type="button" onclick="document.getElementById('addMixModal').close()"
+                        class="btn">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
         </div>
-    </div>
+    </dialog>
 
-    {{-- Calculate Modal --}}
-    <div id="calcModal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-sm p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🧮 Hitung Kebutuhan</h3>
-                <button onclick="document.getElementById('calcModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
-            </div>
-            <p class="text-sm text-blue-600 dark:text-blue-400 font-semibold mb-3" id="calc-grade"></p>
-            <div class="mb-4">
-                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Volume (m³)</label>
-                <input type="number" id="calc-volume" step="0.1" value="1" min="0.1"
-                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
-            </div>
-            <button onclick="doCalculate()"
-                class="w-full px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium mb-4">Hitung</button>
-            <div id="calc-result" class="hidden space-y-2 text-sm"></div>
+    <script>
+        function editMixDesign(id) {
+            // Fetch mix design data
+            fetch(`/api/mix-design/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate edit form
+                    document.getElementById('edit_mix_id').value = data.id;
+                    document.getElementById('editMixForm').action = `/manufacturing/mix-design/${id}`;
+                    document.getElementById('edit_grade').value = data.grade;
+                    document.getElementById('edit_name').value = data.name;
+                    document.getElementById('edit_target_strength').value = data.target_strength;
+                    document.getElementById('edit_strength_unit').value = data.strength_unit;
+                    document.getElementById('edit_cement_kg').value = data.cement_kg;
+                    document.getElementById('edit_water_liter').value = data.water_liter;
+                    document.getElementById('edit_water_cement_ratio').value = data.water_cement_ratio;
+                    document.getElementById('edit_cement_type').value = data.cement_type;
+                    document.getElementById('edit_fine_agg_kg').value = data.fine_agg_kg;
+                    document.getElementById('edit_coarse_agg_kg').value = data.coarse_agg_kg;
+                    document.getElementById('edit_admixture_liter').value = data.admixture_liter || 0;
+                    document.getElementById('edit_agg_max_size').value = data.agg_max_size;
+                    document.getElementById('edit_slump_min').value = data.slump_min || 8;
+                    document.getElementById('edit_slump_max').value = data.slump_max || 12;
+                    document.getElementById('edit_notes').value = data.notes || '';
+
+                    // Set version history link
+                    document.getElementById('viewVersionsLink').href = `/manufacturing/mix-design/${data.id}/versions`;
+
+                    // Show modal
+                    document.getElementById('editMixModal').showModal();
+                })
+                .catch(error => {
+                    alert('Error loading mix design data');
+                    console.error(error);
+                });
+        }
+
+        function deleteMixDesign(id) {
+            if (confirm('Yakin ingin menghapus mix design ini?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/manufacturing/mix-design/${id}`;
+                form.innerHTML = `@csrf @method('DELETE')`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+
+    {{-- Edit Mix Design Modal --}}
+    <dialog id="editMixModal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-lg mb-4">Edit Custom Mix Design</h3>
+            <form method="POST" id="editMixForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="edit_mix_id" name="mix_design_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Grade *</label>
+                        <input type="text" id="edit_grade" name="grade" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nama *</label>
+                        <input type="text" id="edit_name" name="name" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Kuat Tekan (K) *</label>
+                        <input type="number" id="edit_target_strength" name="target_strength" step="1"
+                            required class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Satuan Kuat *</label>
+                        <select id="edit_strength_unit" name="strength_unit" required
+                            class="w-full border rounded px-3 py-2">
+                            <option value="K">K</option>
+                            <option value="MPa">MPa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Semen (kg/m³) *</label>
+                        <input type="number" id="edit_cement_kg" name="cement_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Air (liter/m³) *</label>
+                        <input type="number" id="edit_water_liter" name="water_liter" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">W/C Ratio *</label>
+                        <input type="number" id="edit_water_cement_ratio" name="water_cement_ratio" step="0.01"
+                            min="0" max="1" required class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tipe Semen *</label>
+                        <select id="edit_cement_type" name="cement_type" required
+                            class="w-full border rounded px-3 py-2">
+                            <option value="PCC">PCC</option>
+                            <option value="OPC">OPC</option>
+                            <option value="Type I">Type I</option>
+                            <option value="Type II">Type II</option>
+                            <option value="Type III">Type III</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Pasir (kg/m³) *</label>
+                        <input type="number" id="edit_fine_agg_kg" name="fine_agg_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Split (kg/m³) *</label>
+                        <input type="number" id="edit_coarse_agg_kg" name="coarse_agg_kg" step="0.1" required
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Admixture (liter/m³)</label>
+                        <input type="number" id="edit_admixture_liter" name="admixture_liter" step="0.001"
+                            value="0" class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Ukuran Agregat *</label>
+                        <select id="edit_agg_max_size" name="agg_max_size" required
+                            class="w-full border rounded px-3 py-2">
+                            <option value="10mm">10mm</option>
+                            <option value="20mm">20mm</option>
+                            <option value="40mm">40mm</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Slump Min (cm)</label>
+                        <input type="number" id="edit_slump_min" name="slump_min" step="0.1" value="8"
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Slump Max (cm)</label>
+                        <input type="number" id="edit_slump_max" name="slump_max" step="0.1" value="12"
+                            class="w-full border rounded px-3 py-2">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium mb-1">Catatan</label>
+                    <textarea id="edit_notes" name="notes" rows="2" class="w-full border rounded px-3 py-2"></textarea>
+                </div>
+                <div
+                    class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <label class="block text-sm font-medium mb-1 text-yellow-800 dark:text-yellow-400">
+                        ⚠️ Change Reason (Required for Version Tracking)
+                    </label>
+                    <input type="text" id="edit_change_reason" name="change_reason" required
+                        placeholder="e.g., Adjusted cement ratio for better strength"
+                        class="w-full border border-yellow-300 dark:border-yellow-700 rounded px-3 py-2">
+                    <p class="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                        A new version will be created to track this change
+                    </p>
+                </div>
+                <div class="modal-action">
+                    <button type="button" onclick="document.getElementById('editMixModal').close()"
+                        class="btn">Batal</button>
+                    <a href="#" id="viewVersionsLink" target="_blank" class="btn btn-outline btn-info">📋 View
+                        Versions</a>
+                    <button type="submit" class="btn btn-primary">Update & Create Version</button>
+                </div>
+            </form>
         </div>
-    </div>
-
-    @push('scripts')
-        <script>
-            let calcDesignId = null;
-
-            function openCalcModal(id, grade) {
-                calcDesignId = id;
-                document.getElementById('calc-grade').textContent = grade;
-                document.getElementById('calc-result').classList.add('hidden');
-                document.getElementById('calcModal').classList.remove('hidden');
-            }
-            async function doCalculate() {
-                const vol = document.getElementById('calc-volume').value;
-                const res = await fetch(`/manufacturing/mix-design/${calcDesignId}/calculate?volume=${vol}`);
-                const data = await res.json();
-                const n = data.needs;
-                const fmt = v => new Intl.NumberFormat('id-ID').format(Math.round(v));
-                document.getElementById('calc-result').innerHTML = `
-            <p class="font-semibold text-gray-900 dark:text-white">Kebutuhan untuk ${n.volume_m3} m³ ${data.grade}:</p>
-            <div class="grid grid-cols-2 gap-1 text-xs">
-                <span class="text-gray-500">Semen</span><span class="font-mono">${fmt(n.cement_kg)} kg (${n.cement_sak} sak)</span>
-                <span class="text-gray-500">Air</span><span class="font-mono">${fmt(n.water_liter)} liter</span>
-                <span class="text-gray-500">Pasir</span><span class="font-mono">${fmt(n.fine_agg_kg)} kg (${n.fine_agg_m3} m³)</span>
-                <span class="text-gray-500">Kerikil</span><span class="font-mono">${fmt(n.coarse_agg_kg)} kg (${n.coarse_agg_m3} m³)</span>
-                ${n.admixture_liter > 0 ? `<span class="text-gray-500">Admixture</span><span class="font-mono">${n.admixture_liter} liter</span>` : ''}
-            </div>
-            ${data.total_cost > 0 ? `<p class="pt-2 border-t border-gray-100 dark:border-white/10 font-semibold text-emerald-600">Estimasi biaya: Rp ${fmt(data.total_cost)}</p>` : ''}
-        `;
-                document.getElementById('calc-result').classList.remove('hidden');
-            }
-        </script>
-    @endpush
+    </dialog>
 </x-app-layout>

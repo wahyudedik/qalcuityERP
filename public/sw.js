@@ -12,6 +12,45 @@ const PAGE_CACHE = SW_VERSION + '-pages';
 const DATA_CACHE = SW_VERSION + '-data';
 const OFFLINE_URL = '/offline';
 
+// ─── Logging Helper (Safe for Service Worker) ─────────────────────────────────
+const isDev = false; // Set to true for SW debugging
+
+function swLog(level, message, data = null) {
+    if (!isDev && level !== 'error') return;
+
+    const timestamp = new Date().toISOString();
+    const prefix = `[SW][${timestamp}]`;
+
+    if (level === 'error') {
+        console.error(`${prefix} [ERROR] ${message}`, data || '');
+    } else if (isDev) {
+        console.log(`${prefix} [${level.toUpperCase()}] ${message}`, data || '');
+    }
+}
+
+// ─── Error Handler for Service Worker ─────────────────────────────────────────
+function handleError(error, context = '') {
+    swLog('error', `Service Worker Error: ${context}`, {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+    });
+
+    // Report error to main thread
+    self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+            client.postMessage({
+                type: 'SW_ERROR',
+                error: error.message,
+                context: context,
+                timestamp: Date.now(),
+            });
+        });
+    }).catch(err => {
+        swLog('error', 'Failed to report error to clients', err);
+    });
+}
+
 // ─── Precache on install ──────────────────────────────────────────────────────
 const PRECACHE_STATIC = [
     '/offline',
@@ -31,7 +70,11 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => cache.addAll(PRECACHE_STATIC))
-            .then(() => self.skipWaiting())
+            .then(() => {
+                swLog('info', 'Service Worker installed');
+                return self.skipWaiting();
+            })
+            .catch(error => handleError(error, 'Install'))
     );
 });
 
@@ -41,7 +84,11 @@ self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
             .then(keys => Promise.all(keys.filter(k => !keep.includes(k)).map(k => caches.delete(k))))
-            .then(() => self.clients.claim())
+            .then(() => {
+                swLog('info', 'Service Worker activated, old caches cleaned');
+                return self.clients.claim();
+            })
+            .catch(error => handleError(error, 'Activate'))
     );
 });
 

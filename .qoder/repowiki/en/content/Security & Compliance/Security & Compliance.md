@@ -17,10 +17,16 @@
 - [AuditLogService.php](file://app/Services/Security/AuditLogService.php)
 - [GdprComplianceService.php](file://app/Services/Security/GdprComplianceService.php)
 - [TenantIsolationService.php](file://app/Services/TenantIsolationService.php)
+- [AccountLockoutService.php](file://app/Services/AccountLockoutService.php)
+- [StrongPassword.php](file://app/Rules/StrongPassword.php)
+- [PasswordHistory.php](file://app/Models/PasswordHistory.php)
+- [security.php](file://config/security.php)
+- [password.php](file://config/password.php)
 - [audit.php](file://config/audit.php)
 - [healthcare.php](file://config/healthcare.php)
 - [2026_04_06_110000_create_security_compliance_tables.php](file://database/migrations/2026_04_06_110000_create_security_compliance_tables.php)
 - [2026_04_08_1400001_create_regulatory_compliance_tables.php](file://database/migrations/2026_04_08_1400001_create_regulatory_compliance_tables.php)
+- [2026_04_10_200000_add_account_lockout_to_users_table.php](file://database/migrations/2026_04_10_200000_add_account_lockout_to_users_table.php)
 - [GenerateComplianceReport.php](file://app/Console/Commands/GenerateComplianceReport.php)
 - [ComplianceReportController.php](file://app/Http/Controllers/Healthcare/ComplianceReportController.php)
 - [TwoFactorController.php](file://app/Http/Controllers/Auth/TwoFactorController.php)
@@ -28,6 +34,17 @@
 - [setup.blade.php](file://resources/views/auth/two-factor/setup.blade.php)
 - [HEALTHCARE_REGULATORY_COMPLIANCE.md](file://docs/HEALTHCARE_REGULATORY_COMPLIANCE.md)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added comprehensive AccountLockoutService for brute force protection
+- Integrated StrongPassword validation rules with advanced password policy enforcement
+- Implemented PasswordHistory tracking to prevent password reuse
+- Enhanced security configuration with centralized config/security.php
+- Added detailed password policy configuration in config/password.php
+- Expanded audit trail capabilities with comprehensive logging
+- Strengthened role-based access control with granular permission management
+- Enhanced tenant isolation with improved security boundaries
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -44,8 +61,10 @@
 ## Introduction
 This document provides comprehensive security and compliance documentation for Qalcuity ERP. It covers multi-tenant security isolation, role-based access control (RBAC), audit trails, and data encryption. It also documents security middleware, IP whitelisting, two-factor authentication (2FA), and GDPR compliance features. Additionally, it outlines security best practices, vulnerability assessment procedures, and compliance reporting capabilities across healthcare and other industries.
 
+**Updated** Enhanced with comprehensive brute force protection, advanced password policies, detailed audit trails, and centralized security configuration management.
+
 ## Project Structure
-Security and compliance features are implemented across middleware, controllers, services, configuration files, database migrations, and console commands. The routes define dedicated security and compliance endpoints, while middleware enforces runtime protections. Services encapsulate business logic for 2FA, encryption, session management, IP whitelisting, audit logging, and GDPR compliance. Configuration files govern retention, RBAC strictness, and healthcare-specific security and compliance behavior.
+Security and compliance features are implemented across middleware, controllers, services, configuration files, database migrations, and console commands. The routes define dedicated security and compliance endpoints, while middleware enforces runtime protections. Services encapsulate business logic for 2FA, encryption, session management, IP whitelisting, audit logging, GDPR compliance, and brute force protection. Configuration files govern retention, RBAC strictness, and healthcare-specific security and compliance behavior.
 
 ```mermaid
 graph TB
@@ -54,26 +73,34 @@ Routes["Routes<br/>web.php, auth.php"]
 Controllers["Controllers<br/>SecurityController.php,<br/>TwoFactorController.php"]
 Middleware["Middleware<br/>AddSecurityHeaders.php,<br/>RBACMiddleware.php,<br/>AuditTrailMiddleware.php"]
 end
-subgraph "Services"
-SecSvc["Security Services<br/>TwoFactorAuthService.php,<br/>EncryptionService.php,<br/>SessionManagementService.php,<br/>IpWhitelistService.php,<br/>AuditLogService.php,<br/>GdprComplianceService.php"]
+subgraph "Security Services"
+SecSvc["Security Services<br/>TwoFactorAuthService.php,<br/>EncryptionService.php,<br/>SessionManagementService.php,<br/>IpWhitelistService.php,<br/>AuditLogService.php,<br/>GdprComplianceService.php,<br/>AccountLockoutService.php"]
+PasswordSvc["Password Services<br/>StrongPassword.php,<br/>PasswordHistory.php"]
 TenantIso["TenantIsolationService.php"]
 end
-subgraph "Configurations"
+subgraph "Configuration"
+SecurityCfg["security.php<br/>Centralized Security Config"]
+PasswordCfg["password.php<br/>Password Policy Config"]
 AuditCfg["audit.php"]
 HealthCfg["healthcare.php"]
 end
 subgraph "Persistence"
-Migrations["Migrations<br/>Security/Compliance Tables"]
+Migrations["Migrations<br/>Security/Compliance Tables<br/>Account Lockout Users"]
 Commands["Console Commands<br/>GenerateComplianceReport.php"]
 end
 Routes --> Controllers
 Controllers --> Middleware
 Controllers --> SecSvc
+Controllers --> PasswordSvc
 SecSvc --> Migrations
+PasswordSvc --> Migrations
+Middleware --> SecurityCfg
 Middleware --> AuditCfg
 Middleware --> HealthCfg
 Controllers --> Commands
 TenantIso --> Controllers
+SecurityCfg --> SecSvc
+PasswordCfg --> PasswordSvc
 ```
 
 **Diagram sources**
@@ -89,11 +116,17 @@ TenantIso --> Controllers
 - [IpWhitelistService.php:8-161](file://app/Services/Security/IpWhitelistService.php#L8-L161)
 - [AuditLogService.php:8-214](file://app/Services/Security/AuditLogService.php#L8-L214)
 - [GdprComplianceService.php:8-47](file://app/Services/Security/GdprComplianceService.php#L8-L47)
+- [AccountLockoutService.php:10-247](file://app/Services/AccountLockoutService.php#L10-L247)
+- [StrongPassword.php:10-226](file://app/Rules/StrongPassword.php#L10-L226)
+- [PasswordHistory.php:9-38](file://app/Models/PasswordHistory.php#L9-L38)
 - [TenantIsolationService.php:16-43](file://app/Services/TenantIsolationService.php#L16-L43)
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)
 - [audit.php:1-44](file://config/audit.php#L1-L44)
 - [healthcare.php:1-251](file://config/healthcare.php#L1-L251)
 - [2026_04_06_110000_create_security_compliance_tables.php:207-241](file://database/migrations/2026_04_06_110000_create_security_compliance_tables.php#L207-L241)
 - [2026_04_08_1400001_create_regulatory_compliance_tables.php:144-201](file://database/migrations/2026_04_08_1400001_create_regulatory_compliance_tables.php#L144-L201)
+- [2026_04_10_200000_add_account_lockout_to_users_table.php:13-20](file://database/migrations/2026_04_10_200000_add_account_lockout_to_users_table.php#L13-L20)
 - [GenerateComplianceReport.php:78-105](file://app/Console/Commands/GenerateComplianceReport.php#L78-L105)
 
 **Section sources**
@@ -110,7 +143,12 @@ TenantIso --> Controllers
 - IP whitelisting: IpWhitelistService validates and manages allowed IPs with CIDR support.
 - 2FA: TwoFactorAuthService and TwoFactorService provide secret generation, verification, and recovery codes.
 - GDPR: GdprComplianceService handles consent recording and withdrawal, and integrates with data requests.
+- Brute force protection: AccountLockoutService provides configurable lockout mechanisms with cache integration.
+- Advanced password policies: StrongPassword validation with comprehensive policy enforcement and password history tracking.
+- Centralized security configuration: Unified security.php configuration for all security-related settings.
 - Compliance reporting: GenerateComplianceReport console command and ComplianceReportController manage regulatory reports.
+
+**Updated** Added comprehensive brute force protection, advanced password policies, centralized security configuration, and enhanced audit capabilities.
 
 **Section sources**
 - [TenantIsolationService.php:16-43](file://app/Services/TenantIsolationService.php#L16-L43)
@@ -123,11 +161,16 @@ TenantIso --> Controllers
 - [TwoFactorAuthService.php:10-238](file://app/Services/Security/TwoFactorAuthService.php#L10-L238)
 - [TwoFactorService.php:12-99](file://app/Services/TwoFactorService.php#L12-L99)
 - [GdprComplianceService.php:8-47](file://app/Services/Security/GdprComplianceService.php#L8-L47)
+- [AccountLockoutService.php:10-247](file://app/Services/AccountLockoutService.php#L10-L247)
+- [StrongPassword.php:10-226](file://app/Rules/StrongPassword.php#L10-L226)
+- [PasswordHistory.php:9-38](file://app/Models/PasswordHistory.php#L9-L38)
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)
 - [GenerateComplianceReport.php:78-105](file://app/Console/Commands/GenerateComplianceReport.php#L78-L105)
 - [ComplianceReportController.php:9-43](file://app/Http/Controllers/Healthcare/ComplianceReportController.php#L9-L43)
 
 ## Architecture Overview
-The security architecture combines middleware-driven runtime protections, service-layer business logic, and persistent audit/compliance artifacts. Controllers expose secure endpoints grouped under /security and /compliance routes. Configurations in healthcare.php and audit.php govern behavior such as business hours, retention, and RBAC strictness.
+The security architecture combines middleware-driven runtime protections, service-layer business logic, and persistent audit/compliance artifacts. Controllers expose secure endpoints grouped under /security and /compliance routes. Configurations in healthcare.php, audit.php, security.php, and password.php govern behavior such as business hours, retention, RBAC strictness, and comprehensive security policies.
 
 ```mermaid
 graph TB
@@ -146,9 +189,14 @@ Svc_IP["IpWhitelistService"]
 Svc_Audit["AuditLogService"]
 Svc_GDPR["GdprComplianceService"]
 Svc_TenantIso["TenantIsolationService"]
+Svc_Lockout["AccountLockoutService"]
+Rule_Password["StrongPassword"]
+Model_PasswordHist["PasswordHistory"]
+Cfg_Security["security.php"]
+Cfg_Password["password.php"]
 Cfg_Audit["audit.php"]
 Cfg_Health["healthcare.php"]
-DB["Database<br/>Security/Compliance Tables"]
+DB["Database<br/>Security/Compliance Tables<br/>User Lockout Fields"]
 Client --> Router
 Router --> MW_SecHdr
 Router --> MW_RBAC
@@ -162,8 +210,12 @@ Ctrl_Sec --> Svc_IP
 Ctrl_Sec --> Svc_Audit
 Ctrl_Sec --> Svc_GDPR
 Ctrl_Sec --> Svc_TenantIso
+Ctrl_Sec --> Svc_Lockout
+Ctrl_Sec --> Rule_Password
+Rule_Password --> Model_PasswordHist
 MW_RBAC --> Cfg_Health
 MW_Audit --> Cfg_Health
+MW_Audit --> Cfg_Audit
 Svc_Audit --> DB
 Svc_2FA --> DB
 Svc_Enc --> DB
@@ -171,6 +223,9 @@ Svc_Session --> DB
 Svc_IP --> DB
 Svc_GDPR --> DB
 Svc_TenantIso --> DB
+Svc_Lockout --> DB
+Rule_Password --> DB
+Model_PasswordHist --> DB
 ```
 
 **Diagram sources**
@@ -187,6 +242,11 @@ Svc_TenantIso --> DB
 - [AuditLogService.php:8-214](file://app/Services/Security/AuditLogService.php#L8-L214)
 - [GdprComplianceService.php:8-47](file://app/Services/Security/GdprComplianceService.php#L8-L47)
 - [TenantIsolationService.php:16-43](file://app/Services/TenantIsolationService.php#L16-L43)
+- [AccountLockoutService.php:10-247](file://app/Services/AccountLockoutService.php#L10-L247)
+- [StrongPassword.php:10-226](file://app/Rules/StrongPassword.php#L10-L226)
+- [PasswordHistory.php:9-38](file://app/Models/PasswordHistory.php#L9-L38)
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)
 - [audit.php:1-44](file://config/audit.php#L1-L44)
 - [healthcare.php:1-251](file://config/healthcare.php#L1-L251)
 
@@ -251,12 +311,13 @@ end
 **Section sources**
 - [RBACMiddleware.php:9-177](file://app/Http/Middleware/RBACMiddleware.php#L9-L177)
 
-### Audit Trail Implementation
+### Enhanced Audit Trail Implementation
 - Purpose: Comprehensive logging of access and changes for compliance and monitoring.
 - Implementation:
   - AuditTrailMiddleware logs access events, after-hours access, and cross-department access.
   - AuditLogService centralizes event logging, CRUD operations, permission changes, and exports.
   - Configurable retention and rollback support via audit.php.
+  - Enhanced with detailed metadata including device type, location, and user agent.
 
 ```mermaid
 sequenceDiagram
@@ -268,7 +329,7 @@ participant DB as "AuditLogEnhanced"
 Client->>Router : "HTTP Request"
 Router->>AuditMW : "Handle request"
 AuditMW->>AuditSvc : "logEvent(...)"
-AuditSvc->>DB : "Create audit log entry"
+AuditSvc->>DB : "Create audit log entry with enhanced metadata"
 AuditMW-->>Client : "Response"
 ```
 
@@ -311,6 +372,7 @@ class EncryptionService {
 - Implementation:
   - SessionManagementService tracks device info, platform, browser, IP, and location.
   - Provides activity updates, termination, and cleanup of expired sessions.
+  - Enhanced with centralized configuration via security.php.
 
 ```mermaid
 flowchart TD
@@ -427,6 +489,93 @@ SecCtrl-->>Client : "Result"
 - [SecurityController.php:312-341](file://app/Http/Controllers/Security/SecurityController.php#L312-L341)
 - [GdprComplianceService.php:8-47](file://app/Services/Security/GdprComplianceService.php#L8-L47)
 
+### Brute Force Protection with AccountLockoutService
+- Purpose: Prevent automated attacks through configurable account lockout mechanisms.
+- Implementation:
+  - AccountLockoutService tracks failed login attempts and applies lockout policies.
+  - Configurable maximum attempts, lockout duration, and warning thresholds.
+  - Cache integration for improved performance and automatic lockout resolution.
+  - Comprehensive logging and notification capabilities.
+
+```mermaid
+flowchart TD
+Start(["Login Attempt"]) --> Validate["Validate Credentials"]
+Validate --> Success{"Authentication Success?"}
+Success --> |Yes| Reset["Reset Failed Attempts<br/>Update Last Login"]
+Reset --> Unlock["Unlock Account if Locked"]
+Unlock --> SuccessEnd(["Access Granted"])
+Success --> |No| Increment["Increment Failed Attempts"]
+Increment --> CheckMax{"Attempts >= Max?"}
+CheckMax --> |Yes| Lock["Lock Account<br/>Set Lockout Duration"]
+Lock --> Cache["Cache Lock Status"]
+Cache --> Alert["Send Lockout Notification"]
+Alert --> FailureEnd(["Access Denied"])
+CheckMax --> |No| CheckWarn{"Attempts >= Warning Threshold?"}
+CheckWarn --> |Yes| Warn["Issue Warning"]
+CheckWarn --> |No| Continue["Continue Login Process"]
+Warn --> Continue
+Continue --> FailureEnd
+```
+
+**Diagram sources**
+- [AccountLockoutService.php:36-143](file://app/Services/AccountLockoutService.php#L36-L143)
+- [AccountLockoutService.php:167-245](file://app/Services/AccountLockoutService.php#L167-L245)
+
+**Section sources**
+- [AccountLockoutService.php:10-247](file://app/Services/AccountLockoutService.php#L10-L247)
+
+### Advanced Password Policy Enforcement
+- Purpose: Enforce comprehensive password security policies to prevent weak passwords.
+- Implementation:
+  - StrongPassword validation rule checks multiple criteria including length, character variety, and complexity.
+  - PasswordHistory tracking prevents password reuse within configurable limits.
+  - Advanced password strength scoring with customizable weights.
+  - Support for common password detection and breached password checking.
+
+```mermaid
+flowchart TD
+Start(["Password Set/Change"]) --> Validate["Validate Against Policies"]
+Validate --> Length{"Meets Minimum Length?"}
+Length --> |No| Reject1["Reject: Too Short"]
+Length --> |Yes| Case{"Has Required Case Types?"}
+Case --> |No| Reject2["Reject: Missing Case Types"]
+Case --> |Yes| Numbers{"Has Required Numbers?"}
+Numbers --> |No| Reject3["Reject: Missing Numbers"]
+Numbers --> |Yes| Special{"Has Required Special Chars?"}
+Special --> |No| Reject4["Reject: Missing Special Characters"]
+Special --> |Yes| Common{"Not Common Password?"}
+Common --> |No| Reject5["Reject: Common Password"]
+Common --> |Yes| Username{"Not Contain Username?"}
+Username --> |No| Reject6["Reject: Contains Username"]
+Username --> |Yes| Email{"Not Contain Email?"}
+Email --> |No| Reject7["Reject: Contains Email"]
+Email --> |Yes| History{"Not In Recent History?"}
+History --> |No| Reject8["Reject: Password Reused"]
+History --> |Yes| Strength{"Meets Strength Score?"}
+Strength --> |No| Reject9["Reject: Insufficient Strength"]
+Strength --> |Yes| Store["Store Password Hash<br/>Save to History"]
+Store --> Success(["Password Accepted"])
+```
+
+**Diagram sources**
+- [StrongPassword.php:23-105](file://app/Rules/StrongPassword.php#L23-L105)
+- [StrongPassword.php:163-198](file://app/Rules/StrongPassword.php#L163-L198)
+
+**Section sources**
+- [StrongPassword.php:10-226](file://app/Rules/StrongPassword.php#L10-L226)
+- [PasswordHistory.php:9-38](file://app/Models/PasswordHistory.php#L9-L38)
+
+### Centralized Security Configuration
+- Purpose: Provide unified configuration management for all security-related settings.
+- Implementation:
+  - security.php consolidates all security configurations including lockout, session, encryption, audit, GDPR, HIPAA, headers, API, and uploads.
+  - password.php provides detailed password policy configuration with advanced features.
+  - Environment variable support for easy deployment customization.
+
+**Section sources**
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)
+
 ### Regulatory Compliance Reporting
 - Purpose: Generate compliance reports across frameworks (e.g., HIPAA) and track findings.
 - Implementation:
@@ -465,6 +614,8 @@ Cmd-->>Scheduler : "Report path"
 - Middleware depends on configuration files for behavior.
 - Services persist to database tables defined in migrations.
 - Routes group endpoints by domain (security, compliance).
+- AccountLockoutService integrates with User model for lockout tracking.
+- StrongPassword validation integrates with PasswordHistory model for reuse prevention.
 
 ```mermaid
 graph LR
@@ -475,9 +626,8 @@ SecCtrl --> SvcIP["IpWhitelistService"]
 SecCtrl --> SvcAudit["AuditLogService"]
 SecCtrl --> SvcGDPR["GdprComplianceService"]
 SecCtrl --> SvcIso["TenantIsolationService"]
-RBACMW["RBACMiddleware"] --> CfgHealth["healthcare.php"]
-AuditMW["AuditTrailMiddleware"] --> CfgHealth
-AuditMW --> CfgAudit["audit.php"]
+SecCtrl --> SvcLockout["AccountLockoutService"]
+SecCtrl --> RulePwd["StrongPassword"]
 Svc2FA --> DB["Security/Compliance Tables"]
 SvcEnc --> DB
 SvcSess --> DB
@@ -485,15 +635,29 @@ SvcIP --> DB
 SvcAudit --> DB
 SvcGDPR --> DB
 SvcIso --> DB
+SvcLockout --> DB
+RulePwd --> DB
+DB --> UserTbl["Users Table<br/>With Lockout Fields"]
+DB --> PwdHist["PasswordHistory Table"]
+RBACMW["RBACMiddleware"] --> CfgHealth["healthcare.php"]
+AuditMW["AuditTrailMiddleware"] --> CfgHealth
+AuditMW --> CfgAudit["audit.php"]
+SvcLockout --> CfgSecurity["security.php"]
+RulePwd --> CfgPassword["password.php"]
 ```
 
 **Diagram sources**
 - [SecurityController.php:15-38](file://app/Http/Controllers/Security/SecurityController.php#L15-L38)
 - [RBACMiddleware.php:9-177](file://app/Http/Middleware/RBACMiddleware.php#L9-L177)
 - [AuditTrailMiddleware.php:10-130](file://app/Http/Middleware/AuditTrailMiddleware.php#L10-L130)
+- [AccountLockoutService.php:27-31](file://app/Services/AccountLockoutService.php#L27-L31)
+- [StrongPassword.php:15-18](file://app/Rules/StrongPassword.php#L15-L18)
 - [audit.php:1-44](file://config/audit.php#L1-L44)
 - [healthcare.php:1-251](file://config/healthcare.php#L1-L251)
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)
 - [2026_04_06_110000_create_security_compliance_tables.php:207-241](file://database/migrations/2026_04_06_110000_create_security_compliance_tables.php#L207-L241)
+- [2026_04_10_200000_add_account_lockout_to_users_table.php:13-20](file://database/migrations/2026_04_10_200000_add_account_lockout_to_users_table.php#L13-L20)
 
 **Section sources**
 - [web.php:2584-2647](file://routes/web.php#L2584-L2647)
@@ -502,8 +666,11 @@ SvcIso --> DB
 ## Performance Considerations
 - Middleware overhead: AuditTrailMiddleware and RBACMiddleware add minimal overhead but should avoid heavy operations in hot paths.
 - Database writes: AuditLogService and TenantIsolationService write to disk; ensure proper indexing on tenant_id and timestamps.
-- Encryption: EncryptionService uses Laravel’s Crypt; consider batching and caching decrypted values where appropriate.
+- Encryption: EncryptionService uses Laravel's Crypt; consider batching and caching decrypted values where appropriate.
 - Session cleanup: Regularly run cleanup jobs for expired sessions and whitelisted IPs to maintain performance.
+- **Updated** Cache integration: AccountLockoutService uses Redis cache for lockout status, improving performance for frequent lockout checks.
+- **Updated** Database optimization: Enhanced user table with lockout fields reduces query complexity for authentication checks.
+- **Updated** Configuration caching: Centralized security configuration reduces runtime configuration lookups.
 
 ## Troubleshooting Guide
 - 2FA issues:
@@ -519,6 +686,16 @@ SvcIso --> DB
 - Session anomalies:
   - Investigate device/platform mismatches and geolocation fields.
   - Use SessionManagementService to terminate suspicious sessions.
+- **Updated** Brute force protection issues:
+  - Check Redis cache connectivity for lockout status.
+  - Verify failed_login_attempts field updates in user table.
+  - Confirm lockout duration configuration in security.php.
+  - Review AccountLockoutService logs for lockout notifications.
+- **Updated** Password policy violations:
+  - Check password policy configuration in password.php.
+  - Verify PasswordHistory table for recent password hashes.
+  - Confirm StrongPassword validation rule integration.
+  - Review password complexity scoring calculations.
 
 **Section sources**
 - [TwoFactorAuthService.php:69-99](file://app/Services/Security/TwoFactorAuthService.php#L69-L99)
@@ -527,9 +704,11 @@ SvcIso --> DB
 - [audit.php:14-41](file://config/audit.php#L14-L41)
 - [IpWhitelistService.php:146-159](file://app/Services/Security/IpWhitelistService.php#L146-L159)
 - [SessionManagementService.php:158-167](file://app/Services/Security/SessionManagementService.php#L158-L167)
+- [AccountLockoutService.php:217-229](file://app/Services/AccountLockoutService.php#L217-L229)
+- [StrongPassword.php:23-105](file://app/Rules/StrongPassword.php#L23-L105)
 
 ## Conclusion
-Qalcuity ERP implements a robust, layered security and compliance framework. Multi-tenant isolation, RBAC, comprehensive audit trails, encryption, session management, IP whitelisting, and 2FA provide strong runtime protections. GDPR features and regulatory reporting capabilities support compliance across industries, particularly healthcare. Adhering to the best practices and procedures outlined here ensures continued security and regulatory adherence.
+Qalcuity ERP implements a robust, layered security and compliance framework. Multi-tenant isolation, RBAC, comprehensive audit trails, encryption, session management, IP whitelisting, and 2FA provide strong runtime protections. **Updated** Enhanced with comprehensive brute force protection via AccountLockoutService, advanced password policy enforcement with StrongPassword validation and PasswordHistory tracking, centralized security configuration management, and expanded audit capabilities. GDPR features and regulatory reporting capabilities support compliance across industries, particularly healthcare. Adhering to the best practices and procedures outlined here ensures continued security and regulatory adherence.
 
 ## Appendices
 
@@ -546,13 +725,23 @@ Qalcuity ERP implements a robust, layered security and compliance framework. Mul
 ### Database Schema Highlights
 - Security/Compliance tables include security_events, ip_whitelist, user_sessions, audit_logs_enhanced, data_requests, data_consents, encryption_keys, role_permission, permissions, two_factor_auth.
 - Regulatory compliance tables include anonymization_requests, compliance_reports, access_violations.
+- **Updated** Enhanced user table with failed_login_attempts, locked_until, last_failed_login, password_changed_at, last_login_at, and last_login_ip fields for brute force protection.
 
 **Section sources**
 - [2026_04_06_110000_create_security_compliance_tables.php:207-241](file://database/migrations/2026_04_06_110000_create_security_compliance_tables.php#L207-L241)
 - [2026_04_08_1400001_create_regulatory_compliance_tables.php:144-201](file://database/migrations/2026_04_08_1400001_create_regulatory_compliance_tables.php#L144-L201)
+- [2026_04_10_200000_add_account_lockout_to_users_table.php:13-20](file://database/migrations/2026_04_10_200000_add_account_lockout_to_users_table.php#L13-L20)
 
 ### Regulatory Compliance References
 - HIPAA and healthcare compliance guidance is documented in project documentation and enforced via middleware and services.
 
 **Section sources**
 - [HEALTHCARE_REGULATORY_COMPLIANCE.md:140-182](file://docs/HEALTHCARE_REGULATORY_COMPLIANCE.md#L140-L182)
+
+### Enhanced Security Configuration
+- **Updated** security.php: Centralized configuration for lockout policies, session management, encryption, audit trails, GDPR, HIPAA, security headers, API security, and file upload security.
+- **Updated** password.php: Detailed password policy configuration including complexity scoring, common password prevention, username/email restrictions, and breach detection.
+
+**Section sources**
+- [security.php:1-155](file://config/security.php#L1-L155)
+- [password.php:1-91](file://config/password.php#L1-L91)

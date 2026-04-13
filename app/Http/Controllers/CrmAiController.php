@@ -10,10 +10,7 @@ class CrmAiController extends Controller
 {
     public function __construct(private CrmAiService $ai) {}
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function scoreLead(CrmLead $lead)
     {

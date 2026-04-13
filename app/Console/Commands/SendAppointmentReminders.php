@@ -3,10 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Appointment;
-use App\Models\Patient;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 
 class SendAppointmentReminders extends Command
 {
@@ -37,7 +35,7 @@ class SendAppointmentReminders extends Command
         $dryRun = $this->option('dry-run');
 
         $this->info("🔔 Sending appointment reminders ({$hoursBefore} hours before)...");
-        
+
         if ($dryRun) {
             $this->warn('⚠️ DRY RUN MODE - No notifications will be sent');
         }
@@ -57,6 +55,7 @@ class SendAppointmentReminders extends Command
         $failedCount = 0;
 
         foreach ($appointments as $appointment) {
+            /** @var \App\Models\Appointment $appointment */
             try {
                 if (!$appointment->patient) {
                     $this->warn("⚠️ Appointment {$appointment->id} has no patient");
@@ -98,7 +97,7 @@ class SendAppointmentReminders extends Command
             } catch (\Exception $e) {
                 $failedCount++;
                 $this->error("❌ Failed to send reminder for appointment {$appointment->id}: {$e->getMessage()}");
-                
+
                 Log::error('Appointment reminder failed', [
                     'appointment_id' => $appointment->id,
                     'patient_id' => $appointment->patient_id,
@@ -151,7 +150,7 @@ class SendAppointmentReminders extends Command
         try {
             // Integrate with SMS gateway (Twilio, WaveCell, etc.)
             // SMS::send($appointment->patient->phone, $message);
-            
+
             Log::info('SMS reminder sent', [
                 'appointment_id' => $appointment->id,
                 'phone' => $appointment->patient->phone,
@@ -177,17 +176,17 @@ class SendAppointmentReminders extends Command
         $message = "🏥 *Appointment Reminder*\n\n"
             . "Yth. {$appointment->patient->name},\n\n"
             . "Janji temu Anda:\n"
-            . "👨‍⚕️ Dokter: {$appointment->doctor?->name}\n"
+            . "👨‍⚕️ Dokter: " . ($appointment->doctor?->name ?? 'N/A') . "\n"
             . "📅 Tanggal: {$appointment->appointment_date->format('l, d F Y')}\n"
             . "⏰ Jam: {$appointment->appointment_date->format('H:i')}\n"
-            . "📍 Lokasi: {$appointment->department ?? 'Klinik'}\n\n"
+            . "📍 Lokasi: " . ($appointment->department ?? 'Klinik') . "\n\n"
             . "Harap datang 15 menit sebelum jadwal.\n"
             . "Untuk reschedule, hubungi kami.";
 
         try {
             // Integrate with WhatsApp API (Fonnte, Wablas, Twilio)
             // WhatsApp::send($appointment->patient->phone, $message);
-            
+
             Log::info('WhatsApp reminder sent', [
                 'appointment_id' => $appointment->id,
                 'phone' => $appointment->patient->phone,

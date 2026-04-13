@@ -11,11 +11,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ChatSession extends Model
 {
     use BelongsToTenant;
-    protected $fillable = ['tenant_id', 'user_id', 'title', 'total_tokens', 'last_model', 'is_active'];
+    protected $fillable = ['tenant_id', 'user_id', 'title', 'total_tokens', 'last_model', 'is_active', 'metadata'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'metadata' => 'array',
+        ];
     }
 
     public function tenant(): BelongsTo

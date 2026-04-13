@@ -4,6 +4,7 @@ namespace App\Services\ERP;
 
 use App\Models\ActivityLog;
 use App\Services\AiCommandValidator;
+use App\Services\AI\IntentDetector;
 use Illuminate\Support\Facades\Log;
 
 class ToolRegistry
@@ -110,6 +111,67 @@ class ToolRegistry
             $this->tools,
             fn($def) => in_array($def['name'], $allowedTools)
         ));
+    }
+
+    /**
+     * Get tool declarations filtered by intent.
+     * 
+     * This optimizes AI response time by only sending relevant tools
+     * instead of all 100+ tools every request.
+     * 
+     * @param string $intent Detected intent (e.g., 'sales', 'inventory')
+     * @param array|null $allowedTools User's allowed tools (optional filter)
+     * @return array Filtered tool declarations
+     */
+    public function getDeclarationsForIntent(string $intent, ?array $allowedTools = null): array
+    {
+        // If intent is 'general', return all tools (fallback behavior)
+        if ($intent === 'general') {
+            return $this->getDeclarations($allowedTools);
+        }
+
+        // Get tool classes for this intent
+        $detector = new IntentDetector();
+        $toolClasses = $detector->getToolClassesForIntent($intent);
+
+        // If no mapping found, fallback to all tools
+        if (empty($toolClasses)) {
+            Log::info("ToolRegistry: No tool mapping for intent '{$intent}', using all tools");
+            return $this->getDeclarations($allowedTools);
+        }
+
+        // Filter tools by the classes mapped to this intent
+        $relevantTools = array_filter(
+            $this->tools,
+            function ($def) use ($toolClasses) {
+                // Get the class name from executor
+                $toolName = $def['name'];
+                if (!isset($this->executors[$toolName])) {
+                    return false;
+                }
+
+                $executorClass = get_class($this->executors[$toolName]);
+                $executorShortName = class_basename($executorClass);
+
+                return in_array($executorShortName, $toolClasses);
+            }
+        );
+
+        // Apply allowedTools filter if provided
+        if ($allowedTools !== null) {
+            $relevantTools = array_filter(
+                $relevantTools,
+                fn($def) => in_array($def['name'], $allowedTools)
+            );
+        }
+
+        $filtered = array_values($relevantTools);
+        $total = count($this->tools);
+        $filteredCount = count($filtered);
+
+        Log::info("ToolRegistry: Intent '{$intent}' filtered tools from {$total} to {$filteredCount}");
+
+        return $filtered;
     }
 
     /**

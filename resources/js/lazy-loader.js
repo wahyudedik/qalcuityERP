@@ -11,6 +11,8 @@
  * <div data-component="chart" data-url="/api/chart-data"></div>
  */
 
+import logger from './logger';
+
 /**
  * Initialize lazy loading for images.
  */
@@ -144,7 +146,7 @@ export function registerLazyComponent(Alpine, componentName, importFn) {
                         component.init(this.$el);
                     }
                 } catch (error) {
-                    console.error(`Failed to load component: ${componentName}`, error);
+                    logger.error(`Failed to load component: ${componentName}`, error);
                 } finally {
                     loading = false;
                 }

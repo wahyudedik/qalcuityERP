@@ -7,10 +7,7 @@ use Illuminate\Http\Request;
 
 class TaxController extends Controller
 {
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function index()
     {

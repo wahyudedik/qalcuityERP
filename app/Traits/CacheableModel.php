@@ -2,86 +2,116 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\Cache;
+use App\Services\QueryCacheService;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * CacheableModel Trait
+ * 
+ * Automatically invalidates cache when models are created, updated, or deleted.
+ * Integrates with QueryCacheService for intelligent cache management.
+ * 
+ * Usage:
+ * class Product extends Model
+ * {
+ *     use CacheableModel;
+ *     
+ *     protected $cacheModule = 'products';
+ * }
+ */
 trait CacheableModel
 {
     /**
      * Boot the cacheable trait
      */
-    public static function bootCacheableModel()
+    public static function bootCacheableModel(): void
     {
-        // Invalidate cache on model changes
-        static::created(fn($model) => $model->invalidateCache());
-        static::updated(fn($model) => $model->invalidateCache());
-        static::deleted(fn($model) => $model->invalidateCache());
-    }
-
-    /**
-     * Get cached query results
-     * 
-     * @param string $cacheKey
-     * @param int $ttl Minutes
-     * @return mixed
-     */
-    public static function cached($cacheKey = null, $ttl = 60)
-    {
-        $key = $cacheKey ?? 'query_' . md5(debug_backtrace()[0]['class'] . '_' . microtime());
-        $tags = static::getCacheTags();
-
-        return Cache::tags($tags)->remember($key, now()->addMinutes($ttl), function () {
-            return static::query()->get();
+        static::created(function ($model) {
+            $model->invalidateCache('created');
         });
-    }
 
-    /**
-     * Get cache tags for this model
-     * 
-     * @return array
-     */
-    protected static function getCacheTags(): array
-    {
-        $tenantId = request()->get('_api_tenant_id', auth()->user()?->tenant_id ?? 0);
+        static::updated(function ($model) {
+            $model->invalidateCache('updated');
+        });
 
-        return [
-            'tenant_' . $tenantId,
-            'module_' . static::getModelModule(),
-            'model_' . static::getModelName(),
-        ];
-    }
+        static::deleted(function ($model) {
+            $model->invalidateCache('deleted');
+        });
 
-    /**
-     * Invalidate all cache for this model
-     */
-    public function invalidateCache()
-    {
-        $tags = static::getCacheTags();
-        foreach ($tags as $tag) {
-            Cache::tags([$tag])->flush();
+        // Optional: Restore for soft deletes
+        if (method_exists(static::class, 'bootSoftDeletes')) {
+            static::restored(function ($model) {
+                $model->invalidateCache('restored');
+            });
         }
     }
 
     /**
-     * Get model name for caching
+     * Invalidate cache for this model
      * 
-     * @return string
+     * @param string $event
+     * @return void
      */
-    protected static function getModelName(): string
+    public function invalidateCache(string $event): void
     {
-        return class_basename(static::class);
+        try {
+            $cacheService = app(QueryCacheService::class);
+            $module = $this->getCacheModule();
+            $tenantId = $this->getTenantId();
+
+            if ($tenantId && $module) {
+                $method = "invalidate" . ucfirst($module);
+
+                if (method_exists($cacheService, $method)) {
+                    $cacheService->{$method}($tenantId, $this->id ?? null);
+                } else {
+                    // Fallback: invalidate all for this module
+                    $cacheService->invalidateAll($tenantId);
+                }
+
+                Log::debug("Cache invalidated for {$module}", [
+                    'event' => $event,
+                    'model' => get_class($this),
+                    'id' => $this->id ?? null,
+                    'tenant_id' => $tenantId,
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Don't break the application if cache fails
+            Log::error("Cache invalidation failed: " . $e->getMessage(), [
+                'model' => get_class($this),
+                'event' => $event,
+            ]);
+        }
     }
 
     /**
-     * Get module name for caching
+     * Get cache module name
      * 
-     * @return string
+     * @return string|null
      */
-    protected static function getModelModule(): string
+    protected function getCacheModule(): ?string
     {
-        $namespace = static::class;
-        if (preg_match('/\\\\([A-Za-z]+)\\\\/', $namespace, $matches)) {
-            return strtolower($matches[1]);
+        return $this->cacheModule ?? null;
+    }
+
+    /**
+     * Get tenant ID from model
+     * 
+     * @return int|null
+     */
+    protected function getTenantId(): ?int
+    {
+        // Check if model has tenant_id column
+        if (property_exists($this, 'tenant_id')) {
+            return $this->tenant_id;
         }
-        return 'general';
+
+        // Check if model has tenant relationship
+        if (method_exists($this, 'tenant')) {
+            return $this->tenant_id ?? null;
+        }
+
+        return null;
     }
 }

@@ -497,10 +497,21 @@ class TelemedicineService
         }
 
         // Midtrans SNAP integration (production ready)
+        // Note: Requires midtrans/midtrans-php package. Fallback to manual payment if not available.
         try {
+            // Check if Midtrans library is available
+            if (!class_exists('\Midtrans\Config')) {
+                Log::warning('Midtrans library not installed - using manual payment');
+                throw new \Exception('Midtrans library not available');
+            }
+
+            // @phpstan-ignore-next-line - Midtrans is optional dependency
             \Midtrans\Config::$serverKey = $midtransConfig['server_key'];
+            // @phpstan-ignore-next-line
             \Midtrans\Config::$isProduction = $midtransConfig['is_production'] ?? false;
+            // @phpstan-ignore-next-line
             \Midtrans\Config::$isSanitized = true;
+            // @phpstan-ignore-next-line
             \Midtrans\Config::$is3ds = true;
 
             $params = [

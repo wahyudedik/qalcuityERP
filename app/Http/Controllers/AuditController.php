@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property User $user
+ */
 class AuditController extends Controller
 {
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $logs = ActivityLog::where('tenant_id', $tenantId)
             ->with('user')
@@ -65,7 +70,7 @@ class AuditController extends Controller
      */
     public function show(ActivityLog $activityLog)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
         abort_if($activityLog->tenant_id !== $tenantId, 403);
 
         $activityLog->load(['user', 'rolledBackByUser']);
@@ -119,7 +124,7 @@ class AuditController extends Controller
      */
     public function rollback(Request $request, ActivityLog $activityLog)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         abort_if($activityLog->tenant_id !== $user->tenant_id, 403);
 
         // Only admins and managers may roll back
@@ -166,7 +171,7 @@ class AuditController extends Controller
      */
     public function export(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = Auth::user()->tenant_id;
 
         $query = ActivityLog::where('tenant_id', $tenantId)
             ->with('user')
@@ -175,6 +180,21 @@ class AuditController extends Controller
             ->when($request->module, fn($q) => $q->where('model_type', 'like', '%' . $request->module))
             ->latest();
 
+        // Support both CSV and Excel export
+        $format = $request->get('format', 'csv');
+
+        if ($format === 'xlsx') {
+            return $this->exportExcel($query);
+        }
+
+        return $this->exportCsv($query);
+    }
+
+    /**
+     * Export audit logs as CSV.
+     */
+    protected function exportCsv($query)
+    {
         $filename = 'audit_trail_' . now()->format('Y-m-d_His') . '.csv';
 
         return response()->streamDownload(function () use ($query) {
@@ -205,6 +225,87 @@ class AuditController extends Controller
     }
 
     /**
+     * Export audit logs as Excel (XLSX).
+     * TASK-022: Enhanced export with formatting.
+     */
+    protected function exportExcel($query)
+    {
+        $filename = 'audit_trail_' . now()->format('Y-m-d_His') . '.xlsx';
+
+        // Use Maatwebsite Excel package (already installed)
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $headers = ['Waktu', 'User', 'Role', 'Aksi', 'Modul', 'ID', 'Deskripsi', 'IP', 'AI?', 'Rolled Back?'];
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '1', $header);
+            $col++;
+        }
+
+        // Style headers
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:J1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FF3B82F6');
+        $sheet->getStyle('A1:J1')->getFont()->getColor()->setARGB('FFFFFFFF');
+
+        // Add data
+        $row = 2;
+        $query->chunk(500, function ($logs) use ($sheet, &$row) {
+            foreach ($logs as $log) {
+                $sheet->setCellValue('A' . $row, $log->created_at->format('Y-m-d H:i:s'));
+                $sheet->setCellValue('B' . $row, $log->user?->name ?? 'System');
+                $sheet->setCellValue('C' . $row, $log->user?->role ?? '-');
+                $sheet->setCellValue('D' . $row, $log->action);
+                $sheet->setCellValue('E' . $row, $log->model_type ? class_basename($log->model_type) : '-');
+                $sheet->setCellValue('F' . $row, $log->model_id ?? '-');
+                $sheet->setCellValue('G' . $row, $log->description);
+                $sheet->setCellValue('H' . $row, $log->ip_address ?? '-');
+                $sheet->setCellValue('I' . $row, $log->is_ai_action ? 'Ya' : 'Tidak');
+                $sheet->setCellValue('J' . $row, $log->rolled_back_at ? 'Ya' : 'Tidak');
+
+                // Highlight AI actions
+                if ($log->is_ai_action) {
+                    $sheet->getStyle('A' . $row . ':J' . $row)->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFF3E8FF');
+                }
+
+                // Highlight rolled back
+                if ($log->rolled_back_at) {
+                    $sheet->getStyle('A' . $row . ':J' . $row)->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('FFFFF3CD');
+                }
+
+                $row++;
+            }
+        });
+
+        // Auto-size columns
+        foreach (range('A', 'J') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Freeze header row
+        $sheet->freezePane('A2');
+
+        // Write to output
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean();
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
+    /**
      * GET: Export compliance report as a SOX-style CSV.
      *
      * Covers the full audit trail for a given date range, grouped by user and module.
@@ -217,7 +318,7 @@ class AuditController extends Controller
             'date_to' => 'required|date|after_or_equal:date_from',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
         $tenantId = $user->tenant_id;
 
         // Only admins / managers may generate compliance reports

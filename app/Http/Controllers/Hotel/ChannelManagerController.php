@@ -18,10 +18,7 @@ class ChannelManagerController extends Controller
         $this->channelService = $channelService;
     }
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function index()
     {

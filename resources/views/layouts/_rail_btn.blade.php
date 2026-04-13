@@ -34,19 +34,22 @@
     $groupColors = [
         'home' => ['color' => '#60a5fa', 'rgb' => '96,165,250'],
         'ai' => ['color' => '#a78bfa', 'rgb' => '167,139,250'],
-        'masterdata' => ['color' => '#e879f9', 'rgb' => '232,121,249'],
-        'sales' => ['color' => '#34d399', 'rgb' => '52,211,153'],
+        'transactions' => ['color' => '#34d399', 'rgb' => '52,211,153'], // TASK-016: New group
         'inventory' => ['color' => '#fb923c', 'rgb' => '251,146,60'],
-        'ops' => ['color' => '#f59e0b', 'rgb' => '245,158,11'],
-        'hrm' => ['color' => '#38bdf8', 'rgb' => '56,189,248'],
+        'operations' => ['color' => '#38bdf8', 'rgb' => '56,189,248'], // TASK-016: New group
         'finance' => ['color' => '#4ade80', 'rgb' => '74,222,128'],
-        'analytics' => ['color' => '#f472b6', 'rgb' => '244,114,182'],
         'settings' => ['color' => '#94a3b8', 'rgb' => '148,163,184'],
         'superadmin' => ['color' => '#f87171', 'rgb' => '248,113,113'],
         'profile' => ['color' => '#60a5fa', 'rgb' => '96,165,250'],
         'field' => ['color' => '#34d399', 'rgb' => '52,211,153'],
-        'ecommerce' => ['color' => '#f97316', 'rgb' => '249,115,22'],
+        // Legacy groups (keep for backward compatibility)
+        'masterdata' => ['color' => '#e879f9', 'rgb' => '232,121,249'],
+        'sales' => ['color' => '#34d399', 'rgb' => '52,211,153'],
+        'ops' => ['color' => '#f59e0b', 'rgb' => '245,158,11'],
+        'hrm' => ['color' => '#38bdf8', 'rgb' => '56,189,248'],
+        'analytics' => ['color' => '#f472b6', 'rgb' => '244,114,182'],
         'hotel' => ['color' => '#818cf8', 'rgb' => '129,140,248'],
+        'ecommerce' => ['color' => '#f97316', 'rgb' => '249,115,22'],
     ];
 
     $isActive = ($activeGroup ?? '') === $group;

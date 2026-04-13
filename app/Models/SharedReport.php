@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 class SharedReport extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'report_id',
         'tenant_id',

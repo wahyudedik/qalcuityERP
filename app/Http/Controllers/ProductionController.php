@@ -11,17 +11,20 @@ use App\Models\RecipeIngredient;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Models\WorkOrder;
+use App\Models\MrpAccuracy;
 use App\Services\GlPostingService;
 use App\Services\ProductionCostingService; // BUG-MFG-003 FIX
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ProductionController extends Controller
 {
     private function tid(): int
     {
-        return auth()->user()->tenant_id;
+        return Auth::user()->tenant_id;
     }
 
     // ── Work Orders ───────────────────────────────────────────────
@@ -77,7 +80,7 @@ class ProductionController extends Controller
             'product_id' => $data['product_id'],
             'recipe_id' => $data['recipe_id'] ?? null,
             'bom_id' => $data['bom_id'] ?? null,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'number' => 'WO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
             'target_quantity' => $data['target_quantity'],
             'unit' => $product->unit,
@@ -120,6 +123,11 @@ class ProductionController extends Controller
 
             $updates['total_cost'] = $costData['total_cost'];
             $updates['overhead_cost'] = $costData['overhead_cost'];
+
+            // AUTO-TRACK MRP ACCURACY
+            if ($workOrder->bom_id && $workOrder->target_quantity > 0) {
+                $this->trackMrpAccuracy($workOrder, (float) $workOrder->target_quantity);
+            }
         }
         if ($data['notes']) {
             $updates['notes'] = $data['notes'];
@@ -157,7 +165,7 @@ class ProductionController extends Controller
             ProductionOutput::create([
                 'work_order_id' => $workOrder->id,
                 'tenant_id' => $this->tid(),
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'good_qty' => $data['good_qty'],
                 'reject_qty' => $data['reject_qty'] ?? 0,
                 'reject_reason' => $data['reject_reason'] ?? null,
@@ -191,7 +199,7 @@ class ProductionController extends Controller
                         'tenant_id' => $this->tid(),
                         'product_id' => $workOrder->product_id,
                         'warehouse_id' => $warehouse->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => Auth::id(),
                         'type' => 'in',
                         'quantity' => $data['good_qty'],
                         'quantity_before' => $before,
@@ -199,6 +207,11 @@ class ProductionController extends Controller
                         'reference' => $workOrder->number,
                         'notes' => "Output produksi {$workOrder->number}",
                     ]);
+
+                    // AUTO-TRACK MRP ACCURACY
+                    if ($workOrder->bom_id) {
+                        $this->trackMrpAccuracy($workOrder, $data['good_qty']);
+                    }
                 }
 
                 // GL: Transfer WIP → Persediaan Barang Jadi
@@ -206,7 +219,7 @@ class ProductionController extends Controller
                     $glService = app(GlPostingService::class);
                     $glResult = $glService->postProductionOutput(
                         $workOrder->tenant_id,
-                        auth()->id(),
+                        Auth::id(),
                         $workOrder->number,
                         $workOrder->id,
                         $totalCost
@@ -280,5 +293,131 @@ class ProductionController extends Controller
         $analysis = $costingService->getCostAnalysis($this->tid(), $months);
 
         return view('production.cost-analysis', compact('analysis', 'months'));
+    }
+
+    /**
+     * Track MRP Accuracy when Work Order completes
+     * Records planned vs actual material usage
+     */
+    private function trackMrpAccuracy(WorkOrder $workOrder, float $actualOutput): void
+    {
+        try {
+            $bom = Bom::with('lines.product')->find($workOrder->bom_id);
+            if (!$bom)
+                return;
+
+            // Get planned materials from BOM
+            $plannedMaterials = $bom->explode((float) $workOrder->target_quantity);
+
+            foreach ($plannedMaterials as $material) {
+                $product = Product::find($material['product_id']);
+                if (!$product)
+                    continue;
+
+                // Calculate planned cost
+                $plannedCost = $material['quantity'] * ($product->price_buy ?? 0);
+
+                // TODO: In real implementation, get actual consumption from production logs
+                // For now, assume actual = planned (will be updated when manual entry is added)
+                $actualQuantity = $material['quantity']; // This should come from actual consumption
+                $actualCost = $actualQuantity * ($product->price_buy ?? 0);
+
+                // Create accuracy tracking record
+                $tracking = MrpAccuracy::create([
+                    'tenant_id' => $this->tid(),
+                    'work_order_id' => $workOrder->id,
+                    'product_id' => $material['product_id'],
+                    'planned_quantity' => $material['quantity'],
+                    'actual_quantity' => $actualQuantity,
+                    'planned_cost' => $plannedCost,
+                    'actual_cost' => $actualCost,
+                    'tracking_date' => now(),
+                    'notes' => "Auto-tracked from WO {$workOrder->number}",
+                ]);
+
+                // Auto-calculate variance
+                $tracking->calculateVariance();
+                $tracking->save();
+            }
+        } catch (\Exception $e) {
+            // Log error but don't break WO completion
+            Log::warning('Failed to track MRP accuracy', [
+                'work_order_id' => $workOrder->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    // ============================================
+    // TASK-2.16: Progress Tracking
+    // ============================================
+
+    /**
+     * Update work order progress
+     */
+    public function updateProgress(Request $request, WorkOrder $workOrder)
+    {
+        abort_if($workOrder->tenant_id !== $this->tid(), 403);
+
+        $data = $request->validate([
+            'progress_percent' => 'nullable|numeric|min:0|max:100',
+            'progress_stage' => 'nullable|in:setup,processing,finishing,qc',
+        ]);
+
+        if (!empty($data['progress_percent'])) {
+            $workOrder->progress_percent = $data['progress_percent'];
+        }
+
+        if (!empty($data['progress_stage'])) {
+            $workOrder->progress_stage = $data['progress_stage'];
+        }
+
+        // Auto-calculate if output recorded
+        $workOrder->updateProgress();
+
+        return back()->with('success', 'Progress updated successfully');
+    }
+
+    // ============================================
+    // TASK-2.17: Scrap/Waste Tracking
+    // ============================================
+
+    /**
+     * Record scrap/waste
+     */
+    public function recordScrap(Request $request, WorkOrder $workOrder)
+    {
+        abort_if($workOrder->tenant_id !== $this->tid(), 403);
+
+        $data = $request->validate([
+            'scrap_quantity' => 'required|numeric|min:0',
+            'scrap_cost' => 'required|numeric|min:0',
+            'scrap_reason' => 'nullable|string|max:500',
+        ]);
+
+        $workOrder->recordScrap(
+            $data['scrap_quantity'],
+            $data['scrap_cost'],
+            $data['scrap_reason'] ?? null
+        );
+
+        return back()->with('success', 'Scrap recorded successfully');
+    }
+
+    /**
+     * Record rework
+     */
+    public function recordRework(Request $request, WorkOrder $workOrder)
+    {
+        abort_if($workOrder->tenant_id !== $this->tid(), 403);
+
+        $data = $request->validate([
+            'rework_quantity' => 'required|numeric|min:0',
+            'rework_cost' => 'required|numeric|min:0',
+        ]);
+
+        $workOrder->recordRework($data['rework_quantity'], $data['rework_cost']);
+
+        return back()->with('success', 'Rework recorded successfully');
     }
 }

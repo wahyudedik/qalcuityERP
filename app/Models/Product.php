@@ -11,7 +11,9 @@ use App\Traits\BelongsToTenant;
 
 class Product extends Model
 {
-    use SoftDeletes, AuditsChanges, BelongsToTenant;
+    use SoftDeletes, AuditsChanges, BelongsToTenant, \App\Traits\CacheableModel;
+
+    protected $cacheModule = 'products';
 
     protected $fillable = [
         'tenant_id',

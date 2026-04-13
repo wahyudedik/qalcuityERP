@@ -3,6 +3,8 @@
  * VS Code/Raycast style universal search
  */
 
+import logger from './logger';
+
 export class QuickSearch {
     constructor() {
         this.isOpen = false;
@@ -10,7 +12,10 @@ export class QuickSearch {
         this.results = [];
         this.selectedIndex = 0;
         this.recentSearches = JSON.parse(localStorage.getItem('recent_searches') || '[]');
+        this.savedSearches = [];
+        this.suggestions = [];
         this.debounceTimer = null;
+        this.isLoading = false;
         this.init();
     }
 
@@ -18,7 +23,7 @@ export class QuickSearch {
         this.createModal();
         this.setupEventListeners();
 
-        console.log('[QuickSearch] Initialized');
+        logger.debug('[QuickSearch] Initialized');
     }
 
     createModal() {
@@ -91,7 +96,8 @@ export class QuickSearch {
             const input = document.getElementById('quick-search-input');
             input?.focus();
 
-            // Show recent searches or placeholder
+            // Load saved searches and show recent searches or placeholder
+            this.loadSavedSearches();
             this.showRecentSearches();
         }
     }
@@ -126,6 +132,7 @@ export class QuickSearch {
         // Debounce search
         this.debounceTimer = setTimeout(() => {
             if (this.query.length >= 2) {
+                this.fetchSuggestions();
                 this.search();
             } else if (this.query.length === 0) {
                 this.showRecentSearches();
@@ -158,6 +165,13 @@ export class QuickSearch {
             this.selectResult();
             return;
         }
+
+        // Ctrl+S to save search
+        if ((e.ctrlKey || e.metaKey) && e.key === 's' && this.query.length >= 2) {
+            e.preventDefault();
+            this.saveCurrentSearch();
+            return;
+        }
     }
 
     async search() {
@@ -165,6 +179,7 @@ export class QuickSearch {
 
         const input = document.getElementById('quick-search-input');
         input && (input.disabled = true);
+        this.isLoading = true;
 
         try {
             const response = await fetch(`/api/quick-search?q=${encodeURIComponent(this.query)}`, {
@@ -176,7 +191,8 @@ export class QuickSearch {
 
             if (response.ok) {
                 const data = await response.json();
-                this.results = data.results || [];
+                // Prepend suggestions to results
+                this.results = [...this.suggestions, ...(data.results || [])];
                 this.selectedIndex = 0;
                 this.renderResults();
 
@@ -184,9 +200,10 @@ export class QuickSearch {
                 this.saveRecentSearch(this.query);
             }
         } catch (error) {
-            console.error('[QuickSearch] Search error:', error);
+            logger.error('[QuickSearch] Search error', error);
         } finally {
             input && (input.disabled = false);
+            this.isLoading = false;
         }
     }
 
@@ -232,28 +249,41 @@ export class QuickSearch {
                 <div class="p-8 text-center text-gray-500 dark:text-gray-400">
                     <i class="fas fa-search-minus text-4xl mb-3 opacity-30"></i>
                     <p>No results found for "${this.query}"</p>
+                    <p class="text-xs mt-2">Press <kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">Ctrl+S</kbd> to save this search</p>
                 </div>
             `;
             return;
         }
 
-        const html = this.results.map((result, index) => `
-            <a 
-                href="${result.url}" 
-                class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 ${index === this.selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''}"
-                data-index="${index}"
-                ${result.action ? `onclick="window.quickSearch.handleAction('${result.action}'); return false;"` : ''}
-            >
-                <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
-                    <i class="${result.icon || 'fas fa-file'} text-gray-600 dark:text-gray-400"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white truncate">${result.title}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${result.subtitle || ''}</div>
-                </div>
-                ${result.badge ? `<span class="ml-3 px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">${result.badge}</span>` : ''}
-            </a>
-        `).join('');
+        const html = this.results.map((result, index) => {
+            // Determine background color based on type
+            let bgColor = '';
+            if (result.type === 'saved_search') {
+                bgColor = index === this.selectedIndex ? 'bg-purple-50 dark:bg-purple-900/20' : '';
+            } else if (result.type === 'recent') {
+                bgColor = index === this.selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+            } else {
+                bgColor = index === this.selectedIndex ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+            }
+
+            return `
+                <a 
+                    href="${result.url}" 
+                    class="flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 ${bgColor}"
+                    data-index="${index}"
+                    ${result.action ? `onclick="window.quickSearch.handleAction('${result.action}', ${JSON.stringify(result).replace(/"/g, '&quot;')}); return false;"` : ''}
+                >
+                    <div class="flex items-center justify-center w-10 h-10 rounded-lg ${result.type === 'saved_search' ? 'bg-purple-100 dark:bg-purple-900/30' : result.type === 'recent' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'} mr-3">
+                        <i class="${result.icon || 'fas fa-file'} ${result.type === 'saved_search' ? 'text-purple-600 dark:text-purple-400' : result.type === 'recent' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white truncate">${result.title}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${result.subtitle || ''}</div>
+                    </div>
+                    ${result.badge ? `<span class="ml-3 px-2 py-1 text-xs font-medium ${result.type === 'saved_search' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : result.type === 'recent' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'} rounded">${result.badge}</span>` : ''}
+                </a>
+            `;
+        }).join('');
 
         container.innerHTML = html;
     }
@@ -274,21 +304,31 @@ export class QuickSearch {
         if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
             const result = this.results[this.selectedIndex];
             if (result.action) {
-                this.handleAction(result.action);
+                this.handleAction(result.action, result);
             } else if (result.url) {
                 window.location.href = result.url;
             }
         }
     }
 
-    handleAction(action) {
+    handleAction(action, result = {}) {
         switch (action) {
             case 'toggle-theme':
                 window.dispatchEvent(new CustomEvent('toggle-theme'));
                 this.close();
                 break;
+            case 'execute-saved':
+                if (result.saved_search_id) {
+                    this.executeSavedSearch(result.saved_search_id);
+                }
+                break;
+            case 'set-query':
+                if (result.query) {
+                    this.setInput(result.query);
+                }
+                break;
             default:
-                console.log('[QuickSearch] Unknown action:', action);
+                logger.warn(`[QuickSearch] Unknown action: ${action}`);
         }
     }
 
@@ -310,6 +350,96 @@ export class QuickSearch {
         this.recentSearches = this.recentSearches.slice(0, 10);
         // Save
         localStorage.setItem('recent_searches', JSON.stringify(this.recentSearches));
+    }
+
+    async loadSavedSearches() {
+        try {
+            const response = await fetch('/api/saved-searches?sort=recent', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.savedSearches = data.data || [];
+            }
+        } catch (error) {
+            logger.error('[QuickSearch] Failed to load saved searches', error);
+        }
+    }
+
+    async fetchSuggestions() {
+        if (this.query.length < 2) return;
+
+        try {
+            const response = await fetch(`/api/saved-searches/suggestions/search?q=${encodeURIComponent(this.query)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.suggestions = data.suggestions || [];
+            }
+        } catch (error) {
+            logger.error('[QuickSearch] Failed to fetch suggestions', error);
+        }
+    }
+
+    async saveCurrentSearch() {
+        if (this.query.length < 2) return;
+
+        const name = prompt('Nama pencarian yang disimpan:', this.query);
+        if (!name) return;
+
+        try {
+            const response = await fetch('/api/saved-searches', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                body: JSON.stringify({
+                    name: name,
+                    query: this.query,
+                    type: 'all',
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                logger.info('[QuickSearch] Search saved:', data.message);
+                this.loadSavedSearches();
+            }
+        } catch (error) {
+            logger.error('[QuickSearch] Failed to save search', error);
+        }
+    }
+
+    async executeSavedSearch(savedSearchId) {
+        try {
+            const response = await fetch(`/api/saved-searches/${savedSearchId}/execute`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.results = data.results || [];
+                this.selectedIndex = 0;
+                this.renderResults();
+            }
+        } catch (error) {
+            logger.error('[QuickSearch] Failed to execute saved search', error);
+        }
     }
 }
 

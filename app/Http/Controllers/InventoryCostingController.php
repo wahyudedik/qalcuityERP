@@ -10,7 +10,7 @@ class InventoryCostingController extends Controller
 {
     public function __construct(private InventoryCostingService $costing) {}
 
-    private function tenantId(): int { return auth()->user()->tenant_id; }
+    // tenantId() inherited from parent Controller
 
     /** Valuation report page */
     public function valuation()

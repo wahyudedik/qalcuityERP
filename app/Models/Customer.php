@@ -13,8 +13,9 @@ use App\Models\Tenant;
 
 class Customer extends Model
 {
-    use BelongsToTenant;
-    use SoftDeletes, AuditsChanges;
+    use BelongsToTenant, SoftDeletes, AuditsChanges, \App\Traits\CacheableModel;
+
+    protected $cacheModule = 'customers';
 
     protected $fillable = [
         'tenant_id',
@@ -77,14 +78,16 @@ class Customer extends Model
     /** Cek apakah order baru akan melampaui credit limit */
     public function wouldExceedCreditLimit(float $orderAmount): bool
     {
-        if (! $this->credit_limit || $this->credit_limit <= 0) return false;
+        if (!$this->credit_limit || $this->credit_limit <= 0)
+            return false;
         return ($this->outstandingBalance() + $orderAmount) > (float) $this->credit_limit;
     }
 
     /** Sisa kredit yang tersedia */
     public function availableCredit(): float
     {
-        if (! $this->credit_limit || $this->credit_limit <= 0) return PHP_FLOAT_MAX;
+        if (!$this->credit_limit || $this->credit_limit <= 0)
+            return PHP_FLOAT_MAX;
         return max(0, (float) $this->credit_limit - $this->outstandingBalance());
     }
 }

@@ -12,8 +12,8 @@ class ApiTokenAuth
     public function handle(Request $request, Closure $next, string $ability = 'read')
     {
         $token = $request->bearerToken()
-            ?? $request->header('X-API-Token')
-            ?? $request->query('api_token');
+            ?? $request->header('X-API-Token');
+        // NOTE: query string fallback dihapus — token di URL tercatat di server logs (security risk)
 
         if (!$token) {
             return response()->json(['error' => 'API token diperlukan.'], 401);

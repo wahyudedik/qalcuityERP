@@ -20,10 +20,12 @@ class QuickSearchController extends Controller
         $request->validate([
             'q' => 'required|string|min:1|max:100',
             'type' => 'nullable|string|in:all,products,invoices,customers,orders,journals,actions',
+            'filters' => 'nullable|array',
         ]);
 
         $query = $request->get('q', '');
         $type = $request->get('type', 'all');
+        $filters = $request->get('filters', []);
         $user = $request->user();
         $tenantId = $user->current_tenant_id ?? $user->tenant_id;
 
@@ -31,15 +33,27 @@ class QuickSearchController extends Controller
 
         // Search products
         if ($type === 'all' || $type === 'products') {
-            $results['products'] = Cache::remember("quick_search:products:{$query}", 60, function () use ($query, $tenantId) {
-                return Product::where('tenant_id', $tenantId)
+            $results['products'] = Cache::remember("quick_search:products:{$query}", 60, function () use ($query, $tenantId, $filters) {
+                $productQuery = Product::where('tenant_id', $tenantId)
                     ->where(function ($q) use ($query) {
                         $q->where('name', 'like', "%{$query}%")
                             ->orWhere('sku', 'like', "%{$query}%")
                             ->orWhere('barcode', 'like', "%{$query}%");
                     })
-                    ->where('is_active', true)
-                    ->limit(8)
+                    ->where('is_active', true);
+
+                // Apply filters if provided
+                if (!empty($filters['min_price'])) {
+                    $productQuery->where('price', '>=', $filters['min_price']);
+                }
+                if (!empty($filters['max_price'])) {
+                    $productQuery->where('price', '<=', $filters['max_price']);
+                }
+                if (!empty($filters['category_id'])) {
+                    $productQuery->where('category_id', $filters['category_id']);
+                }
+
+                return $productQuery->limit(8)
                     ->get()
                     ->map(fn($p) => [
                         'type' => 'product',
@@ -104,13 +118,13 @@ class QuickSearchController extends Controller
         if ($type === 'all' || $type === 'orders') {
             $results['orders'] = Cache::remember("quick_search:orders:{$query}", 60, function () use ($query, $tenantId) {
                 return SalesOrder::where('tenant_id', $tenantId)
-                    ->where('order_number', 'like', "%{$query}%")
+                    ->where('number', 'like', "%{$query}%")
                     ->limit(5)
                     ->get()
                     ->map(fn($o) => [
                         'type' => 'order',
                         'id' => $o->id,
-                        'title' => $o->order_number,
+                        'title' => $o->number,
                         'subtitle' => $o->customer ? $o->customer->name : 'Sales Order',
                         'icon' => 'fas fa-shopping-cart',
                         'url' => route('sales-orders.show', $o->id),
@@ -123,13 +137,13 @@ class QuickSearchController extends Controller
         if ($type === 'all' || $type === 'journals') {
             $results['journals'] = Cache::remember("quick_search:journals:{$query}", 60, function () use ($query, $tenantId) {
                 return JournalEntry::where('tenant_id', $tenantId)
-                    ->where('reference_number', 'like', "%{$query}%")
+                    ->where('reference', 'like', "%{$query}%")
                     ->limit(5)
                     ->get()
                     ->map(fn($j) => [
                         'type' => 'journal',
                         'id' => $j->id,
-                        'title' => $j->reference_number,
+                        'title' => $j->reference ?: $j->number,
                         'subtitle' => $j->description ?: 'Journal Entry',
                         'icon' => 'fas fa-book',
                         'url' => route('journal-entries.show', $j->id),

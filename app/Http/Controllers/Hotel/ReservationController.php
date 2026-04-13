@@ -27,10 +27,7 @@ class ReservationController extends Controller
         $this->availabilityService = $availabilityService;
     }
 
-    private function tenantId(): int
-    {
-        return auth()->user()->tenant_id;
-    }
+    // tenantId() inherited from parent Controller
 
     public function index(Request $request)
     {

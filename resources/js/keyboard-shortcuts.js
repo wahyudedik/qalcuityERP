@@ -9,6 +9,8 @@
  * - Customizable shortcuts
  */
 
+import logger from './logger';
+
 export class KeyboardShortcuts {
     constructor() {
         this.shortcuts = new Map();
@@ -116,7 +118,7 @@ export class KeyboardShortcuts {
             }
         });
 
-        console.log('[KeyboardShortcuts] Initialized');
+        logger.debug('[KeyboardShortcuts] Initialized');
     }
 
     /**

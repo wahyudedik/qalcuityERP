@@ -15,6 +15,7 @@ use App\Models\Warehouse;
 use App\Services\GlPostingService;
 use App\Services\TransactionStateMachine;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -31,7 +32,7 @@ class SalesOrderController extends Controller
 
     private function tid(): int
     {
-        return auth()->user()->tenant_id;
+        return Auth::id() ? Auth::user()->tenant_id : abort(401, 'Unauthenticated.');
     }
 
     public function index(Request $request)
@@ -189,7 +190,7 @@ class SalesOrderController extends Controller
             $salesOrder = SalesOrder::create([
                 'tenant_id' => $tid,
                 'customer_id' => $data['customer_id'],
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'number' => 'SO-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
                 'status' => 'confirmed',
                 'date' => $data['date'],
@@ -226,7 +227,7 @@ class SalesOrderController extends Controller
                     'tenant_id' => $tid,
                     'product_id' => $item['product_id'],
                     'warehouse_id' => $data['warehouse_id'],
-                    'user_id' => auth()->id(),
+                    'user_id' => Auth::id(),
                     'type' => 'out',
                     'quantity' => $item['quantity'],
                     'quantity_before' => $before,
@@ -245,7 +246,7 @@ class SalesOrderController extends Controller
 
             $glResult = app(GlPostingService::class)->postSalesOrder(
                 tenantId: $tid,
-                userId: auth()->id(),
+                userId: Auth::id(),
                 soNumber: $salesOrder->number,
                 soId: $salesOrder->id,
                 subtotal: $glSubtotal,
@@ -309,10 +310,10 @@ class SalesOrderController extends Controller
         if ($data['status'] === 'completed') {
             ErpNotification::create([
                 'tenant_id' => $this->tid(),
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'type' => 'so_completed',
                 'title' => '✅ Sales Order Selesai',
-                'body' => "SO {$salesOrder->number} telah selesai. Total: Rp " . number_format($salesOrder->total, 0, ',', '.'),
+                'body' => "SO {$salesOrder->number} telah selesai. Total: Rp " . number_format((float) $salesOrder->total, 0, ',', '.'),
                 'data' => ['so_id' => $salesOrder->id],
             ]);
         }

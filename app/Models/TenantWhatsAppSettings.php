@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TenantWhatsAppSettings extends Model
 {
+    use BelongsToTenant;
     protected $table = 'tenant_whatsapp_settings';
 
     protected $fillable = [

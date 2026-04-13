@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\SharedService;
+use App\Models\TenantGroupMember;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CompanyGroup extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'name',

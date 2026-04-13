@@ -3,94 +3,159 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class QCTestTemplate extends Model
+/**
+ * QC Test Template Model
+ * 
+ * TASK-2.20: Reusable test templates for quality inspections
+ */
+class QcTestTemplate extends Model
 {
     use BelongsToTenant;
-    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
-        'template_name',
-        'template_code',
-        'test_category',
+        'name',
+        'product_type',
+        'stage',
         'test_parameters',
-        'acceptance_criteria',
-        'procedure',
+        'sample_size_formula',
+        'acceptance_quality_limit',
         'is_active',
+        'instructions',
     ];
 
-    protected $casts = [
-        'test_parameters' => 'array',
-        'acceptance_criteria' => 'array',
-        'is_active' => 'boolean',
-    ];
-
-    // Category labels
-    public function getCategoryLabelAttribute(): string
+    protected function casts(): array
     {
-        return match ($this->test_category) {
-            'microbial' => 'Microbial Testing',
-            'heavy_metal' => 'Heavy Metal Testing',
-            'preservative' => 'Preservative Efficacy',
-            'patch_test' => 'Patch Test',
-            'physical' => 'Physical Testing',
-            'chemical' => 'Chemical Testing',
-            default => ucfirst(str_replace('_', ' ', $this->test_category))
+        return [
+            'test_parameters' => 'array',
+            'sample_size_formula' => 'integer',
+            'acceptance_quality_limit' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function inspections(): HasMany
+    {
+        return $this->hasMany(QcInspection::class, 'template_id');
+    }
+
+    /**
+     * Get sample size based on lot size
+     */
+    public function calculateSampleSize(int $lotSize): int
+    {
+        // Simple AQL-based sampling
+        // Formula 1: sqrt(lot_size)
+        // Formula 2: lot_size * 0.1 (10%)
+        // Formula 3: Fixed from template
+
+        return match ($this->sample_size_formula) {
+            1 => (int) ceil(sqrt($lotSize)),
+            2 => (int) ceil($lotSize * 0.1),
+            default => max(3, (int) ceil($lotSize * 0.05)), // Default 5%, min 3
         };
     }
 
-    // Scope: Active templates only
-    public function scopeActive($query)
+    /**
+     * Validate test results against parameters
+     */
+    public function validateResults(array $results): array
     {
-        return $query->where('is_active', true);
+        $validated = [];
+        $allPassed = true;
+
+        foreach ($results as $result) {
+            $parameter = collect($this->test_parameters)->firstWhere('name', $result['parameter']);
+
+            if (!$parameter) {
+                $validated[] = [
+                    ...$result,
+                    'passed' => false,
+                    'error' => 'Parameter not found in template',
+                ];
+                $allPassed = false;
+                continue;
+            }
+
+            $value = $result['value'];
+            $min = $parameter['min'] ?? null;
+            $max = $parameter['max'] ?? null;
+
+            $passed = true;
+            $error = null;
+
+            if ($min !== null && $value < $min) {
+                $passed = false;
+                $error = "Value {$value} below minimum {$min}";
+            }
+
+            if ($max !== null && $value > $max) {
+                $passed = false;
+                $error = "Value {$value} above maximum {$max}";
+            }
+
+            $validated[] = [
+                ...$result,
+                'passed' => $passed,
+                'unit' => $parameter['unit'] ?? '',
+                'critical' => $parameter['critical'] ?? false,
+                'error' => $error,
+            ];
+
+            if (!$passed) {
+                $allPassed = false;
+            }
+        }
+
+        return [
+            'results' => $validated,
+            'all_passed' => $allPassed,
+            'passed_count' => collect($validated)->where('passed', true)->count(),
+            'failed_count' => collect($validated)->where('passed', false)->count(),
+        ];
     }
 
-    // Scope: Filter by category
-    public function scopeCategory($query, $category)
-    {
-        return $query->where('test_category', $category);
+    /**
+     * Create inspection from template
+     */
+    public function createInspection(
+        WorkOrder $workOrder,
+        int $lotSize,
+        string $stage,
+        array $testResults = []
+    ): QcInspection {
+        $sampleSize = $this->calculateSampleSize($lotSize);
+
+        $inspection = QcInspection::create([
+            'tenant_id' => $this->tenant_id,
+            'work_order_id' => $workOrder->id,
+            'template_id' => $this->id,
+            'stage' => $stage,
+            'sample_size' => $sampleSize,
+            'status' => 'pending',
+        ]);
+
+        if (!empty($testResults)) {
+            $validation = $this->validateResults($testResults);
+            $inspection->recordTestResults($validation['results']);
+        }
+
+        return $inspection;
     }
 
-    // Relationship: Tests using this template
-    public function testResults()
+    /**
+     * Get stage label
+     */
+    public function getStageLabelAttribute(): string
     {
-        return $this->hasMany(QCTestResult::class, 'template_id');
-    }
-
-    // Get full parameters with criteria
-    public function getFullParametersAttribute(): array
-    {
-        $parameters = $this->test_parameters ?? [];
-        $criteria = $this->acceptance_criteria ?? [];
-
-        return collect($parameters)->map(function ($param) use ($criteria) {
-            $param['criteria'] = $criteria[$param['name']] ?? null;
-            return $param;
-        })->toArray();
-    }
-
-    // Generate next template code
-    public static function getNextTemplateCode(): string
-    {
-        $count = self::count() + 1;
-        return 'TMP-' . str_pad($count, 3, '0', STR_PAD_LEFT);
-    }
-
-    // Duplicate template for new version
-    public function duplicate(string $newName): self
-    {
-        $newTemplate = $this->replicate();
-        $newTemplate->template_name = $newName;
-        $newTemplate->template_code = self::getNextTemplateCode();
-        $newTemplate->save();
-
-        return $newTemplate;
+        return match ($this->stage) {
+            'incoming' => 'Incoming Material',
+            'in-process' => 'In-Process',
+            'final' => 'Final Inspection',
+            default => ucfirst($this->stage),
+        };
     }
 }

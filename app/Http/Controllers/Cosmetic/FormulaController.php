@@ -8,27 +8,35 @@ use App\Models\FormulaIngredient;
 use App\Models\FormulaVersion;
 use App\Models\StabilityTest;
 use App\Models\Product;
+use App\Services\CosmeticFormulaService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class FormulaController extends Controller
 {
+    protected $formulaService;
+
+    public function __construct(CosmeticFormulaService $formulaService)
+    {
+        $this->formulaService = $formulaService;
+    }
     /**
      * Display all cosmetic formulas
      */
     public function index(Request $request)
     {
         $stats = [
-            'total_formulas' => CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)->count(),
-            'in_testing' => CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            'total_formulas' => CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)->count(),
+            'in_testing' => CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->where('status', 'testing')->count(),
-            'approved' => CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            'approved' => CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->where('status', 'approved')->count(),
-            'in_production' => CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            'in_production' => CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->where('status', 'production')->count(),
         ];
 
         $query = CosmeticFormula::with(['creator', 'approver', 'ingredients'])
-            ->where('tenant_id', auth()->user()->tenant_id)
+            ->where('tenant_id', Auth::user()->tenant_id)
             ->orderByDesc('created_at');
 
         // Filter by status
@@ -53,7 +61,7 @@ class FormulaController extends Controller
 
         $formulas = $query->paginate(20);
 
-        $productTypes = CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+        $productTypes = CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
             ->distinct()
             ->pluck('product_type')
             ->sort()
@@ -67,7 +75,7 @@ class FormulaController extends Controller
      */
     public function create()
     {
-        $products = Product::where('tenant_id', auth()->user()->tenant_id)
+        $products = Product::where('tenant_id', Auth::user()->tenant_id)
             ->where('is_raw_material', true)
             ->orderBy('name')
             ->get();
@@ -104,7 +112,7 @@ class FormulaController extends Controller
 
         try {
             $formula = new CosmeticFormula();
-            $formula->tenant_id = auth()->user()->tenant_id;
+            $formula->tenant_id = Auth::user()->tenant_id;
             $formula->formula_code = CosmeticFormula::getNextFormulaCode();
             $formula->formula_name = $validated['formula_name'];
             $formula->product_type = $validated['product_type'];
@@ -114,13 +122,13 @@ class FormulaController extends Controller
             $formula->batch_size = $validated['batch_size'];
             $formula->batch_unit = $validated['batch_unit'];
             $formula->notes = $validated['notes'] ?? null;
-            $formula->created_by = auth()->id();
+            $formula->created_by = Auth::id();
             $formula->save();
 
             // Add ingredients
             foreach ($validated['ingredients'] as $index => $ingredientData) {
                 $ingredient = new FormulaIngredient();
-                $ingredient->tenant_id = auth()->user()->tenant_id;
+                $ingredient->tenant_id = Auth::user()->tenant_id;
                 $ingredient->formula_id = $formula->id;
                 $ingredient->inci_name = $ingredientData['inci_name'];
                 $ingredient->common_name = $ingredientData['common_name'] ?? null;
@@ -155,7 +163,7 @@ class FormulaController extends Controller
             'versions.changer',
             'stabilityTests.tester'
         ])
-            ->where('tenant_id', auth()->user()->tenant_id)
+            ->where('tenant_id', Auth::user()->tenant_id)
             ->findOrFail($id);
 
         $ingredients = $formula->ingredients;
@@ -187,13 +195,13 @@ class FormulaController extends Controller
         ]);
 
         try {
-            $formula = CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            $formula = CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
             $formula->status = $validated['status'];
 
             if ($validated['status'] === 'approved') {
-                $formula->approved_by = auth()->id();
+                $formula->approved_by = Auth::id();
                 $formula->approved_at = now();
             }
 
@@ -202,12 +210,12 @@ class FormulaController extends Controller
             // Create version record if status changed to approved
             if ($validated['status'] === 'approved') {
                 $version = new FormulaVersion();
-                $version->tenant_id = auth()->user()->tenant_id;
+                $version->tenant_id = Auth::user()->tenant_id;
                 $version->formula_id = $formula->id;
                 $version->version_number = 'v1.0';
                 $version->changes_summary = 'Initial approval';
                 $version->reason_for_change = 'Formula met all requirements';
-                $version->changed_by = auth()->id();
+                $version->changed_by = Auth::id();
                 $version->approval_notes = $validated['approval_notes'] ?? null;
                 $version->save();
             }
@@ -234,11 +242,11 @@ class FormulaController extends Controller
         ]);
 
         try {
-            $formula = CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            $formula = CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
             $test = new StabilityTest();
-            $test->tenant_id = auth()->user()->tenant_id;
+            $test->tenant_id = Auth::user()->tenant_id;
             $test->formula_id = $formula->id;
             $test->test_code = StabilityTest::getNextTestCode();
             $test->test_type = $validated['test_type'];
@@ -248,7 +256,7 @@ class FormulaController extends Controller
             $test->initial_ph = $validated['initial_ph'] ?? null;
             $test->initial_appearance = $validated['initial_appearance'] ?? null;
             $test->initial_viscosity = $validated['initial_viscosity'] ?? null;
-            $test->tested_by = auth()->id();
+            $test->tested_by = Auth::id();
             $test->save();
 
             return back()->with('success', 'Stability test added successfully!');
@@ -275,7 +283,7 @@ class FormulaController extends Controller
         ]);
 
         try {
-            $test = StabilityTest::where('tenant_id', auth()->user()->tenant_id)
+            $test = StabilityTest::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($testId);
 
             $test->fill($validated);
@@ -293,7 +301,7 @@ class FormulaController extends Controller
     public function destroy($id)
     {
         try {
-            $formula = CosmeticFormula::where('tenant_id', auth()->user()->tenant_id)
+            $formula = CosmeticFormula::where('tenant_id', Auth::user()->tenant_id)
                 ->findOrFail($id);
 
             $formula->delete();
