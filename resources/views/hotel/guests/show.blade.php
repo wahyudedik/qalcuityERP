@@ -18,7 +18,7 @@
         </div>
     </x-slot>
 
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <div class="flex items-center gap-2">
             <button onclick="openEditGuest()"
                 class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">

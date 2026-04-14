@@ -183,13 +183,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/dashboard/custom-widgets/{customWidget}', [DashboardController::class, 'customWidgetDelete'])->name('dashboard.custom-widgets.delete');
 });
 
-// Onboarding wizard
-Route::middleware(['auth'])->group(function () {
-    Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
-    Route::post('/onboarding', [OnboardingController::class, 'complete'])->name('onboarding.complete');
-    Route::get('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
-    Route::post('/onboarding/ai-chat', [OnboardingController::class, 'aiChat'])->name('onboarding.ai-chat')->middleware(['ai.rate', 'ai.quota']);
-});
+// Onboarding wizard (legacy routes - superseded by onboarding prefix group below)
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -943,9 +937,11 @@ Route::middleware('auth')->group(function () {
 
     // Supplier Scorecard & Performance Management
     Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+        // Index - MUST be first
+        Route::get('/', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'index'])->name('scorecards.index');
 
         // Strategic Sourcing - MUST be before /{id} route
-        Route::get('/strategic-sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'strategicSourcing'])->name('strategic-sourcing');
+        Route::get('/strategic-sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('strategic-sourcing');
 
         // Sourcing Dashboard
         Route::get('/sourcing', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'sourcingDashboard'])->name('sourcing');
@@ -964,6 +960,14 @@ Route::middleware('auth')->group(function () {
 
         // Supplier detail - MUST be last (matches numeric IDs only)
         Route::get('/{id}', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'detail'])->name('scorecard.detail')->where('id', '[0-9]+');
+    });
+
+    // Supplier Performance Dashboard
+    Route::prefix('supplier-performance')->name('supplier-performance.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\SupplierPerformanceController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{supplier}', [\App\Http\Controllers\SupplierPerformanceController::class, 'detail'])->name('detail');
+        Route::post('/evaluate', [\App\Http\Controllers\SupplierPerformanceController::class, 'storeEvaluation'])->name('evaluate');
+        Route::post('/auto-evaluate/{po}', [\App\Http\Controllers\SupplierPerformanceController::class, 'autoEvaluateFromPO'])->name('auto-evaluate');
     });
 });
 
@@ -1116,7 +1120,7 @@ Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth', 'tenant.isolat
     // Variant Matrix, Packaging & Distribution Routes
     Route::prefix('variants')->name('variants.')->group(function () {
         Route::get('/formula/{formulaId}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'variantMatrix'])->name('matrix');
-        Route::post('/formula/{formulaId}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'storeVariantMatrix'])->name('store');
+        Route::post('/formula/{formulaId}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'storeVariantMatrix'])->name('formula-store');
         Route::post('/{id}/toggle', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'toggleVariant'])->name('toggle');
         Route::delete('/{id}', [\App\Http\Controllers\Cosmetic\CosmeticModuleController::class, 'deleteVariant'])->name('delete');
     });
@@ -1360,6 +1364,21 @@ Route::prefix('warehouses')->name('warehouses.')->middleware(['role:admin,manage
         Route::post('/camera/{cameraId}/snapshot', [\App\Http\Controllers\Security\CctvController::class, 'takeSnapshot'])->name('snapshot');
         Route::get('/recordings', [\App\Http\Controllers\Security\CctvController::class, 'recordings'])->name('recordings');
         Route::post('/motion-detect/{cameraId}', [\App\Http\Controllers\Security\CctvController::class, 'detectMotion'])->name('motion-detect');
+    });
+});
+
+// IoT Device Management (ESP32 / Arduino / Raspberry Pi)
+Route::prefix('iot')->name('iot.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+    Route::prefix('devices')->name('devices.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\IotDeviceController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\IotDeviceController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\IotDeviceController::class, 'store'])->name('store');
+        Route::get('/{device}', [\App\Http\Controllers\IotDeviceController::class, 'show'])->name('show');
+        Route::get('/{device}/edit', [\App\Http\Controllers\IotDeviceController::class, 'edit'])->name('edit');
+        Route::put('/{device}', [\App\Http\Controllers\IotDeviceController::class, 'update'])->name('update');
+        Route::delete('/{device}', [\App\Http\Controllers\IotDeviceController::class, 'destroy'])->name('destroy');
+        Route::post('/{device}/regenerate-token', [\App\Http\Controllers\IotDeviceController::class, 'regenerateToken'])->name('regenerate-token');
+        Route::get('/{device}/telemetry-data', [\App\Http\Controllers\IotDeviceController::class, 'telemetryData'])->name('telemetry-data');
     });
 });
 

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Kelola Pengguna — Qalcuity ERP</x-slot>
     <x-slot name="header">Kelola Pengguna</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('tenant.users.create') }}"
            class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm shadow-blue-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>

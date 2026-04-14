@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Asset extends Model
 {
-    use AuditsChanges, BelongsToTenant;
+    use BelongsToTenant;
+    use AuditsChanges;
     protected $fillable = [
         'tenant_id',
         'asset_code',

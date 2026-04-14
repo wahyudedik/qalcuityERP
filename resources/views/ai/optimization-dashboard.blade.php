@@ -13,7 +13,7 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Cache Hit Rate -->
-            <div class="bg-white rounded-lg shadow p-6">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
                         <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@
             </div>
 
             <!-- API Calls Saved -->
-            <div class="bg-white rounded-lg shadow p-6">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
                         <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Rule-Based Responses -->
-            <div class="bg-white rounded-lg shadow p-6">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
                         <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
             </div>
 
             <!-- Avg Response Time -->
-            <div class="bg-white rounded-lg shadow p-6">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
                         <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
         </div>
 
         <!-- Optimization Status -->
-        <div class="bg-white shadow rounded-lg mb-8">
+        <div class="bg-white dark:bg-slate-800 shadow rounded-lg mb-8">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900">Optimization Features Status</h2>
             </div>
@@ -156,7 +156,7 @@
         </div>
 
         <!-- System Configuration -->
-        <div class="bg-white shadow rounded-lg mb-8">
+        <div class="bg-white dark:bg-slate-800 shadow rounded-lg mb-8">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900">System Configuration</h2>
             </div>
@@ -202,7 +202,7 @@
         </div>
 
         <!-- Supported Patterns -->
-        <div class="bg-white shadow rounded-lg">
+        <div class="bg-white dark:bg-slate-800 shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900">Rule-Based Patterns</h2>
             </div>
@@ -225,7 +225,7 @@
             </button>
 
             <button onclick="clearCache()"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white dark:bg-slate-700 dark:text-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

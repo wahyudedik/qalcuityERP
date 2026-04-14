@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">Reservation {{ $reservation->reservation_number }}</x-slot>
 
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <div class="flex items-center gap-2 flex-wrap">
             @if ($reservation->status === 'pending')
                 <form method="POST" action="{{ route('hotel.reservations.confirm', $reservation) }}">

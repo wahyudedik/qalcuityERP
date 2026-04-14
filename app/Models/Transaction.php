@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    use AuditsChanges, BelongsToTenant;
+    use BelongsToTenant;
+    use AuditsChanges;
     protected $fillable = [
         'tenant_id',
         'user_id',

@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DownPayment extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id', 'number', 'type', 'party_id', 'party_type',

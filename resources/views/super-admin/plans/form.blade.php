@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ $plan->exists ? 'Edit Paket' : 'Tambah Paket' }} — Qalcuity ERP</x-slot>
     <x-slot name="header">{{ $plan->exists ? 'Edit Paket: ' . $plan->name : 'Tambah Paket Baru' }}</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('super-admin.plans.index') }}"
            class="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition">
             ← Kembali

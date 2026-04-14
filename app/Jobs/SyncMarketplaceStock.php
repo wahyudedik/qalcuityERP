@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Exceptions\MarketplaceApiException;
+use App\Exceptions\RateLimitException;
 use App\Models\EcommerceChannel;
 use App\Models\ErpNotification;
 use App\Services\MarketplaceSyncService;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Log;
 class SyncMarketplaceStock implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 10;
 
     public function __construct(public ?int $tenantId = null) {}
 
@@ -57,6 +61,13 @@ class SyncMarketplaceStock implements ShouldQueue
                 }
 
                 Log::info("Marketplace stock sync completed for channel {$channel->id}: {$result['success']} success, {$result['failed']} failed");
+            } catch (RateLimitException $e) {
+                $delay = min(600, pow(2, $this->attempts()) * 10);
+                Log::info('Marketplace rate limit hit, releasing with backoff', ['delay' => $delay, 'channel_id' => $channel->id]);
+                $this->release($delay);
+                return;
+            } catch (MarketplaceApiException $e) {
+                throw $e;
             } catch (\Throwable $e) {
                 Log::error("Marketplace stock sync failed for channel {$channel->id}: {$e->getMessage()}");
             }

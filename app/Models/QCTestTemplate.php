@@ -42,6 +42,11 @@ class QcTestTemplate extends Model
         return $this->hasMany(QcInspection::class, 'template_id');
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
     /**
      * Get sample size based on lot size
      */

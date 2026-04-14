@@ -8,7 +8,7 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Real-time production monitoring & analytics</p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('production.gantt') }}"
+                <a href="{{ route('production.gantt.index') }}"
                     class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
                     <i class="fas fa-chart-gantt mr-2"></i>Gantt Chart
                 </a>

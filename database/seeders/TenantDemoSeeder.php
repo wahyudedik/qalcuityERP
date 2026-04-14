@@ -135,6 +135,8 @@ class TenantDemoSeeder extends Seeder
             $this->seedTelecom();
             // ── Healthcare ────────────────────────────────────────
             $this->seedHealthcare();
+            // ── IoT Devices ───────────────────────────────────────
+            $this->seedIotDevices();
         });
 
         $this->command->info('TenantDemoSeeder selesai!');
@@ -389,13 +391,13 @@ class TenantDemoSeeder extends Seeder
     private function seedCurrencies(): void
     {
         foreach ([
-            ['code'=>'IDR','name'=>'Indonesian Rupiah','symbol'=>'Rp','rate'=>1,'is_base'=>true],
-            ['code'=>'USD','name'=>'US Dollar','symbol'=>'$','rate'=>15800,'is_base'=>false],
-            ['code'=>'SGD','name'=>'Singapore Dollar','symbol'=>'S$','rate'=>11700,'is_base'=>false],
+            ['code'=>'IDR','name'=>'Indonesian Rupiah','symbol'=>'Rp','rate_to_idr'=>1,'is_base'=>true],
+            ['code'=>'USD','name'=>'US Dollar','symbol'=>'$','rate_to_idr'=>15800,'is_base'=>false],
+            ['code'=>'SGD','name'=>'Singapore Dollar','symbol'=>'S$','rate_to_idr'=>11700,'is_base'=>false],
         ] as $c) {
             DB::table('currencies')->updateOrInsert(
-                ['code'=>$c['code']],
-                array_merge($c,['is_active'=>true,'created_at'=>now(),'updated_at'=>now()])
+                ['tenant_id'=>$this->tenantId,'code'=>$c['code']],
+                array_merge($c,['tenant_id'=>$this->tenantId,'is_active'=>true,'created_at'=>now(),'updated_at'=>now()])
             );
         }
     }
@@ -2921,6 +2923,96 @@ class TenantDemoSeeder extends Seeder
                 'would_recommend'    => true,
                 'created_at'         => now(), 'updated_at' => now(),
             ]);
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  IoT DEVICES
+    // ══════════════════════════════════════════════════════════════
+
+    private function seedIotDevices(): void
+    {
+        $devices = [
+            [
+                'name'          => 'ESP32 Sensor Gudang A',
+                'device_type'   => 'esp32',
+                'location'      => 'Gudang A Lantai 1',
+                'target_module' => 'inventory',
+                'sensor_types'  => ['temperature', 'humidity'],
+                'firmware_version' => 'v1.0.0',
+            ],
+            [
+                'name'          => 'Raspberry Pi Gateway Produksi',
+                'device_type'   => 'raspberry_pi',
+                'location'      => 'Lantai Produksi',
+                'target_module' => 'manufacturing',
+                'sensor_types'  => ['counter', 'temperature'],
+                'firmware_version' => 'rpi-agent-v1.0.0',
+            ],
+            [
+                'name'          => 'ESP32 Sensor Kolam Ikan',
+                'device_type'   => 'esp32',
+                'location'      => 'Kolam Budidaya No.1',
+                'target_module' => 'fisheries',
+                'sensor_types'  => ['temperature', 'ph', 'turbidity'],
+                'firmware_version' => 'v1.2.0',
+            ],
+            [
+                'name'          => 'Arduino Counter Mesin Press',
+                'device_type'   => 'arduino',
+                'location'      => 'Area Mesin Press',
+                'target_module' => 'manufacturing',
+                'sensor_types'  => ['counter'],
+                'firmware_version' => 'v0.9.0',
+            ],
+        ];
+
+        foreach ($devices as $i => $d) {
+            $deviceId = DB::table('iot_devices')->insertGetId([
+                'tenant_id'       => $this->tenantId,
+                'name'            => $d['name'],
+                'device_id'       => 'DEV-' . strtoupper(substr(md5($d['name']), 0, 8)),
+                'device_token'    => bin2hex(random_bytes(32)),
+                'device_type'     => $d['device_type'],
+                'location'        => $d['location'],
+                'target_module'   => $d['target_module'],
+                'sensor_types'    => json_encode($d['sensor_types']),
+                'firmware_version'=> $d['firmware_version'],
+                'is_active'       => true,
+                'is_connected'    => $i < 2, // 2 pertama online
+                'last_seen_at'    => $i < 2 ? now()->subMinutes(rand(1, 10)) : now()->subHours(rand(2, 24)),
+                'created_at'      => now(), 'updated_at' => now(),
+            ]);
+
+            // Seed sample telemetry logs
+            foreach ($d['sensor_types'] as $sensorType) {
+                $sampleValues = [
+                    'temperature' => [25.0, 26.5, 28.0, 27.3, 29.1],
+                    'humidity'    => [65.0, 68.5, 72.0, 70.2, 66.8],
+                    'ph'          => [6.8, 7.0, 7.2, 6.9, 7.1],
+                    'turbidity'   => [12.5, 15.0, 11.8, 13.2, 14.0],
+                    'counter'     => [100, 150, 200, 175, 220],
+                ];
+                $units = [
+                    'temperature' => '°C', 'humidity' => '%', 'ph' => 'pH',
+                    'turbidity' => 'NTU', 'counter' => 'pcs',
+                ];
+                $values = $sampleValues[$sensorType] ?? [1, 2, 3, 4, 5];
+
+                foreach ($values as $j => $val) {
+                    DB::table('iot_telemetry_logs')->insert([
+                        'tenant_id'     => $this->tenantId,
+                        'iot_device_id' => $deviceId,
+                        'sensor_type'   => $sensorType,
+                        'value'         => $val,
+                        'unit'          => $units[$sensorType] ?? '',
+                        'payload'       => json_encode(['type' => $sensorType, 'value' => $val]),
+                        'status'        => 'received',
+                        'recorded_at'   => now()->subMinutes(($j + 1) * 30),
+                        'created_at'    => now(), 'updated_at' => now(),
+                    ]);
+                }
+            }
         }
     }
 }

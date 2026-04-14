@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends Model
 {
-    use AuditsChanges, BelongsToTenant, SoftDeletes;
+    use BelongsToTenant;
+    use AuditsChanges, SoftDeletes;
 
     protected $fillable = [
         'tenant_id',

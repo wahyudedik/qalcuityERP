@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Crypt;
 
 class EcommerceChannel extends Model
 {
-    use AuditsChanges, BelongsToTenant;
+    use BelongsToTenant;
+    use AuditsChanges;
 
     protected array $auditExclude = ['api_key', 'api_secret', 'access_token', 'refresh_token'];
 

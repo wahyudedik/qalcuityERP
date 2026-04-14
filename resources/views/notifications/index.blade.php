@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Notifikasi — Qalcuity ERP</x-slot>
     <x-slot name="header">Notifikasi</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <form method="POST" action="{{ route('notifications.read-all') }}">
             @csrf
             <button type="submit"

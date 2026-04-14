@@ -446,7 +446,7 @@
                         => 'home',
                     // 2. AI Assistant
                     request()->routeIs('chat*') => 'ai',
-                    // 3. Transaksi (Sales + Purchasing + POS merged)
+                    // 3. Transaksi & Master Data (customers, suppliers, products, sales, CRM)
                     request()->routeIs(
                         'quotations*',
                         'invoices*',
@@ -456,24 +456,31 @@
                         'sales.*',
                         'sales.index',
                         'price-lists*',
-                        'purchasing*',
                         'purchase-returns*',
-                        'pos*',
+                        'customers*',
+                        'suppliers*',
+                        'supplier-performance*',
+                        'products*',
+                        'warehouses*',
+                        'categories*',
+                        'crm*',
+                        'commission*',
+                        'helpdesk*',
+                        'subscription-billing*',
+                        'loyalty*',
                     )
                         => 'transactions',
-                    // 4. Inventori & Master Data (merged)
+                    // 4. Inventori (stock, purchasing, WMS, transfers)
                     request()->routeIs(
                         'inventory*',
                         'wms*',
-                        'customers*',
-                        'suppliers*',
-                        'products*',
-                        'warehouses*',
+                        'purchasing*',
                         'landed-cost*',
                         'consignment*',
+                        'iot*',
                     )
                         => 'inventory',
-                    // 5. SDM & Operasional (HRM + Operations merged)
+                    // 5. SDM & Operasional
                     request()->routeIs(
                         'hrm*',
                         'payroll*',
@@ -481,6 +488,7 @@
                         'reimbursement*',
                         'production*',
                         'manufacturing*',
+                        'qc*',
                         'printing*',
                         'cosmetic*',
                         'tour-travel*',
@@ -496,11 +504,7 @@
                         'timesheets*',
                         'project-billing*',
                         'farm*',
-                        'crm*',
-                        'loyalty*',
-                        'commission*',
-                        'helpdesk*',
-                        'subscription-billing*',
+                        'pos*',
                     )
                         => 'operations',
                     // 6. Keuangan (Finance + Accounting merged)
@@ -1068,7 +1072,7 @@
                             {
                                 label: 'Data Supplier',
                                 href: '<?php echo e(route('suppliers.index')); ?>',
-                                active: <?php echo e(request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.strategic-sourcing*') ? 'true' : 'false'); ?>
+                                active: <?php echo e(request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.scorecard*') && !request()->routeIs('suppliers.strategic-sourcing*') && !request()->routeIs('suppliers.sourcing*') ? 'true' : 'false'); ?>
 
                             },
                         <?php endif; ?>
@@ -1346,6 +1350,14 @@
 
                                 },
                             <?php endif; ?>
+                            {
+                                section: 'IoT Devices'
+                            }, {
+                                label: 'ESP32 / Arduino / RPi',
+                                href: '<?php echo e(route('iot.devices.index')); ?>',
+                                active: <?php echo e(request()->routeIs('iot.devices*') ? 'true' : 'false'); ?>
+
+                            },
                         <?php endif; ?>
                     ]
                 },

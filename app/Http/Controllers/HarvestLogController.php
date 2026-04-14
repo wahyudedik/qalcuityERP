@@ -43,6 +43,7 @@ class HarvestLogController extends Controller
             ->selectRaw('farm_plots.code, farm_plots.name, farm_plots.area_size, farm_plots.area_unit, SUM(harvest_logs.total_qty) as total, COUNT(*) as sessions')
             ->groupBy('farm_plots.id', 'farm_plots.code', 'farm_plots.name', 'farm_plots.area_size', 'farm_plots.area_unit')
             ->orderByDesc('total')
+            ->withoutGlobalScopes()
             ->get();
 
         return view('farm.harvest-logs', compact('logs', 'plots', 'stats', 'perPlot'));

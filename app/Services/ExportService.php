@@ -31,6 +31,11 @@ class ExportService
         $userId = Auth::id();
         $tenantId = Auth::user()->tenant_id ?? 0;
 
+        // Use tenant-isolated file path for storage security (Bug 1.26 fix)
+        $fileUuid = (string) \Illuminate\Support\Str::uuid();
+        $extension = pathinfo($filename, PATHINFO_EXTENSION) ?: 'xlsx';
+        $isolatedFilePath = "exports/{$tenantId}/{$fileUuid}.{$extension}";
+
         // Create export job record
         $exportJob = ExportJob::create([
             'job_id' => $jobId,
@@ -38,6 +43,7 @@ class ExportService
             'tenant_id' => $tenantId,
             'export_type' => class_basename($exportClass),
             'filename' => $filename,
+            'file_path' => $isolatedFilePath,
             'disk' => $disk,
             'status' => 'pending',
             'total_rows' => 0,
@@ -187,28 +193,38 @@ class ExportService
     }
 
     /**
-     * Download completed export file
-     * 
+     * Download completed export file with tenant ownership validation (Bug 1.26 fix).
+     *
+     * Validates that the requesting user's tenant_id matches the export job's tenant_id
+     * to prevent cross-tenant file access.
+     *
      * @param string $jobId
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|null
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
     public function downloadExport(string $jobId)
     {
-        $exportJob = ExportJob::where('job_id', $jobId)->first();
+        $tenantId = Auth::user()?->tenant_id;
 
-        if (!$exportJob) {
-            return null;
+        // Build query with tenant ownership validation
+        $query = ExportJob::where('job_id', $jobId)
+            ->where('status', 'completed');
+
+        // Validate tenant ownership — prevent cross-tenant file access
+        if ($tenantId) {
+            $query->where('tenant_id', $tenantId);
         }
 
-        if ($exportJob->status !== 'completed') {
-            return null;
+        $exportJob = $query->first();
+
+        if (!$exportJob) {
+            abort(404, 'File export tidak ditemukan atau Anda tidak memiliki akses.');
         }
 
         $filePath = $exportJob->file_path;
-        $disk = $exportJob->disk;
+        $disk = $exportJob->disk ?? 'public';
 
         if (!Storage::disk($disk)->exists($filePath)) {
-            return null;
+            abort(404, 'File export tidak ditemukan.');
         }
 
         return Storage::disk($disk)->download($filePath, $exportJob->filename);

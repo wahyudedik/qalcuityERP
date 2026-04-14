@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CosmeticBatchRecord extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',

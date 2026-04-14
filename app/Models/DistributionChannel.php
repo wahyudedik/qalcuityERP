@@ -10,24 +10,27 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DistributionChannel extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
         'channel_name',
         'channel_type',
+        'channel_code',
+        'description',
         'contact_person',
         'contact_email',
         'contact_phone',
-        'address',
-        'region',
-        'status',
         'commission_rate',
-        'priority',
+        'discount_rate',
+        'is_active',
     ];
 
     protected $casts = [
         'commission_rate' => 'decimal:2',
+        'discount_rate' => 'decimal:2',
+        'is_active' => 'boolean',
     ];
 
     public function tenant(): BelongsTo
@@ -40,14 +43,29 @@ class DistributionChannel extends Model
         return $this->hasMany(ChannelSale::class, 'channel_id');
     }
 
+    public function pricing(): HasMany
+    {
+        return $this->hasMany(ChannelSale::class, 'channel_id');
+    }
+
+    public function inventory(): HasMany
+    {
+        return $this->hasMany(ChannelSale::class, 'channel_id');
+    }
+
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return (bool) $this->is_active;
     }
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByType($query, string $type)
+    {
+        return $query->where('channel_type', $type);
     }
 
     public function getTotalSalesAttribute(): float

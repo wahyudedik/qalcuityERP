@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">RFQ — Qalcuity ERP</x-slot>
     <x-slot name="header">Request for Quotation (RFQ)</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <button onclick="document.getElementById('modal-add-rfq').classList.remove('hidden')"
             class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>

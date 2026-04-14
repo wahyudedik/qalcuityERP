@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Goods Receipt — Qalcuity ERP</x-slot>
     <x-slot name="header">Goods Receipt (GR)</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         @if ($openPos->count())
             <button onclick="document.getElementById('modal-add-gr').classList.remove('hidden')"
                 class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm">

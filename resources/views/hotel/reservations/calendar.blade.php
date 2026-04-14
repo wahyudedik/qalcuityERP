@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">Reservation Calendar</x-slot>
 
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('hotel.reservations.index') }}"
             class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

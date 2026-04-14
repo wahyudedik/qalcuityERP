@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JournalEntry extends Model
 {
-    use AuditsChanges, BelongsToTenant;
+    use BelongsToTenant;
+    use AuditsChanges;
 
     protected $fillable = [
         'tenant_id',

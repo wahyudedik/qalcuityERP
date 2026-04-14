@@ -92,7 +92,7 @@ class PredictiveMRPService
     {
         $query = SalesOrder::where('tenant_id', $tenantId)
             ->where('status', 'completed')
-            ->where('order_date', '>=', now()->subMonths($months))
+            ->where('date', '>=', now()->subMonths($months))
             ->with('items.product');
 
         if ($productId) {
@@ -101,12 +101,12 @@ class PredictiveMRPService
             });
         }
 
-        $orders = $query->orderBy('order_date')->get();
+        $orders = $query->orderBy('date')->get();
 
         // Aggregate by month and product
         $monthlyData = [];
         foreach ($orders as $order) {
-            $monthKey = $order->order_date->format('Y-m');
+            $monthKey = $order->date->format('Y-m');
 
             foreach ($order->items as $item) {
                 $productKey = $item->product_id;

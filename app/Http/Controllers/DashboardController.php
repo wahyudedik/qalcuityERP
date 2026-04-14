@@ -60,7 +60,7 @@ class DashboardController extends Controller
 
         // Redirect ke onboarding jika belum selesai (admin saja)
         if ($user->isAdmin() && $user->tenant && !$user->tenant->onboarding_completed) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.index');
         }
 
         // ── Widget config per user ──────────────────────────────────
@@ -73,10 +73,11 @@ class DashboardController extends Controller
 
         // ── Load only required data groups (dengan caching) ──────────────────────────
         $dataGroups = [];
-        $cacheTTL = 300; // 5 menit cache untuk dashboard stats
+        $cacheTTL = 3600; // 1 jam cache untuk dashboard stats (Bug 1.27 fix)
 
         // BUG-DASH-003 FIX: Include role in cache key to prevent cross-role data leak
-        $cachePrefix = "dashboard_{$tenantId}_{$user->role}";
+        // Bug 1.27 FIX: Use hourly cache key to reduce N+1 queries on every dashboard load
+        $cachePrefix = "dashboard:{$tenantId}:{$user->role}:" . now()->format('Y-m-d-H');
 
         if (in_array('sales', $requiredGroups))
             $dataGroups['sales'] = cache()->remember("{$cachePrefix}_sales", $cacheTTL, fn() => $this->salesStats($tenantId));
@@ -272,7 +273,8 @@ class DashboardController extends Controller
         $tenantId = $user->tenant_id;
 
         // BUG-DASH-003 FIX: Include role in cache key
-        $cachePrefix = "dashboard_{$tenantId}_{$user->role}";
+        // Bug 1.27 FIX: Use hourly cache key format
+        $cachePrefix = "dashboard:{$tenantId}:{$user->role}:" . now()->format('Y-m-d-H');
 
         // Bust cache dan generate ulang
         cache()->forget("{$cachePrefix}_ai_insights");
@@ -456,12 +458,21 @@ class DashboardController extends Controller
                 ];
             }
 
+            // Bug 1.27 fix: Selective eager loading untuk recent orders — hindari N+1 query
+            $recentOrders = SalesOrder::where('tenant_id', $tenantId)
+                ->whereNotIn('status', ['cancelled'])
+                ->with(['customer:id,name', 'items.product:id,name,sku'])
+                ->latest('date')
+                ->limit(5)
+                ->get();
+
             return [
                 'this_month_revenue' => $thisRevenue,
                 'this_month_orders' => $thisMonth->count(),
                 'growth_percent' => round($growth, 1),
                 'pending_orders' => SalesOrder::where('tenant_id', $tenantId)->whereIn('status', ['pending', 'confirmed'])->count(),
                 'chart' => $chartData,
+                'recent_orders' => $recentOrders,
             ];
         } catch (\Throwable $e) {
             \Log::warning("Dashboard salesStats failed: " . $e->getMessage());
@@ -471,6 +482,7 @@ class DashboardController extends Controller
                 'growth_percent' => 0,
                 'pending_orders' => 0,
                 'chart' => [],
+                'recent_orders' => collect(),
             ];
         }
     }
@@ -479,7 +491,7 @@ class DashboardController extends Controller
     private function inventoryStats(int $tenantId): array
     {
         try {
-            // ✅ OPTIMASI: Eager loading untuk hindari N+1 query
+            // ✅ OPTIMASI: Eager loading untuk hindari N+1 query (Bug 1.27 fix)
             $lowStock = ProductStock::with(['product', 'warehouse'])
                 ->whereHas('product', fn($q) => $q->where('tenant_id', $tenantId)->where('is_active', true))
                 ->whereColumn('quantity', '<=', 'products.stock_min')

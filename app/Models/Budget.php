@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Budget extends Model
 {
-    use AuditsChanges, BelongsToTenant;
+    use BelongsToTenant;
+    use AuditsChanges;
     protected $fillable = [
         'tenant_id',
         'name',

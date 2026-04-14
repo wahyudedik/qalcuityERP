@@ -16,14 +16,89 @@ class ConcreteMixDesignController extends Controller
 
     public function index(Request $request)
     {
-        $designs = ConcreteMixDesign::where('tenant_id', $this->tid())
+        $mixDesigns = ConcreteMixDesign::where('tenant_id', $this->tid())
             ->where('is_active', true)
             ->when($request->search, fn ($q, $s) => $q->where('grade', 'like', "%$s%")->orWhere('name', 'like', "%$s%"))
             ->orderByRaw("CAST(REPLACE(REPLACE(grade, 'K-', ''), 'fc', '') AS UNSIGNED)")
             ->paginate(20)
             ->withQueryString();
 
-        return view('manufacturing.mix-design', compact('designs'));
+        $calculation   = null;
+        $costAnalysis  = null;
+        $availability  = null;
+        $recommendation = null;
+        $selectedMix   = null;
+
+        // Run calculation if requested
+        if ($request->filled('mix_design_id') && $request->filled('volume')) {
+            $selectedMix = ConcreteMixDesign::where('tenant_id', $this->tid())
+                ->find($request->mix_design_id);
+
+            if ($selectedMix) {
+                $volume       = (float) $request->input('volume', 1);
+                $wastePercent = (float) $request->input('waste_percent', 5);
+                $volumeWithWaste = $volume * (1 + $wastePercent / 100);
+                $needs        = $selectedMix->calculateNeeds($volumeWithWaste);
+                $cost         = $selectedMix->estimateCostPerM3($this->tid());
+
+                $calculation = ['adjusted' => array_merge($needs, [
+                    'grade'         => $selectedMix->grade,
+                    'volume_m3'     => $volume,
+                    'waste_percent' => $wastePercent,
+                ])];
+
+                if (!empty($cost) && isset($cost['total'])) {
+                    $costAnalysis = [
+                        'cost_per_m3'         => $cost,
+                        'total_cost'          => round($cost['total'] * $volume, 0),
+                        'cost_per_sack_cement' => isset($cost['cement']) ? round($cost['cement'] / max(1, $needs['cement_kg'] / 50), 0) : 0,
+                        'breakdown_percent'   => collect($cost)
+                            ->filter(fn ($v, $k) => $k !== 'total' && $cost['total'] > 0)
+                            ->map(fn ($v) => round($v / $cost['total'] * 100, 1))
+                            ->toArray(),
+                    ];
+                }
+
+                if (method_exists($selectedMix, 'checkMaterialAvailability')) {
+                    $availability = $selectedMix->checkMaterialAvailability($needs, $this->tid());
+                }
+            }
+        }
+
+        // Recommendation
+        if ($request->filled('required_strength')) {
+            $strength  = (int) $request->required_strength;
+            $recVolume = (float) $request->input('rec_volume', 1);
+            $maxBudget = $request->filled('max_budget') ? (float) $request->max_budget : null;
+
+            $recommended = ConcreteMixDesign::where('tenant_id', $this->tid())
+                ->where('is_active', true)
+                ->where('target_strength', '>=', $strength)
+                ->orderBy('target_strength')
+                ->first();
+
+            if ($recommended) {
+                $recCost = $recommended->estimateCostPerM3($this->tid());
+                if (!$maxBudget || (isset($recCost['total']) && $recCost['total'] <= $maxBudget)) {
+                    $recommendation = [
+                        'status'          => 'success',
+                        'recommended_mix' => $recommended,
+                        'cost_analysis'   => [
+                            'cost_per_m3' => $recCost,
+                            'total_cost'  => round(($recCost['total'] ?? 0) * $recVolume, 0),
+                        ],
+                    ];
+                } else {
+                    $recommendation = ['status' => 'no_match'];
+                }
+            } else {
+                $recommendation = ['status' => 'no_match'];
+            }
+        }
+
+        return view('manufacturing.mix-design', compact(
+            'mixDesigns', 'calculation', 'costAnalysis', 'availability', 'recommendation', 'selectedMix'
+        ));
     }
 
     public function seedStandards()

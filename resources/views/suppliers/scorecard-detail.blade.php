@@ -1,10 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <span>📊 {{ $report['supplier']->name }} - Performance Report</span>
+            <span>{{ $report['supplier']->name }} - Performance Report</span>
             <a href="{{ route('suppliers.scorecards.index') }}"
-                class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                ← Kembali
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali
             </a>
         </div>
     </x-slot>
@@ -39,8 +43,25 @@
             <div>
                 <p class="text-xs text-gray-500 dark:text-slate-400">Trend</p>
                 <p
-                    class="text-lg font-medium {{ $report['trend'] === 'improving' ? 'text-green-600' : ($report['trend'] === 'declining' ? 'text-red-600' : 'text-yellow-600') }}">
-                    {{ $report['trend'] === 'improving' ? '📈 Improving' : ($report['trend'] === 'declining' ? '📉 Declining' : '➡️ Stable') }}
+                    class="text-lg font-medium {{ $report['trend'] === 'improving' ? 'text-green-600 dark:text-green-400' : ($report['trend'] === 'declining' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400') }}">
+                    @if ($report['trend'] === 'improving')
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        Improving
+                    @elseif($report['trend'] === 'declining')
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                        </svg>
+                        Declining
+                    @else
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                        </svg>
+                        Stable
+                    @endif
                 </p>
             </div>
             <div>
@@ -95,7 +116,11 @@
 
         @if (count($report['scorecards']) === 0)
             <div class="p-12 text-center">
-                <p class="text-4xl mb-3">📊</p>
+                <svg class="mx-auto w-16 h-16 text-gray-300 dark:text-slate-600 mb-3" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada scorecard untuk supplier ini.</p>
             </div>
         @else
@@ -170,7 +195,11 @@
             class="bg-white dark:bg-[#1e293b] rounded-2xl border border-red-200 dark:border-red-500/30 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10">
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <span>⚠️</span> Recent Incidents ({{ count($report['recent_incidents']) }})
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Recent Incidents ({{ count($report['recent_incidents']) }})
                 </h3>
             </div>
 
@@ -217,7 +246,8 @@
             @if ($report['scorecards']->last()->strengths)
                 <div class="mb-4">
                     <h4 class="text-sm font-medium text-green-600 dark:text-green-400 mb-2">Strengths</h4>
-                    <p class="text-sm text-gray-700 dark:text-slate-300">{{ $report['scorecards']->last()->strengths }}
+                    <p class="text-sm text-gray-700 dark:text-slate-300">
+                        {{ $report['scorecards']->last()->strengths }}
                     </p>
                 </div>
             @endif

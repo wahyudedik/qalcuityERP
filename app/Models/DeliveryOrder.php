@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes, BelongsToTenant;
+    use BelongsToTenant;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id', 'sales_order_id', 'warehouse_id', 'created_by',

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Popup Iklan — Qalcuity ERP</x-slot>
     <x-slot name="header">Popup Iklan</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('super-admin.popup-ads.create') }}"
             class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

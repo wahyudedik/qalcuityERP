@@ -58,6 +58,11 @@ Route::prefix('webhooks')->middleware('api.rate:webhook-inbound')->group(functio
     Route::post('/fingerprint/attendance', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'handleAttendance']);
     Route::post('/fingerprint/heartbeat', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'heartbeat']);
     Route::get('/fingerprint/pending-registrations', [\App\Http\Controllers\Api\FingerprintWebhookController::class, 'getPendingRegistrations']);
+
+    // IoT Device webhooks (ESP32 / Arduino / Raspberry Pi)
+    Route::post('/iot/telemetry', [\App\Http\Controllers\Api\IotWebhookController::class, 'telemetry']);
+    Route::post('/iot/heartbeat', [\App\Http\Controllers\Api\IotWebhookController::class, 'heartbeat']);
+    Route::get('/iot/config', [\App\Http\Controllers\Api\IotWebhookController::class, 'getConfig']);
 });
 
 // ── Telecom Module API Endpoints ──────────────────────────────────────

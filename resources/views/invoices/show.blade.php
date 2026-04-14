@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">Invoice {{ $invoice->number }}</x-slot>
 
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <div class="flex items-center gap-2">
             {{-- Task 35: State machine actions --}}
             @if($invoice->isDraft())

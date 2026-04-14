@@ -15,6 +15,8 @@ class QCTestResult extends Model
     use BelongsToTenant;
     use HasFactory, SoftDeletes;
 
+    protected $table = 'qc_test_results';
+
     protected $fillable = [
         'tenant_id',
         'batch_id',

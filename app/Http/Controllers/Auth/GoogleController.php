@@ -96,7 +96,7 @@ class GoogleController extends Controller
 
         // Redirect: new user → onboarding, existing → dashboard
         if ($user->wasRecentlyCreated || ($user->tenant && !$user->tenant->onboarding_completed)) {
-            return redirect()->route('onboarding.show');
+            return redirect()->route('onboarding.index');
         }
 
         return redirect()->intended(route('dashboard'));

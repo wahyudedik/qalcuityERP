@@ -21,13 +21,21 @@
     @if (config('services.vapid.public_key'))
         <meta name="vapid-public-key" content="{{ config('services.vapid.public_key') }}">
     @endif
+    <script>
+        // BUG-1.8 FIX: FOUC prevention — runs BEFORE first render, handles all 3 theme modes
+        // MUST be placed before @vite to prevent flash of unstyled content
+        (function() {
+            var theme = localStorage.getItem('theme') || 'system';
+            if (theme === 'dark' ||
+                (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js', 'resources/js/conflict-resolution.js', 'resources/js/topbar-offline-indicator.js'])
     @stack('head')
-    <script>
-        if (localStorage.getItem('theme') === 'light') {
-            document.getElementById('html-root')?.classList.remove('dark');
-        }
-    </script>
     <style>
         /* ═══════════════════════════════════════════════
            QALCUITY SIDEBAR — Orbital Design System
@@ -414,7 +422,7 @@
 
         {{-- ── ICON RAIL (always visible on desktop, slide-in on mobile) ── --}}
         <aside id="sidebar-rail"
-            class="fixed inset-y-0 left-0 z-50 flex flex-col items-center py-3 gap-0.5 shrink-0
+            class="fixed inset-y-0 left-0 z-60 flex flex-col items-center py-3 gap-0.5 shrink-0
                -translate-x-full lg:translate-x-0 transition-transform duration-300">
 
             {{-- Logo: always white since rail bg is always dark --}}
@@ -427,122 +435,133 @@
             @php
                 $user = auth()->user();
                 $navTenant = $user?->tenant;
-                // TASK-016: Simplified menu structure - Max 7 top-level groups
-                // Active group detection
-                // IMPORTANT: Order matters — more specific patterns must come before generic ones.
-                // Each route prefix should appear in exactly ONE group to avoid conflicts.
-                $activeGroup = match (true) {
-                    // 1. Dashboard & Analytics (merged)
-                    request()->routeIs(
-                        'dashboard',
-                        'reports*',
-                        'kpi*',
-                        'forecast*',
-                        'anomalies*',
-                        'zero-input*',
-                        'simulations*',
-                    )
-                        => 'home',
-                    // 2. AI Assistant
-                    request()->routeIs('chat*') => 'ai',
-                    // 3. Transaksi (Sales + Purchasing + POS merged)
-                    request()->routeIs(
-                        'quotations*',
-                        'invoices*',
-                        'delivery-orders*',
-                        'down-payments*',
-                        'sales-returns*',
-                        'sales.*',
-                        'sales.index',
-                        'price-lists*',
-                        'purchasing*',
-                        'purchase-returns*',
-                        'pos*',
-                    )
-                        => 'transactions',
-                    // 4. Inventori & Master Data (merged)
-                    request()->routeIs(
-                        'inventory*',
-                        'wms*',
-                        'customers*',
-                        'suppliers*',
-                        'products*',
-                        'warehouses*',
-                        'landed-cost*',
-                        'consignment*',
-                    )
-                        => 'inventory',
-                    // 5. SDM & Operasional (HRM + Operations merged)
-                    request()->routeIs(
-                        'hrm*',
-                        'payroll*',
-                        'self-service*',
-                        'reimbursement*',
-                        'production*',
-                        'manufacturing*',
-                        'printing*',
-                        'cosmetic*',
-                        'tour-travel*',
-                        'livestock-enhancement*',
-                        'fisheries*',
-                        'fleet*',
-                        'contracts*',
-                        'shipping*',
-                        'approvals*',
-                        'ecommerce*',
-                        'documents*',
-                        'projects*',
-                        'timesheets*',
-                        'project-billing*',
-                        'farm*',
-                        'crm*',
-                        'loyalty*',
-                        'commission*',
-                        'helpdesk*',
-                        'subscription-billing*',
-                    )
-                        => 'operations',
-                    // 6. Keuangan (Finance + Accounting merged)
-                    request()->routeIs(
-                        'accounting*',
-                        'expenses*',
-                        'bank.*',
-                        'bank-accounts*',
-                        'receivables*',
-                        'payables*',
-                        'bulk-payments*',
-                        'assets*',
-                        'budget*',
-                        'journals*',
-                        'deferred*',
-                        'writeoffs*',
-                    )
-                        => 'finance',
-                    // 7. Pengaturan (Settings + Hotel + Industry)
-                    request()->routeIs(
-                        'company-profile*',
-                        'settings*',
-                        'tenant.users*',
-                        'reminders*',
-                        'import*',
-                        'audit*',
-                        'notifications*',
-                        'bot*',
-                        'api-settings*',
-                        'subscription.index',
-                        'cost-centers*',
-                        'ai-memory*',
-                        'taxes*',
-                        'custom-fields*',
-                        'constraints*',
-                        'company-groups*',
-                        'hotel*',
-                    )
-                        => 'settings',
-                    // Super Admin (special case, not counted in 7)
-                    request()->routeIs('super-admin*') => 'superadmin',
-                    default => '',
-                };
+
+                // BUG-1.1 & BUG-1.4 FIX: resolveActiveGroup() — array-priority approach.
+                // Each route pattern belongs to exactly ONE group. The first matching group wins.
+                // This prevents double-active when a route could match multiple patterns.
+                function resolveActiveGroup(): string {
+                    $groupMap = [
+                        // 1. Super Admin (checked first — most specific)
+                        'superadmin' => ['super-admin*'],
+                        // 2. Dashboard & Analytics
+                        'home' => [
+                            'dashboard',
+                            'reports*',
+                            'kpi*',
+                            'forecast*',
+                            'anomalies*',
+                            'zero-input*',
+                            'simulations*',
+                        ],
+                        // 3. AI Assistant
+                        'ai' => ['chat*'],
+                        // 4. Transaksi & Master Data
+                        'transactions' => [
+                            'quotations*',
+                            'invoices*',
+                            'delivery-orders*',
+                            'down-payments*',
+                            'sales-returns*',
+                            'sales.*',
+                            'sales.index',
+                            'price-lists*',
+                            'purchase-returns*',
+                            'customers*',
+                            'suppliers*',
+                            'supplier-performance*',
+                            'products*',
+                            'warehouses*',
+                            'categories*',
+                            'crm*',
+                            'commission*',
+                            'helpdesk*',
+                            'subscription-billing*',
+                            'loyalty*',
+                        ],
+                        // 5. Inventori
+                        'inventory' => [
+                            'inventory*',
+                            'wms*',
+                            'purchasing*',
+                            'landed-cost*',
+                            'consignment*',
+                            'iot*',
+                        ],
+                        // 6. SDM & Operasional
+                        'operations' => [
+                            'hrm*',
+                            'payroll*',
+                            'self-service*',
+                            'reimbursement*',
+                            'production*',
+                            'manufacturing*',
+                            'qc*',
+                            'printing*',
+                            'cosmetic*',
+                            'tour-travel*',
+                            'livestock-enhancement*',
+                            'fisheries*',
+                            'fleet*',
+                            'contracts*',
+                            'shipping*',
+                            'approvals*',
+                            'ecommerce*',
+                            'documents*',
+                            'projects*',
+                            'timesheets*',
+                            'project-billing*',
+                            'farm*',
+                            'pos*',
+                            // BUG-1.4: telecom routes were missing — added here
+                            'telecom*',
+                        ],
+                        // 7. Keuangan
+                        'finance' => [
+                            'accounting*',
+                            'expenses*',
+                            'bank.*',
+                            'bank-accounts*',
+                            'receivables*',
+                            'payables*',
+                            'bulk-payments*',
+                            'assets*',
+                            'budget*',
+                            'journals*',
+                            'deferred*',
+                            'writeoffs*',
+                        ],
+                        // 8. Pengaturan (hotel routes kept here per existing design)
+                        'settings' => [
+                            'company-profile*',
+                            'settings*',
+                            'tenant.users*',
+                            'reminders*',
+                            'import*',
+                            'audit*',
+                            'notifications*',
+                            'bot*',
+                            'api-settings*',
+                            'subscription.index',
+                            'cost-centers*',
+                            'ai-memory*',
+                            'taxes*',
+                            'custom-fields*',
+                            'constraints*',
+                            'company-groups*',
+                            'hotel*',
+                        ],
+                    ];
+
+                    foreach ($groupMap as $group => $patterns) {
+                        if (request()->routeIs(...$patterns)) {
+                            return $group; // First match wins — no double-active possible
+                        }
+                    }
+
+                    return '';
+                }
+
+                $activeGroup = resolveActiveGroup();
             @endphp
 
             @if ($user?->isSuperAdmin())
@@ -627,7 +646,7 @@
         </aside>
 
         {{-- ── SLIDE PANEL (240px, appears on group click) ── --}}
-        <div id="sidebar-panel" class="fixed inset-y-0 left-0 lg:left-14 z-40 flex flex-col overflow-hidden">
+        <div id="sidebar-panel" class="fixed inset-y-0 left-0 lg:left-14 z-50 flex flex-col overflow-hidden">
 
             {{-- Accent line --}}
             <div id="panel-accent"></div>
@@ -664,10 +683,10 @@
         </div>
 
         {{-- Panel backdrop (click outside to close) --}}
-        <div id="panel-backdrop" class="fixed inset-0 z-30 hidden" onclick="closePanel()"></div>
+        <div id="panel-backdrop" class="fixed inset-0 z-40 hidden" onclick="closePanel()"></div>
 
         {{-- Mobile sidebar overlay --}}
-        <div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/50 hidden lg:hidden"
+        <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden lg:hidden"
             onclick="closeMobileSidebar()" style="pointer-events:auto"></div>
 
 
@@ -711,10 +730,6 @@
                 </div>
 
                 <div class="flex items-center gap-1.5 shrink-0">
-                    @isset($topbarActions)
-                        <div class="hidden sm:flex items-center gap-1.5">{{ $topbarActions }}</div>
-                    @endisset
-
                     {{-- TASK 1.6: Enhanced Offline Indicator di Topbar --}}
                     <div id="topbar-offline-indicator" class="flex items-center gap-2"></div>
 
@@ -819,6 +834,19 @@
 
             {{-- Page Content --}}
             <main class="flex-1 p-4 sm:p-6 bg-[#f8f8f8] dark:bg-[#0f172a]">
+                {{-- BUG-1.11 FIX: Page header section — action buttons live here, not in topbar --}}
+                @isset($pageHeader)
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div class="min-w-0">
+                        @isset($pageTitle)
+                            <h1 class="text-xl font-semibold text-gray-900 dark:text-white truncate">{{ $pageTitle }}</h1>
+                        @endisset
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        {{ $pageHeader }}
+                    </div>
+                </div>
+                @endisset
                 @if (session('success'))
                     <div
                         class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm px-4 py-3 rounded-xl">
@@ -1046,7 +1074,7 @@
                             {
                                 label: 'Data Supplier',
                                 href: '{{ route('suppliers.index') }}',
-                                active: {{ request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.strategic-sourcing*') ? 'true' : 'false' }}
+                                active: {{ request()->routeIs('suppliers*') && !request()->routeIs('suppliers.scorecards*') && !request()->routeIs('suppliers.scorecard*') && !request()->routeIs('suppliers.strategic-sourcing*') && !request()->routeIs('suppliers.sourcing*') ? 'true' : 'false' }}
                             },
                         @endif
                         @if ($canView('suppliers'))
@@ -1286,6 +1314,13 @@
                                     active: {{ request()->routeIs('wms.putaway-rules*') ? 'true' : 'false' }}
                                 },
                             @endif
+                            {
+                                section: 'IoT Devices'
+                            }, {
+                                label: 'ESP32 / Arduino / RPi',
+                                href: '{{ route('iot.devices.index') }}',
+                                active: {{ request()->routeIs('iot.devices*') ? 'true' : 'false' }}
+                            },
                         @endif
                     ]
                 },
@@ -1979,10 +2014,16 @@
             const group = NAV_GROUPS[groupKey];
             if (!group) return;
 
-            // Apply per-group color
+            // BUG-1.2 FIX: Sync --group-color on BOTH document root AND panel element
+            // so rail button glow dot, panel accent line, and panel header all use the same color.
             const btn = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
             const color = btn?.dataset.color || '#60a5fa';
             const rgb = btn?.dataset.rgb || '96,165,250';
+
+            // Set on root so all CSS var() consumers (rail ::before, panel accent) stay in sync
+            document.documentElement.style.setProperty('--group-color', color);
+            document.documentElement.style.setProperty('--group-rgb', rgb);
+
             const panel = document.getElementById('sidebar-panel');
             panel.style.setProperty('--group-color', color);
             panel.style.setProperty('--group-rgb', rgb);
@@ -2002,6 +2043,7 @@
         function renderPanelItems(items) {
             const nav = document.getElementById('panel-nav');
             nav.innerHTML = '';
+            let activeEl = null;
             items.forEach(item => {
                 if (item.section) {
                     const s = document.createElement('div');
@@ -2012,6 +2054,8 @@
                 }
                 const a = document.createElement('a');
                 a.href = item.href === '#logout' ? '#' : item.href;
+                // BUG-1.3 FIX: Ensure active class is applied on every render, not just initial load.
+                // item.active is a PHP-rendered boolean baked into NAV_GROUPS at page render time.
                 a.className = 'panel-link' + (item.active ? ' active' : '');
                 if (item.danger) a.style.color = '#f87171';
                 let inner = '';
@@ -2034,7 +2078,12 @@
                     a.addEventListener('click', () => closeMobileSidebar());
                 }
                 nav.appendChild(a);
+                if (item.active) activeEl = a;
             });
+            // Scroll active item into view so it's visible when panel opens
+            if (activeEl) {
+                requestAnimationFrame(() => activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+            }
         }
 
         function filterPanel(q) {
@@ -2076,7 +2125,9 @@
 
         function toggleGroup(groupKey) {
             if (window.innerWidth < 1024) {
-                // Mobile: open panel full screen, rail stays as bottom bar
+                // BUG-1.5 FIX: Mobile mutual exclusion — opening panel closes rail overlay
+                document.getElementById('sidebar-rail').classList.remove('mobile-open');
+                document.getElementById('sidebar-overlay').classList.add('hidden');
                 openGroup(groupKey);
             } else {
                 if (currentGroup === groupKey) {
@@ -2148,6 +2199,8 @@
             if (isOpen) {
                 closeMobileSidebar();
             } else {
+                // BUG-1.5 FIX: Mutual exclusion — opening rail overlay closes any open panel first
+                closePanel();
                 rail.classList.add('mobile-open');
                 document.getElementById('sidebar-overlay').classList.remove('hidden');
             }

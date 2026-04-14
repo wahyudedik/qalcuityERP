@@ -50,6 +50,18 @@ class FinancialStatementService
         // GL integrity check
         $integrity = $this->checkGlIntegrity($tenantId, $asOf);
 
+        // Balance validation assertion (Bug 1.22)
+        $difference = abs($totalAssets - ($totalLiabilities + $totalEquity + $netIncome));
+        if ($difference > 0.01) {
+            $balanceWarning = [
+                'is_balanced' => false,
+                'difference'  => $difference,
+                'message'     => 'Persamaan akuntansi tidak seimbang. Selisih: ' . number_format($difference, 2, ',', '.'),
+            ];
+        } else {
+            $balanceWarning = ['is_balanced' => true];
+        }
+
         return [
             'as_of' => $asOf,
             'assets' => [
@@ -70,6 +82,7 @@ class FinancialStatementService
             'total_l_e' => $totalLiabEquity,
             'total_assets' => $totalAssets,
             'is_balanced' => abs($totalAssets - $totalLiabEquity) < 1,
+            'balance_warning' => $balanceWarning,
             'gl_integrity' => $integrity,
         ];
     }

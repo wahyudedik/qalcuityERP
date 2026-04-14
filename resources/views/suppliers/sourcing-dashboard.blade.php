@@ -1,10 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Strategic Sourcing Analytics</h1>
+            <span>Strategic Sourcing Analytics</span>
             <button onclick="document.getElementById('createOpportunityModal').classList.remove('hidden')"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium whitespace-nowrap">
-                + New Opportunity
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Opportunity
             </button>
         </div>
     </x-slot>
@@ -13,7 +16,8 @@
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
             <p class="text-xs text-gray-500 dark:text-slate-400">Active Opportunities</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $dashboard['active_opportunities'] }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $dashboard['active_opportunities'] }}
+            </p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
             <p class="text-xs text-gray-500 dark:text-slate-400">RFQs This Month</p>
@@ -44,10 +48,17 @@
 
         @if (count($opportunities) === 0)
             <div class="p-12 text-center">
-                <p class="text-4xl mb-3">🎯</p>
+                <svg class="mx-auto w-16 h-16 text-gray-300 dark:text-slate-600 mb-3" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
                 <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada opportunity yang teridentifikasi.</p>
                 <button onclick="document.getElementById('createOpportunityModal').classList.remove('hidden')"
-                    class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
+                    class="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     Buat Opportunity Baru
                 </button>
             </div>
@@ -107,7 +118,7 @@
 
                             <div class="ml-4">
                                 <select onchange="updateOpportunityStatus({{ $opportunity->id }}, this.value)"
-                                    class="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                    class="text-xs border border-gray-200 dark:border-white/10 rounded-xl px-2 py-1.5 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="identified"
                                         {{ $opportunity->status === 'identified' ? 'selected' : '' }}>Identified
                                     </option>
@@ -141,9 +152,13 @@
 
         <div class="space-y-3">
             <div
-                class="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
+                class="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">⚠️</span>
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                     <div class="flex-1">
                         <h4 class="font-medium text-gray-900 dark:text-white">High Fragmentation Detected</h4>
                         <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">
@@ -152,19 +167,23 @@
                         </p>
                         <div class="mt-2 flex gap-2">
                             <button
-                                class="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition">Analyze
+                                class="px-3 py-1.5 text-xs bg-yellow-600 text-white rounded-xl hover:bg-yellow-700 transition">Analyze
                                 Categories</button>
                             <button
-                                class="px-3 py-1 text-xs border border-yellow-600 text-yellow-600 rounded hover:bg-yellow-50 transition">View
+                                class="px-3 py-1.5 text-xs border border-yellow-600 dark:border-yellow-500 text-yellow-600 dark:text-yellow-400 rounded-xl hover:bg-yellow-50 dark:hover:bg-yellow-500/10 transition">View
                                 Details</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg">
+            <div class="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">💡</span>
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
                     <div class="flex-1">
                         <h4 class="font-medium text-gray-900 dark:text-white">Volume Discount Opportunity</h4>
                         <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">
@@ -178,7 +197,8 @@
     </div>
 
     {{-- Create Opportunity Modal --}}
-    <div id="createOpportunityModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div id="createOpportunityModal"
+        class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <form action="{{ route('suppliers.opportunities.create') }}" method="POST">
                 @csrf
@@ -187,14 +207,19 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Create New Opportunity</h3>
                     <button type="button"
                         onclick="document.getElementById('createOpportunityModal').classList.add('hidden')"
-                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">✕</button>
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Title *</label>
                         <input type="text" name="title" required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., Consolidate IT Equipment Suppliers">
                     </div>
 
@@ -202,7 +227,7 @@
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Description</label>
                         <textarea name="description" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Describe the opportunity..."></textarea>
                     </div>
 
@@ -211,14 +236,14 @@
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Category</label>
                             <input type="text" name="category"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g., Electronics">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Priority
                                 *</label>
                             <select name="priority" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="low">Low</option>
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
@@ -231,7 +256,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Estimated
                             Annual Spend (Rp) *</label>
                         <input type="number" name="estimated_annual_spend" required min="0" step="1000000"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="100000000">
                     </div>
 
@@ -239,18 +264,18 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Target
                             Completion Date</label>
                         <input type="date" name="target_completion_date"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
                     <button type="button"
                         onclick="document.getElementById('createOpportunityModal').classList.add('hidden')"
-                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
                         Cancel
                     </button>
                     <button type="submit"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
                         Create Opportunity
                     </button>
                 </div>

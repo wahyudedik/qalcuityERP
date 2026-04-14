@@ -57,12 +57,13 @@ class PayrollGlService
         $items = $run->items()->get();
 
         // Aggregate totals dari items
-        $totalGross = (float) $items->sum('gross_salary');
-        $totalPph21 = (float) $items->sum('tax_pph21');
-        $totalBpjsEmp = (float) $items->sum('bpjs_employee');   // potongan karyawan (3%)
-        $totalBpjsEr = round($totalGross * 0.04);              // employer share (4%)
-        $totalBpjs = $totalBpjsEmp + $totalBpjsEr;
-        $totalNet = (float) $items->sum('net_salary');
+        // Bug 1.17 Fix: null coalescing (?? 0) untuk komponen opsional yang mungkin null
+        $totalGross   = (float) ($items->sum('gross_salary') ?? 0);
+        $totalPph21   = (float) ($items->sum('tax_pph21') ?? 0);
+        $totalBpjsEmp = (float) ($items->sum('bpjs_employee') ?? 0);   // potongan karyawan (3%)
+        $totalBpjsEr  = round($totalGross * 0.04);                     // employer share (4%)
+        $totalBpjs    = $totalBpjsEmp + $totalBpjsEr;
+        $totalNet     = (float) ($items->sum('net_salary') ?? 0);
 
         // Resolve COA accounts
         $accounts = $this->resolveAccounts($tid);

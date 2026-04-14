@@ -11,7 +11,8 @@ use App\Traits\BelongsToTenant;
 
 class Product extends Model
 {
-    use SoftDeletes, AuditsChanges, BelongsToTenant, \App\Traits\CacheableModel;
+    use BelongsToTenant;
+    use SoftDeletes, AuditsChanges, \App\Traits\CacheableModel;
 
     protected $cacheModule = 'products';
 

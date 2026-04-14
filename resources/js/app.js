@@ -6,6 +6,7 @@ import logger from './logger';
 import errorBoundary from './error-boundary';
 import moduleLoader from './module-loader';
 import helpSystem from './help-system';
+import './chart-theme'; // BUG-1.9 FIX: theme-changed listener for Chart.js instances
 
 // Register Alpine plugins
 Alpine.plugin(collapse);

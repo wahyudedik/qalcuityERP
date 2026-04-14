@@ -1,10 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <span>📋 RFQ Response Analysis</span>
+            <span>RFQ Response Analysis</span>
             <a href="{{ url()->previous() }}"
-                class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-                ← Kembali
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali
             </a>
         </div>
     </x-slot>
@@ -39,66 +43,48 @@
     {{-- Scored Responses Table --}}
     <div
         class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Supplier Rankings (Scored)</h2>
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-white/5">
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Supplier Rankings (Scored)</h3>
         </div>
 
         @if (count($analysis['scored_responses']) === 0)
-            <div class="p-12 text-center">
-                <p class="text-4xl mb-3">📭</p>
+            <div class="py-16 text-center">
+                <svg class="mx-auto w-10 h-10 text-gray-300 dark:text-slate-600 mb-3" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
                 <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada response untuk RFQ ini.</p>
             </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-[#0f172a]">
+                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
                         <tr>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Rank</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Supplier</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Quoted Price</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Lead Time</th>
+                            <th class="px-4 py-3 text-left">Rank</th>
+                            <th class="px-4 py-3 text-left">Supplier</th>
+                            <th class="px-4 py-3 text-left">Quoted Price</th>
+                            <th class="px-4 py-3 text-left">Lead Time</th>
                             {{-- BUG-PO-003 FIX: Added new evaluation criteria columns --}}
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden lg:table-cell">
-                                Rating</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden xl:table-cell">
-                                Delivery</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase hidden xl:table-cell">
-                                Payment</th>
+                            <th class="px-4 py-3 text-left hidden lg:table-cell">Rating</th>
+                            <th class="px-4 py-3 text-left hidden xl:table-cell">Delivery</th>
+                            <th class="px-4 py-3 text-left hidden xl:table-cell">Payment</th>
                             {{-- End BUG-PO-003 FIX --}}
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Price Score</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Time Score</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Overall</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
-                                Action</th>
+                            <th class="px-4 py-3 text-left">Price Score</th>
+                            <th class="px-4 py-3 text-left">Time Score</th>
+                            <th class="px-4 py-3 text-left">Overall</th>
+                            <th class="px-4 py-3 text-left">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
                         @foreach ($analysis['scored_responses'] as $index => $scoredResponse)
                             @php
                                 $response = $scoredResponse['response'];
                                 $isRecommended = $index === 0;
                             @endphp
                             <tr
-                                class="hover:bg-gray-50 dark:hover:bg-[#0f172a] transition {{ $isRecommended ? 'bg-green-50 dark:bg-green-500/10' : '' }}">
-                                <td class="px-6 py-4">
+                                class="hover:bg-gray-50 dark:hover:bg-white/5 transition {{ $isRecommended ? 'bg-green-50 dark:bg-green-500/10' : '' }}">
+                                <td class="px-4 py-3">
                                     @if ($isRecommended)
                                         <span
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500 text-white font-bold">1</span>
@@ -107,7 +93,7 @@
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold">{{ $index + 1 }}</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <div>
                                         <p class="font-medium text-gray-900 dark:text-white">
                                             {{ $response->supplier->name }}</p>
@@ -117,7 +103,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <span class="font-semibold text-gray-900 dark:text-white">Rp
                                         {{ number_format($response->quoted_price, 0, ',', '.') }}</span>
                                     @if ($response->quoted_price === $analysis['price_range']['lowest'])
@@ -125,10 +111,10 @@
                                             class="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Lowest</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-gray-700 dark:text-slate-300">{{ $response->lead_time_days }}
+                                <td class="px-4 py-3 text-gray-500 dark:text-slate-400">{{ $response->lead_time_days }}
                                     days</td>
                                 {{-- BUG-PO-003 FIX: Added new evaluation criteria cells --}}
-                                <td class="px-6 py-4 hidden lg:table-cell">
+                                <td class="px-4 py-3 hidden lg:table-cell">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
                                             <div class="bg-yellow-600 h-2 rounded-full"
@@ -138,7 +124,7 @@
                                             class="text-xs font-medium">{{ number_format($scoredResponse['supplier_rating_score'], 0) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 hidden xl:table-cell">
+                                <td class="px-4 py-3 hidden xl:table-cell">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
                                             <div class="bg-orange-600 h-2 rounded-full"
@@ -149,7 +135,7 @@
                                             class="text-xs font-medium">{{ number_format($scoredResponse['delivery_performance_score'], 0) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 hidden xl:table-cell">
+                                <td class="px-4 py-3 hidden xl:table-cell">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-12">
                                             <div class="bg-teal-600 h-2 rounded-full"
@@ -160,7 +146,7 @@
                                     </div>
                                 </td>
                                 {{-- End BUG-PO-003 FIX --}}
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-16">
                                             <div class="bg-blue-600 h-2 rounded-full"
@@ -170,7 +156,7 @@
                                             class="text-xs font-medium">{{ number_format($scoredResponse['price_score'], 0) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-16">
                                             <div class="bg-purple-600 h-2 rounded-full"
@@ -180,33 +166,46 @@
                                             class="text-xs font-medium">{{ number_format($scoredResponse['lead_time_score'], 0) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
-                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-20">
-                                            <div class="bg-green-600 h-2 rounded-full"
-                                                style="width: {{ $scoredResponse['overall_score'] }}%"></div>
+                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-20>
+                                            <div class="bg-green-600
+                                            h-2 rounded-full" style="width: {{ $scoredResponse['overall_score'] }}%">
                                         </div>
-                                        <span
-                                            class="text-sm font-bold text-gray-900 dark:text-white">{{ number_format($scoredResponse['overall_score'], 1) }}</span>
                                     </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if ($isRecommended)
-                                        <button
-                                            class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition">Select
-                                            Winner</button>
-                                    @else
-                                        <button
-                                            class="px-3 py-1 text-xs border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-slate-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition">View
-                                            Details</button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    <span
+                                        class="text-sm font-bold text-gray-900 dark:text-white">{{ number_format($scoredResponse['overall_score'], 1) }}</span>
             </div>
-        @endif
+            </td>
+            <td class="px-4 py-3">
+                @if ($isRecommended)
+                    <button
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 13l4 4L19 7" />
+                        </svg>
+                        Select Winner
+                    </button>
+                @else
+                    <button
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        View Details
+                    </button>
+                @endif
+            </td>
+            </tr>
+        @endforeach
+        </tbody>
+        </table>
+    </div>
+    @endif
     </div>
 
     {{-- Scoring Methodology --}}
@@ -215,9 +214,13 @@
 
         {{-- BUG-PO-003 FIX: Updated from 3 to 5 criteria with new weights --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg">
+            <div class="p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">💰</span>
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <h4 class="font-medium text-gray-900 dark:text-white">Price Score (40%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
@@ -226,9 +229,13 @@
             </div>
 
             <div
-                class="p-4 bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 rounded-lg">
+                class="p-4 bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">⏱️</span>
+                    <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <h4 class="font-medium text-gray-900 dark:text-white">Lead Time Score (25%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
@@ -237,9 +244,13 @@
             </div>
 
             <div
-                class="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-lg">
+                class="p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">⭐</span>
+                    <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
                     <h4 class="font-medium text-gray-900 dark:text-white">Supplier Rating (15%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
@@ -248,9 +259,13 @@
             </div>
 
             <div
-                class="p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-lg">
+                class="p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">🚚</span>
+                    <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16m-6 3v-1a1 1 0 00-1-1h-1m-1 0v1a1 1 0 001 1h1m4-3V9m0 0L9 12m0-3l3-3" />
+                    </svg>
                     <h4 class="font-medium text-gray-900 dark:text-white">Delivery Performance (10%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
@@ -258,9 +273,13 @@
                 </p>
             </div>
 
-            <div class="p-4 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 rounded-lg">
+            <div class="p-4 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 rounded-xl">
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-2xl">💳</span>
+                    <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
                     <h4 class="font-medium text-gray-900 dark:text-white">Payment Terms (10%)</h4>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
@@ -269,7 +288,7 @@
             </div>
         </div>
 
-        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div class="mt-4 p-4 bg-gray-50 dark:bg-[#0f172a] rounded-xl">
             <p class="text-xs text-gray-600 dark:text-slate-400 font-mono">
                 Overall Score = (Price × 0.40) + (Lead Time × 0.25) + (Rating × 0.15) + (Delivery × 0.10) + (Payment ×
                 0.10)
@@ -280,7 +299,7 @@
     {{-- Price Comparison Chart --}}
     @if (count($analysis['scored_responses']) > 1)
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">💵 Price Comparison</h3>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Price Comparison</h3>
 
             <div class="space-y-3">
                 @foreach ($analysis['scored_responses'] as $scoredResponse)

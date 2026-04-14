@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Kelola Paket — Qalcuity ERP</x-slot>
     <x-slot name="header">Kelola Paket Langganan</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <form method="POST" action="{{ route('super-admin.plans.seed') }}" class="inline">
             @csrf
             <button type="submit"

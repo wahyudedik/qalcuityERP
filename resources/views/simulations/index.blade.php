@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Simulasi Bisnis (What If)</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('simulations.create') }}"
            class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 text-sm font-medium transition">
             + Simulasi Baru

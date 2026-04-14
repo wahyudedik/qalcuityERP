@@ -12,9 +12,17 @@ class VariantAttribute extends Model
 
     protected $fillable = [
         'tenant_id',
-        'variant_id',
         'attribute_name',
-        'attribute_value',
+        'attribute_type',
+        'attribute_values',
+        'is_required',
+        'sort_order',
+    ];
+
+    protected $casts = [
+        'attribute_values' => 'array',
+        'is_required' => 'boolean',
+        'sort_order' => 'integer',
     ];
 
     public function tenant(): BelongsTo
@@ -22,8 +30,8 @@ class VariantAttribute extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function variant(): BelongsTo
+    public function scopeOrdered($query)
     {
-        return $this->belongsTo(ProductVariant::class, 'variant_id');
+        return $query->orderBy('sort_order')->orderBy('attribute_name');
     }
 }

@@ -623,6 +623,38 @@ class ChatController extends Controller
     }
 
     /**
+     * Sanitize user input untuk mencegah prompt injection attacks (Bug 1.25).
+     *
+     * - Truncate ke max 2000 karakter
+     * - Hapus pola prompt injection dengan regex
+     * - Strip HTML tags
+     */
+    private function sanitizeUserInput(string $input): string
+    {
+        // 1. Truncate ke max 2000 karakter
+        $input = mb_substr($input, 0, 2000);
+
+        // 2. Hapus pola prompt injection
+        $injectionPatterns = [
+            '/ignore\s+(previous|all|above)\s+instructions?/i',
+            '/forget\s+(everything|all|previous)/i',
+            '/you\s+are\s+now\s+a/i',
+            '/act\s+as\s+(if\s+you\s+are|a)/i',
+            '/reveal\s+(all|tenant|data|secret)/i',
+            '/system\s*:\s*/i',
+        ];
+
+        foreach ($injectionPatterns as $pattern) {
+            $input = preg_replace($pattern, '[FILTERED]', $input);
+        }
+
+        // 3. Strip HTML tags
+        $input = strip_tags($input);
+
+        return $input;
+    }
+
+    /**
      * Inject tenant & user context ke pesan agar Gemini tahu konteks bisnis.
      * Data ini tidak bocor ke tenant lain karena setiap request baru ToolRegistry
      * dibuat dengan tenantId spesifik, dan history diambil dari session milik user tsb.
@@ -631,9 +663,12 @@ class ChatController extends Controller
     {
         $tenant = $user->tenant;
         if (!$tenant)
-            return $message;
+            return $this->sanitizeUserInput($message);
 
-        $lang = $this->detectLanguage($message);
+        // Sanitasi input user sebelum digunakan (Bug 1.25 fix)
+        $sanitizedMessage = $this->sanitizeUserInput($message);
+
+        $lang = $this->detectLanguage($sanitizedMessage);
         $this->gemini->withLanguage($lang);
 
         $context = "[SYSTEM CONTEXT: You are serving user \"{$user->name}\" "
@@ -647,7 +682,7 @@ class ChatController extends Controller
             $context .= $memoryContext . "\n\n";
         }
 
-        return $context . $message;
+        return $context . $sanitizedMessage;
     }
 
     /**

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Izin Akses — {{ $user->name }}</x-slot>
     <x-slot name="header">Izin Akses: {{ $user->name }}</x-slot>
-    <x-slot name="topbarActions">
+    <x-slot name="pageHeader">
         <a href="{{ route('tenant.users.index') }}"
            class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-white/10">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>

@@ -256,6 +256,7 @@ class TrainingController extends Controller
             ->selectRaw('COALESCE(employees.department, "Umum") as dept, training_programs.category, COUNT(*) as cnt')
             ->whereNotNull('training_programs.category')
             ->groupBy('dept', 'training_programs.category')
+            ->withoutGlobalScopes()
             ->get();
 
         $matrix = [];

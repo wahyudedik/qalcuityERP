@@ -343,8 +343,8 @@ class MrpPlanningService
                 ->count(),
             'low_stock_items' => Product::where('tenant_id', $tenantId)
                 ->where('is_active', true)
-                ->whereHas('stocks', function ($query) {
-                    $query->whereRaw('(SELECT SUM(quantity) FROM product_stocks WHERE product_id = products.product_id) < products.reorder_point');
+                ->whereHas('productStocks', function ($query) {
+                    $query->whereRaw('quantity < (SELECT stock_min FROM products WHERE id = product_stocks.product_id)');
                 })
                 ->count(),
         ];

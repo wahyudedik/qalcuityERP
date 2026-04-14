@@ -81,6 +81,11 @@ class ProcessRecurringJournals implements ShouldQueue
                             'next_run_date' => $recurring->calculateNextRun(),
                         ]);
                     });
+                } catch (\DomainException $e) {
+                    // Periode locked/closed — skip jurnal ini, jangan gagalkan job
+                    Log::warning(
+                        "ProcessRecurringJournals skipped for ID {$recurring->id}: " . $e->getMessage()
+                    );
                 } catch (\Throwable $e) {
                     Log::error("ProcessRecurringJournals failed for ID {$recurring->id}: " . $e->getMessage());
                 }
