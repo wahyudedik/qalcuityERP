@@ -58,7 +58,7 @@
     </div>
 </div>
 
-<?php if (! $__env->hasRenderedOnce('cae3e985-5077-4be1-83cf-e1829404e5e1')): $__env->markAsRenderedOnce('cae3e985-5077-4be1-83cf-e1829404e5e1'); ?>
+<?php if (! $__env->hasRenderedOnce('4efb7edd-be0c-4e12-8320-7ae4fd588aa2')): $__env->markAsRenderedOnce('4efb7edd-be0c-4e12-8320-7ae4fd588aa2'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             function offlineSyncPanel() {

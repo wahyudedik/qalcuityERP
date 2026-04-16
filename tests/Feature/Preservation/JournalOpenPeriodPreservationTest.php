@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\GlPostingService;
 use App\Services\PeriodLockService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -24,7 +24,7 @@ use Tests\TestCase;
  */
 class JournalOpenPeriodPreservationTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;

@@ -6,6 +6,7 @@ use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\BelongsToTenant;
 
@@ -31,6 +32,7 @@ class Product extends Model
         'is_active',
         'has_expiry',
         'expiry_alert_days',
+        'qr_code_path',
     ];
 
     protected function casts(): array
@@ -69,5 +71,15 @@ class Product extends Model
     public function totalStock(): int
     {
         return $this->productStocks()->sum('quantity');
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(ProductCertificate::class);
+    }
+
+    public function activeCertificate(): HasOne
+    {
+        return $this->hasOne(ProductCertificate::class)->where('status', 'active');
     }
 }

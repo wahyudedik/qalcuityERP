@@ -61,6 +61,9 @@ use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\Telecom\LocationTrackingController as TelecomLocationTrackingController;
 use App\Http\Controllers\Telecom\GeofencingController as TelecomGeofencingController;
+use App\Http\Controllers\ProductQrController;
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\VerifyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -127,6 +130,9 @@ Route::get('/api-docs/{path?}', function ($path = 'index.html') {
         'Content-Type' => $contentType,
     ]);
 })->where('path', '.*')->name('api-docs');
+
+// Public QR Certificate Verification
+Route::get('/verify/{certificateNumber}', [VerifyController::class, 'show'])->name('verify.show');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -969,6 +975,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/evaluate', [\App\Http\Controllers\SupplierPerformanceController::class, 'storeEvaluation'])->name('evaluate');
         Route::post('/auto-evaluate/{po}', [\App\Http\Controllers\SupplierPerformanceController::class, 'autoEvaluateFromPO'])->name('auto-evaluate');
     });
+
+    // ============================================
+    // PRODUCT QR CODE & CERTIFICATE ROUTES
+    // ============================================
+
+    // ProductQrController routes
+    Route::post('/products/{product}/qr/generate', [ProductQrController::class, 'generate'])->name('products.qr.generate');
+    Route::get('/products/{product}/qr/download', [ProductQrController::class, 'download'])->name('products.qr.download');
+    Route::post('/products/qr/print-labels', [ProductQrController::class, 'printLabels'])->name('products.qr.print-labels');
+
+    // CertificateController routes
+    Route::post('/products/{product}/certificates', [CertificateController::class, 'issue'])->name('products.certificates.issue');
+    Route::get('/products/{product}/certificates', [CertificateController::class, 'index'])->name('products.certificates.index');
+    Route::delete('/certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->name('certificates.revoke');
+    Route::get('/certificates/{certificate}/pdf', [CertificateController::class, 'pdf'])->name('certificates.pdf');
 });
 
 // Printing Industry Module

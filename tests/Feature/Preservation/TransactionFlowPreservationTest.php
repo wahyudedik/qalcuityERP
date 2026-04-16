@@ -6,7 +6,7 @@ use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\SalesOrder;
 use App\Services\GlPostingService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -21,7 +21,7 @@ use Tests\TestCase;
  */
 class TransactionFlowPreservationTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private $tenant;
     private $user;

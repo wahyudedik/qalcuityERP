@@ -144,7 +144,7 @@ class TenantDemoSeeder extends Seeder
             ['Tenant',         'PT Maju Bersama Indonesia'],
             ['Admin Email',    'admin@majubersama.com'],
             ['Manager Email',  'manager@majubersama.com'],
-            ['Staff Email',    'staff@majubersama.com'],
+            ['Staff Email',    'staff@majubersama.com'], 
             ['Password',       'password'],
         ]);
     }

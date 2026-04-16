@@ -23,7 +23,7 @@
     @endif
     <script>
         // BUG-1.8 FIX: FOUC prevention — runs BEFORE first render, handles all 3 theme modes
-        // MUST be placed before @vite to prevent flash of unstyled content
+        // MUST be placed before the vite directive to prevent flash of unstyled content
         (function() {
             var theme = localStorage.getItem('theme') || 'system';
             if (theme === 'dark' ||

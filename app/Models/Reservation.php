@@ -128,6 +128,13 @@ class Reservation extends Model
         return $this->hasMany(ReservationRoom::class);
     }
 
+    public function rooms(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Room::class, 'reservation_rooms')
+            ->withPivot(['check_in_date', 'check_out_date', 'rate_per_night', 'status'])
+            ->withTimestamps();
+    }
+
     public function groupBooking(): BelongsTo
     {
         return $this->belongsTo(GroupBooking::class);

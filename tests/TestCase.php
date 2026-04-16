@@ -9,12 +9,12 @@ use App\Models\ProductStock;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     // ── Tenant & User helpers ─────────────────────────────────────
 

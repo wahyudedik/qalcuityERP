@@ -355,7 +355,7 @@
     - _Requirements: 2.28, 3.12_
 
 
-- [ ] 12. Verifikasi fix checking — jalankan ulang test eksplorasi
+- [x] 12. Verifikasi fix checking — jalankan ulang test eksplorasi
 
   - [x] 12.1 Verifikasi fix sidebar & navigasi (Bug 1.1–1.5)
     - **Property 1: Expected Behavior** — Sidebar Active State Eksklusif
@@ -389,7 +389,7 @@
     - **EXPECTED OUTCOME: SEMUA LULUS** (konfirmasi bug 1.11–1.13 teratasi)
     - _Requirements: 2.11, 2.12, 2.13_
 
-  - [ ] 12.4 Verifikasi fix modul ERP (Bug 1.14–1.23)
+  - [x] 12.4 Verifikasi fix modul ERP (Bug 1.14–1.23)
     - **Property 1: Expected Behavior** — Validasi Bisnis Modul ERP
     - Jalankan ulang test modul ERP dari task 1 pada kode yang sudah diperbaiki
     - Assert: `DomainException` dilempar untuk jurnal ke periode locked — harus LULUS
@@ -405,7 +405,7 @@
     - **EXPECTED OUTCOME: SEMUA LULUS** (konfirmasi bug 1.14–1.23 teratasi)
     - _Requirements: 2.14, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23_
 
-  - [ ] 12.5 Verifikasi fix keamanan & performa (Bug 1.24–1.28)
+  - [x] 12.5 Verifikasi fix keamanan & performa (Bug 1.24–1.28)
     - **Property 1: Expected Behavior** — Keamanan Multi-Tenant dan Performa
     - Jalankan ulang test keamanan dan performa dari task 1 pada kode yang sudah diperbaiki
     - Assert: TenantScope otomatis menambahkan filter tenant di semua query — harus LULUS
@@ -417,9 +417,9 @@
     - _Requirements: 2.24, 2.25, 2.26, 2.27, 2.28_
 
 
-- [ ] 13. Verifikasi preservation checking — pastikan tidak ada regresi
+- [x] 13. Verifikasi preservation checking — pastikan tidak ada regresi
 
-  - [ ] 13.1 Verifikasi preservation sidebar & tema
+  - [x] 13.1 Verifikasi preservation sidebar & tema
     - **Property 2: Preservation** — Behavior Sidebar dan Tema yang Sudah Benar
     - **PENTING**: Jalankan ulang test YANG SAMA dari task 2 — JANGAN tulis test baru
     - Assert: SuperAdmin hanya melihat menu Dashboard dan Admin — harus LULUS
@@ -431,7 +431,7 @@
     - **EXPECTED OUTCOME: SEMUA LULUS** (tidak ada regresi pada sidebar dan tema)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
-  - [ ] 13.2 Verifikasi preservation fungsionalitas inti
+  - [x] 13.2 Verifikasi preservation fungsionalitas inti
     - **Property 2: Preservation** — Fungsionalitas Inti ERP
     - Jalankan ulang test preservation dari task 2 pada kode yang sudah diperbaiki
     - Assert: alur sales order → invoice → payment → jurnal otomatis tetap berfungsi — harus LULUS
@@ -447,33 +447,33 @@
     - _Requirements: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15_
 
 
-- [ ] 14. Integration Testing — Verifikasi end-to-end
+- [x] 14. Integration Testing — Verifikasi end-to-end
 
-  - [ ] 14.1 Integration test navigasi dan tema
+  - [x] 14.1 Integration test navigasi dan tema
     - Full Navigation Flow: navigasi ke setiap route dalam sistem — verifikasi tepat satu rail button aktif dan submenu yang benar ter-highlight
     - Theme Persistence Flow: toggle tema → refresh → verifikasi tema sama, semua komponen (termasuk chart) menggunakan warna yang benar
     - Mobile Navigation Flow: buka sidebar di mobile → verifikasi hanya satu layer terlihat, transisi smooth
     - Pastikan semua test lulus sebelum melanjutkan
 
-  - [ ] 14.2 Integration test modul ERP end-to-end
+  - [x] 14.2 Integration test modul ERP end-to-end
     - Payroll End-to-End: buat payroll dengan komponen null → hitung → verifikasi tidak error, jurnal terbuat ke periode open
     - Manufacturing Work Order: buat WO dengan BOM 3 level → verifikasi semua komponen di-reserve dari inventory
     - Hotel Night Audit: buat reservasi dengan rate valid dan invalid → jalankan night audit → verifikasi error ditampilkan untuk yang invalid
     - Pastikan semua test lulus sebelum melanjutkan
 
-  - [ ] 14.3 Integration test keamanan multi-tenant
+  - [x] 14.3 Integration test keamanan multi-tenant
     - Multi-Tenant Isolation: login sebagai dua tenant berbeda → verifikasi data tidak bocor antar tenant
     - Export Security: buat export sebagai tenant A → coba download sebagai tenant B → verifikasi 404
     - AI Prompt Injection: kirim berbagai pola injection ke AI Chat → verifikasi semua disanitasi
     - Pastikan semua test lulus sebelum melanjutkan
 
-  - [ ] 14.4 Integration test performa
+  - [x] 14.4 Integration test performa
     - AI Chat Rate Limit: kirim 61 request AI dalam 1 menit → verifikasi request ke-61 mendapat 429 dengan `retry_after`
     - Dashboard Performance: load dashboard dengan data besar → verifikasi query count ≤ threshold dan response time < 2 detik
     - Marketplace Sync Retry: simulasikan rate limit API marketplace → verifikasi job di-retry dengan exponential backoff
     - Pastikan semua test lulus sebelum melanjutkan
 
-- [ ] 15. Checkpoint — Pastikan semua test lulus
+- [x] 15. Checkpoint — Pastikan semua test lulus
   - Jalankan seluruh test suite (unit, property-based, integration)
   - Verifikasi tidak ada test yang gagal
   - Verifikasi tidak ada regresi pada fungsionalitas yang sudah benar
