@@ -9,7 +9,7 @@ use App\Models\PayrollRun;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\PayrollGlService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -22,7 +22,7 @@ use Tests\TestCase;
  */
 class PayrollNullComponentTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -31,11 +31,8 @@ class PayrollNullComponentTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -51,10 +48,13 @@ class PayrollNullComponentTest extends TestCase
     public function test_payroll_with_null_component_does_not_throw_error(): void
     {
         // Arrange: Buat payroll run dengan item yang memiliki komponen null
-        $employee = Employee::factory()->create([
+        $employee = Employee::create([
             'tenant_id' => $this->tenant->id,
+            'name' => 'Test Employee',
+            'employee_id' => 'EMP-' . uniqid(),
             'status' => 'active',
-            'basic_salary' => 5000000,
+            'salary' => 5000000,
+            'join_date' => now()->subYear(),
         ]);
 
         $payrollRun = PayrollRun::create([
@@ -77,12 +77,11 @@ class PayrollNullComponentTest extends TestCase
         ]);
 
         // Buat komponen dengan nilai null (komponen opsional yang tidak diisi)
-        PayrollItemComponent::create([
-            'payroll_item_id' => $payrollItem->id,
-            'component_name' => 'Tunjangan Khusus',
-            'component_type' => 'allowance',
-            'amount' => null, // NULL - ini yang menyebabkan bug
-        ]);
+        // Gunakan DB::statement untuk bypass constraint karena ini mensimulasikan bug
+        \Illuminate\Support\Facades\DB::statement(
+            "INSERT INTO payroll_item_components (payroll_item_id, component_name, component_type, amount, created_at, updated_at) VALUES (?, ?, ?, NULL, NOW(), NOW())",
+            [$payrollItem->id, 'Tunjangan Khusus', 'allowance']
+        );
 
         // Act: Coba posting payroll GL
         $glService = app(PayrollGlService::class);

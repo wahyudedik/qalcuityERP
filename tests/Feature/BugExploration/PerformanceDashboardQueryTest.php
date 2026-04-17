@@ -4,7 +4,7 @@ namespace Tests\Feature\BugExploration;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -22,7 +22,7 @@ use Tests\TestCase;
  */
 class PerformanceDashboardQueryTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -31,16 +31,9 @@ class PerformanceDashboardQueryTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create([
-            'is_active' => true,
-            'plan' => 'business',
-            'onboarding_completed' => true,
-        ]);
+        $this->tenant = $this->createTenant(['plan' => 'business']);
 
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->user = $this->createAdminUser($this->tenant);
     }
 
     /**

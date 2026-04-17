@@ -6,7 +6,7 @@ use App\Models\ExportJob;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ExportService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ use Tests\TestCase;
  */
 class SecurityExportOwnershipTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenantA;
     private Tenant $tenantB;
@@ -31,18 +31,12 @@ class SecurityExportOwnershipTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenantA = Tenant::factory()->create(['is_active' => true]);
-        $this->tenantB = Tenant::factory()->create(['is_active' => true]);
+        $this->tenantA = $this->createTenant();
+        $this->tenantB = $this->createTenant();
 
-        $this->userA = User::factory()->create([
-            'tenant_id' => $this->tenantA->id,
-            'role' => 'admin',
-        ]);
+        $this->userA = $this->createAdminUser($this->tenantA);
 
-        $this->userB = User::factory()->create([
-            'tenant_id' => $this->tenantB->id,
-            'role' => 'admin',
-        ]);
+        $this->userB = $this->createAdminUser($this->tenantB);
     }
 
     /**

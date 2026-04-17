@@ -86,6 +86,14 @@ class ModuleRecommendationService
      */
     public function recommend(string $industry): array
     {
+        // Map onboarding form keys to internal recommendation keys
+        $aliasMap = [
+            'restaurant'    => 'fnb',
+            'manufacturing' => 'manufacture',
+            'services'      => 'service',
+        ];
+        $industry = $aliasMap[$industry] ?? $industry;
+
         return match ($industry) {
             'fnb' => [
                 'modules' => ['pos', 'fnb', 'inventory', 'purchasing', 'invoicing', 'accounting', 'hrm', 'payroll', 'reports', 'loyalty'],

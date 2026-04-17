@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
+use App\Services\AI\ModelSwitcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
@@ -25,6 +26,11 @@ class SystemSettingsController extends Controller
         'ai_cache_long_ttl' => ['gemini.optimization.cache_ttl.long', false, 'ai', 'Cache TTL Panjang (detik)'],
         'ai_rule_based_enabled' => ['gemini.optimization.rule_based_enabled', false, 'ai', 'Rule-Based Response'],
         'ai_streaming_enabled' => ['gemini.optimization.streaming_enabled', false, 'ai', 'Streaming AI'],
+        // AI Model Auto-Switching
+        'gemini_fallback_models' => ['gemini.fallback_models', false, 'ai', 'Fallback Models (JSON atau comma-separated)'],
+        'gemini_rate_limit_cooldown' => ['gemini.rate_limit_cooldown', false, 'ai', 'Rate Limit Cooldown (detik)'],
+        'gemini_quota_cooldown' => ['gemini.quota_cooldown', false, 'ai', 'Quota Cooldown (detik)'],
+        'gemini_log_retention_days' => ['gemini.log_retention_days', false, 'ai', 'Retensi Log Switch (hari)'],
 
         // Email / SMTP
         'mail_host' => ['mail.mailers.smtp.host', false, 'mail', 'SMTP Host'],
@@ -90,6 +96,9 @@ class SystemSettingsController extends Controller
         $request->validate([
             'gemini_model' => 'nullable|string|max:100',
             'gemini_timeout' => 'nullable|integer|min:10|max:300',
+            'gemini_rate_limit_cooldown' => 'nullable|integer|min:1|max:86400',
+            'gemini_quota_cooldown' => 'nullable|integer|min:1|max:86400',
+            'gemini_log_retention_days' => 'nullable|integer|min:1|max:365',
             'mail_host' => 'nullable|string|max:255',
             'mail_port' => 'nullable|integer|min:1|max:65535',
             'mail_username' => 'nullable|string|max:255',
@@ -104,26 +113,55 @@ class SystemSettingsController extends Controller
             'app_timezone' => 'nullable|timezone',
         ]);
 
-        foreach (self::SETTINGS_MAP as $key => [$configPath, $encrypt, $group, $label]) {
-            $value = $request->input($key);
+        // Track whether any Gemini auto-switching config was changed
+        $geminiSwitcherChanged = false;
+        $geminiSwitcherKeys = ['gemini_fallback_models', 'gemini_rate_limit_cooldown', 'gemini_quota_cooldown', 'gemini_log_retention_days'];
 
+        foreach (self::SETTINGS_MAP as $key => [$configPath, $encrypt, $group, $label]) {
             // Skip if not submitted
             if (!$request->has($key)) {
                 continue;
             }
 
+            $value = $request->input($key);
+
             // For encrypted fields: if value is empty string, don't overwrite existing
             if ($encrypt && empty($value)) {
-                // Keep existing if key exists
                 if (SystemSetting::has($key)) {
                     continue;
                 }
             }
 
+            // Special handling: gemini_fallback_models — accept JSON string or comma-separated, store as JSON array
+            if ($key === 'gemini_fallback_models' && !empty($value)) {
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    // Already valid JSON array — re-encode to normalise
+                    $value = json_encode(array_values(array_filter(array_map('trim', $decoded))));
+                } else {
+                    // Treat as comma-separated list
+                    $models = array_values(array_filter(array_map('trim', explode(',', $value))));
+                    $value = json_encode($models);
+                }
+            }
+
             SystemSetting::set($key, $value, $encrypt, $group, $label);
+
+            if (in_array($key, $geminiSwitcherKeys)) {
+                $geminiSwitcherChanged = true;
+            }
         }
 
         SystemSetting::clearCache();
+
+        // Invalidate ModelSwitcher cache when Gemini auto-switching config changes
+        if ($geminiSwitcherChanged) {
+            try {
+                app(ModelSwitcher::class)->resetAll();
+            } catch (\Throwable $e) {
+                \Log::warning('SystemSettingsController: failed to reset ModelSwitcher cache.', ['error' => $e->getMessage()]);
+            }
+        }
 
         return back()->with('success', 'Pengaturan sistem berhasil disimpan.');
     }

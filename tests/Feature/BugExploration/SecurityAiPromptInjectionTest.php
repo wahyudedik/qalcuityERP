@@ -5,7 +5,7 @@ namespace Tests\Feature\BugExploration;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\GeminiService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -18,7 +18,7 @@ use Tests\TestCase;
  */
 class SecurityAiPromptInjectionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -27,11 +27,8 @@ class SecurityAiPromptInjectionTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }

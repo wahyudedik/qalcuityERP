@@ -7,7 +7,7 @@ use App\Models\NetworkDevice;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Telecom\RouterIntegrationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -24,7 +24,7 @@ use Tests\TestCase;
  */
 class TelecomMikrotikTimeoutTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -33,11 +33,8 @@ class TelecomMikrotikTimeoutTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
     }
 
     /**

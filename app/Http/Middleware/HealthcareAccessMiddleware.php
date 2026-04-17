@@ -24,7 +24,7 @@ class HealthcareAccessMiddleware
         }
 
         // Superadmin has full access
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return $next($request);
         }
 

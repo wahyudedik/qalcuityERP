@@ -8,7 +8,7 @@ use App\Models\JournalEntryLine;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\FinancialStatementService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -25,7 +25,7 @@ use Tests\TestCase;
  */
 class AkuntansiBalanceSheetTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -34,11 +34,8 @@ class AkuntansiBalanceSheetTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -79,6 +76,8 @@ class AkuntansiBalanceSheetTest extends TestCase
         // Buat jurnal yang tidak balance (hanya debit, tidak ada credit yang sesuai)
         $journal = JournalEntry::create([
             'tenant_id' => $this->tenant->id,
+            'user_id' => $this->user->id,
+            'number' => 'JE-TEST-001',
             'reference' => 'JE-TEST-001',
             'date' => today()->toDateString(),
             'description' => 'Test unbalanced journal',

@@ -7,7 +7,7 @@ use App\Models\ProductStock;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -22,7 +22,7 @@ use Tests\TestCase;
  */
 class InventoriStockRaceConditionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -34,21 +34,14 @@ class InventoriStockRaceConditionTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
 
-        $this->warehouse = Warehouse::factory()->create([
-            'tenant_id' => $this->tenant->id,
-        ]);
+        $this->warehouse = $this->createWarehouse($this->tenant->id);
 
-        $this->product = Product::factory()->create([
-            'tenant_id' => $this->tenant->id,
-        ]);
+        $this->product = $this->createProduct($this->tenant->id);
 
         // Stok awal: 10 unit
         $this->stock = ProductStock::create([

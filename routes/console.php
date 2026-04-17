@@ -231,6 +231,13 @@ Schedule::command('reminders:process')
 
 // ─── Cleanup ──────────────────────────────────────────────────────────────────
 
+// Prune AI model switch logs beyond retention period — setiap hari jam 02:00
+Schedule::command('ai:prune-switch-logs')
+    ->daily()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('ai-prune-switch-logs-daily');
+
 // Clean up expired API tokens — setiap hari jam 02:30 untuk keamanan
 Schedule::command('api:cleanup-tokens --older-than=30')
     ->dailyAt('02:30')

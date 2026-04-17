@@ -25,6 +25,7 @@ class EmployeeSelfServiceController extends Controller
     private function myEmployee(): ?Employee
     {
         $user = auth()->user();
+        if (!$user) return null;
         return Employee::where('tenant_id', $user->tenant_id)
             ->where('user_id', $user->id)
             ->first();

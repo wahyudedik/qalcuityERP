@@ -11,6 +11,7 @@ use App\Http\Controllers\SuperAdmin\TenantController as SuperAdminTenantControll
 use App\Http\Controllers\SuperAdmin\PlanController as SuperAdminPlanController;
 use App\Http\Controllers\SuperAdmin\MonitoringController as SuperAdminMonitoringController;
 use App\Http\Controllers\SuperAdmin\SystemSettingsController as SuperAdminSystemSettingsController;
+use App\Http\Controllers\SuperAdmin\AiModelController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\Pos\PaymentUIController;
 use App\Http\Controllers\ApprovalController;
@@ -154,10 +155,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Quick Search (Command Palette)
     Route::get('/api/quick-search', [\App\Http\Controllers\QuickSearchController::class, 'search'])
-        ->name('quick-search.search');
+        ->name('quick-search.search')
+        ->middleware(['tenant.isolation']);
 
     // Saved Searches
-    Route::prefix('api/saved-searches')->group(function () {
+    Route::prefix('api/saved-searches')->middleware(['tenant.isolation'])->group(function () {
         Route::get('/', [\App\Http\Controllers\SavedSearchController::class, 'index'])
             ->name('saved-searches.index');
         Route::post('/', [\App\Http\Controllers\SavedSearchController::class, 'store'])
@@ -176,9 +178,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Bulk Actions
     Route::post('/bulk-actions/execute', [\App\Http\Controllers\BulkActionsController::class, 'execute'])
-        ->name('bulk-actions.execute');
+        ->name('bulk-actions.execute')
+        ->middleware(['tenant.isolation', 'permission:inventory,edit']);
     Route::get('/bulk-actions/export-download', [\App\Http\Controllers\BulkActionsController::class, 'exportDownload'])
-        ->name('bulk-actions.export-download');
+        ->name('bulk-actions.export-download')
+        ->middleware(['tenant.isolation', 'permission:inventory,view']);
 
     // Custom widget builder (admin/manager only)
     Route::get('/dashboard/custom-widgets', [DashboardController::class, 'customWidgetsList'])->name('dashboard.custom-widgets.list');
@@ -247,7 +251,7 @@ Route::middleware('auth')->group(function () {
     // ============================================
 
     // Barcode Printing (Products)
-    Route::prefix('barcode')->name('barcode.')->group(function () {
+    Route::prefix('barcode')->name('barcode.')->middleware(['tenant.isolation'])->group(function () {
         // Print labels for products
         Route::post('/print', [BarcodeController::class, 'print'])->name('print');
         // Auto-generate missing barcodes
@@ -257,7 +261,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stock Movements with Barcode Scanning
-    Route::prefix('inventory/movements')->name('inventory.movements.')->group(function () {
+    Route::prefix('inventory/movements')->name('inventory.movements.')->middleware(['tenant.isolation'])->group(function () {
         // Create movement with scanner
         Route::get('/create', [StockMovementController::class, 'create'])->name('create');
         // Store movement
@@ -418,6 +422,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/test-mail', [SuperAdminSystemSettingsController::class, 'testMail'])->name('settings.test-mail');
         Route::post('/settings/test-gemini-api-key', [SuperAdminSystemSettingsController::class, 'testGeminiApiKey'])->name('settings.test-gemini-api-key');
         Route::post('/settings/regenerate-vapid', [SuperAdminSystemSettingsController::class, 'regenerateVapid'])->name('settings.regenerate-vapid');
+
+        // AI Model Monitoring
+        Route::get('/ai-model', [AiModelController::class, 'index'])->name('ai-model.index');
+        Route::post('/ai-model/reset', [AiModelController::class, 'reset'])->name('ai-model.reset');
     });
 
     // Subscription info (tenant only)
@@ -942,7 +950,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Supplier Scorecard & Performance Management
-    Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    Route::prefix('supplier-scorecards')->name('suppliers.')->middleware(['auth', 'tenant.isolation', 'permission:suppliers,view'])->group(function () {
         // Index - MUST be first
         Route::get('/', [\App\Http\Controllers\Suppliers\SupplierScorecardController::class, 'index'])->name('scorecards.index');
 
@@ -969,7 +977,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Supplier Performance Dashboard
-    Route::prefix('supplier-performance')->name('supplier-performance.')->middleware(['auth', 'tenant.isolation'])->group(function () {
+    Route::prefix('supplier-performance')->name('supplier-performance.')->middleware(['auth', 'tenant.isolation', 'permission:suppliers,view'])->group(function () {
         Route::get('/', [\App\Http\Controllers\SupplierPerformanceController::class, 'dashboard'])->name('dashboard');
         Route::get('/{supplier}', [\App\Http\Controllers\SupplierPerformanceController::class, 'detail'])->name('detail');
         Route::post('/evaluate', [\App\Http\Controllers\SupplierPerformanceController::class, 'storeEvaluation'])->name('evaluate');
@@ -1494,7 +1502,7 @@ Route::prefix('payroll/slip')->name('payroll.slip.')->group(function () {
 });
 
 // Self-Service Karyawan: Cuti & Absensi (semua role tenant)
-Route::prefix('self-service')->name('self-service.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('self-service')->name('self-service.')->group(function () {
     Route::get('/', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'profile'])->name('profile');
     Route::post('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'updateProfile'])->name('profile.update');
@@ -1737,7 +1745,7 @@ Route::prefix('farm')->name('farm.')->middleware('role:admin,manager,gudang')->g
 });
 
 // Fleet Management
-Route::prefix('fleet')->name('fleet.')->middleware(['role:admin,manager,gudang', 'tenant.isolation'])->group(function () {
+Route::prefix('fleet')->name('fleet.')->middleware(['role:admin,manager,gudang', 'tenant.isolation', 'check.module.plan:fleet'])->group(function () {
     Route::get('/', [FleetController::class, 'index'])->name('index')->middleware('permission:fleet,view');
     Route::post('/vehicles', [FleetController::class, 'storeVehicle'])->name('vehicles.store')->middleware('permission:fleet,create');
     Route::put('/vehicles/{fleetVehicle}', [FleetController::class, 'updateVehicle'])->name('vehicles.update')->middleware('permission:fleet,edit');
@@ -2078,7 +2086,7 @@ Route::prefix('settings/constraints')->name('constraints.')->middleware('role:ad
 });
 
 // Transaction Chain (Task 46)
-Route::prefix('transaction-chain')->name('transaction-chain.')->middleware('auth')->group(function () {
+Route::prefix('transaction-chain')->name('transaction-chain.')->middleware(['auth', 'tenant.isolation'])->group(function () {
     Route::get('/{type}/{id}', [\App\Http\Controllers\TransactionChainController::class, 'show'])->name('show');
     Route::get('/{type}/{id}/timeline', [\App\Http\Controllers\TransactionChainController::class, 'timeline'])->name('timeline');
 });
@@ -3384,7 +3392,7 @@ Route::prefix('marketplace')->name('marketplace.')->middleware(['auth'])->group(
 // ============================================
 // CUSTOMER PORTAL ROUTES
 // ============================================
-Route::prefix('portal')->name('customer-portal.')->middleware('auth')->group(function () {
+Route::prefix('portal')->name('customer-portal.')->middleware(['auth', 'tenant.isolation'])->group(function () {
     // Dashboard
     Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'index'])->name('dashboard');
 

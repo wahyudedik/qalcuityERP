@@ -8,7 +8,7 @@ use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Manufacturing\BomExplosionService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -24,7 +24,7 @@ use Tests\TestCase;
  */
 class ManufacturingBomExplosionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -33,11 +33,8 @@ class ManufacturingBomExplosionTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -56,31 +53,27 @@ class ManufacturingBomExplosionTest extends TestCase
     {
         // Arrange: Buat BOM 3 level
         // Level 0: Produk Jadi (Meja)
-        $productMeja = Product::factory()->create([
-            'tenant_id' => $this->tenant->id,
+        $productMeja = $this->createProduct($this->tenant->id, [
             'name' => 'Meja Kantor',
-            'code' => 'MEJA-001',
+            'sku' => 'MEJA-001',
         ]);
 
         // Level 1: Sub-assembly (Rangka Meja)
-        $productRangka = Product::factory()->create([
-            'tenant_id' => $this->tenant->id,
+        $productRangka = $this->createProduct($this->tenant->id, [
             'name' => 'Rangka Meja',
-            'code' => 'RANGKA-001',
+            'sku' => 'RANGKA-001',
         ]);
 
         // Level 2: Sub-assembly (Kaki Meja)
-        $productKaki = Product::factory()->create([
-            'tenant_id' => $this->tenant->id,
+        $productKaki = $this->createProduct($this->tenant->id, [
             'name' => 'Kaki Meja',
-            'code' => 'KAKI-001',
+            'sku' => 'KAKI-001',
         ]);
 
         // Level 3: Komponen dasar (Baut)
-        $productBaut = Product::factory()->create([
-            'tenant_id' => $this->tenant->id,
+        $productBaut = $this->createProduct($this->tenant->id, [
             'name' => 'Baut M8',
-            'code' => 'BAUT-M8',
+            'sku' => 'BAUT-M8',
         ]);
 
         // BOM Level 0: Meja → Rangka (1 unit)

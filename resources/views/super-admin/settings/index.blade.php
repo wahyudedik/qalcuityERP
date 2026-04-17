@@ -200,6 +200,88 @@
                         </div>
                     </div>
 
+                    {{-- Auto-Switching --}}
+                    <div class="border-t border-gray-100 dark:border-white/10 pt-4">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                            Gemini Auto-Switching
+                        </h3>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-4">Konfigurasi fallback otomatis ke model alternatif saat model utama mengalami rate limit atau quota habis.</p>
+
+                        <div class="space-y-4">
+                            {{-- Fallback Models --}}
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                    Fallback Models
+                                    @if ($grouped['ai']['gemini_fallback_models']['is_set'] ?? false)
+                                        <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓ Tersimpan</span>
+                                    @endif
+                                </label>
+                                @php
+                                    $fallbackRaw = $grouped['ai']['gemini_fallback_models']['value'] ?? null;
+                                    $fallbackDisplay = '';
+                                    if ($fallbackRaw) {
+                                        $decoded = json_decode($fallbackRaw, true);
+                                        $fallbackDisplay = is_array($decoded)
+                                            ? implode(', ', $decoded)
+                                            : $fallbackRaw;
+                                    } else {
+                                        $fallbackDisplay = implode(', ', config('gemini.fallback_models', ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-flash-lite']));
+                                    }
+                                @endphp
+                                <textarea name="gemini_fallback_models" rows="3"
+                                    placeholder='["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-flash-lite"] atau: gemini-2.5-flash, gemini-1.5-flash'
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none">{{ $fallbackDisplay }}</textarea>
+                                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Urutan model fallback — model pertama adalah prioritas utama. Gunakan JSON array atau comma-separated. Contoh: <code class="bg-gray-100 dark:bg-white/10 px-1 rounded">gemini-2.5-flash, gemini-1.5-flash</code></p>
+                            </div>
+
+                            <div class="grid md:grid-cols-3 gap-4">
+                                {{-- Rate Limit Cooldown --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Rate Limit Cooldown (detik)
+                                    </label>
+                                    <input type="number" name="gemini_rate_limit_cooldown" min="1" max="86400"
+                                        value="{{ $grouped['ai']['gemini_rate_limit_cooldown']['value'] ?? config('gemini.rate_limit_cooldown', 60) }}"
+                                        placeholder="60"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Durasi cooldown saat model kena rate limit (HTTP 429). Default: 60 detik.</p>
+                                </div>
+
+                                {{-- Quota Cooldown --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Quota Cooldown (detik)
+                                    </label>
+                                    <input type="number" name="gemini_quota_cooldown" min="1" max="86400"
+                                        value="{{ $grouped['ai']['gemini_quota_cooldown']['value'] ?? config('gemini.quota_cooldown', 3600) }}"
+                                        placeholder="3600"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Durasi cooldown saat quota harian habis. Default: 3600 detik (1 jam).</p>
+                                </div>
+
+                                {{-- Log Retention --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Retensi Log Switch (hari)
+                                    </label>
+                                    <input type="number" name="gemini_log_retention_days" min="1" max="365"
+                                        value="{{ $grouped['ai']['gemini_log_retention_days']['value'] ?? config('gemini.log_retention_days', 30) }}"
+                                        placeholder="30"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Berapa hari riwayat switch event disimpan sebelum dihapus otomatis. Default: 30 hari.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-xs text-orange-700 dark:text-orange-300 flex items-start gap-2">
+                                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Menyimpan konfigurasi ini akan mereset cache auto-switching sehingga model aktif kembali ke model utama. Pantau status model di <a href="{{ route('super-admin.ai-model.index') }}" class="underline font-semibold">halaman monitoring AI</a>.</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end">
                         <button type="submit"
                             class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">

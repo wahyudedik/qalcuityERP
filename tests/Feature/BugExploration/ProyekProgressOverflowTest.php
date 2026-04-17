@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\ProjectTask;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ use Tests\TestCase;
  */
 class ProyekProgressOverflowTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -29,11 +29,8 @@ class ProyekProgressOverflowTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -49,8 +46,11 @@ class ProyekProgressOverflowTest extends TestCase
     public function test_task_progress_does_not_exceed_100_percent(): void
     {
         // Arrange: Buat project dan task dengan volume tracking
-        $project = Project::factory()->create([
+        $project = Project::create([
             'tenant_id' => $this->tenant->id,
+            'user_id' => $this->user->id,
+            'name' => 'Proyek Test',
+            'number' => 'PRJ-' . uniqid(),
             'status' => 'active',
         ]);
 

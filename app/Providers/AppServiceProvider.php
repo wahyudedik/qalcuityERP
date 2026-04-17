@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Events\AllModelsUnavailable;
 use App\Events\SettingsUpdated;
 use App\Exceptions\CustomExceptionHandler;
 use App\Listeners\ClearSettingsCache;
+use App\Listeners\NotifyAllModelsUnavailable;
 use App\Models\SystemSetting;
 use App\Models\TenantApiSetting;
 use App\Models\Product;
@@ -36,7 +38,11 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // GeminiService TIDAK boleh singleton — state (language, tenantContext) harus fresh per request
-        $this->app->bind(GeminiService::class);
+        // Task 6.1: Inject ModelSwitcher (singleton) into GeminiService
+        $this->app->bind(GeminiService::class, function ($app) {
+            return new GeminiService($app->make(\App\Services\AI\ModelSwitcher::class));
+        });
+        $this->app->singleton(\App\Services\AI\ModelSwitcher::class);
         $this->app->singleton(ChatSessionManager::class);
         $this->app->singleton(GeminiWriteValidator::class);
 
@@ -75,6 +81,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Register event listeners for settings cache invalidation
         Event::listen(SettingsUpdated::class, ClearSettingsCache::class);
+
+        // Requirements: 10.1 — notify when all Gemini models are unavailable
+        Event::listen(AllModelsUnavailable::class, NotifyAllModelsUnavailable::class);
 
         // Register View Composers for sidebar badge optimization (N+1 query fix)
         View::composer('layouts.app', SidebarBadgeComposer::class);

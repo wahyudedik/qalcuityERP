@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PlanModuleMap;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class TenantController extends Controller
@@ -76,7 +78,7 @@ class TenantController extends Controller
     public function updatePlan(Request $request, Tenant $tenant): RedirectResponse
     {
         $data = $request->validate([
-            'plan'                 => 'required|in:trial,basic,pro,enterprise',
+            'plan'                 => 'required|in:trial,starter,business,professional,enterprise',
             'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
             'plan_expires_at'      => 'nullable|date|after:today',
             'trial_ends_at'        => 'nullable|date',
@@ -87,7 +89,26 @@ class TenantController extends Controller
             $data['trial_ends_at'] = null;
         }
 
+        $oldPlan = $tenant->plan;
+
         $tenant->update($data);
+
+        // Sync enabled_modules with the new plan's allowed modules
+        $freshTenant = $tenant->fresh();
+        if ($freshTenant->enabled_modules !== null) {
+            $newPlanSlug = $data['plan'];
+            $filteredModules = PlanModuleMap::filterAllowedModules($freshTenant->enabled_modules, $newPlanSlug);
+            $removedModules = array_diff($freshTenant->enabled_modules, $filteredModules);
+
+            $tenant->update(['enabled_modules' => $filteredModules]);
+
+            Log::info('Tenant enabled_modules synced after plan change', [
+                'tenant_id'       => $tenant->id,
+                'old_plan'        => $oldPlan,
+                'new_plan'        => $newPlanSlug,
+                'removed_modules' => array_values($removedModules),
+            ]);
+        }
 
         // Bust AI quota limit cache so new plan limits take effect immediately
         app(\App\Services\AiQuotaService::class)->bustLimitCache($tenant->id);

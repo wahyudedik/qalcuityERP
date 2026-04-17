@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\SettingsUpdated;
 use App\Services\ModuleCleanupService; // BUG-SET-002 FIX
 use App\Services\ModuleRecommendationService;
+use App\Services\PlanModuleMap;
 use App\Services\SettingsCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,20 @@ class ModuleSettingsController extends Controller
         $oldModules = $tenant->enabledModules();
         $newModules = $request->input('modules', []);
         $cleanupStrategy = $request->input('cleanup_strategy', 'keep');
+
+        // Plan-based module validation (skip for legacy tenants with null enabled_modules)
+        if ($tenant->enabled_modules !== null) {
+            $planSlug = $tenant->subscriptionPlan->slug ?? $tenant->plan ?? null;
+            $disallowedModules = PlanModuleMap::getDisallowedModules($newModules, $planSlug);
+
+            if (!empty($disallowedModules)) {
+                $errorMessage = "Modul berikut tidak diizinkan untuk paket {$planSlug}: " . implode(', ', $disallowedModules);
+                if ($request->expectsJson()) {
+                    return response()->json(['errors' => ['modules' => [$errorMessage]]], 422);
+                }
+                return response($errorMessage, 422);
+            }
+        }
 
         // BUG-SET-002 FIX: Detect disabled modules and cleanup
         $disabledModules = array_diff($oldModules, $newModules);

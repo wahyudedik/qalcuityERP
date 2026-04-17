@@ -39,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'healthcare.audit' => \App\Http\Middleware\AuditTrailMiddleware::class,
             'healthcare.rbac' => \App\Http\Middleware\RBACMiddleware::class,
             'healthcare.hours' => \App\Http\Middleware\BusinessHoursMiddleware::class,
+
+            // Plan-based module access middleware
+            // Usage: Route::middleware('check.module.plan:manufacturing')->group(...)
+            'check.module.plan' => \App\Http\Middleware\CheckModulePlanAccess::class,
         ]);
 
         // CheckTenantActive di-append ke web group agar berjalan di semua request

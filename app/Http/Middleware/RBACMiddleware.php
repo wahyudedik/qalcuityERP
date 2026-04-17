@@ -93,7 +93,7 @@ class RBACMiddleware
         }
 
         // Superadmin bypass
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return $next($request);
         }
 

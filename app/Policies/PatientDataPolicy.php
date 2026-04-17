@@ -14,7 +14,7 @@ class PatientDataPolicy
     public function view(User $user, Patient $patient): Response
     {
         // Superadmin has full access
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -72,10 +72,10 @@ class PatientDataPolicy
         }
 
         // Only specific roles can view sensitive data
-        $allowedRoles = ['superadmin', 'admin', 'doctor', 'billing_staff'];
+        $allowedRoles = ['admin', 'doctor', 'billing_staff'];
         $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
 
-        if (!$hasRole && !$user->is_superadmin) {
+        if (!$hasRole && !$user->isSuperAdmin()) {
             return Response::deny('You do not have permission to view sensitive patient data.');
         }
 
@@ -87,7 +87,7 @@ class PatientDataPolicy
      */
     public function create(User $user): Response
     {
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -118,10 +118,10 @@ class PatientDataPolicy
         }
 
         // Only admin, doctors, and receptionists can update
-        $allowedRoles = ['superadmin', 'admin', 'doctor', 'receptionist'];
+        $allowedRoles = ['admin', 'doctor', 'receptionist'];
         $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
 
-        if (!$hasRole) {
+        if (!$hasRole && !$user->isSuperAdmin()) {
             return Response::deny('You do not have permission to update patient data.');
         }
 
@@ -134,7 +134,7 @@ class PatientDataPolicy
     public function delete(User $user, Patient $patient): Response
     {
         // Only superadmin and admin can delete (soft delete)
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -160,7 +160,7 @@ class PatientDataPolicy
         if (
             !$user->hasRole('admin') &&
             !$user->hasRole('doctor') &&
-            !$user->hasRole('superadmin')
+            !$user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to export patient data.');
         }
@@ -180,10 +180,10 @@ class PatientDataPolicy
         }
 
         // Only billing staff, admin, and doctors can view financial data
-        $allowedRoles = ['superadmin', 'admin', 'doctor', 'billing_staff'];
+        $allowedRoles = ['admin', 'doctor', 'billing_staff'];
         $hasRole = collect($allowedRoles)->some(fn($role) => $user->hasRole($role));
 
-        if (!$hasRole) {
+        if (!$hasRole && !$user->isSuperAdmin()) {
             return Response::deny('You do not have permission to view patient financial data.');
         }
 
@@ -213,7 +213,7 @@ class PatientDataPolicy
         if (
             !$user->hasRole('doctor') &&
             !$user->hasRole('admin') &&
-            !$user->hasRole('superadmin')
+            !$user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to share patient data.');
         }
@@ -229,7 +229,7 @@ class PatientDataPolicy
     {
         // Only superadmin and researchers can anonymize
         if (
-            !$user->hasRole('superadmin') &&
+            !$user->isSuperAdmin() &&
             !$user->hasRole('admin') &&
             !$user->hasRole('researcher')
         ) {
@@ -265,8 +265,7 @@ class PatientDataPolicy
         // Only admin and superadmin can view audit trails
         if (
             !$user->hasRole('admin') &&
-            !$user->hasRole('superadmin') &&
-            !$user->is_superadmin
+            !$user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to view audit trails.');
         }

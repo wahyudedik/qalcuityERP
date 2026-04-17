@@ -18,7 +18,7 @@ class MedicalRecordPolicy
     public function view(User $user, Patient $patient): Response
     {
         // Superadmin has full access
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -66,7 +66,7 @@ class MedicalRecordPolicy
      */
     public function create(User $user, ?Patient $patient = null): Response
     {
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -89,7 +89,7 @@ class MedicalRecordPolicy
     public function update(User $user, Emr $emr): Response
     {
         // Superadmin has full access
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -121,7 +121,7 @@ class MedicalRecordPolicy
     public function delete(User $user, Emr $emr): Response
     {
         // Only superadmin or admin can delete (soft delete)
-        if ($user->hasRole('superadmin') || $user->is_superadmin) {
+        if ($user->isSuperAdmin()) {
             return Response::allow();
         }
 
@@ -227,7 +227,7 @@ class MedicalRecordPolicy
         if (
             !$user->hasRole('doctor') &&
             !$user->hasRole('admin') &&
-            !$user->hasRole('superadmin')
+            !$user->isSuperAdmin()
         ) {
             return Response::deny('You do not have permission to export medical records.');
         }

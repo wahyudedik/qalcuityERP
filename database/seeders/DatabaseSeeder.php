@@ -20,6 +20,11 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
         ]);
 
+        // 2. Sample Data Templates
+        $this->call([
+            SampleDataTemplateSeeder::class,
+        ]);
+
         // 2. Complete Demo Data (all modules included)
         // $this->call([
         //     TenantDemoSeeder::class,

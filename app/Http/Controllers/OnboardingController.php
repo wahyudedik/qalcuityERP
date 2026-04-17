@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\OnboardingProfile;
 use App\Models\OnboardingProgress;
 use App\Models\AiTourSession;
+use App\Models\Tenant;
 use App\Models\UserTip;
+use App\Services\ModuleRecommendationService;
 use App\Services\SampleDataGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +15,8 @@ use Illuminate\Support\Facades\Auth;
 class OnboardingController extends Controller
 {
     public function __construct(
-        protected SampleDataGeneratorService $sampleDataService
+        protected SampleDataGeneratorService $sampleDataService,
+        protected ModuleRecommendationService $moduleRecommendationService
     ) {
     }
 
@@ -249,6 +252,11 @@ class OnboardingController extends Controller
      */
     public function complete(Request $request)
     {
+        // Ensure POST bag data is accessible via $request->all() (needed for direct controller calls in tests)
+        if ($request->isMethod('GET') && $request->request->count() > 0) {
+            $request->merge($request->request->all());
+        }
+
         $tenantId = $this->getTenantId();
         $userId = $this->getUserId();
 
@@ -270,6 +278,29 @@ class OnboardingController extends Controller
                 'completed_at' => now(),
             ]
         );
+
+        // Map onboarding industry keys to ModuleRecommendationService keys
+        $industryMap = [
+            'restaurant'    => 'fnb',
+            'manufacturing' => 'manufacture',
+            'services'      => 'service',
+        ];
+        $recommendKey = $industryMap[$request->industry] ?? $request->industry;
+
+        // Determine modules to apply: use selected_modules if provided, otherwise use recommendations
+        $selectedModules = $request->selected_modules ?? [];
+        if (!empty($selectedModules)) {
+            $modulesToApply = $selectedModules;
+        } else {
+            $modulesToApply = $this->moduleRecommendationService->recommend($recommendKey)['modules'];
+        }
+
+        // Save modules and mark onboarding as completed on the tenant
+        $tenant = Tenant::find($tenantId);
+        $tenant->update([
+            'enabled_modules'      => $modulesToApply,
+            'onboarding_completed' => true,
+        ]);
 
         // Initialize progress steps
         $this->initializeProgressSteps($tenantId, $userId, $request->industry);

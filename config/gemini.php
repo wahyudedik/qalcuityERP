@@ -14,6 +14,15 @@ return [
         'gemini-2.5-pro',         // fallback 3 — paling capable
     ],
 
+    // Cooldown duration (seconds) setelah rate limit error — Requirements: 3.1, 8.1
+    'rate_limit_cooldown' => env('GEMINI_RATE_LIMIT_COOLDOWN', 60),
+
+    // Cooldown duration (seconds) setelah quota exceeded error — Requirements: 3.2, 8.1
+    'quota_cooldown' => env('GEMINI_QUOTA_COOLDOWN', 3600),
+
+    // Interval (seconds) untuk scheduled recovery probe ke primary model — Requirements: 4.5, 8.1
+    'recovery_check_interval' => env('GEMINI_RECOVERY_CHECK_INTERVAL', 300),
+
     // HTTP error codes yang memicu fallback
     'rate_limit_codes' => [429, 503, 500],
 

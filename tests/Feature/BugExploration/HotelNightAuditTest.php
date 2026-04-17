@@ -9,7 +9,7 @@ use App\Models\RoomType;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\NightAuditService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -25,7 +25,7 @@ use Tests\TestCase;
  */
 class HotelNightAuditTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -34,11 +34,8 @@ class HotelNightAuditTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create(['is_active' => true]);
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->tenant = $this->createTenant();
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }
@@ -54,13 +51,14 @@ class HotelNightAuditTest extends TestCase
     public function test_night_audit_throws_exception_for_reservation_without_room_rate(): void
     {
         // Arrange: Buat room type tanpa base rate
-        $roomType = RoomType::factory()->create([
+        $roomType = RoomType::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Standard Room',
+            'code' => 'STD-' . uniqid(),
             'base_rate' => 0, // Tidak ada rate!
         ]);
 
-        $room = Room::factory()->create([
+        $room = Room::create([
             'tenant_id' => $this->tenant->id,
             'room_type_id' => $roomType->id,
             'number' => '101',
@@ -68,13 +66,16 @@ class HotelNightAuditTest extends TestCase
         ]);
 
         // Buat reservasi checked_in tanpa room rate
-        $reservation = Reservation::factory()->create([
+        $reservation = Reservation::create([
             'tenant_id' => $this->tenant->id,
             'room_type_id' => $roomType->id,
             'status' => 'checked_in',
             'check_in_date' => today()->subDay(),
             'check_out_date' => today()->addDay(),
             'rate_per_night' => null, // Tidak ada rate!
+            'reservation_number' => 'RES-TEST-001',
+            'nights' => 2,
+            'adults' => 1,
         ]);
 
         // Attach room ke reservation

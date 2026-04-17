@@ -138,6 +138,13 @@ class EnforceTenantIsolation
             \App\Models\InvoiceInstallment::class,
             \App\Models\ProjectTask::class,
             \App\Models\PriceList::class,
+            // Bug 6 fix — model yang sebelumnya hilang dari daftar
+            \App\Models\ErpNotification::class,
+            \App\Models\UserPermission::class,
+            \App\Models\CustomField::class,
+            \App\Models\DocumentTemplate::class,
+            \App\Models\Workflow::class,
+            \App\Models\AiTourSession::class,
         ];
 
         // Cek semua route parameters yang merupakan Eloquent model

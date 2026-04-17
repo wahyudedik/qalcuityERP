@@ -14,6 +14,8 @@ use Gemini\Data\Tool;
 use Gemini\Enums\DataType;
 use Gemini\Enums\MimeType;
 use Gemini\Enums\Role;
+use App\Exceptions\AllModelsUnavailableException;
+use App\Services\AI\ModelSwitcher;
 use Illuminate\Support\Facades\Log;
 
 class GeminiService
@@ -24,8 +26,13 @@ class GeminiService
     protected string $activeModel;
     protected ?string $tenantContext = null;
     protected string $language = 'id'; // default Bahasa Indonesia
+    protected ModelSwitcher $switcher;
 
-    public function __construct()
+    /**
+     * Task 6.1: Inject ModelSwitcher via constructor.
+     * Requirements: 1.5
+     */
+    public function __construct(?ModelSwitcher $switcher = null)
     {
         $apiKey = config('gemini.api_key');
 
@@ -54,6 +61,9 @@ class GeminiService
             Log::warning('GeminiService: No fallback models configured. Using default model only.');
             $this->models = [$this->activeModel];
         }
+
+        // Task 6.1: Store ModelSwitcher; resolve from container if not provided
+        $this->switcher = $switcher ?? app(ModelSwitcher::class);
     }
 
     /** Inject konteks bisnis tenant ke system prompt */
@@ -750,12 +760,14 @@ PROMPT,
     /**
      * Chat biasa dengan history.
      * Return: ['text' => string, 'model' => string]
+     * Task 6.4: Uses callWithFallback() for automatic model switching.
+     * Requirements: 6.1, 6.2, 6.3
      */
     public function chat(string $message, array $history = []): array
     {
         $contents = $this->buildHistory($history);
 
-        return $this->runWithFallback(function (string $model) use ($message, $contents) {
+        return $this->callWithFallback(function (string $model) use ($message, $contents) {
             $response = $this->client
                 ->generativeModel($model)
                 ->withSystemInstruction($this->getSystemInstruction())
@@ -769,13 +781,15 @@ PROMPT,
     /**
      * Chat dengan function calling tools.
      * Return: ['text' => string, 'model' => string, 'function_calls' => array]
+     * Task 6.4: Uses callWithFallback() for automatic model switching.
+     * Requirements: 6.1, 6.2, 6.3
      */
     public function chatWithTools(string $message, array $history, array $toolDeclarations): array
     {
         $contents = $this->buildHistory($history);
         $tool = $this->buildTool($toolDeclarations);
 
-        return $this->runWithFallback(function (string $model) use ($message, $contents, $tool) {
+        return $this->callWithFallback(function (string $model) use ($message, $contents, $tool) {
             $modelBuilder = $this->client
                 ->generativeModel($model)
                 ->withSystemInstruction($this->getSystemInstruction())
@@ -992,6 +1006,153 @@ PROMPT,
             }
         }
         return $text;
+    }
+
+    /**
+     * Task 6.2: Classify a Throwable into a fallback-triggering error category.
+     * Returns 'rate_limit', 'quota_exceeded', 'service_unavailable', or null.
+     * Requirements: 3.1, 3.2, 2.3
+     */
+    private function classifyError(\Throwable $e): ?string
+    {
+        $code = $e->getCode();
+        $message = strtolower($e->getMessage());
+
+        // HTTP 429 → rate_limit
+        if ($code === 429) {
+            return 'rate_limit';
+        }
+
+        // HTTP 503 → service_unavailable
+        if ($code === 503) {
+            return 'service_unavailable';
+        }
+
+        // Message contains "quota" or "RESOURCE_EXHAUSTED" → quota_exceeded
+        if (str_contains($message, 'quota') || str_contains(strtolower($e->getMessage()), 'resource_exhausted')) {
+            return 'quota_exceeded';
+        }
+
+        return null;
+    }
+
+    /**
+     * Task 6.3: Execute an API call with automatic model fallback via ModelSwitcher.
+     * Loop: getActiveModel() → api call → if classified error, markUnavailable() +
+     *       dispatch LogModelSwitchJob → nextAvailableModel() → retry.
+     * On success after switch: setActiveModel() + add 'switched_model' flag.
+     * On AllModelsUnavailableException: return user-friendly error array.
+     * Requirements: 2.1, 2.2, 2.3, 2.6, 6.1, 6.2, 6.3, 6.4
+     */
+    private function callWithFallback(callable $apiCall): array
+    {
+        $originalModel = $this->switcher->getActiveModel();
+        $currentModel = $originalModel;
+        $switched = false;
+
+        while (true) {
+            try {
+                $result = $apiCall($currentModel);
+
+                // Normalise result to array
+                if (is_array($result) && isset($result['_raw'])) {
+                    unset($result['_raw']);
+                    $result['model'] = $currentModel;
+                } else {
+                    $result = ['text' => $result, 'model' => $currentModel];
+                }
+
+                // If we switched models and this call succeeded, persist the new active model
+                if ($switched) {
+                    $this->switcher->setActiveModel($currentModel);
+                    $result['switched_model'] = true;
+                }
+
+                return $result;
+
+            } catch (\Throwable $e) {
+                // Check if this is an API key error — never retry for these
+                if ($this->isApiKeyError($e)) {
+                    Log::error("GeminiService: Invalid API key on [{$currentModel}]. Check GEMINI_API_KEY configuration.");
+                    throw new \RuntimeException(
+                        'Gemini API key tidak valid. Silakan periksa pengaturan API key di Admin → AI Settings atau file .env.',
+                        401
+                    );
+                }
+
+                $errorClass = $this->classifyError($e);
+
+                if ($errorClass === null) {
+                    // Non-retriable error — rethrow
+                    Log::error("GeminiService error on [{$currentModel}]: " . $e->getMessage(), [
+                        'model'      => $currentModel,
+                        'error_code' => $e->getCode(),
+                        'error_type' => get_class($e),
+                    ]);
+                    throw new \RuntimeException(
+                        'Gagal terhubung ke Gemini AI. Error: ' . $this->getUserFriendlyError($e),
+                        503
+                    );
+                }
+
+                // Mark current model unavailable
+                $this->switcher->markUnavailable($currentModel, $errorClass);
+
+                // Dispatch async log job if the class exists (task 7 implements it)
+                $nextModel = null;
+                try {
+                    $nextModel = $this->switcher->nextAvailableModel($currentModel);
+                } catch (AllModelsUnavailableException $ex) {
+                    // Dispatch log for the last switch attempt
+                    $this->dispatchSwitchLog($currentModel, 'none', $errorClass, $e->getMessage());
+                    return [
+                        'text'  => 'Layanan AI sedang mengalami gangguan. Silakan coba beberapa saat lagi.',
+                        'error' => true,
+                    ];
+                }
+
+                // Dispatch async log for this switch
+                $this->dispatchSwitchLog($currentModel, $nextModel, $errorClass, $e->getMessage());
+
+                Log::warning("GeminiService: [{$currentModel}] {$errorClass}, switching to [{$nextModel}].");
+
+                $currentModel = $nextModel;
+                $switched = true;
+            }
+        }
+    }
+
+    /**
+     * Dispatch LogModelSwitchJob if the job class exists (implemented in task 7).
+     */
+    private function dispatchSwitchLog(string $fromModel, string $toModel, string $reason, ?string $errorMessage): void
+    {
+        if (!class_exists(\App\Jobs\LogModelSwitchJob::class)) {
+            return;
+        }
+
+        $tenantId = null;
+        try {
+            $tenantId = auth()->user()?->tenant_id;
+        } catch (\Throwable) {
+            // Not in an authenticated context
+        }
+
+        $requestContext = null;
+        try {
+            $requestContext = request()->route()?->getName();
+        } catch (\Throwable) {
+            // Not in an HTTP context
+        }
+
+        dispatch(new \App\Jobs\LogModelSwitchJob(
+            fromModel: $fromModel,
+            toModel: $toModel,
+            reason: $reason,
+            errorMessage: $errorMessage,
+            requestContext: $requestContext,
+            triggeredByTenantId: $tenantId,
+        ));
     }
 
     protected function runWithFallback(callable $fn): array

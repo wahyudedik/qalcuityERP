@@ -8,7 +8,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\GlPostingService;
 use App\Services\PeriodLockService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 /**
@@ -22,7 +22,7 @@ use Tests\TestCase;
  */
 class KeuanganJournalLockedPeriodTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user;
@@ -31,15 +31,9 @@ class KeuanganJournalLockedPeriodTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create([
-            'plan' => 'business',
-            'is_active' => true,
-        ]);
+        $this->tenant = $this->createTenant(['plan' => 'business']);
 
-        $this->user = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->user = $this->createAdminUser($this->tenant);
 
         $this->actingAs($this->user);
     }

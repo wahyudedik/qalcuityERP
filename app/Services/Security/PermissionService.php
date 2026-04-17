@@ -192,7 +192,7 @@ class PermissionService
      */
     protected function isAdmin($user): bool
     {
-        return in_array($user->role_name ?? '', ['admin', 'superadmin']);
+        return in_array($user->role ?? '', ['admin', 'super_admin']);
     }
 
     /**

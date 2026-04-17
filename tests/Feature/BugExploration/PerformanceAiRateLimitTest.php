@@ -5,7 +5,7 @@ namespace Tests\Feature\BugExploration;
 use App\Http\Middleware\RateLimitAiRequests;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -25,7 +25,7 @@ use Tests\TestCase;
  */
 class PerformanceAiRateLimitTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     private Tenant $tenant;
     private User $user1;
@@ -35,21 +35,12 @@ class PerformanceAiRateLimitTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::factory()->create([
-            'is_active' => true,
-            'plan' => 'starter', // Plan starter: limit 30 requests/menit
-        ]);
+        $this->tenant = $this->createTenant(['plan' => 'starter']);
 
         // Dua user dari tenant yang sama
-        $this->user1 = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'admin',
-        ]);
+        $this->user1 = $this->createAdminUser($this->tenant);
 
-        $this->user2 = User::factory()->create([
-            'tenant_id' => $this->tenant->id,
-            'role' => 'staff',
-        ]);
+        $this->user2 = $this->createAdminUser($this->tenant);
     }
 
     /**
