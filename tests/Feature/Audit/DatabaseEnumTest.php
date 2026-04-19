@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -24,8 +25,6 @@ use Tests\TestCase;
  */
 class DatabaseEnumTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected Tenant $tenant;
     protected User $user;
     protected Customer $customer;
@@ -41,7 +40,7 @@ class DatabaseEnumTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    /** @test */
+    #[Test]
     public function invoice_status_accepts_all_valid_enum_values()
     {
         $validStatuses = Invoice::STATUSES;
@@ -64,7 +63,7 @@ class DatabaseEnumTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function invoice_status_rejects_invalid_enum_value()
     {
         $this->expectException(\PDOException::class);
@@ -83,7 +82,7 @@ class DatabaseEnumTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function sales_order_status_accepts_all_valid_enum_values()
     {
         $validStatuses = SalesOrder::STATUSES;
@@ -106,7 +105,7 @@ class DatabaseEnumTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function sales_order_status_rejects_invalid_enum_value()
     {
         $this->expectException(\PDOException::class);
@@ -125,7 +124,7 @@ class DatabaseEnumTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function purchase_order_status_accepts_valid_enum_values()
     {
         // Create supplier first
@@ -155,7 +154,7 @@ class DatabaseEnumTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function purchase_order_status_rejects_invalid_enum_value()
     {
         $supplier = \App\Models\Supplier::create([
@@ -180,7 +179,7 @@ class DatabaseEnumTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function invoice_voided_status_is_supported()
     {
         // Requirement 1.2: invoices.status must support 'voided'
@@ -201,7 +200,7 @@ class DatabaseEnumTest extends TestCase
         $this->assertContains('voided', Invoice::STATUSES);
     }
 
-    /** @test */
+    #[Test]
     public function invoice_partial_paid_status_is_supported()
     {
         // Requirement 1.2: invoices.status must support 'partial_paid'
@@ -222,7 +221,7 @@ class DatabaseEnumTest extends TestCase
         $this->assertContains('partial_paid', Invoice::STATUSES);
     }
 
-    /** @test */
+    #[Test]
     public function invoice_cancelled_status_is_supported()
     {
         // Requirement 1.2: invoices.status must support 'cancelled'
@@ -243,7 +242,7 @@ class DatabaseEnumTest extends TestCase
         $this->assertContains('cancelled', Invoice::STATUSES);
     }
 
-    /** @test */
+    #[Test]
     public function all_invoice_status_constants_are_valid()
     {
         // Verify all constants defined in Invoice model are valid
@@ -262,7 +261,7 @@ class DatabaseEnumTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function all_sales_order_status_constants_are_valid()
     {
         // Verify all constants defined in SalesOrder model are valid
@@ -282,3 +281,8 @@ class DatabaseEnumTest extends TestCase
         }
     }
 }
+
+
+
+
+

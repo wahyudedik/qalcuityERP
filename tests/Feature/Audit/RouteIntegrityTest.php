@@ -5,6 +5,7 @@ namespace Tests\Feature\Audit;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -19,8 +20,6 @@ use Tests\TestCase;
  */
 class RouteIntegrityTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected Tenant $tenant;
     protected User $user;
 
@@ -34,14 +33,14 @@ class RouteIntegrityTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    /** @test */
+    #[Test]
     public function dashboard_route_is_accessible()
     {
         $response = $this->get(route('dashboard'));
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function accounting_routes_are_accessible()
     {
         $routes = [
@@ -61,7 +60,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function inventory_routes_are_accessible()
     {
         $routes = [
@@ -79,7 +78,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function sales_routes_are_accessible()
     {
         $routes = [
@@ -98,7 +97,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function purchasing_routes_are_accessible()
     {
         $routes = [
@@ -115,7 +114,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function hrm_routes_are_accessible()
     {
         $routes = [
@@ -133,7 +132,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function payroll_routes_are_accessible()
     {
         $routes = [
@@ -149,7 +148,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function pos_routes_are_accessible()
     {
         $routes = [
@@ -165,7 +164,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function reports_routes_are_accessible()
     {
         $routes = [
@@ -180,7 +179,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function settings_routes_are_accessible()
     {
         $routes = [
@@ -197,14 +196,14 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function profile_routes_are_accessible()
     {
         $response = $this->get(route('profile.edit'));
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function notifications_route_is_accessible()
     {
         if (\Illuminate\Support\Facades\Route::has('notifications.index')) {
@@ -213,7 +212,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function error_pages_exist()
     {
         // Test 404 page
@@ -241,7 +240,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function api_routes_are_accessible()
     {
         // Test some API routes if they exist
@@ -257,7 +256,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function healthcare_routes_are_accessible_when_module_active()
     {
         // Only test if healthcare routes exist
@@ -267,7 +266,7 @@ class RouteIntegrityTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function all_named_routes_have_valid_controllers()
     {
         $routes = \Illuminate\Support\Facades\Route::getRoutes();
@@ -298,3 +297,6 @@ class RouteIntegrityTest extends TestCase
         $this->assertEmpty($errors, "Found routes with missing controllers:\n" . implode("\n", $errors));
     }
 }
+
+
+

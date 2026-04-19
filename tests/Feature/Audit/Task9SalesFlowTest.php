@@ -249,7 +249,7 @@ class Task9SalesFlowTest extends TestCase
 
         // Deduct stock
         $stock = ProductStock::where('product_id', $this->product->id)
-            ->where('warehouse_id' => $this->warehouse->id)
+            ->where('warehouse_id', $this->warehouse->id)
             ->first();
         $stock->decrement('quantity', 5);
 

@@ -5,6 +5,7 @@ namespace Tests\Feature\Audit;
 use App\Traits\BelongsToTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -19,8 +20,6 @@ use Tests\TestCase;
  */
 class ModelTenantScopeTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Get all model classes from app/Models directory
      */
@@ -90,7 +89,7 @@ class ModelTenantScopeTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function all_tenant_scoped_models_use_belongs_to_tenant_trait()
     {
         $models = $this->getAllModelClasses();
@@ -115,7 +114,7 @@ class ModelTenantScopeTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function belongs_to_tenant_trait_adds_global_scope()
     {
         // Test with Invoice model (known to use BelongsToTenant)
@@ -148,7 +147,7 @@ class ModelTenantScopeTest extends TestCase
         $this->assertEquals($tenant2->id, $customers->first()->tenant_id);
     }
 
-    /** @test */
+    #[Test]
     public function belongs_to_tenant_trait_auto_sets_tenant_id_on_create()
     {
         $tenant = $this->createTenant();
@@ -166,7 +165,7 @@ class ModelTenantScopeTest extends TestCase
         $this->assertEquals($tenant->id, $customer->tenant_id);
     }
 
-    /** @test */
+    #[Test]
     public function without_tenant_scope_bypasses_filtering()
     {
         $tenant1 = $this->createTenant(['name' => 'Tenant 1']);
@@ -188,7 +187,7 @@ class ModelTenantScopeTest extends TestCase
         $this->assertCount(2, $allCustomers);
     }
 
-    /** @test */
+    #[Test]
     public function for_tenant_scope_filters_by_specific_tenant()
     {
         $tenant1 = $this->createTenant(['name' => 'Tenant 1']);
@@ -207,7 +206,7 @@ class ModelTenantScopeTest extends TestCase
         $this->assertEquals($customer2->id, $tenant2Customers->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function super_admin_bypasses_tenant_scope()
     {
         $tenant1 = $this->createTenant(['name' => 'Tenant 1']);
@@ -232,7 +231,7 @@ class ModelTenantScopeTest extends TestCase
         $this->assertCount(2, $customers);
     }
 
-    /** @test */
+    #[Test]
     public function key_models_have_tenant_scope()
     {
         // Verify critical models use BelongsToTenant
@@ -260,7 +259,7 @@ class ModelTenantScopeTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function tenant_isolation_prevents_cross_tenant_access()
     {
         $tenant1 = $this->createTenant(['name' => 'Tenant 1']);
@@ -298,3 +297,6 @@ class ModelTenantScopeTest extends TestCase
         $this->assertNull($foundInvoice, 'Tenant 2 user should not be able to access Tenant 1 invoice');
     }
 }
+
+
+

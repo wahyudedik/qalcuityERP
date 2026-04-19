@@ -5,6 +5,7 @@ namespace Tests\Feature\Audit;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -20,8 +21,6 @@ use Tests\TestCase;
  */
 class AccessControlTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected Tenant $tenant;
     protected User $adminUser;
     protected User $staffUser;
@@ -54,7 +53,7 @@ class AccessControlTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_access_all_modules()
     {
         $this->actingAs($this->adminUser);
@@ -70,7 +69,7 @@ class AccessControlTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function staff_cannot_access_admin_settings()
     {
         $this->actingAs($this->staffUser);
@@ -83,7 +82,7 @@ class AccessControlTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function kasir_can_only_access_pos_module()
     {
         $this->actingAs($this->kasirUser);
@@ -101,7 +100,7 @@ class AccessControlTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function super_admin_can_access_all_tenants()
     {
         // Create super admin (no tenant_id)
@@ -130,7 +129,7 @@ class AccessControlTest extends TestCase
         $this->assertGreaterThanOrEqual(2, $customers->count());
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_access_inactive_tenant()
     {
         // Deactivate tenant
@@ -145,7 +144,7 @@ class AccessControlTest extends TestCase
         $this->assertContains($response->status(), [302, 403]);
     }
 
-    /** @test */
+    #[Test]
     public function module_access_is_restricted_by_plan()
     {
         // Create tenant with starter plan (limited modules)
@@ -162,7 +161,7 @@ class AccessControlTest extends TestCase
         // (This depends on your PlanModuleMap configuration)
     }
 
-    /** @test */
+    #[Test]
     public function user_can_only_see_data_from_own_tenant()
     {
         $tenant2 = $this->createTenant(['name' => 'Tenant 2']);
@@ -187,7 +186,7 @@ class AccessControlTest extends TestCase
         $this->assertEquals($customer2->id, $customers->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_access_another_tenants_data_via_url()
     {
         $tenant2 = $this->createTenant(['name' => 'Tenant 2']);
@@ -218,7 +217,7 @@ class AccessControlTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function permissions_control_action_visibility()
     {
         $this->actingAs($this->adminUser);
@@ -233,7 +232,7 @@ class AccessControlTest extends TestCase
         $this->assertEquals('staff', $this->staffUser->role);
     }
 
-    /** @test */
+    #[Test]
     public function inactive_user_cannot_login()
     {
         // Deactivate user
@@ -248,7 +247,7 @@ class AccessControlTest extends TestCase
         $this->assertContains($response->status(), [302, 403]);
     }
 
-    /** @test */
+    #[Test]
     public function role_based_menu_visibility()
     {
         // Admin should see all menu items
@@ -267,7 +266,7 @@ class AccessControlTest extends TestCase
         $this->assertEquals('kasir', $this->kasirUser->role);
     }
 
-    /** @test */
+    #[Test]
     public function expired_trial_tenant_has_limited_access()
     {
         // Set tenant trial as expired
@@ -282,7 +281,7 @@ class AccessControlTest extends TestCase
         $this->assertContains($response->status(), [200, 302]);
     }
 
-    /** @test */
+    #[Test]
     public function module_settings_control_feature_access()
     {
         // This would test if module activation/deactivation works
@@ -291,3 +290,6 @@ class AccessControlTest extends TestCase
         $this->assertEquals('professional', $this->tenant->plan);
     }
 }
+
+
+

@@ -20,6 +20,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -35,8 +36,6 @@ use Tests\TestCase;
  */
 class BusinessFlowTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected Tenant $tenant;
     protected User $user;
     protected Customer $customer;
@@ -66,7 +65,7 @@ class BusinessFlowTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    /** @test */
+    #[Test]
     public function complete_sales_flow_works_end_to_end()
     {
         // 1. Create Sales Order
@@ -168,7 +167,7 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals(111000, $totalDebit);
     }
 
-    /** @test */
+    #[Test]
     public function complete_purchasing_flow_works_end_to_end()
     {
         // 1. Create Purchase Order
@@ -270,7 +269,7 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals($totalDebit, $totalCredit);
     }
 
-    /** @test */
+    #[Test]
     public function complete_payroll_flow_works_end_to_end()
     {
         // 1. Create Employee
@@ -341,7 +340,7 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals(5000000, $totalDebit);
     }
 
-    /** @test */
+    #[Test]
     public function complete_pos_flow_works_end_to_end()
     {
         // Set initial stock
@@ -445,7 +444,7 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals(55500, $totalDebit);
     }
 
-    /** @test */
+    #[Test]
     public function sales_flow_with_partial_payment_works()
     {
         // Create invoice
@@ -495,3 +494,6 @@ class BusinessFlowTest extends TestCase
         $this->assertEquals('paid', $invoice->fresh()->status);
     }
 }
+
+
+

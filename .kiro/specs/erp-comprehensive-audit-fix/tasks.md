@@ -258,8 +258,8 @@
   - [x] 24.7 Buat `tests/Unit/Audit/JournalBalanceTest.php` — unit test kalkulasi balance jurnal
   - [x] 24.8 Buat `tests/Unit/Audit/StockCalculationTest.php` — unit test kalkulasi stok FIFO dan Average Cost
 
-- [ ] 25. Verifikasi Final dan Dokumentasi
-  - [ ] 25.1 Jalankan semua property-based tests — pastikan semua lulus dengan minimum 100 iterasi
+- [-] 25. Verifikasi Final dan Dokumentasi
+  - [x] 25.1 Jalankan semua property-based tests — pastikan semua lulus dengan minimum 100 iterasi
   - [ ] 25.2 Jalankan semua feature dan unit tests — pastikan zero failures
   - [ ] 25.3 Verifikasi zero PHP errors/warnings di log setelah semua perbaikan diterapkan
   - [ ] 25.4 Verifikasi aplikasi berjalan normal di semua modul utama (manual smoke test)

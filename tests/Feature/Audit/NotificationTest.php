@@ -10,6 +10,7 @@ use App\Notifications\InvoiceOverdueNotification;
 use App\Notifications\LowStockEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -24,8 +25,6 @@ use Tests\TestCase;
  */
 class NotificationTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected Tenant $tenant;
     protected User $user;
 
@@ -39,7 +38,7 @@ class NotificationTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    /** @test */
+    #[Test]
     public function invoice_due_notification_is_sent()
     {
         Notification::fake();
@@ -72,7 +71,7 @@ class NotificationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function invoice_overdue_notification_is_sent()
     {
         Notification::fake();
@@ -102,7 +101,7 @@ class NotificationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function low_stock_notification_is_sent()
     {
         Notification::fake();
@@ -125,7 +124,7 @@ class NotificationTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function notification_supports_multiple_channels()
     {
         Notification::fake();
@@ -158,7 +157,7 @@ class NotificationTest extends TestCase
         $this->assertNotEmpty($channels);
     }
 
-    /** @test */
+    #[Test]
     public function notification_can_be_sent_via_database_channel()
     {
         $customer = $this->createCustomer($this->tenant->id);
@@ -187,7 +186,7 @@ class NotificationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_retrieve_unread_notifications()
     {
         $customer = $this->createCustomer($this->tenant->id);
@@ -214,7 +213,7 @@ class NotificationTest extends TestCase
         $this->assertGreaterThan(0, $unreadNotifications->count());
     }
 
-    /** @test */
+    #[Test]
     public function user_can_mark_notification_as_read()
     {
         $customer = $this->createCustomer($this->tenant->id);
@@ -250,7 +249,7 @@ class NotificationTest extends TestCase
         $this->assertEquals($unreadBefore - 1, $unreadAfter);
     }
 
-    /** @test */
+    #[Test]
     public function notification_contains_correct_data()
     {
         $customer = $this->createCustomer($this->tenant->id);
@@ -280,7 +279,7 @@ class NotificationTest extends TestCase
         $this->assertEquals($invoice->id, $notification->data['invoice_id']);
     }
 
-    /** @test */
+    #[Test]
     public function notifications_are_isolated_by_tenant()
     {
         // Create second tenant
@@ -310,7 +309,7 @@ class NotificationTest extends TestCase
         $this->assertGreaterThan(0, $this->user->notifications->count());
     }
 
-    /** @test */
+    #[Test]
     public function notification_bell_icon_shows_unread_count()
     {
         $customer = $this->createCustomer($this->tenant->id);
@@ -338,3 +337,6 @@ class NotificationTest extends TestCase
         $this->assertEquals(3, $unreadCount);
     }
 }
+
+
+

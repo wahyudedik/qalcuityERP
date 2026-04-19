@@ -291,6 +291,7 @@ class InventoryCostingService
             'quantity_remaining' => $qty,
             'cost_price'         => $costPrice,
             'status'             => 'active',
+            'expiry_date'        => now()->addYears(10)->toDateString(), // synthetic batch, far future
         ]);
     }
 
@@ -319,7 +320,7 @@ class InventoryCostingService
             $newRemaining = (float) $batch->quantity_remaining - $take;
             $batch->update([
                 'quantity_remaining' => $newRemaining,
-                'status'             => $newRemaining <= 0 ? 'depleted' : 'active',
+                'status'             => $newRemaining <= 0 ? 'consumed' : 'active',
             ]);
         }
 
@@ -356,10 +357,6 @@ class InventoryCostingService
 
     private function method(int $tenantId): string
     {
-        static $cache = [];
-        if (!isset($cache[$tenantId])) {
-            $cache[$tenantId] = Tenant::find($tenantId)?->costing_method ?? 'simple';
-        }
-        return $cache[$tenantId];
+        return Tenant::find($tenantId)?->costing_method ?? 'simple';
     }
 }
