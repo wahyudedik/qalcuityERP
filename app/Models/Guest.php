@@ -15,6 +15,21 @@ class Guest extends Model
     use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
+    // VIP level constants
+    const VIP_NONE     = 'none';
+    const VIP_REGULAR  = 'regular';
+    const VIP_SILVER   = 'silver';
+    const VIP_GOLD     = 'gold';
+    const VIP_PLATINUM = 'platinum';
+
+    const VIP_LEVELS = [
+        self::VIP_NONE,
+        self::VIP_REGULAR,
+        self::VIP_SILVER,
+        self::VIP_GOLD,
+        self::VIP_PLATINUM,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'guest_code',

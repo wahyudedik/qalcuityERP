@@ -11,6 +11,19 @@ class Asset extends Model
 {
     use BelongsToTenant;
     use AuditsChanges;
+
+    const STATUS_ACTIVE    = 'active';
+    const STATUS_INACTIVE  = 'inactive';
+    const STATUS_DISPOSED  = 'disposed';
+    const STATUS_SOLD      = 'sold';
+
+    const STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_INACTIVE,
+        self::STATUS_DISPOSED,
+        self::STATUS_SOLD,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'asset_code',

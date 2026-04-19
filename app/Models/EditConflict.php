@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditConflict extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

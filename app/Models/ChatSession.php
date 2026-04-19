@@ -11,13 +11,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ChatSession extends Model
 {
     use BelongsToTenant;
-    protected $fillable = ['tenant_id', 'user_id', 'title', 'total_tokens', 'last_model', 'is_active', 'metadata'];
+    protected $fillable = [
+        'tenant_id', 'user_id', 'title', 'total_tokens', 'last_model', 'is_active', 'metadata',
+        'session_type', 'active_plan', 'execution_status', 'erp_context_snapshot', 'is_cancelled',
+    ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'metadata' => 'array',
+            'is_active'            => 'boolean',
+            'metadata'             => 'array',
+            'active_plan'          => 'array',
+            'erp_context_snapshot' => 'array',
+            'is_cancelled'         => 'boolean',
         ];
     }
 
@@ -32,6 +38,11 @@ class ChatSession extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AgentAuditLog::class, 'session_id');
     }
 
     // Ambil history dalam format yang siap dikirim ke Gemini

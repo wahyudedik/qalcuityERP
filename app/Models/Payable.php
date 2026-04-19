@@ -11,6 +11,24 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Payable extends Model
 {
     use BelongsToTenant;
+
+    // Konstanta status untuk type safety
+    const STATUS_UNPAID       = 'unpaid';
+    const STATUS_PARTIAL      = 'partial';
+    const STATUS_PARTIAL_PAID = 'partial_paid';
+    const STATUS_PAID         = 'paid';
+    const STATUS_CANCELLED    = 'cancelled';
+    const STATUS_VOIDED       = 'voided';
+
+    const STATUSES = [
+        self::STATUS_UNPAID,
+        self::STATUS_PARTIAL,
+        self::STATUS_PARTIAL_PAID,
+        self::STATUS_PAID,
+        self::STATUS_CANCELLED,
+        self::STATUS_VOIDED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'purchase_order_id', 'supplier_id', 'number',
         'total_amount', 'paid_amount', 'remaining_amount', 'status', 'due_date', 'notes',

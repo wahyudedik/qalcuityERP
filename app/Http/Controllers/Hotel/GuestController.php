@@ -10,6 +10,7 @@ use App\Services\GuestPreferenceService;
 use App\Services\ReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class GuestController extends Controller
 {
@@ -309,7 +310,7 @@ class GuestController extends Controller
         abort_unless($guest->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'vip_level' => 'required|in:regular,silver,gold,platinum',
+            'vip_level' => ['required', Rule::in(Guest::VIP_LEVELS)],
         ]);
 
         $oldLevel = $guest->vip_level;

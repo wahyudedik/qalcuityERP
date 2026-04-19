@@ -1,5 +1,6 @@
 /* Import responsive design & accessibility fixes */
 @import './responsive-design.css';
+@import './responsive-utilities.css';
 
 @tailwind base;
 @tailwind components;

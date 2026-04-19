@@ -95,17 +95,17 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-white">
-                                                {{ $subscription->package->name }}</div>
+                                                {{ $subscription->package?->name ?? '-' }}</div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $subscription->package->download_speed_mbps }}/{{ $subscription->package->upload_speed_mbps }}
+                                                {{ $subscription->package?->download_speed_mbps ?? 0 }}/{{ $subscription->package?->upload_speed_mbps ?? 0 }}
                                                 Mbps
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-white">
-                                                {{ $subscription->device->name }}</div>
+                                                {{ $subscription->device?->name ?? '-' }}</div>
                                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $subscription->device->ip_address }}</div>
+                                                {{ $subscription->device?->ip_address ?? '-' }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span

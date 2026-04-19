@@ -8,8 +8,13 @@
             <button onclick="window.print()"
                 class="w-full py-2.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Cetak / Simpan PDF
+                Cetak
             </button>
+            <a href="{{ route('payroll.slip.pdf', $item) }}"
+                class="w-full py-2.5 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Unduh PDF
+            </a>
             <a href="{{ route('payroll.slip.index') }}"
                 class="block text-center py-2.5 text-sm border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5">
                 ← Kembali
@@ -68,12 +73,12 @@
                 {{-- Info karyawan --}}
                 <div class="grid grid-cols-2 gap-x-8 gap-y-1.5 mb-6 text-sm">
                     @foreach([
-                        'Nama'       => $item->employee->name ?? '-',
-                        'NIK'        => $item->employee->employee_id ?? '-',
-                        'Jabatan'    => $item->employee->position ?? '-',
-                        'Departemen' => $item->employee->department ?? '-',
-                        'Bank'       => $item->employee->bank_name ?? '-',
-                        'No. Rekening' => $item->employee->bank_account ?? '-',
+                        'Nama'         => $item->employee?->name ?? '-',
+                        'NIK'          => $item->employee?->employee_id ?? '-',
+                        'Jabatan'      => $item->employee?->position ?? '-',
+                        'Departemen'   => $item->employee?->department ?? '-',
+                        'Bank'         => $item->employee?->bank_name ?? '-',
+                        'No. Rekening' => $item->employee?->bank_account ?? '-',
                     ] as $label => $value)
                     <div class="flex gap-2">
                         <span class="w-28 shrink-0 text-gray-500 dark:text-slate-400 print:text-gray-500">{{ $label }}</span>
@@ -148,7 +153,7 @@
                                 @endif
                                 @if(($item->bpjs_employee ?? 0) > 0)
                                 <tr>
-                                    <td class="py-1.5 text-gray-600 dark:text-slate-300 print:text-gray-700">BPJS Ketenagakerjaan (3%)</td>
+                                    <td class="py-1.5 text-gray-600 dark:text-slate-300 print:text-gray-700">BPJS (Kesehatan + Ketenagakerjaan)</td>
                                     <td class="py-1.5 text-right font-medium text-red-600 dark:text-red-400 print:text-red-700">-Rp {{ number_format($item->bpjs_employee, 0, ',', '.') }}</td>
                                 </tr>
                                 @endif
@@ -201,7 +206,7 @@
                             @foreach($overtimes as $ot)
                             <tr>
                                 <td class="px-3 py-1.5 text-gray-700 dark:text-slate-300 print:text-gray-700">{{ $ot->date->format('d M Y') }}</td>
-                                <td class="px-3 py-1.5 text-center text-gray-600 dark:text-slate-400 print:text-gray-600">{{ $ot->start_time }} – {{ $ot->end_time }}</td>
+                                <td class="px-3 py-1.5 text-center text-gray-600 dark:text-slate-400 print:text-gray-600">{{ substr($ot->start_time, 0, 5) }} – {{ substr($ot->end_time, 0, 5) }}</td>
                                 <td class="px-3 py-1.5 text-center text-gray-700 dark:text-slate-300 print:text-gray-700">{{ $ot->durationLabel() }}</td>
                                 <td class="px-3 py-1.5 text-right text-green-600 dark:text-green-400 print:text-green-700">Rp {{ number_format($ot->overtime_pay, 0, ',', '.') }}</td>
                             </tr>
@@ -214,7 +219,7 @@
                 {{-- Take Home Pay --}}
                 <div class="bg-blue-50 dark:bg-blue-500/10 print:bg-blue-50 border border-blue-200 dark:border-blue-500/30 print:border-blue-200 rounded-2xl p-5 flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-blue-600 dark:text-blue-400 print:text-blue-700 font-medium">Take Home Pay</p>
+                        <p class="text-sm text-blue-600 dark:text-blue-400 print:text-blue-700 font-medium">Take Home Pay (Gaji Bersih)</p>
                         <p class="text-xs text-blue-400 dark:text-blue-500 print:text-blue-500 mt-0.5">
                             Kehadiran: {{ $item->present_days }}/{{ $item->working_days }} hari
                         </p>

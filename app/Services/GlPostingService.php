@@ -858,6 +858,73 @@ class GlPostingService
 
     // ─── Core Engine ──────────────────────────────────────────────
 
+    // ─── POS Session ──────────────────────────────────────────────
+
+    /**
+     * Posting jurnal saat sesi kasir ditutup.
+     *
+     * Jurnal yang dibuat:
+     *   Dr 1101  Kas                    (total penjualan tunai)
+     *   Dr 1102  Bank / Non-Tunai       (total kartu + QRIS + transfer)
+     *   ──────────────────────────────────────────────────────────────
+     *   Cr 4101  Pendapatan Penjualan   (total penjualan bersih)
+     *
+     * Jika total_sales = 0, jurnal tidak dibuat (skipped).
+     */
+    public function postPosSession(
+        int $tenantId,
+        int $userId,
+        int $sessionId,
+        string $sessionNumber,
+        float $totalSales,
+        float $totalCash,
+        float $totalNonCash,
+        string $date = null
+    ): GlPostingResult {
+        if ($totalSales <= 0) {
+            return GlPostingResult::skipped('Total penjualan POS 0, tidak perlu jurnal.');
+        }
+
+        $date ??= today()->toDateString();
+        $lines = [];
+
+        if ($totalCash > 0) {
+            $lines[] = [
+                'code'  => '1101',
+                'debit' => $totalCash,
+                'credit' => 0,
+                'desc'  => "Kas POS sesi {$sessionNumber}",
+            ];
+        }
+
+        if ($totalNonCash > 0) {
+            $lines[] = [
+                'code'  => '1102',
+                'debit' => $totalNonCash,
+                'credit' => 0,
+                'desc'  => "Bank/Non-Tunai POS sesi {$sessionNumber}",
+            ];
+        }
+
+        $lines[] = [
+            'code'   => '4101',
+            'debit'  => 0,
+            'credit' => $totalSales,
+            'desc'   => "Pendapatan penjualan POS sesi {$sessionNumber}",
+        ];
+
+        return $this->createAndPost(
+            refType: 'pos_session',
+            reference: "POS-SESSION-{$sessionNumber}",
+            refId: $sessionId,
+            tenantId: $tenantId,
+            userId: $userId,
+            date: $date,
+            description: "Auto: Penjualan POS Sesi {$sessionNumber}",
+            lines: $lines
+        );
+    }
+
     /**
      * Buat JournalEntry + lines, lalu langsung post.
      * Return GlPostingResult — caller HARUS cek isFailed() dan tampilkan warning ke user.

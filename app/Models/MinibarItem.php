@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MinibarItem extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

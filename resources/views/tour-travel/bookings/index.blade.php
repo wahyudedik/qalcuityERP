@@ -61,7 +61,7 @@
                         </select>
                         <input type="date"
                             class="text-sm border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="Departure Date">
+                            placeholder="Tanggal Keberangkatan">
                     </div>
                 </div>
 

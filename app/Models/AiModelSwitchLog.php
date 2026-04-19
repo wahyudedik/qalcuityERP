@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class AiModelSwitchLog extends Model
 {
-    protected $fillable = [
+    use BelongsToTenant;
+protected $fillable = [
         'from_model',
         'to_model',
         'reason',

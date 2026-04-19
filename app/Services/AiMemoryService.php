@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\Agent\AgentPlan;
 use App\Models\AiLearnedPattern;
 use App\Models\AiMemory;
 
@@ -281,6 +282,8 @@ class AiMemoryService
 
     /**
      * Hapus memori yang sudah stale (confidence rendah & lama tidak diperbarui).
+     *
+     * @deprecated Gunakan pruneStaleMemoriesForTenant() untuk logika decay sesuai spec.
      */
     public static function pruneStaleMemories(int $tenantId, ?int $userId = null): int
     {
@@ -291,6 +294,91 @@ class AiMemoryService
         if ($userId) $query->where('user_id', $userId);
 
         return $query->delete();
+    }
+
+    /**
+     * Turunkan confidence_score 50% untuk record dengan last_seen_at > 90 hari,
+     * lalu hapus record dengan confidence_score hasil penurunan < 0.1.
+     *
+     * Diproses secara chunked untuk performa pada dataset besar.
+     *
+     * Requirements: 5.5
+     */
+    public function pruneStaleMemoriesForTenant(int $tenantId): void
+    {
+        $cutoff = now()->subDays(90);
+
+        // Proses dalam chunk untuk menghindari memory exhaustion
+        AiMemory::where('tenant_id', $tenantId)
+            ->where('last_seen_at', '<', $cutoff)
+            ->chunkById(200, function ($chunk) {
+                $toDelete = [];
+
+                foreach ($chunk as $memory) {
+                    $newScore = $memory->confidence_score * 0.5;
+
+                    if ($newScore < 0.1) {
+                        $toDelete[] = $memory->id;
+                    } else {
+                        $memory->confidence_score = $newScore;
+                        $memory->save();
+                    }
+                }
+
+                if (!empty($toDelete)) {
+                    AiMemory::whereIn('id', $toDelete)->delete();
+                }
+            });
+    }
+
+    /**
+     * Simpan pola task yang berhasil sebagai template di AiLearnedPattern.
+     *
+     * Menggunakan updateOrCreate dengan hash key untuk menghindari duplikasi.
+     * Scope ke kombinasi tenant_id + user_id.
+     *
+     * Requirements: 5.3
+     */
+    public function saveTaskPattern(int $tenantId, int $userId, AgentPlan $plan): void
+    {
+        // Kumpulkan nama tool yang digunakan dalam plan
+        $toolNames = array_map(fn($step) => $step->toolName, $plan->steps);
+
+        // Ringkasan langkah-langkah
+        $stepsSummary = array_map(fn($step) => [
+            'order'    => $step->order,
+            'name'     => $step->name,
+            'toolName' => $step->toolName,
+            'isWrite'  => $step->isWriteOp,
+        ], $plan->steps);
+
+        $patternData = [
+            'goal'          => $plan->goal,
+            'summary'       => $plan->summary,
+            'steps'         => $stepsSummary,
+            'tools_used'    => array_values(array_unique($toolNames)),
+            'language'      => $plan->language,
+            'has_write_ops' => $plan->hasWriteOps,
+            'step_count'    => count($plan->steps),
+        ];
+
+        // Hash unik berdasarkan goal + tools untuk dedup
+        $hashKey = md5($tenantId . '|' . $userId . '|' . $plan->goal . '|' . implode(',', $toolNames));
+
+        AiLearnedPattern::updateOrCreate(
+            [
+                'tenant_id'    => $tenantId,
+                'user_id'      => $userId,
+                'pattern_type' => 'task_template',
+                'entity_type'  => 'agent_plan',
+                'entity_id'    => null,
+            ],
+            [
+                'pattern_data' => array_merge($patternData, ['hash' => $hashKey]),
+                'confidence'   => min(1.0, ($patternData['step_count'] / 10) * 0.8 + 0.2),
+                'analyzed_at'  => now(),
+            ]
+        );
     }
 
     // ─── Helpers ──────────────────────────────────────────────────

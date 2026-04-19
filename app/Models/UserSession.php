@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserSession extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'user_id',

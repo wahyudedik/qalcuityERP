@@ -20,7 +20,7 @@ class RestaurantController extends Controller
 
     public function index()
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $stats = [
             'today_orders' => FbOrder::where('tenant_id', $tenantId)
@@ -85,7 +85,7 @@ class RestaurantController extends Controller
 
     public function menus()
     {
-        $menus = RestaurantMenu::where('tenant_id', auth()->user()->current_tenant_id)
+        $menus = RestaurantMenu::where('tenant_id', $this->tenantId())
             ->withCount('items')
             ->orderBy('display_order')
             ->get();
@@ -116,7 +116,7 @@ class RestaurantController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $validated['tenant_id'] = auth()->user()->current_tenant_id;
+        $validated['tenant_id'] = $this->tenantId();
 
         RestaurantMenu::create($validated);
 
@@ -162,7 +162,7 @@ class RestaurantController extends Controller
             'is_available' => 'boolean',
         ]);
 
-        $validated['tenant_id'] = auth()->user()->current_tenant_id;
+        $validated['tenant_id'] = $this->tenantId();
         $validated['cost'] = $validated['cost'] ?? 0;
 
         MenuItem::create($validated);
@@ -211,7 +211,7 @@ class RestaurantController extends Controller
      */
     private function authorizeAccess($model): void
     {
-        if ($model->tenant_id !== auth()->user()->current_tenant_id) {
+        if ($model->tenant_id !== $this->tenantId()) {
             abort(403, 'Unauthorized access');
         }
     }

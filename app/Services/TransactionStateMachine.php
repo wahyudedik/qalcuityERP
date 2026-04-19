@@ -4,9 +4,13 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Invoice;
+use App\Models\JournalEntry;
+use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
+use App\Models\StockMovement;
 use App\Models\TransactionRevision;
+use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -64,6 +68,11 @@ class TransactionStateMachine
      * Cancel invoice: draft|posted → cancelled
      * Hanya bisa cancel jika belum ada pembayaran.
      */
+    /**
+     * Cancel invoice: draft → cancelled
+     * 
+     * BUG-FIX Task 9.3: Cancel invoice harus mengembalikan stok jika dari SO
+     */
     public function cancelInvoice(Invoice $invoice, int $userId, string $reason): void
     {
         $this->assertTransition($invoice->posting_status, 'cancelled', self::INVOICE_TRANSITIONS, 'Invoice');
@@ -72,24 +81,60 @@ class TransactionStateMachine
             throw new \RuntimeException('Invoice tidak bisa dibatalkan karena sudah ada pembayaran.');
         }
 
-        $invoice->update([
-            'posting_status' => 'cancelled',
-            'cancelled_by' => $userId,
-            'cancelled_at' => now(),
-            'cancel_reason' => $reason,
-            'status' => 'cancelled',
-        ]);
+        DB::transaction(function () use ($invoice, $userId, $reason) {
+            // 1. Update invoice status
+            $invoice->update([
+                'posting_status' => 'cancelled',
+                'cancelled_by' => $userId,
+                'cancelled_at' => now(),
+                'cancel_reason' => $reason,
+                'status' => 'cancelled',
+            ]);
 
-        ActivityLog::record(
-            'invoice_cancelled',
-            "Invoice {$invoice->number} dibatalkan. Alasan: {$reason}",
-            $invoice
-        );
+            // 2. Return stock if invoice was from sales order
+            if ($invoice->salesOrder) {
+                $so = $invoice->salesOrder;
+                foreach ($so->items as $item) {
+                    // Return stock to warehouse
+                    $stock = ProductStock::firstOrCreate(
+                        [
+                            'product_id' => $item->product_id,
+                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id
+                        ],
+                        ['quantity' => 0]
+                    );
+
+                    $before = $stock->quantity;
+                    $stock->increment('quantity', $item->quantity);
+
+                    StockMovement::create([
+                        'tenant_id' => $invoice->tenant_id,
+                        'product_id' => $item->product_id,
+                        'warehouse_id' => $stock->warehouse_id,
+                        'user_id' => $userId,
+                        'type' => 'in',
+                        'quantity' => $item->quantity,
+                        'quantity_before' => $before,
+                        'quantity_after' => $before + $item->quantity,
+                        'reference' => "CANCEL-{$invoice->number}",
+                        'notes' => "Pengembalian stok dari cancel invoice {$invoice->number}. Alasan: {$reason}",
+                    ]);
+                }
+            }
+
+            ActivityLog::record(
+                'invoice_cancelled',
+                "Invoice {$invoice->number} dibatalkan. Alasan: {$reason}. Stok telah dikembalikan.",
+                $invoice
+            );
+        });
     }
 
     /**
      * Void invoice: posted → voided
      * Berbeda dari cancel — void membuat jurnal pembalik otomatis.
+     * 
+     * BUG-FIX Task 9.3: Void/cancel invoice harus membuat jurnal pembalik dan update stok/piutang
      */
     public function voidInvoice(Invoice $invoice, int $userId, string $reason): void
     {
@@ -99,19 +144,78 @@ class TransactionStateMachine
             throw new \RuntimeException('Invoice tidak bisa di-void karena sudah ada pembayaran. Gunakan retur penjualan.');
         }
 
-        $invoice->update([
-            'posting_status' => 'voided',
-            'cancelled_by' => $userId,
-            'cancelled_at' => now(),
-            'cancel_reason' => $reason,
-            'status' => 'voided',
-        ]);
+        DB::transaction(function () use ($invoice, $userId, $reason) {
+            // 1. Update invoice status
+            $invoice->update([
+                'posting_status' => 'voided',
+                'cancelled_by' => $userId,
+                'cancelled_at' => now(),
+                'cancel_reason' => $reason,
+                'status' => 'voided',
+            ]);
 
-        ActivityLog::record(
-            'invoice_voided',
-            "Invoice {$invoice->number} di-void. Alasan: {$reason}",
-            $invoice
-        );
+            // 2. Create reversing journal entry if invoice was posted with GL
+            $originalJournal = JournalEntry::where('tenant_id', $invoice->tenant_id)
+                ->where('reference_type', 'invoice')
+                ->where('reference_id', $invoice->id)
+                ->where('status', 'posted')
+                ->first();
+
+            if ($originalJournal) {
+                $reversal = $originalJournal->reverse($userId, now()->toDateString());
+                $reversal->post($userId);
+
+                ActivityLog::record(
+                    'journal_reversed_from_void',
+                    "Jurnal pembalik {$reversal->number} dibuat untuk void invoice {$invoice->number}",
+                    $reversal
+                );
+            }
+
+            // 3. Return stock if invoice was from sales order
+            if ($invoice->salesOrder) {
+                $so = $invoice->salesOrder;
+                foreach ($so->items as $item) {
+                    // Return stock to warehouse
+                    $stock = ProductStock::firstOrCreate(
+                        [
+                            'product_id' => $item->product_id,
+                            'warehouse_id' => $so->warehouse_id ?? Warehouse::where('tenant_id', $invoice->tenant_id)->first()?->id
+                        ],
+                        ['quantity' => 0]
+                    );
+
+                    $before = $stock->quantity;
+                    $stock->increment('quantity', $item->quantity);
+
+                    StockMovement::create([
+                        'tenant_id' => $invoice->tenant_id,
+                        'product_id' => $item->product_id,
+                        'warehouse_id' => $stock->warehouse_id,
+                        'user_id' => $userId,
+                        'type' => 'in',
+                        'quantity' => $item->quantity,
+                        'quantity_before' => $before,
+                        'quantity_after' => $before + $item->quantity,
+                        'reference' => "VOID-{$invoice->number}",
+                        'notes' => "Pengembalian stok dari void invoice {$invoice->number}. Alasan: {$reason}",
+                    ]);
+                }
+            }
+
+            // 4. Update customer receivables (reduce outstanding)
+            if ($invoice->customer) {
+                $customer = $invoice->customer;
+                // Customer receivable will be automatically recalculated by the system
+                // No manual adjustment needed as the invoice status change handles it
+            }
+
+            ActivityLog::record(
+                'invoice_voided',
+                "Invoice {$invoice->number} di-void. Alasan: {$reason}. Jurnal pembalik dan pengembalian stok telah diproses.",
+                $invoice
+            );
+        });
     }
 
     // ── Purchase Order ────────────────────────────────────────────

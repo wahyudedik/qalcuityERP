@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Healthcare;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\Doctor;
 use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,28 @@ class AppointmentController extends Controller
         }, 300);
 
         return view('healthcare.appointments.index', compact('appointments', 'statistics'));
+    }
+
+    /**
+     * Show form to book a new appointment.
+     */
+    public function create(Request $request)
+    {
+        $user = Auth::user();
+        $tenantId = $user?->tenant_id ?? abort(401, 'Unauthenticated.');
+
+        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'medical_record_number']);
+
+        $doctors = \App\Models\Doctor::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->get();
+
+        $selectedPatientId = $request->query('patient_id');
+
+        return view('healthcare.appointments.book', compact('patients', 'doctors', 'selectedPatientId'));
     }
 
     /**

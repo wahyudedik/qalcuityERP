@@ -49,9 +49,27 @@ class BillingController extends Controller
             $query->whereDate('bill_date', '>=', $request->date_from);
         }
 
-        $invoices = $query->latest()->paginate(20);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('bill_number', 'like', "%{$search}%")
+                    ->orWhereHas('patient', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-        return view('healthcare.billing.invoices', compact('invoices'));
+        $invoices = $query->latest()->paginate(20)->withQueryString();
+
+        $statistics = [
+            'total_invoices' => MedicalBill::count(),
+            'unpaid_invoices' => MedicalBill::where('payment_status', 'unpaid')->count(),
+            'partial_invoices' => MedicalBill::where('payment_status', 'partial')->count(),
+            'paid_today' => MedicalBill::where('payment_status', 'paid')->whereDate('updated_at', today())->count(),
+            'total_revenue' => MedicalBill::where('payment_status', 'paid')->sum('paid_amount'),
+        ];
+
+        return view('healthcare.billing.invoices.index', compact('invoices', 'statistics'));
     }
 
     /**

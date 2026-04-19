@@ -28,6 +28,21 @@ class Project extends Model
         ];
     }
 
+    // Status constants
+    const STATUS_PLANNING  = 'planning';
+    const STATUS_ACTIVE    = 'active';
+    const STATUS_ON_HOLD   = 'on_hold';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PLANNING,
+        self::STATUS_ACTIVE,
+        self::STATUS_ON_HOLD,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     public const VALID_TRANSITIONS = [
         'planning'  => ['active', 'cancelled'],
         'active'    => ['on_hold', 'completed', 'cancelled'],

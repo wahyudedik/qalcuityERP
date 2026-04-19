@@ -14,6 +14,18 @@ class PurchaseReturn extends Model
     use BelongsToTenant;
     use SoftDeletes;
 
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_SENT      = 'sent';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_SENT,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'purchase_order_id',

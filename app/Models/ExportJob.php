@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ExportJob extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     /**
      * The attributes that are mass assignable.

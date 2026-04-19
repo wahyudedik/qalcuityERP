@@ -76,6 +76,7 @@ class ToolRegistry
             ConcreteMixTools::class,
             FarmTools::class,
             AdvisorTools::class,
+            WorkflowTools::class,
         ];
 
         // Instantiate and cache tools
@@ -350,6 +351,7 @@ class ToolRegistry
             'update_product_image',
             'identify_product_from_image',
             'export_report_pdf',
+            'trigger_workflow',
         ];
 
         return in_array($toolName, $writeTools);

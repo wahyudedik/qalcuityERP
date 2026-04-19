@@ -55,9 +55,9 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                                 Tanggal Lahir <span class="text-red-500">*</span>
                             </label>
-                            <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('date_of_birth') border-red-500 @enderror">
-                            @error('date_of_birth')
+                            <input type="date" name="birth_date" value="{{ old('birth_date') }}" required
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('birth_date') border-red-500 @enderror">
+                            @error('birth_date')
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
@@ -66,7 +66,7 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                                 Tempat Lahir
                             </label>
-                            <input type="text" name="place_of_birth" value="{{ old('place_of_birth') }}"
+                            <input type="text" name="birth_place" value="{{ old('birth_place') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -132,9 +132,9 @@
                         <div class="md:col-span-2">
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Alamat</label>
-                            <textarea name="address" rows="3"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('address') border-red-500 @enderror">{{ old('address') }}</textarea>
-                            @error('address')
+                            <textarea name="address_street" rows="3"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('address_street') border-red-500 @enderror">{{ old('address_street') }}</textarea>
+                            @error('address_street')
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
@@ -142,42 +142,46 @@
                         <div>
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">RT/RW</label>
-                            <input type="text" name="rt_rw" value="{{ old('rt_rw') }}" placeholder="001/002"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" name="address_rt" value="{{ old('address_rt') }}" placeholder="RT"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" name="address_rw" value="{{ old('address_rw') }}" placeholder="RW"
+                                    class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
                         </div>
 
                         <div>
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Kelurahan/Desa</label>
-                            <input type="text" name="village" value="{{ old('village') }}"
+                            <input type="text" name="address_kelurahan" value="{{ old('address_kelurahan') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Kecamatan</label>
-                            <input type="text" name="district" value="{{ old('district') }}"
+                            <input type="text" name="address_kecamatan" value="{{ old('address_kecamatan') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Kota/Kabupaten</label>
-                            <input type="text" name="city" value="{{ old('city') }}"
+                            <input type="text" name="address_city" value="{{ old('address_city') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Provinsi</label>
-                            <input type="text" name="province" value="{{ old('province') }}"
+                            <input type="text" name="address_province" value="{{ old('address_province') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Kode
                                 Pos</label>
-                            <input type="text" name="postal_code" value="{{ old('postal_code') }}"
+                            <input type="text" name="address_postal_code" value="{{ old('address_postal_code') }}"
                                 maxlength="5"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
@@ -197,9 +201,9 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                                 Telepon <span class="text-red-500">*</span>
                             </label>
-                            <input type="tel" name="phone" value="{{ old('phone') }}" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('phone') border-red-500 @enderror">
-                            @error('phone')
+                            <input type="tel" name="phone_primary" value="{{ old('phone_primary') }}" required
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 @error('phone_primary') border-red-500 @enderror">
+                            @error('phone_primary')
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
@@ -217,7 +221,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Kontak
                                 Darurat</label>
-                            <input type="tel" name="emergency_contact" value="{{ old('emergency_contact') }}"
+                            <input type="tel" name="emergency_contact_phone" value="{{ old('emergency_contact_phone') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -243,8 +247,8 @@
                         <div class="md:col-span-2">
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Alergi</label>
-                            <textarea name="allergies" rows="2" placeholder="Contoh: Penisilin, Kacang, dll"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('allergies') }}</textarea>
+                            <textarea name="known_allergies" rows="2" placeholder="Contoh: Penisilin, Kacang, dll"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('known_allergies') }}</textarea>
                             <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Pisahkan dengan koma jika lebih
                                 dari satu</p>
                         </div>
@@ -252,8 +256,8 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Riwayat
                                 Penyakit</label>
-                            <textarea name="medical_history" rows="3" placeholder="Contoh: Diabetes, Hipertensi, dll"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('medical_history') }}</textarea>
+                            <textarea name="chronic_diseases" rows="3" placeholder="Contoh: Diabetes, Hipertensi, dll"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('chronic_diseases') }}</textarea>
                         </div>
 
                         <div class="md:col-span-2">
@@ -284,7 +288,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">No.
                                 Polis</label>
-                            <input type="text" name="insurance_policy" value="{{ old('insurance_policy') }}"
+                            <input type="text" name="insurance_policy_number" value="{{ old('insurance_policy_number') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -304,7 +308,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Masa
                                 Berlaku</label>
-                            <input type="date" name="insurance_expiry" value="{{ old('insurance_expiry') }}"
+                            <input type="date" name="insurance_valid_until" value="{{ old('insurance_valid_until') }}"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>

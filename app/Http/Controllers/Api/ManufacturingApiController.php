@@ -9,6 +9,7 @@ use App\Models\QualityCheck;
 use App\Models\DefectRecord;
 use App\Services\MrpService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ManufacturingApiController extends ApiBaseController
 {
@@ -213,7 +214,7 @@ class ManufacturingApiController extends ApiBaseController
         $workOrder = WorkOrder::where('tenant_id', $this->getTenantId())->findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,in_progress,completed,on_hold,cancelled',
+            'status' => ['required', Rule::in(WorkOrder::STATUSES)],
         ]);
 
         $workOrder->update($validated);
@@ -370,5 +371,83 @@ class ManufacturingApiController extends ApiBaseController
         ]);
 
         return $this->success($workOrder, 'Production output recorded successfully');
+    }
+
+    /**
+     * Get mix designs (for concrete/chemical manufacturing)
+     */
+    public function mixDesigns(Request $request)
+    {
+        // Check if MixDesign model exists
+        if (!class_exists(\App\Models\MixDesign::class)) {
+            return $this->error('Mix design feature not available', 501);
+        }
+
+        $query = \App\Models\MixDesign::where('tenant_id', $this->getTenantId())
+            ->with(['product']);
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        $mixDesigns = $query->latest()->paginate($request->get('per_page', 20));
+
+        return $this->success($mixDesigns);
+    }
+
+    /**
+     * Get mix design detail
+     */
+    public function mixDesignDetail($id)
+    {
+        // Check if MixDesign model exists
+        if (!class_exists(\App\Models\MixDesign::class)) {
+            return $this->error('Mix design feature not available', 501);
+        }
+
+        $mixDesign = \App\Models\MixDesign::where('tenant_id', $this->getTenantId())
+            ->with(['product', 'components'])
+            ->findOrFail($id);
+
+        return $this->success($mixDesign);
+    }
+
+    /**
+     * Calculate mix design proportions
+     */
+    public function calculateMixDesign(Request $request)
+    {
+        // Check if MixDesign model exists
+        if (!class_exists(\App\Models\MixDesign::class)) {
+            return $this->error('Mix design feature not available', 501);
+        }
+
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'target_strength' => 'required|numeric|min:0',
+            'target_volume' => 'required|numeric|min:0',
+            'components' => 'required|array',
+            'components.*.material_id' => 'required|exists:products,id',
+            'components.*.ratio' => 'required|numeric|min:0',
+        ]);
+
+        // Simple calculation: distribute target volume based on ratios
+        $totalRatio = collect($validated['components'])->sum('ratio');
+        $calculations = [];
+
+        foreach ($validated['components'] as $component) {
+            $calculations[] = [
+                'material_id' => $component['material_id'],
+                'ratio' => $component['ratio'],
+                'quantity' => ($component['ratio'] / $totalRatio) * $validated['target_volume'],
+            ];
+        }
+
+        return $this->success([
+            'target_strength' => $validated['target_strength'],
+            'target_volume' => $validated['target_volume'],
+            'components' => $calculations,
+            'total_ratio' => $totalRatio,
+        ], 'Mix design calculated successfully');
     }
 }

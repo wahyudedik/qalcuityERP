@@ -53,6 +53,10 @@ class SubscriptionController extends Controller
             'active' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'active')->count(),
             'suspended' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'suspended')->count(),
             'expired' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)->where('status', 'expired')->count(),
+            'monthly_revenue' => TelecomSubscription::where('tenant_id', auth()->user()->tenant_id)
+                ->where('status', 'active')
+                ->join('internet_packages', 'telecom_subscriptions.package_id', '=', 'internet_packages.id')
+                ->sum('internet_packages.price'),
         ];
 
         $packages = InternetPackage::where('tenant_id', auth()->user()->tenant_id)
@@ -254,15 +258,18 @@ class SubscriptionController extends Controller
         return back()->with('success', 'Quota berhasil direset.');
     }
     /**
-     * Remove the specified resource.
-     * Route: telecom/subscriptions/{subscription}
+     * Remove the specified subscription.
      */
-    public function destroy($model)
+    public function destroy(TelecomSubscription $subscription)
     {
-        $this->authorize('delete', $model);
-        
-        $model->delete();
-        
-        return back()->with('success', 'Deleted successfully.');
+        if ($subscription->tenant_id !== auth()->user()->tenant_id) {
+            abort(403);
+        }
+
+        $subscription->update(['status' => 'cancelled']);
+        $subscription->delete();
+
+        return redirect()->route('telecom.subscriptions.index')
+            ->with('success', 'Subscription berhasil dibatalkan dan dihapus.');
     }
 }

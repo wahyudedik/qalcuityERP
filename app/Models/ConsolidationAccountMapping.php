@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsolidationAccountMapping extends Model
 {
-    protected $fillable = [
+    use BelongsToTenant;
+protected $fillable = [
         'company_group_id',
         'source_tenant_id',
         'source_account_id',

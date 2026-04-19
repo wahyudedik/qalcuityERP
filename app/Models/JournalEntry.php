@@ -15,6 +15,16 @@ class JournalEntry extends Model
     use BelongsToTenant;
     use AuditsChanges;
 
+    const STATUS_DRAFT    = 'draft';
+    const STATUS_POSTED   = 'posted';
+    const STATUS_REVERSED = 'reversed';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_POSTED,
+        self::STATUS_REVERSED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'period_id',

@@ -86,17 +86,34 @@ class WorkOrder extends Model
         ];
     }
 
+    // Status constants
+    const STATUS_PENDING     = 'pending';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_ON_HOLD     = 'on_hold';
+    const STATUS_COMPLETED   = 'completed';
+    const STATUS_CANCELLED   = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_ON_HOLD,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     /**
      * Graf transisi status yang valid.
-     * pending → in_progress | cancelled
-     * in_progress → completed | cancelled
+     * pending → in_progress | on_hold | cancelled
+     * in_progress → on_hold | completed | cancelled
+     * on_hold → in_progress | cancelled
      * completed / cancelled → tidak bisa berubah
      */
     public const VALID_TRANSITIONS = [
-        'pending' => ['in_progress', 'cancelled'],
-        'in_progress' => ['completed', 'cancelled'],
-        'completed' => [],
-        'cancelled' => [],
+        'pending'     => ['in_progress', 'on_hold', 'cancelled'],
+        'in_progress' => ['on_hold', 'completed', 'cancelled'],
+        'on_hold'     => ['in_progress', 'cancelled'],
+        'completed'   => [],
+        'cancelled'   => [],
     ];
 
     public function tenant(): BelongsTo

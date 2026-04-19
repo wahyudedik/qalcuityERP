@@ -70,28 +70,46 @@ class PackageController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'features' => 'nullable|string',
             'download_speed_mbps' => 'required|numeric|min:0.1',
             'upload_speed_mbps' => 'required|numeric|min:0.1',
             'price' => 'required|numeric|min:0',
             'billing_cycle' => ['required', Rule::in(['monthly', 'quarterly', 'yearly'])],
+            'quota_type' => 'nullable|in:unlimited,limited',
+            'quota_gb' => 'nullable|numeric|min:1',
             'quota_bytes' => 'nullable|integer|min:0',
             'quota_period' => ['nullable', Rule::in(['hourly', 'daily', 'weekly', 'monthly'])],
             'setup_fee' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',
         ]);
 
+        // Convert quota_gb to quota_bytes if provided
+        $quotaBytes = null;
+        if ($request->quota_type === 'limited' && $request->filled('quota_gb')) {
+            $quotaBytes = (int) ($request->quota_gb * 1073741824);
+        } elseif ($request->filled('quota_bytes')) {
+            $quotaBytes = (int) $validated['quota_bytes'];
+        }
+
+        // Parse features from textarea (one per line)
+        $features = null;
+        if ($request->filled('features')) {
+            $features = array_filter(array_map('trim', explode("\n", $request->features)));
+        }
+
         try {
             InternetPackage::create([
                 'tenant_id' => auth()->user()->tenant_id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
+                'features' => $features,
                 'download_speed_mbps' => $validated['download_speed_mbps'],
                 'upload_speed_mbps' => $validated['upload_speed_mbps'],
                 'price' => $validated['price'],
                 'billing_cycle' => $validated['billing_cycle'],
-                'quota_bytes' => $validated['quota_bytes'] ?? null,
-                'quota_period' => $validated['quota_period'] ?? null,
-                'setup_fee' => $validated['setup_fee'] ?? 0,
+                'quota_bytes' => $quotaBytes,
+                'quota_period' => $validated['quota_period'] ?? 'monthly',
+                'installation_fee' => $validated['setup_fee'] ?? 0,
                 'is_active' => $request->has('is_active'),
             ]);
 
@@ -162,7 +180,7 @@ class PackageController extends Controller
                 'billing_cycle' => $validated['billing_cycle'],
                 'quota_bytes' => $validated['quota_bytes'] ?? null,
                 'quota_period' => $validated['quota_period'] ?? null,
-                'setup_fee' => $validated['setup_fee'] ?? 0,
+                'installation_fee' => $validated['setup_fee'] ?? 0,
                 'is_active' => $request->has('is_active'),
             ]);
 

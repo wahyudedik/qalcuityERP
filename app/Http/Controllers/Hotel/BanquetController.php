@@ -18,7 +18,7 @@ class BanquetController extends Controller
 
     public function index()
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $upcomingEvents = BanquetEvent::where('tenant_id', $tenantId)
             ->where('event_date', '>=', today())

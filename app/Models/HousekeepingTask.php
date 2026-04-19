@@ -15,6 +15,42 @@ class HousekeepingTask extends Model
     use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
+    // Task type constants — keep ALL values (including legacy duplicates for backward compat)
+    const TYPE_CHECKOUT_CLEAN   = 'checkout_clean';
+    const TYPE_STAY_CLEAN       = 'stay_clean';
+    const TYPE_DEEP_CLEAN       = 'deep_clean';       // legacy alias
+    const TYPE_DEEP_CLEANING    = 'deep_cleaning';    // canonical
+    const TYPE_INSPECTION       = 'inspection';
+    const TYPE_REGULAR_CLEANING = 'regular_cleaning';
+    const TYPE_TURNDOWN         = 'turndown';         // legacy alias
+    const TYPE_TURNDOWN_SERVICE = 'turndown_service'; // canonical
+
+    const TYPES = [
+        self::TYPE_CHECKOUT_CLEAN,
+        self::TYPE_STAY_CLEAN,
+        self::TYPE_DEEP_CLEAN,
+        self::TYPE_DEEP_CLEANING,
+        self::TYPE_INSPECTION,
+        self::TYPE_REGULAR_CLEANING,
+        self::TYPE_TURNDOWN,
+        self::TYPE_TURNDOWN_SERVICE,
+    ];
+
+    // Status constants
+    const STATUS_PENDING     = 'pending';
+    const STATUS_ASSIGNED    = 'assigned';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_COMPLETED   = 'completed';
+    const STATUS_CANCELLED   = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_ASSIGNED,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'room_id',
@@ -126,10 +162,10 @@ class HousekeepingTask extends Model
     }
 
     /**
-     * Mark for inspection
+     * Mark for inspection (sets status to completed, awaiting supervisor review)
      */
     public function markForInspection(): void
     {
-        $this->update(['status' => 'inspected']);
+        $this->update(['status' => self::STATUS_COMPLETED]);
     }
 }

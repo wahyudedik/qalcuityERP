@@ -84,9 +84,24 @@ class LaboratoryController extends Controller
             $query->whereDate('order_date', $request->date);
         }
 
-        $orders = $query->latest()->paginate(20);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('patient', function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('medical_record_number', 'like', "%{$search}%");
+            })->orWhere('order_number', 'like', "%{$search}%");
+        }
 
-        return view('healthcare.laboratory.orders', compact('orders'));
+        $orders = $query->latest()->paginate(20)->withQueryString();
+
+        $statistics = [
+            'total_orders' => LabOrder::count(),
+            'pending_orders' => LabOrder::where('status', 'pending')->count(),
+            'in_progress_orders' => LabOrder::where('status', 'in_progress')->count(),
+            'completed_today' => LabOrder::where('status', 'completed')->whereDate('completed_at', today())->count(),
+        ];
+
+        return view('healthcare.laboratory.orders', compact('orders', 'statistics'));
     }
 
     /**

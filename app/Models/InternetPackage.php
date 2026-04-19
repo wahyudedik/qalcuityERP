@@ -27,6 +27,7 @@ class InternetPackage extends Model
         'quota_period',
         'rollover_enabled',
         'price',
+        'billing_cycle',
         'installation_fee',
         'overage_price_per_gb',
         'features',
@@ -86,7 +87,7 @@ class InternetPackage extends Model
      */
     public function isUnlimited(): bool
     {
-        return $this->quota_bytes == 0;
+        return $this->quota_bytes === null || $this->quota_bytes == 0;
     }
 
     /**

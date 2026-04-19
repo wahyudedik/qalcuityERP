@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\HousekeepingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class HousekeepingController extends Controller
 {
@@ -28,7 +29,7 @@ class HousekeepingController extends Controller
      */
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         // Get statistics
         $stats = $this->housekeepingService->getDashboardStats($tenantId);
@@ -63,7 +64,7 @@ class HousekeepingController extends Controller
      */
     public function roomBoard(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
         $filter = $request->get('filter', 'all'); // all, dirty, clean, inspected, ooo
 
         // Get rooms with their tasks
@@ -95,7 +96,7 @@ class HousekeepingController extends Controller
         ];
 
         // Get task types and priorities
-        $taskTypes = ['checkout_clean', 'stay_clean', 'deep_clean', 'inspection'];
+        $taskTypes = HousekeepingTask::TYPES;
         $priorities = ['low', 'normal', 'high', 'urgent'];
 
         // Get housekeeping staff
@@ -113,7 +114,7 @@ class HousekeepingController extends Controller
     public function updateRoomStatus(Request $request, int $roomId)
     {
         $request->validate([
-            'status' => 'required|in:dirty,clean,inspected,out_of_order',
+            'status' => ['required', Rule::in(Room::STATUSES)],
         ]);
 
         $room = Room::findOrFail($roomId);
@@ -127,7 +128,7 @@ class HousekeepingController extends Controller
      */
     public function tasks(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $query = HousekeepingTask::where('tenant_id', $tenantId)
             ->with(['room', 'assignedTo', 'inspectedBy']);
@@ -146,7 +147,7 @@ class HousekeepingController extends Controller
         }
 
         $tasks = $query->orderByDesc('created_at')->paginate(20);
-        $staff = User::where('tenant_id', $tenantId)->role('housekeeping')->get();
+        $staff = User::where('tenant_id', $tenantId)->where('role', 'housekeeping')->get();
 
         return view('hotel.housekeeping.tasks.index', compact('tasks', 'staff'));
     }
@@ -158,7 +159,7 @@ class HousekeepingController extends Controller
     {
         $request->validate([
             'room_id' => 'required|exists:rooms,id',
-            'type' => 'required|string',
+            'type' => ['required', Rule::in(HousekeepingTask::TYPES)],
             'priority' => 'required|in:low,normal,high,urgent',
             'assigned_to' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
@@ -174,7 +175,7 @@ class HousekeepingController extends Controller
 
         // If assigned_to is provided, assign the task
         if ($request->filled('assigned_to')) {
-            $latestTask = HousekeepingTask::where('tenant_id', auth()->user()->current_tenant_id)
+            $latestTask = HousekeepingTask::where('tenant_id', $this->tenantId())
                 ->latest()
                 ->first();
 
@@ -275,7 +276,7 @@ class HousekeepingController extends Controller
      */
     public function maintenance(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $query = MaintenanceRequest::where('tenant_id', $tenantId)
             ->with(['room', 'reportedBy', 'assignedTo']);
@@ -333,7 +334,7 @@ class HousekeepingController extends Controller
      */
     public function linenInventory(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $query = LinenInventory::where('tenant_id', $tenantId);
 
@@ -382,7 +383,7 @@ class HousekeepingController extends Controller
      */
     public function supplies(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $query = HousekeepingSupply::where('tenant_id', $tenantId);
 
@@ -431,7 +432,7 @@ class HousekeepingController extends Controller
     {
         $date = $request->get('date', today()->format('Y-m-d'));
         $report = $this->housekeepingService->generateDailyReport(
-            auth()->user()->current_tenant_id,
+            $this->tenantId(),
             \Carbon\Carbon::parse($date)
         );
 

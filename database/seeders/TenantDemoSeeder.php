@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -619,7 +620,7 @@ class TenantDemoSeeder extends Seeder
             DB::table('overtime_requests')->insert([
                 'tenant_id'=>$this->tenantId,'employee_id'=>$empId,
                 'date'=>Carbon::now()->subDays($i+1)->format('Y-m-d'),
-                'start_time'=>'17:00','end_time'=>'20:00','hours'=>3,
+                'start_time'=>'17:00','end_time'=>'20:00','duration_minutes'=>180,
                 'reason'=>'Penyelesaian laporan bulanan','status'=>$i===0?'approved':'pending',
                 'approved_by'=>$i===0?$this->adminId:null,
                 'created_at'=>now(),'updated_at'=>now(),
@@ -784,13 +785,13 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('reimbursements')->where('tenant_id',$this->tenantId)->exists()) return;
         foreach (array_slice($this->employeeIds,0,3) as $i=>$empId) {
             DB::table('reimbursements')->insert([
-                'tenant_id'=>$this->tenantId,'employee_id'=>$empId,'user_id'=>$this->adminId,
+                'tenant_id'=>$this->tenantId,'employee_id'=>$empId,'requested_by'=>$this->adminId,
                 'number'=>'RMB/MBI/2026/'.str_pad($i+1,3,'0',STR_PAD_LEFT),
-                'title'=>['Biaya Perjalanan Dinas','Pembelian ATK','Biaya Makan Klien'][$i],
+                'description'=>['Biaya Perjalanan Dinas','Pembelian ATK','Biaya Makan Klien'][$i],
                 'amount'=>[850000,320000,450000][$i],
                 'category'=>['transport','office_supply','entertainment'][$i],
-                'description'=>'Reimbursement demo','receipt_date'=>Carbon::now()->subDays($i+2)->format('Y-m-d'),
-                'status'=>$i===0?'approved':($i===1?'paid':'pending'),
+                'expense_date'=>Carbon::now()->subDays($i+2)->format('Y-m-d'),
+                'status'=>$i===0?'approved':($i===1?'paid':'submitted'),
                 'approved_by'=>$i<2?$this->adminId:null,
                 'approved_at'=>$i<2?now():null,
                 'created_at'=>now(),'updated_at'=>now(),
@@ -808,8 +809,8 @@ class TenantDemoSeeder extends Seeder
         $prId = DB::table('purchase_requisitions')->insertGetId([
             'tenant_id'=>$this->tenantId,'number'=>'PR/MBI/2026/001',
             'requested_by'=>$this->staffId,'department'=>'Operasional',
-            'needed_by'=>Carbon::now()->addDays(14)->format('Y-m-d'),
-            'status'=>'approved','notes'=>'Kebutuhan stok Q2 2026',
+            'required_date'=>Carbon::now()->addDays(14)->format('Y-m-d'),
+            'status'=>'approved','purpose'=>'Kebutuhan stok Q2 2026',
             'approved_by'=>$this->adminId,'approved_at'=>now(),
             'created_at'=>now(),'updated_at'=>now(),
         ]);
@@ -817,8 +818,9 @@ class TenantDemoSeeder extends Seeder
             $product = DB::table('products')->find($pid);
             DB::table('purchase_requisition_items')->insert([
                 'purchase_requisition_id'=>$prId,'product_id'=>$pid,
-                'quantity_requested'=>10,'quantity_approved'=>10,
+                'quantity'=>10,'description'=>$product->name,
                 'unit'=>$product->unit,'estimated_price'=>$product->price_buy,
+                'estimated_total'=>$product->price_buy*10,
                 'notes'=>'Stok menipis','created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -874,18 +876,20 @@ class TenantDemoSeeder extends Seeder
         $po = DB::table('purchase_orders')->where('tenant_id',$this->tenantId)->where('status','received')->first();
         if (!$po) return;
         $grId = DB::table('goods_receipts')->insertGetId([
-            'tenant_id'=>$this->tenantId,'purchase_order_id'=>$po->id,'supplier_id'=>$po->supplier_id,
-            'number'=>'GR/MBI/2026/001','received_date'=>Carbon::parse($po->date)->addDays(5)->format('Y-m-d'),
-            'status'=>'completed','notes'=>'Barang diterima lengkap dan dalam kondisi baik',
+            'tenant_id'=>$this->tenantId,'purchase_order_id'=>$po->id,
+            'warehouse_id'=>$this->warehouseId,
+            'number'=>'GR/MBI/2026/001','receipt_date'=>Carbon::parse($po->date)->addDays(5)->format('Y-m-d'),
+            'status'=>'confirmed','notes'=>'Barang diterima lengkap dan dalam kondisi baik',
             'received_by'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
         ]);
         $poItems = DB::table('purchase_order_items')->where('purchase_order_id',$po->id)->get();
         foreach ($poItems as $item) {
             DB::table('goods_receipt_items')->insert([
                 'goods_receipt_id'=>$grId,'product_id'=>$item->product_id,
-                'quantity_ordered'=>$item->quantity_ordered,'quantity_received'=>$item->quantity_received,
+                'purchase_order_item_id'=>$item->id,
+                'quantity_received'=>$item->quantity_received,
                 'quantity_accepted'=>$item->quantity_received,'quantity_rejected'=>0,
-                'unit_price'=>$item->price,'created_at'=>now(),'updated_at'=>now(),
+                'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
     }
@@ -897,16 +901,19 @@ class TenantDemoSeeder extends Seeder
         if (!$po) return;
         $prId = DB::table('purchase_returns')->insertGetId([
             'tenant_id'=>$this->tenantId,'purchase_order_id'=>$po->id,'supplier_id'=>$po->supplier_id,
+            'warehouse_id'=>$this->warehouseId,'created_by'=>$this->adminId,
             'number'=>'PR-RET/MBI/2026/001','return_date'=>Carbon::now()->subDays(5)->format('Y-m-d'),
-            'reason'=>'Barang cacat / tidak sesuai spesifikasi','status'=>'approved',
-            'total_amount'=>500000,'created_at'=>now(),'updated_at'=>now(),
+            'reason'=>'Barang cacat / tidak sesuai spesifikasi','status'=>'completed',
+            'subtotal'=>500000,'tax_amount'=>0,'total'=>500000,
+            'refund_method'=>'debit_note','refund_amount'=>500000,
+            'created_at'=>now(),'updated_at'=>now(),
         ]);
         $poItem = DB::table('purchase_order_items')->where('purchase_order_id',$po->id)->first();
         if ($poItem) {
             DB::table('purchase_return_items')->insert([
                 'purchase_return_id'=>$prId,'product_id'=>$poItem->product_id,
-                'quantity'=>1,'unit_price'=>$poItem->price,'total'=>$poItem->price,
-                'reason'=>'Cacat produksi','created_at'=>now(),'updated_at'=>now(),
+                'quantity'=>1,'price'=>$poItem->price,'total'=>$poItem->price,
+                'return_reason'=>'Cacat produksi','created_at'=>now(),'updated_at'=>now(),
             ]);
         }
     }
@@ -918,19 +925,21 @@ class TenantDemoSeeder extends Seeder
         if (!$po) return;
         $lcId = DB::table('landed_costs')->insertGetId([
             'tenant_id'=>$this->tenantId,'number'=>'LC/MBI/2026/001',
-            'purchase_order_id'=>$po->id,'vendor_name'=>'JNE Cargo',
-            'total_cost'=>2500000,'allocation_method'=>'by_value',
+            'purchase_order_id'=>$po->id,
+            'date'=>Carbon::now()->subDays(5)->format('Y-m-d'),
+            'total_additional_cost'=>2500000,'allocation_method'=>'by_value',
             'status'=>'posted','notes'=>'Biaya pengiriman dari supplier',
+            'user_id'=>$this->adminId,
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         DB::table('landed_cost_components')->insert([
             'landed_cost_id'=>$lcId,'name'=>'Biaya Pengiriman','amount'=>2000000,
-            'account_id'=>$this->coaMap['5207']??array_values($this->coaMap)[0],
+            'vendor'=>'JNE Cargo','type'=>'freight',
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         DB::table('landed_cost_components')->insert([
             'landed_cost_id'=>$lcId,'name'=>'Biaya Asuransi','amount'=>500000,
-            'account_id'=>$this->coaMap['5208']??array_values($this->coaMap)[0],
+            'vendor'=>'Asuransi Umum','type'=>'insurance',
             'created_at'=>now(),'updated_at'=>now(),
         ]);
     }
@@ -945,8 +954,8 @@ class TenantDemoSeeder extends Seeder
         ]);
         $binId = DB::table('warehouse_bins')->insertGetId([
             'tenant_id'=>$this->tenantId,'warehouse_id'=>$this->warehouseId,'zone_id'=>$zoneId,
-            'code'=>'A-01-01','name'=>'Rak A Baris 1 Kolom 1',
-            'max_weight'=>500,'max_volume'=>2,'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
+            'code'=>'A-01-01','aisle'=>'A','rack'=>'01','shelf'=>'01',
+            'max_capacity'=>500,'bin_type'=>'standard','is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Putaway rule
         DB::table('putaway_rules')->insert([
@@ -958,15 +967,15 @@ class TenantDemoSeeder extends Seeder
         $sessionId = DB::table('stock_opname_sessions')->insertGetId([
             'tenant_id'=>$this->tenantId,'warehouse_id'=>$this->warehouseId,
             'number'=>'SO/MBI/2026/001','status'=>'completed',
-            'started_at'=>Carbon::now()->subDays(5),'completed_at'=>Carbon::now()->subDays(4),
-            'created_by'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
+            'opname_date'=>Carbon::now()->subDays(5)->format('Y-m-d'),
+            'user_id'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
         ]);
         foreach (array_slice($this->productIds,0,3) as $pid) {
             $stock = DB::table('product_stocks')->where('product_id',$pid)->where('warehouse_id',$this->warehouseId)->first();
             $sysQty = $stock?$stock->quantity:0;
             DB::table('stock_opname_items')->insert([
-                'stock_opname_session_id'=>$sessionId,'product_id'=>$pid,
-                'system_quantity'=>$sysQty,'physical_quantity'=>$sysQty+rand(-2,2),
+                'session_id'=>$sessionId,'product_id'=>$pid,
+                'system_qty'=>$sysQty,'actual_qty'=>$sysQty+rand(-2,2),
                 'difference'=>rand(-2,2),'notes'=>'Opname rutin','created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -986,16 +995,19 @@ class TenantDemoSeeder extends Seeder
             'commission_pct'=>15,'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
         ]);
         if (!empty($this->productIds)) {
+            $product = DB::table('products')->find($this->productIds[0]);
             $shipId = DB::table('consignment_shipments')->insertGetId([
                 'tenant_id'=>$this->tenantId,'partner_id'=>$partnerId,
-                'number'=>'CS/MBI/2026/001','shipment_date'=>Carbon::now()->subDays(10)->format('Y-m-d'),
-                'status'=>'active','notes'=>'Pengiriman konsinyasi pertama',
+                'warehouse_id'=>$this->warehouseId,'user_id'=>$this->adminId,
+                'number'=>'CS/MBI/2026/001','ship_date'=>Carbon::now()->subDays(10)->format('Y-m-d'),
+                'status'=>'shipped','notes'=>'Pengiriman konsinyasi pertama',
+                'total_cost'=>$product->price_buy*5,'total_retail'=>$product->price_sell*5,
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
             DB::table('consignment_shipment_items')->insert([
                 'consignment_shipment_id'=>$shipId,'product_id'=>$this->productIds[0],
                 'quantity_sent'=>5,'quantity_sold'=>2,'quantity_returned'=>0,
-                'selling_price'=>DB::table('products')->find($this->productIds[0])->price_sell,
+                'cost_price'=>$product->price_buy,'retail_price'=>$product->price_sell,
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -1066,7 +1078,8 @@ class TenantDemoSeeder extends Seeder
         $so = DB::table('sales_orders')->where('tenant_id',$this->tenantId)->where('status','delivered')->first();
         if (!$so) return;
         $doId = DB::table('delivery_orders')->insertGetId([
-            'tenant_id'=>$this->tenantId,'sales_order_id'=>$so->id,'customer_id'=>$so->customer_id,
+            'tenant_id'=>$this->tenantId,'sales_order_id'=>$so->id,
+            'warehouse_id'=>$this->warehouseId,'created_by'=>$this->adminId,
             'number'=>'DO/MBI/2026/001','delivery_date'=>Carbon::parse($so->date)->addDays(3)->format('Y-m-d'),
             'status'=>'delivered','shipping_address'=>'Jakarta','courier'=>'JNE',
             'tracking_number'=>'JNE'.rand(100000000,999999999),
@@ -1088,10 +1101,14 @@ class TenantDemoSeeder extends Seeder
         $so = DB::table('sales_orders')->where('tenant_id',$this->tenantId)->where('status','confirmed')->first();
         if (!$so) return;
         DB::table('down_payments')->insert([
-            'tenant_id'=>$this->tenantId,'customer_id'=>$so->customer_id,'sales_order_id'=>$so->id,
+            'tenant_id'=>$this->tenantId,
+            'party_id'=>$so->customer_id,'party_type'=>'App\\Models\\Customer',
+            'reference_id'=>$so->id,'reference_type'=>'App\\Models\\SalesOrder',
             'number'=>'DP/MBI/2026/001','amount'=>round($so->total*0.3),
+            'applied_amount'=>round($so->total*0.3),'remaining_amount'=>0,
             'payment_date'=>Carbon::parse($so->date)->addDay()->format('Y-m-d'),
             'payment_method'=>'transfer','status'=>'applied',
+            'created_by'=>$this->adminId,
             'notes'=>'DP 30% sesuai kesepakatan','created_at'=>now(),'updated_at'=>now(),
         ]);
     }
@@ -1101,18 +1118,24 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('sales_returns')->where('tenant_id',$this->tenantId)->exists()) return;
         $so = DB::table('sales_orders')->where('tenant_id',$this->tenantId)->where('status','delivered')->first();
         if (!$so) return;
+        $invoice = DB::table('invoices')->where('tenant_id',$this->tenantId)->where('sales_order_id',$so->id)->first();
+        if (!$invoice) return;
         $srId = DB::table('sales_returns')->insertGetId([
             'tenant_id'=>$this->tenantId,'sales_order_id'=>$so->id,'customer_id'=>$so->customer_id,
+            'invoice_id'=>$invoice->id,
+            'warehouse_id'=>$this->warehouseId,'created_by'=>$this->adminId,
             'number'=>'SR/MBI/2026/001','return_date'=>Carbon::now()->subDays(3)->format('Y-m-d'),
             'reason'=>'Produk tidak sesuai spesifikasi yang dipesan','status'=>'approved',
-            'total_amount'=>280000,'created_at'=>now(),'updated_at'=>now(),
+            'subtotal'=>280000,'tax_amount'=>0,'total'=>280000,
+            'refund_method'=>'credit_note','refund_amount'=>280000,
+            'created_at'=>now(),'updated_at'=>now(),
         ]);
         $soItem = DB::table('sales_order_items')->where('sales_order_id',$so->id)->first();
         if ($soItem) {
             DB::table('sales_return_items')->insert([
                 'sales_return_id'=>$srId,'product_id'=>$soItem->product_id,
-                'quantity'=>1,'unit_price'=>$soItem->price,'total'=>$soItem->price,
-                'reason'=>'Tidak sesuai spesifikasi','created_at'=>now(),'updated_at'=>now(),
+                'quantity'=>1,'price'=>$soItem->price,'total'=>$soItem->price,
+                'condition'=>'damaged','notes'=>'Tidak sesuai spesifikasi','created_at'=>now(),'updated_at'=>now(),
             ]);
         }
     }
@@ -1158,13 +1181,17 @@ class TenantDemoSeeder extends Seeder
         $total = $invoices->sum('total_amount');
         $bpId = DB::table('bulk_payments')->insertGetId([
             'tenant_id'=>$this->tenantId,'number'=>'BP/MBI/2026/001',
+            'type'=>'receivable',
+            'party_id'=>$invoices->first()->customer_id,'party_type'=>'App\\Models\\Customer',
             'payment_date'=>Carbon::now()->format('Y-m-d'),'payment_method'=>'transfer',
-            'total_amount'=>$total,'status'=>'pending','notes'=>'Pembayaran batch invoice',
+            'total_amount'=>$total,'applied_amount'=>0,'overpayment'=>0,
+            'status'=>'draft','notes'=>'Pembayaran batch invoice',
             'created_by'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
         ]);
         foreach ($invoices as $inv) {
             DB::table('bulk_payment_items')->insert([
-                'bulk_payment_id'=>$bpId,'invoice_id'=>$inv->id,
+                'bulk_payment_id'=>$bpId,
+                'payable_id'=>$inv->id,'payable_type'=>'App\\Models\\Invoice',
                 'amount'=>$inv->total_amount,'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -1236,10 +1263,11 @@ class TenantDemoSeeder extends Seeder
         DB::table('recurring_journals')->insert([
             'tenant_id'=>$this->tenantId,'name'=>'Amortisasi Sewa Kantor Bulanan',
             'description'=>'Pengakuan biaya sewa kantor setiap bulan',
-            'frequency'=>'monthly','day_of_month'=>1,
+            'frequency'=>'monthly',
+            'start_date'=>Carbon::now()->startOfMonth()->format('Y-m-d'),
             'next_run_date'=>Carbon::now()->startOfMonth()->addMonth()->format('Y-m-d'),
-            'is_active'=>true,'created_by'=>$this->adminId,
-            'template'=>json_encode([
+            'is_active'=>true,'user_id'=>$this->adminId,
+            'lines'=>json_encode([
                 ['account_code'=>'5202','debit'=>15000000,'credit'=>0],
                 ['account_code'=>'1106','debit'=>0,'credit'=>15000000],
             ]),
@@ -1379,7 +1407,7 @@ class TenantDemoSeeder extends Seeder
             ['type'=>'expense_spike','severity'=>'low','title'=>'Lonjakan Beban Operasional','description'=>'Beban transportasi naik 45% bulan ini','status'=>'resolved'],
         ] as $a) {
             DB::table('anomaly_alerts')->insert(array_merge($a,[
-                'tenant_id'=>$this->tenantId,'detected_at'=>Carbon::now()->subDays(rand(1,7)),
+                'tenant_id'=>$this->tenantId,
                 'created_at'=>now(),'updated_at'=>now(),
             ]));
         }
@@ -1407,8 +1435,8 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('zero_input_logs')->where('tenant_id',$this->tenantId)->exists()) return;
         DB::table('zero_input_logs')->insert([
             'tenant_id'=>$this->tenantId,'user_id'=>$this->adminId,
-            'input_type'=>'text','raw_input'=>'Beli 5 laptop asus dari PT Asus seharga 7.5 juta per unit',
-            'parsed_data'=>json_encode(['type'=>'purchase','product'=>'Laptop Asus','qty'=>5,'price'=>7500000]),
+            'channel'=>'text','raw_input'=>'Beli 5 laptop asus dari PT Asus seharga 7.5 juta per unit',
+            'extracted_data'=>json_encode(['type'=>'purchase','product'=>'Laptop Asus','qty'=>5,'price'=>7500000]),
             'confidence_score'=>0.92,'status'=>'confirmed',
             'created_at'=>now(),'updated_at'=>now(),
         ]);
@@ -1466,13 +1494,15 @@ class TenantDemoSeeder extends Seeder
         ]);
         // Commission calculation
         $so = DB::table('sales_orders')->where('tenant_id',$this->tenantId)->where('status','delivered')->first();
-        if ($so && !empty($this->employeeIds)) {
+        if ($so) {
             $rule = DB::table('commission_rules')->where('tenant_id',$this->tenantId)->first();
             DB::table('commission_calculations')->insert([
-                'tenant_id'=>$this->tenantId,'rule_id'=>$rule->id,'employee_id'=>$this->employeeIds[2]??$this->employeeIds[0],
-                'reference_type'=>'App\\Models\\SalesOrder','reference_id'=>$so->id,
-                'base_amount'=>$so->total,'commission_amount'=>round($so->total*0.025),
-                'status'=>'pending','period'=>'2026-03','created_at'=>now(),'updated_at'=>now(),
+                'tenant_id'=>$this->tenantId,'commission_rule_id'=>$rule->id,
+                'user_id'=>$this->staffId,
+                'total_sales'=>$so->total,'total_orders'=>1,
+                'commission_amount'=>round($so->total*0.025),
+                'bonus_amount'=>0,'total_payout'=>round($so->total*0.025),
+                'status'=>'draft','period'=>'2026-03','created_at'=>now(),'updated_at'=>now(),
             ]);
         }
     }
@@ -1500,14 +1530,16 @@ class TenantDemoSeeder extends Seeder
             ] as $i=>$t) {
                 $ticketId = DB::table('helpdesk_tickets')->insertGetId([
                     'tenant_id'=>$this->tenantId,'customer_id'=>$this->customerIds[$i]??$this->customerIds[0],
-                    'assigned_to'=>$this->staffId,'subject'=>$t['subject'],
+                    'assigned_to'=>$this->staffId,'created_by'=>$this->adminId,
+                    'ticket_number'=>'TKT/MBI/2026/'.str_pad($i+1,3,'0',STR_PAD_LEFT),
+                    'subject'=>$t['subject'],
                     'description'=>'Detail masalah: '.$t['subject'],
                     'priority'=>$t['priority'],'status'=>$t['status'],
-                    'channel'=>'email','created_at'=>now(),'updated_at'=>now(),
+                    'created_at'=>now(),'updated_at'=>now(),
                 ]);
                 DB::table('helpdesk_replies')->insert([
-                    'tenant_id'=>$this->tenantId,'ticket_id'=>$ticketId,'user_id'=>$this->staffId,
-                    'message'=>'Terima kasih atas laporan Anda. Tim kami sedang menangani masalah ini.',
+                    'ticket_id'=>$ticketId,'user_id'=>$this->staffId,
+                    'body'=>'Terima kasih atas laporan Anda. Tim kami sedang menangani masalah ini.',
                     'is_internal'=>false,'created_at'=>now(),'updated_at'=>now(),
                 ]);
             }
@@ -1531,8 +1563,10 @@ class TenantDemoSeeder extends Seeder
         if (!empty($this->customerIds) && !empty($planIds)) {
             DB::table('customer_subscriptions')->insertOrIgnore([
                 'tenant_id'=>$this->tenantId,'customer_id'=>$this->customerIds[0],'plan_id'=>$planIds[1],
-                'status'=>'active','started_at'=>Carbon::now()->subMonths(2),
+                'subscription_number'=>'SUB-MBI-001',
+                'status'=>'active','start_date'=>Carbon::now()->subMonths(2)->format('Y-m-d'),
                 'next_billing_date'=>Carbon::now()->addDays(15)->format('Y-m-d'),
+                'user_id'=>$this->adminId,
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -1568,18 +1602,20 @@ class TenantDemoSeeder extends Seeder
                 ]);
             }
             // Work Order
-            $wcId = DB::table('work_centers')->where('tenant_id',$this->tenantId)->value('id');
             $woId = DB::table('work_orders')->insertGetId([
                 'tenant_id'=>$this->tenantId,'bom_id'=>$bomId,'product_id'=>$product->id,
-                'number'=>'WO/MBI/2026/001','quantity'=>20,'quantity_produced'=>15,
-                'status'=>'in_progress','planned_start'=>Carbon::now()->subDays(3)->format('Y-m-d'),
-                'planned_end'=>Carbon::now()->addDays(2)->format('Y-m-d'),
-                'created_by'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
+                'user_id'=>$this->adminId,
+                'number'=>'WO/MBI/2026/001','target_quantity'=>20,'unit'=>'pcs',
+                'status'=>'in_progress',
+                'planned_start_date'=>Carbon::now()->subDays(3)->format('Y-m-d'),
+                'planned_end_date'=>Carbon::now()->addDays(2)->format('Y-m-d'),
+                'created_at'=>now(),'updated_at'=>now(),
             ]);
             DB::table('production_outputs')->insert([
-                'tenant_id'=>$this->tenantId,'work_order_id'=>$woId,'product_id'=>$product->id,
-                'quantity'=>15,'output_date'=>Carbon::now()->subDay()->format('Y-m-d'),
-                'recorded_by'=>$this->adminId,'notes'=>'Produksi berjalan normal',
+                'tenant_id'=>$this->tenantId,'work_order_id'=>$woId,
+                'user_id'=>$this->adminId,
+                'good_qty'=>15,'reject_qty'=>0,
+                'notes'=>'Produksi berjalan normal',
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
@@ -1589,25 +1625,33 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('qc_test_templates')->where('tenant_id',$this->tenantId)->exists()) return;
         $tplId = DB::table('qc_test_templates')->insertGetId([
-            'tenant_id'=>$this->tenantId,'name'=>'Template QC Elektronik','category'=>'incoming',
-            'description'=>'Pemeriksaan kualitas barang elektronik masuk',
-            'pass_threshold'=>80,'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
+            'tenant_id'=>$this->tenantId,
+            'template_name'=>'Template QC Elektronik','template_code'=>'QC-ELEC-001',
+            'test_category'=>'incoming',
+            'test_parameters'=>json_encode(['visual'=>'no_defect','functional'=>'100%']),
+            'acceptance_criteria'=>json_encode(['pass_threshold'=>80]),
+            'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
         ]);
-        $product = DB::table('products')->where('tenant_id',$this->tenantId)->first();
-        if ($product) {
-            $inspId = DB::table('qc_inspections')->insertGetId([
-                'tenant_id'=>$this->tenantId,'template_id'=>$tplId,'product_id'=>$product->id,
-                'number'=>'QC/MBI/2026/001','inspection_date'=>Carbon::now()->subDays(2)->format('Y-m-d'),
-                'inspector_id'=>$this->adminId,'quantity_inspected'=>10,'quantity_passed'=>9,'quantity_failed'=>1,
-                'result'=>'passed','score'=>90,'notes'=>'1 unit cacat minor',
-                'status'=>'completed','created_at'=>now(),'updated_at'=>now(),
+        $wo = DB::table('work_orders')->where('tenant_id',$this->tenantId)->first();
+        if ($wo) {
+            DB::table('qc_inspections')->insertGetId([
+                'tenant_id'=>$this->tenantId,'template_id'=>$tplId,'work_order_id'=>$wo->id,
+                'inspection_number'=>'QC/MBI/2026/001',
+                'stage'=>'incoming',
+                'inspector_id'=>$this->adminId,'sample_size'=>10,'sample_passed'=>9,'sample_failed'=>1,
+                'pass_rate'=>90,'grade'=>'A','status'=>'completed',
+                'inspector_notes'=>'1 unit cacat minor',
+                'inspected_at'=>Carbon::now()->subDays(2),
+                'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
         // Quality standards
         DB::table('quality_check_standards')->insertOrIgnore([
             'tenant_id'=>$this->tenantId,'name'=>'Standar Elektronik Konsumen',
+            'code'=>'STD-ELEC-001',
             'description'=>'Standar kualitas untuk produk elektronik konsumen',
-            'pass_criteria'=>json_encode(['visual'=>'no_defect','functional'=>'100%','packaging'=>'intact']),
+            'stage'=>'incoming',
+            'parameters'=>json_encode(['visual'=>'no_defect','functional'=>'100%','packaging'=>'intact']),
             'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
         ]);
     }
@@ -1642,15 +1686,19 @@ class TenantDemoSeeder extends Seeder
         if ($vehicle && $driver) {
             DB::table('fleet_trips')->insert([
                 'tenant_id'=>$this->tenantId,'vehicle_id'=>$vehicle->id,'driver_id'=>$driver->id,
+                'user_id'=>$this->adminId,
+                'trip_number'=>'TRIP/MBI/2026/001',
                 'purpose'=>'Pengiriman barang ke PT Teknologi Nusantara',
                 'origin'=>'Gudang Utama Jakarta','destination'=>'Gedung Sudirman, Jakarta',
-                'start_date'=>Carbon::now()->subDays(2)->format('Y-m-d'),
-                'end_date'=>Carbon::now()->subDay()->format('Y-m-d'),
-                'distance_km'=>45,'fuel_used'=>4.5,'status'=>'completed',
+                'odometer_start'=>$vehicle->odometer,'odometer_end'=>$vehicle->odometer+45,
+                'departed_at'=>Carbon::now()->subDays(2)->setTime(8,0),
+                'returned_at'=>Carbon::now()->subDay()->setTime(17,0),
+                'status'=>'completed',
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
             DB::table('fleet_fuel_logs')->insert([
                 'tenant_id'=>$this->tenantId,'vehicle_id'=>$vehicle->id,'driver_id'=>$driver->id,
+                'user_id'=>$this->adminId,
                 'date'=>Carbon::now()->subDays(2)->format('Y-m-d'),
                 'liters'=>40,'price_per_liter'=>10000,'total_cost'=>400000,
                 'odometer'=>$vehicle->odometer+100,'fuel_type'=>'pertalite',
@@ -1688,26 +1736,27 @@ class TenantDemoSeeder extends Seeder
         $customer = DB::table('customers')->where('tenant_id',$this->tenantId)->first();
         $projectId = DB::table('projects')->insertGetId([
             'tenant_id'=>$this->tenantId,'name'=>'Implementasi ERP PT Teknologi Nusantara',
-            'code'=>'PRJ-2026-001','customer_id'=>$customer?->id,
+            'number'=>'PRJ-2026-001','customer_id'=>$customer?->id,
             'description'=>'Implementasi sistem ERP terintegrasi untuk klien',
             'start_date'=>Carbon::now()->subMonths(1)->format('Y-m-d'),
             'end_date'=>Carbon::now()->addMonths(3)->format('Y-m-d'),
-            'budget'=>150000000,'spent'=>45000000,'status'=>'active',
-            'manager_id'=>$this->managerId,'created_at'=>now(),'updated_at'=>now(),
+            'budget'=>150000000,'actual_cost'=>45000000,'progress'=>30,'status'=>'active',
+            'user_id'=>$this->managerId,'created_at'=>now(),'updated_at'=>now(),
         ]);
         foreach ([
-            ['name'=>'Analisis Kebutuhan','status'=>'completed','progress'=>100],
-            ['name'=>'Desain Sistem','status'=>'completed','progress'=>100],
-            ['name'=>'Pengembangan Modul','status'=>'in_progress','progress'=>60],
-            ['name'=>'Testing & UAT','status'=>'pending','progress'=>0],
-            ['name'=>'Go Live & Training','status'=>'pending','progress'=>0],
+            ['name'=>'Analisis Kebutuhan','status'=>'done'],
+            ['name'=>'Desain Sistem','status'=>'done'],
+            ['name'=>'Pengembangan Modul','status'=>'in_progress'],
+            ['name'=>'Testing & UAT','status'=>'todo'],
+            ['name'=>'Go Live & Training','status'=>'todo'],
         ] as $i=>$task) {
-            DB::table('project_tasks')->insert(array_merge($task,[
+            DB::table('project_tasks')->insert([
                 'tenant_id'=>$this->tenantId,'project_id'=>$projectId,
-                'assigned_to'=>$this->staffId,'sort_order'=>$i,
+                'name'=>$task['name'],'status'=>$task['status'],
+                'assigned_to'=>$this->staffId,
                 'due_date'=>Carbon::now()->addDays(($i+1)*14)->format('Y-m-d'),
                 'created_at'=>now(),'updated_at'=>now(),
-            ]));
+            ]);
         }
         // Project milestones
         DB::table('project_milestones')->insert([
@@ -1722,13 +1771,14 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('timesheets')->where('tenant_id',$this->tenantId)->exists()) return;
         $project = DB::table('projects')->where('tenant_id',$this->tenantId)->first();
-        foreach (array_slice($this->employeeIds,0,3) as $empId) {
+        $userIds = [$this->adminId, $this->managerId, $this->staffId];
+        foreach ($userIds as $userId) {
             for ($d=5;$d>=1;$d--) {
                 DB::table('timesheets')->insert([
-                    'tenant_id'=>$this->tenantId,'employee_id'=>$empId,
+                    'tenant_id'=>$this->tenantId,'user_id'=>$userId,
                     'project_id'=>$project?->id,'date'=>Carbon::now()->subDays($d)->format('Y-m-d'),
                     'hours'=>rand(6,8),'description'=>'Pengerjaan modul sistem',
-                    'status'=>'approved','approved_by'=>$this->adminId,
+                    'billing_status'=>'unbilled',
                     'created_at'=>now(),'updated_at'=>now(),
                 ]);
             }
@@ -1741,12 +1791,12 @@ class TenantDemoSeeder extends Seeder
         $so = DB::table('sales_orders')->where('tenant_id',$this->tenantId)->where('status','delivered')->first();
         if (!$so) return;
         DB::table('shipments')->insert([
-            'tenant_id'=>$this->tenantId,'sales_order_id'=>$so->id,'customer_id'=>$so->customer_id,
-            'number'=>'SHP/MBI/2026/001','courier'=>'JNE','service'=>'REG',
+            'tenant_id'=>$this->tenantId,'sales_order_id'=>$so->id,
+            'courier'=>'JNE','service'=>'REG',
             'tracking_number'=>'JNE'.rand(100000000,999999999),
             'origin_city'=>'Jakarta','destination_city'=>'Surabaya',
-            'weight'=>5.5,'shipping_cost'=>85000,'status'=>'delivered',
-            'shipped_at'=>Carbon::parse($so->date)->addDay(),'delivered_at'=>Carbon::parse($so->date)->addDays(3),
+            'weight_kg'=>5.5,'shipping_cost'=>85000,'status'=>'delivered',
+            'delivered_at'=>Carbon::parse($so->date)->addDays(3),
             'created_at'=>now(),'updated_at'=>now(),
         ]);
     }
@@ -1755,19 +1805,20 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('ecommerce_channels')->where('tenant_id',$this->tenantId)->exists()) return;
         foreach ([
-            ['name'=>'Tokopedia MBI','platform'=>'tokopedia','status'=>'active'],
-            ['name'=>'Shopee MBI','platform'=>'shopee','status'=>'active'],
-            ['name'=>'Lazada MBI','platform'=>'lazada','status'=>'inactive'],
+            ['shop_name'=>'Tokopedia MBI','platform'=>'tokopedia','is_active'=>true],
+            ['shop_name'=>'Shopee MBI','platform'=>'shopee','is_active'=>true],
+            ['shop_name'=>'Lazada MBI','platform'=>'lazada','is_active'=>false],
         ] as $ch) {
             $chId = DB::table('ecommerce_channels')->insertGetId(array_merge($ch,[
                 'tenant_id'=>$this->tenantId,'api_key'=>'demo_key_'.Str::random(16),
-                'is_active'=>$ch['status']==='active','created_at'=>now(),'updated_at'=>now(),
+                'created_at'=>now(),'updated_at'=>now(),
             ]));
-            if ($ch['status']==='active' && !empty($this->productIds)) {
+            if ($ch['is_active'] && !empty($this->productIds)) {
                 DB::table('ecommerce_product_mappings')->insertOrIgnore([
                     'tenant_id'=>$this->tenantId,'channel_id'=>$chId,'product_id'=>$this->productIds[0],
-                    'external_product_id'=>'EXT-'.rand(100000,999999),
-                    'external_sku'=>'EXT-SKU-001','sync_price'=>true,'sync_stock'=>true,
+                    'external_id'=>'EXT-'.rand(100000,999999),
+                    'external_sku'=>'EXT-SKU-001',
+                    'is_active'=>true,
                     'last_synced_at'=>now(),'created_at'=>now(),'updated_at'=>now(),
                 ]);
             }
@@ -1778,16 +1829,38 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('print_jobs')->where('tenant_id',$this->tenantId)->exists()) return;
         $customer = DB::table('customers')->where('tenant_id',$this->tenantId)->first();
-        DB::table('print_jobs')->insert([
-            'tenant_id'=>$this->tenantId,'customer_id'=>$customer?->id,
-            'job_number'=>'PJ/MBI/2026/001','title'=>'Brosur Produk Q2 2026',
-            'description'=>'Cetak brosur promosi produk elektronik','job_type'=>'offset',
-            'quantity'=>1000,'paper_size'=>'A4','paper_type'=>'art_paper','paper_weight'=>150,
-            'colors'=>'4/4','finishing'=>json_encode(['laminating','cutting']),
-            'unit_price'=>2500,'total_price'=>2500000,'status'=>'completed',
-            'due_date'=>Carbon::now()->addDays(7)->format('Y-m-d'),
-            'created_by'=>$this->adminId,'created_at'=>now(),'updated_at'=>now(),
-        ]);
+        
+        // Check which print_jobs table structure exists
+        $columns = Schema::getColumnListing('print_jobs');
+        
+        if (in_array('printer_destination', $columns)) {
+            // This is the print queue table (for POS receipts, etc.)
+            DB::table('print_jobs')->insert([
+                'tenant_id'=>$this->tenantId,
+                'job_type'=>'receipt',
+                'reference_id'=>null,
+                'reference_number'=>'DEMO-001',
+                'printer_type'=>'usb',
+                'printer_destination'=>'/dev/usb/lp0',
+                'print_data'=>json_encode(['content'=>'Demo print job']),
+                'status'=>'completed',
+                'processed_at'=>now(),
+                'created_at'=>now(),
+                'updated_at'=>now(),
+            ]);
+        } else {
+            // This is the printing module table (for print shop jobs)
+            DB::table('print_jobs')->insert([
+                'tenant_id'=>$this->tenantId,'customer_id'=>$customer?->id,
+                'job_number'=>'PJ/MBI/2026/001','job_name'=>'Brosur Produk Q2 2026',
+                'description'=>'Cetak brosur promosi produk elektronik','product_type'=>'brochure',
+                'quantity'=>1000,'paper_type'=>'art_paper',
+                'specifications'=>json_encode(['paper_weight'=>150,'colors'=>'4/4','finishing'=>['laminating','cutting']]),
+                'estimated_cost'=>2500000,'quoted_price'=>2500000,'status'=>'completed',
+                'due_date'=>Carbon::now()->addDays(7)->format('Y-m-d'),
+                'created_at'=>now(),'updated_at'=>now(),
+            ]);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1799,24 +1872,29 @@ class TenantDemoSeeder extends Seeder
         if (DB::table('farm_plots')->where('tenant_id',$this->tenantId)->exists()) return;
         $plotId = DB::table('farm_plots')->insertGetId([
             'tenant_id'=>$this->tenantId,'name'=>'Lahan A - Padi','code'=>'LP-A-001',
-            'area_hectares'=>5.5,'soil_type'=>'clay_loam','irrigation_type'=>'irigasi_teknis',
-            'location'=>'Karawang, Jawa Barat','status'=>'active',
+            'area_size'=>5.5,'area_unit'=>'hectare','soil_type'=>'clay_loam','irrigation_type'=>'irigasi_teknis',
+            'location'=>'Karawang, Jawa Barat','status'=>'growing',
+            'is_active'=>true,
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         $cycleId = DB::table('crop_cycles')->insertGetId([
             'tenant_id'=>$this->tenantId,'farm_plot_id'=>$plotId,'crop_name'=>'Padi IR64',
             'variety'=>'IR64','planting_date'=>Carbon::now()->subMonths(2)->format('Y-m-d'),
             'expected_harvest_date'=>Carbon::now()->addMonths(1)->format('Y-m-d'),
-            'area_planted'=>5.5,'seed_quantity'=>55,'seed_unit'=>'kg',
+            'area_hectares'=>5.5,'seed_quantity'=>55,'seed_unit'=>'kg',
             'phase'=>'vegetative','status'=>'active',
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         DB::table('harvest_logs')->insert([
             'tenant_id'=>$this->tenantId,'farm_plot_id'=>$plotId,'crop_cycle_id'=>$cycleId,
+            'user_id'=>$this->adminId,'number'=>'HRV-A1-'.Carbon::now()->subMonths(5)->format('Ymd').'-01',
             'harvest_date'=>Carbon::now()->subMonths(5)->format('Y-m-d'),
-            'quantity'=>22000,'unit'=>'kg','quality_grade'=>'A',
-            'selling_price_per_unit'=>5500,'total_revenue'=>121000000,
-            'notes'=>'Panen musim sebelumnya','created_at'=>now(),'updated_at'=>now(),
+            'crop_name'=>'Padi IR64',
+            'total_qty'=>22000,'unit'=>'kg','reject_qty'=>500,
+            'moisture_pct'=>14.5,'storage_location'=>'Gudang Utama',
+            'labor_cost'=>2000000,'transport_cost'=>500000,
+            'weather'=>'Cerah','notes'=>'Panen musim sebelumnya',
+            'created_at'=>now(),'updated_at'=>now(),
         ]);
     }
 
@@ -1824,55 +1902,82 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('livestock_herds')->where('tenant_id',$this->tenantId)->exists()) return;
         $herdId = DB::table('livestock_herds')->insertGetId([
-            'tenant_id'=>$this->tenantId,'name'=>'Sapi Perah Kelompok A','species'=>'cattle',
-            'breed'=>'Friesian Holstein','total_count'=>25,'female_count'=>20,'male_count'=>5,
-            'location'=>'Kandang A','status'=>'active','created_at'=>now(),'updated_at'=>now(),
+            'tenant_id'=>$this->tenantId,'code'=>'HRD-A1','name'=>'Sapi Perah Kelompok A',
+            'animal_type'=>'sapi','breed'=>'Friesian Holstein',
+            'initial_count'=>25,'current_count'=>25,
+            'entry_date'=>Carbon::now()->subMonths(6)->format('Y-m-d'),
+            'entry_age_days'=>90,'entry_weight_kg'=>150,'purchase_price'=>75000000,
+            'status'=>'active','target_harvest_date'=>Carbon::now()->addMonths(6)->format('Y-m-d'),
+            'target_weight_kg'=>400,'notes'=>'Sapi perah produktif',
+            'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Dairy milk records
         for ($d=7;$d>=1;$d--) {
             DB::table('dairy_milk_records')->insert([
-                'tenant_id'=>$this->tenantId,'herd_id'=>$herdId,
+                'tenant_id'=>$this->tenantId,'livestock_herd_id'=>$herdId,
+                'animal_id'=>'COW-'.str_pad(rand(1,25),3,'0',STR_PAD_LEFT),
                 'record_date'=>Carbon::now()->subDays($d)->format('Y-m-d'),
-                'morning_yield'=>rand(80,120),'evening_yield'=>rand(60,90),
-                'total_yield'=>rand(140,210),'fat_content'=>rand(35,45)/10,
-                'protein_content'=>rand(30,35)/10,'quality_grade'=>'A',
+                'milking_session'=>['morning','afternoon','evening'][rand(0,2)],
+                'milk_volume_liters'=>rand(8,15),
+                'fat_percentage'=>rand(35,45)/10,
+                'protein_percentage'=>rand(30,35)/10,
+                'lactose_percentage'=>rand(45,50)/10,
+                'somatic_cell_count'=>rand(100000,300000),
+                'quality_grade'=>'A',
+                'recorded_by'=>$this->adminId,
                 'created_at'=>now(),'updated_at'=>now(),
             ]);
         }
-        // Poultry
-        DB::table('poultry_flocks')->insertOrIgnore([
-            'tenant_id'=>$this->tenantId,'name'=>'Ayam Broiler Batch 1','breed'=>'Ross 308',
-            'initial_count'=>500,'current_count'=>485,'age_days'=>28,
-            'house_number'=>'Kandang B1','status'=>'active',
-            'placement_date'=>Carbon::now()->subDays(28)->format('Y-m-d'),
-            'created_at'=>now(),'updated_at'=>now(),
-        ]);
+        // Poultry (skip if table doesn't exist)
+        if (Schema::hasTable('poultry_flocks')) {
+            DB::table('poultry_flocks')->insertOrIgnore([
+                'tenant_id'=>$this->tenantId,'name'=>'Ayam Broiler Batch 1','breed'=>'Ross 308',
+                'initial_count'=>500,'current_count'=>485,'age_days'=>28,
+                'house_number'=>'Kandang B1','status'=>'active',
+                'placement_date'=>Carbon::now()->subDays(28)->format('Y-m-d'),
+                'created_at'=>now(),'updated_at'=>now(),
+            ]);
+        }
         // Breeding record
-        DB::table('breeding_records')->insert([
-            'tenant_id'=>$this->tenantId,'herd_id'=>$herdId,
-            'breeding_date'=>Carbon::now()->subDays(60)->format('Y-m-d'),
-            'method'=>'artificial_insemination','bull_id'=>null,'bull_name'=>'Semen Import FH',
-            'expected_calving_date'=>Carbon::now()->addMonths(7)->format('Y-m-d'),
-            'status'=>'pregnant','notes'=>'Inseminasi buatan berhasil',
-            'created_at'=>now(),'updated_at'=>now(),
-        ]);
+        if (Schema::hasTable('breeding_records')) {
+            DB::table('breeding_records')->insert([
+                'tenant_id'=>$this->tenantId,'livestock_herd_id'=>$herdId,
+                'dam_id'=>'COW-001','sire_id'=>null,
+                'mating_date'=>Carbon::now()->subDays(60)->format('Y-m-d'),
+                'mating_type'=>'artificial_insemination','genetics_line'=>'Friesian Holstein',
+                'expected_due_date'=>Carbon::now()->addMonths(7)->format('Y-m-d'),
+                'status'=>'pregnant','notes'=>'Inseminasi buatan berhasil',
+                'recorded_by'=>$this->adminId,
+                'created_at'=>now(),'updated_at'=>now(),
+            ]);
+        }
         // Health treatment
-        DB::table('livestock_health_records')->insert([
-            'tenant_id'=>$this->tenantId,'herd_id'=>$herdId,
-            'treatment_date'=>Carbon::now()->subDays(14)->format('Y-m-d'),
-            'treatment_type'=>'vaccination','disease_name'=>'Foot and Mouth Disease',
-            'medicine_used'=>'Vaksin PMK','dosage'=>'2ml/ekor','treated_count'=>25,
-            'veterinarian'=>'drh. Bambang Susilo','cost'=>500000,'notes'=>'Vaksinasi rutin tahunan',
-            'created_at'=>now(),'updated_at'=>now(),
-        ]);
+        if (Schema::hasTable('livestock_health_records') && Schema::hasColumn('livestock_health_records', 'date')) {
+            DB::table('livestock_health_records')->insert([
+                'tenant_id'=>$this->tenantId,'livestock_herd_id'=>$herdId,
+                'user_id'=>$this->adminId,
+                'date'=>Carbon::now()->subDays(14)->format('Y-m-d'),
+                'type'=>'treatment','condition'=>'Foot and Mouth Disease',
+                'affected_count'=>25,'death_count'=>0,
+                'symptoms'=>'Demam, lemas','medication'=>'Vaksin PMK',
+                'medication_cost'=>500000,'administered_by'=>'drh. Bambang Susilo',
+                'severity'=>'medium','status'=>'resolved',
+                'notes'=>'Vaksinasi rutin tahunan',
+                'created_at'=>now(),'updated_at'=>now(),
+            ]);
+        }
         // Waste management
-        DB::table('waste_management_logs')->insert([
-            'tenant_id'=>$this->tenantId,'herd_id'=>$herdId,
-            'log_date'=>Carbon::now()->subDays(3)->format('Y-m-d'),
-            'waste_type'=>'manure','quantity'=>500,'unit'=>'kg',
-            'disposal_method'=>'composting','notes'=>'Diolah menjadi pupuk organik',
-            'created_at'=>now(),'updated_at'=>now(),
-        ]);
+        if (Schema::hasTable('waste_management_logs') && Schema::hasColumn('waste_management_logs', 'collection_date')) {
+            DB::table('waste_management_logs')->insert([
+                'tenant_id'=>$this->tenantId,'livestock_herd_id'=>$herdId,
+                'collection_date'=>Carbon::now()->subDays(3)->format('Y-m-d'),
+                'waste_type'=>'manure_solid','quantity_kg'=>500,
+                'disposal_method'=>'composting','storage_location'=>'Area Kompos',
+                'end_product'=>'Pupuk Organik','notes'=>'Diolah menjadi pupuk organik',
+                'recorded_by'=>$this->adminId,
+                'created_at'=>now(),'updated_at'=>now(),
+            ]);
+        }
     }
 
     private function seedFisheries(): void
@@ -2687,33 +2792,37 @@ class TenantDemoSeeder extends Seeder
         $appointmentIds = [];
         foreach (array_slice($patientIds, 0, 3) as $i => $patId) {
             $appointmentIds[] = DB::table('appointments')->insertGetId([
-                'tenant_id'        => $this->tenantId,
-                'patient_id'       => $patId,
-                'doctor_id'        => $doctorIds[$i % count($doctorIds)],
-                'appointment_date' => Carbon::now()->addDays($i + 1)->format('Y-m-d'),
-                'appointment_time' => '09:'.str_pad($i * 15, 2, '0', STR_PAD_LEFT).':00',
-                'type'             => 'outpatient',
-                'status'           => 'scheduled',
-                'chief_complaint'  => ['Demam dan batuk', 'Kontrol rutin', 'Nyeri dada'][array_rand(['Demam dan batuk', 'Kontrol rutin', 'Nyeri dada'])],
-                'notes'            => 'Janji temu demo',
-                'created_at'       => now(), 'updated_at' => now(),
+                'tenant_id'          => $this->tenantId,
+                'patient_id'         => $patId,
+                'doctor_id'          => $doctorIds[$i % count($doctorIds)],
+                'appointment_number' => 'APT-DEMO-'.str_pad($i + 1, 5, '0', STR_PAD_LEFT),
+                'appointment_date'   => Carbon::now()->addDays($i + 1)->format('Y-m-d'),
+                'appointment_time'   => '09:'.str_pad($i * 15, 2, '0', STR_PAD_LEFT).':00',
+                'appointment_type'   => 'consultation', // valid: consultation, follow_up, check_up, procedure, telemedicine, emergency
+                'visit_type'         => 'outpatient',   // valid after migration 2026_04_15_000010
+                'status'             => 'scheduled',
+                'reason_for_visit'   => ['Demam dan batuk', 'Kontrol rutin', 'Nyeri dada'][$i],
+                'notes'              => 'Janji temu demo',
+                'created_at'         => now(), 'updated_at' => now(),
             ]);
         }
 
         // Patient visits (outpatient)
         foreach (array_slice($patientIds, 0, 3) as $i => $patId) {
             $visitId = DB::table('patient_visits')->insertGetId([
-                'tenant_id'       => $this->tenantId,
-                'patient_id'      => $patId,
-                'doctor_id'       => $doctorIds[$i % count($doctorIds)],
-                'visit_date'      => Carbon::now()->subDays($i + 1)->format('Y-m-d'),
-                'visit_type'      => 'outpatient',
-                'chief_complaint' => ['Demam 3 hari', 'Batuk pilek', 'Kontrol tekanan darah'][$i],
-                'diagnosis'       => ['Infeksi saluran pernapasan atas', 'Common cold', 'Hipertensi grade 1'][$i],
-                'icd10_code'      => ['J06.9', 'J00', 'I10'][$i],
-                'treatment'       => 'Pemberian obat dan istirahat',
-                'status'          => 'completed',
-                'created_at'      => now(), 'updated_at' => now(),
+                'tenant_id'          => $this->tenantId,
+                'patient_id'         => $patId,
+                'doctor_id'          => $doctorIds[$i % count($doctorIds)],
+                'visit_number'       => 'VIS-DEMO-'.str_pad($i + 1, 5, '0', STR_PAD_LEFT),
+                'visit_date'         => Carbon::now()->subDays($i + 1)->format('Y-m-d'),
+                'visit_time'         => '10:00:00',
+                'visit_type'         => 'outpatient', // valid: outpatient, inpatient, emergency, telemedicine, home_care
+                'visit_status'       => 'completed',  // valid: registered, waiting, in_consultation, completed, referred, cancelled
+                'chief_complaint'    => ['Demam 3 hari', 'Batuk pilek', 'Kontrol tekanan darah'][$i],
+                'primary_diagnosis'  => ['Infeksi saluran pernapasan atas', 'Common cold', 'Hipertensi grade 1'][$i],
+                'icd10_code'         => ['J06.9', 'J00', 'I10'][$i],
+                'treatment_summary'  => 'Pemberian obat dan istirahat',
+                'created_at'         => now(), 'updated_at' => now(),
             ]);
 
             // Medical records (EMR)
@@ -2769,41 +2878,26 @@ class TenantDemoSeeder extends Seeder
             }
         }
 
-        // Lab results
-        foreach (array_slice($patientIds, 0, 2) as $i => $patId) {
-            $labId = DB::table('lab_results')->insertGetId([
-                'tenant_id'   => $this->tenantId,
-                'patient_id'  => $patId,
-                'doctor_id'   => $doctorIds[$i % count($doctorIds)],
-                'test_name'   => ['Darah Lengkap', 'Kimia Darah'][$i],
-                'test_date'   => Carbon::now()->subDays($i + 2)->format('Y-m-d'),
-                'status'      => 'completed',
-                'results'     => json_encode([
-                    'hemoglobin'  => rand(120, 160) / 10,
-                    'leukosit'    => rand(4000, 10000),
-                    'trombosit'   => rand(150000, 400000),
-                    'hematokrit'  => rand(35, 50),
-                ]),
-                'normal_range'=> json_encode(['hemoglobin' => '12-16 g/dL', 'leukosit' => '4000-10000/uL']),
-                'interpretation' => 'Dalam batas normal',
-                'created_at'  => now(), 'updated_at' => now(),
-            ]);
-        }
+        // Lab results — skipped in demo seeder due to complex required FK dependencies
+        // (lab_orders, lab_test_catalogs must exist first; use HealthcareGenerator for full data)
+        $labId = null;
 
         // Medical billing
         foreach (array_slice($patientIds, 0, 2) as $i => $patId) {
+            $totalAmount = 150000 + rand(50000, 350000);
+            $isPaid = $i === 0;
             DB::table('medical_bills')->insertOrIgnore([
                 'tenant_id'      => $this->tenantId,
                 'patient_id'     => $patId,
                 'bill_number'    => 'BILL-'.str_pad($i + 1, 6, '0', STR_PAD_LEFT),
                 'bill_date'      => Carbon::now()->subDays($i + 1)->format('Y-m-d'),
-                'consultation_fee' => 150000,
-                'medicine_fee'   => rand(50000, 200000),
-                'lab_fee'        => $i === 0 ? 150000 : 0,
-                'total_amount'   => 150000 + rand(50000, 350000),
-                'paid_amount'    => $i === 0 ? 150000 + rand(50000, 350000) : 0,
-                'payment_method' => $i === 0 ? 'bpjs' : 'pending',
-                'status'         => $i === 0 ? 'paid' : 'unpaid',
+                'subtotal'       => $totalAmount,
+                'total_amount'   => $totalAmount,
+                'amount_paid'    => $isPaid ? $totalAmount : 0,
+                'balance_due'    => $isPaid ? 0 : $totalAmount,
+                'payment_status' => $isPaid ? 'paid' : 'unpaid', // valid: unpaid, partial, paid, overdue, written_off, refunded
+                'billing_status' => 'finalized',                  // valid: draft, finalized, submitted, approved, rejected, cancelled
+                'financial_class'=> $isPaid ? 'insurance' : 'self_pay',
                 'created_at'     => now(), 'updated_at' => now(),
             ]);
         }

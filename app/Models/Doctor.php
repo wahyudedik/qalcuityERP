@@ -101,6 +101,14 @@ class Doctor extends Model
     }
 
     /**
+     * Alias for full_name — used in views as $doctor->name
+     */
+    public function getNameAttribute()
+    {
+        return $this->full_name;
+    }
+
+    /**
      * Get doctor's email from user relationship
      */
     public function getEmailAttribute()

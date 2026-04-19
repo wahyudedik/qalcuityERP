@@ -7,6 +7,30 @@
 @section('content')
     <div class="max-w-4xl mx-auto space-y-6">
 
+        {{-- Flash messages --}}
+        @if(session('success'))
+        <div class="flex items-start gap-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-800 dark:text-green-300 rounded-2xl px-5 py-4 text-sm">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>{{ session('success') }}</span>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="flex items-start gap-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-800 dark:text-red-300 rounded-2xl px-5 py-4 text-sm">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="flex-1">
+                <p class="font-medium">Tidak dapat menyimpan pengaturan</p>
+                <p class="mt-0.5 text-red-700 dark:text-red-400">{{ session('error') }}</p>
+                @if(session('upgrade_required'))
+                <a href="{{ route('subscription.index') }}" class="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    Upgrade Paket Sekarang
+                </a>
+                @endif
+            </div>
+        </div>
+        @endif
+
         {{-- Header card --}}
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
             <div class="flex items-start justify-between gap-4">
@@ -17,11 +41,45 @@
                         muncul di menu.
                     </p>
                 </div>
-                <span
-                    class="shrink-0 text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full font-medium">
-                    {{ count($enabled) }} / {{ count($all) }} aktif
-                </span>
+                <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span class="text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full font-medium">
+                        {{ count($enabled) }} / {{ count($all) }} aktif
+                    </span>
+                    @php
+                        $planLabels = [
+                            'trial'        => ['label' => 'Trial 14 Hari', 'color' => 'yellow'],
+                            'starter'      => ['label' => 'Starter',       'color' => 'gray'],
+                            'business'     => ['label' => 'Business',      'color' => 'blue'],
+                            'professional' => ['label' => 'Professional',  'color' => 'purple'],
+                            'enterprise'   => ['label' => 'Enterprise',    'color' => 'green'],
+                        ];
+                        $planInfo = $planLabels[$planSlug] ?? ['label' => strtoupper($planSlug ?? 'Unknown'), 'color' => 'gray'];
+                        $colorMap = [
+                            'yellow' => 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300',
+                            'gray'   => 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300',
+                            'blue'   => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
+                            'purple' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300',
+                            'green'  => 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300',
+                        ];
+                    @endphp
+                    <span class="text-xs px-3 py-1 rounded-full font-medium {{ $colorMap[$planInfo['color']] }}">
+                        Paket: {{ $planInfo['label'] }}
+                    </span>
+                </div>
             </div>
+
+            {{-- Trial upgrade banner --}}
+            @if($planSlug === 'trial')
+            <div class="mt-4 flex items-center gap-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3">
+                <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm text-amber-800 dark:text-amber-300 flex-1">
+                    Paket trial hanya mencakup modul dasar. Modul dengan ikon 🔒 memerlukan upgrade paket.
+                </p>
+                <a href="{{ route('subscription.index') }}" class="shrink-0 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition">
+                    Upgrade
+                </a>
+            </div>
+            @endif
         </div>
 
         <form method="POST" action="{{ route('settings.modules.update') }}" id="module-form">
@@ -131,26 +189,39 @@
                             @php
                                 $m = $meta[$key];
                                 $isEnabled = in_array($key, $enabled);
+                                $isLocked = !in_array($key, $allowedByPlan);
                             @endphp
                             <label
-                                class="module-card flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition
-                    {{ $isEnabled ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 dark:border-blue-500/50' : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20' }}">
+                                class="module-card flex items-center gap-4 p-4 rounded-xl border-2 transition
+                                {{ $isLocked
+                                    ? 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 opacity-70 cursor-not-allowed'
+                                    : 'cursor-pointer ' . ($isEnabled ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 dark:border-blue-500/50' : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20') }}">
                                 <input type="checkbox" name="modules[]" value="{{ $key }}"
-                                    class="sr-only module-checkbox" {{ $isEnabled ? 'checked' : '' }}
+                                    class="sr-only module-checkbox"
+                                    {{ $isEnabled && !$isLocked ? 'checked' : '' }}
+                                    {{ $isLocked ? 'disabled' : '' }}
                                     onchange="updateCard(this)">
                                 <span class="text-2xl shrink-0">{{ $m['icon'] }}</span>
                                 <div class="flex-1 min-w-0">
-                                    <div class="font-medium text-sm text-gray-900 dark:text-white">{{ $m['label'] }}
+                                    <div class="font-medium text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                                        {{ $m['label'] }}
+                                        @if($isLocked)
+                                        <span class="text-xs bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium">Upgrade</span>
+                                        @endif
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $m['desc'] }}</div>
                                 </div>
                                 <div class="shrink-0">
+                                    @if($isLocked)
+                                    <svg class="w-5 h-5 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    @else
                                     <div
                                         class="w-10 h-5 rounded-full transition-colors {{ $isEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-white/20' }} relative toggle-track">
                                         <div
                                             class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform {{ $isEnabled ? 'translate-x-5' : 'translate-x-0.5' }} toggle-thumb">
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </label>
                         @endforeach
@@ -220,7 +291,7 @@
         }
 
         function enableAll() {
-            document.querySelectorAll('.module-checkbox').forEach(cb => {
+            document.querySelectorAll('.module-checkbox:not(:disabled)').forEach(cb => {
                 if (!cb.checked) {
                     cb.checked = true;
                     updateCard(cb);
@@ -229,7 +300,7 @@
         }
 
         function disableAll() {
-            document.querySelectorAll('.module-checkbox').forEach(cb => {
+            document.querySelectorAll('.module-checkbox:not(:disabled)').forEach(cb => {
                 if (cb.checked) {
                     cb.checked = false;
                     updateCard(cb);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,24 @@ use Illuminate\Support\Facades\DB;
 
 class Admission extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
+
+    // Status constants
+    const STATUS_PENDING     = 'pending';
+    const STATUS_ACTIVE      = 'active';
+    const STATUS_DISCHARGED  = 'discharged';
+    const STATUS_TRANSFERRED = 'transferred';
+    const STATUS_AMA         = 'ama';
+    const STATUS_DECEASED    = 'deceased';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_ACTIVE,
+        self::STATUS_DISCHARGED,
+        self::STATUS_TRANSFERRED,
+        self::STATUS_AMA,
+        self::STATUS_DECEASED,
+    ];
 
     protected $fillable = [
         'admission_number',
@@ -189,6 +207,14 @@ class Admission extends Model
     }
 
     /**
+     * Alias: doctor → admittingDoctor (for view compatibility)
+     */
+    public function doctor()
+    {
+        return $this->belongsTo(Doctor::class, 'admitting_doctor_id');
+    }
+
+    /**
      * Relation: Ward
      */
     public function ward()
@@ -202,6 +228,14 @@ class Admission extends Model
     public function bed()
     {
         return $this->belongsTo(Bed::class, 'bed_id');
+    }
+
+    /**
+     * Relation: Ward rounds
+     */
+    public function wardRounds()
+    {
+        return $this->hasMany(WardRound::class);
     }
 
     /**

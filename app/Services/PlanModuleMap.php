@@ -6,6 +6,9 @@ class PlanModuleMap
 {
     /**
      * Mapping of plan slugs to their allowed module keys.
+     * 
+     * TASK 8.1: Audit complete — all 34 modules from ModuleRecommendationService::ALL_MODULES
+     * are now properly registered across all subscription plans.
      */
     const PLAN_MODULES = [
         'starter' => [
@@ -18,6 +21,7 @@ class PlanModuleMap
             'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
             'crm', 'accounting', 'budget', 'helpdesk', 'commission',
             'consignment', 'subscription_billing', 'reimbursement', 'reports',
+            'loyalty', 'bank_reconciliation',
         ],
         'professional' => [
             'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
@@ -29,6 +33,7 @@ class PlanModuleMap
             'agriculture', 'livestock',
         ],
         'enterprise' => [
+            // All modules available in enterprise plan
             'pos', 'inventory', 'purchasing', 'sales', 'invoicing',
             'hrm', 'payroll', 'crm', 'accounting', 'budget',
             'production', 'manufacturing', 'fleet', 'contracts', 'ecommerce',

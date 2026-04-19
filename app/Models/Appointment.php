@@ -17,7 +17,28 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Appointment extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+use HasFactory, SoftDeletes, BelongsToTenant;
+
+    // Status constants
+    const STATUS_SCHEDULED   = 'scheduled';
+    const STATUS_CONFIRMED   = 'confirmed';
+    const STATUS_CHECKED_IN  = 'checked_in';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_COMPLETED   = 'completed';
+    const STATUS_CANCELLED   = 'cancelled';
+    const STATUS_NO_SHOW     = 'no_show';
+    const STATUS_RESCHEDULED = 'rescheduled';
+
+    const STATUSES = [
+        self::STATUS_SCHEDULED,
+        self::STATUS_CONFIRMED,
+        self::STATUS_CHECKED_IN,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+        self::STATUS_NO_SHOW,
+        self::STATUS_RESCHEDULED,
+    ];
 
     protected $fillable = [
         'tenant_id',

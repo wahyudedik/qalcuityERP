@@ -80,7 +80,7 @@
                                                value="{{ $item['name'] ?? '' }}" placeholder="Nama"
                                                class="flex-1 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-xs">
                                         <input type="number" name="extracted_data[items][{{ $i }}][qty]"
-                                               value="{{ $item['qty'] ?? 1 }}" placeholder="Qty"
+                                               value="{{ $item['qty'] ?? 1 }}" placeholder="Jml"
                                                class="w-16 rounded-lg border-gray-300 dark:border-white/10 dark:bg-[#0f172a] dark:text-white text-xs">
                                         <input type="number" name="extracted_data[items][{{ $i }}][price]"
                                                value="{{ $item['price'] ?? 0 }}" placeholder="Harga"

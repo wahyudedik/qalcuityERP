@@ -284,9 +284,9 @@ class SampleDataGeneratorServiceTest extends TestCase
 
         $service = new class($tenantId, $processingLogObserved) extends SampleDataGeneratorService {
             private int $tenantId;
-            private bool &$observed;
+            private $observed;
 
-            public function __construct(int $tenantId, bool &$observed)
+            public function __construct(int $tenantId, &$observed)
             {
                 $this->tenantId = $tenantId;
                 $this->observed = &$observed;
@@ -299,9 +299,9 @@ class SampleDataGeneratorServiceTest extends TestCase
 
                 return new class($tenantId, $observed) extends BaseIndustryGenerator {
                     private int $tenantId;
-                    private bool &$observed;
+                    private $observed;
 
-                    public function __construct(int $tenantId, bool &$observed)
+                    public function __construct(int $tenantId, &$observed)
                     {
                         $this->tenantId = $tenantId;
                         $this->observed = &$observed;

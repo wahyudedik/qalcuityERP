@@ -1,35 +1,23 @@
 <x-app-layout>
     <x-slot name="header">Daftar Pasien Rawat Inap</x-slot>
 
-    @php $tid = auth()->user()->tenant_id; @endphp
-
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        @php
-            $totalAdmissions = \App\Models\Admission::where('tenant_id', $tid)->count();
-            $currentAdmissions = \App\Models\Admission::where('tenant_id', $tid)->where('status', 'admitted')->count();
-            $todayAdmissions = \App\Models\Admission::where('tenant_id', $tid)
-                ->whereDate('admission_date', today())
-                ->count();
-            $todayDischarges = \App\Models\Admission::where('tenant_id', $tid)
-                ->whereDate('discharge_date', today())
-                ->count();
-        @endphp
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Total Rawat Inap</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($totalAdmissions) }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($statistics['total_active'] ?? 0) }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Sedang Rawat</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $currentAdmissions }}</p>
+            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $statistics['total_active'] ?? 0 }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Masuk Hari Ini</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $todayAdmissions }}</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $statistics['today_admissions'] ?? 0 }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Pulang Hari Ini</p>
-            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ $todayDischarges }}</p>
+            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ $statistics['today_discharges'] ?? 0 }}</p>
         </div>
     </div>
 
@@ -51,12 +39,6 @@
                 <select name="ward"
                     class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
                     <option value="">Semua Ruang</option>
-                    @php
-                        $wards = \App\Models\Ward::where('tenant_id', $tid)->get();
-                    @endphp
-                    @foreach ($wards as $ward)
-                        <option value="{{ $ward->id }}" @selected(request('ward') == $ward->id)>{{ $ward->name }}</option>
-                    @endforeach
                 </select>
                 <button type="submit"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
@@ -107,9 +89,9 @@
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900 dark:text-white">
-                                    {{ $admission->ward ? $admission->ward->name : '-' }}</p>
+                                    {{ $admission->bed?->ward?->name ?? '-' }}</p>
                                 <p class="text-xs text-gray-500 dark:text-slate-400">Bed
-                                    {{ $admission->bed ? $admission->bed->bed_number : '-' }}</p>
+                                    {{ $admission->bed?->bed_number ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell">
                                 <p class="text-gray-900 dark:text-white">
@@ -126,7 +108,7 @@
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
-                                @if ($admission->status === 'admitted')
+                                @if ($admission->status === 'active')
                                     <span
                                         class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Sedang
                                         Rawat</span>
@@ -137,10 +119,13 @@
                                 @elseif($admission->status === 'transferred')
                                     <span
                                         class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">Dipindahkan</span>
-                                @elseif($admission->status === 'against_medical_advice')
+                                @elseif($admission->status === 'ama')
                                     <span
                                         class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Pulang
                                         Paksa</span>
+                                @else
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">{{ ucfirst($admission->status ?? '-') }}</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
@@ -156,8 +141,8 @@
                                             </path>
                                         </svg>
                                     </a>
-                                    @if ($admission->status === 'admitted')
-                                        <a href="{{ route('healthcare.inpatient.admissions.discharge', $admission) }}"
+                                    @if ($admission->status === 'active')
+                                        <a href="{{ route('healthcare.inpatient.admissions.show', $admission) }}"
                                             class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
                                             title="Proses Pulang">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"

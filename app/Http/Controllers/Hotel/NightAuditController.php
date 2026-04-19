@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Hotel;
 
 use App\Http\Controllers\Controller;
 use App\Models\NightAuditBatch;
+use App\Models\NightAuditLog;
 use App\Models\RevenuePosting;
 use App\Models\DailyOccupancyStat;
 use App\Models\DailyRateStat;
@@ -25,7 +26,7 @@ class NightAuditController extends Controller
      */
     public function index()
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         // Get recent audit batches
         $recentBatches = NightAuditBatch::where('tenant_id', $tenantId)
@@ -57,7 +58,7 @@ class NightAuditController extends Controller
 
         try {
             $batch = $this->auditService->startAudit(
-                auth()->user()->current_tenant_id,
+                $this->tenantId(),
                 \Carbon\Carbon::parse($validated['audit_date'])
             );
 
@@ -276,7 +277,7 @@ class NightAuditController extends Controller
      */
     public function revenuePostings(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $query = RevenuePosting::where('tenant_id', $tenantId)
             ->with(['reservation.guest', 'auditBatch']);
@@ -342,7 +343,7 @@ class NightAuditController extends Controller
      */
     public function statistics(Request $request)
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         // Date range
         $dateFrom = $request->input('date_from', now()->startOfMonth()->format('Y-m-d'));
@@ -389,7 +390,7 @@ class NightAuditController extends Controller
             'stat_date' => 'required|date',
         ]);
 
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
         $date = \Carbon\Carbon::parse($validated['stat_date']);
 
         $stats = DailyRateStat::where('tenant_id', $tenantId)

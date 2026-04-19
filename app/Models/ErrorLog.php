@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class ErrorLog extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'uuid',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
@@ -216,6 +217,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/{session}/messages', [ChatController::class, 'messages'])->name('messages')->middleware('tenant.isolation');
         Route::patch('/{session}/rename', [ChatController::class, 'rename'])->name('rename')->middleware('tenant.isolation');
         Route::delete('/{session}', [ChatController::class, 'destroy'])->name('destroy')->middleware('tenant.isolation');
+    });
+
+    // ERP AI Agent
+    Route::prefix('agent')->name('agent.')->middleware(['ai.rate', 'ai.quota', 'tenant.isolation'])->group(function () {
+        Route::post('/send', [\App\Http\Controllers\AgentController::class, 'send'])->name('send');
+        Route::post('/stream', [\App\Http\Controllers\AgentController::class, 'stream'])->name('stream');
+        // confirm executes write operations — apply write-op suspicious-pattern detection (Req 9.6)
+        Route::post('/confirm', [\App\Http\Controllers\AgentController::class, 'confirm'])->name('confirm')->middleware('ai.rate:write');
+        Route::post('/cancel', [\App\Http\Controllers\AgentController::class, 'cancel'])->name('cancel');
+        Route::post('/undo', [\App\Http\Controllers\AgentController::class, 'undo'])->name('undo');
+        Route::get('/insights', [\App\Http\Controllers\AgentController::class, 'insights'])->name('insights');
+        Route::post('/insights/{id}/dismiss', [\App\Http\Controllers\AgentController::class, 'dismissInsight'])->name('insights.dismiss');
+        Route::get('/memory', [\App\Http\Controllers\AgentController::class, 'memory'])->name('memory');
+        Route::delete('/memory', [\App\Http\Controllers\AgentController::class, 'clearMemory'])->name('memory.clear');
     });
 
     // Notifications
@@ -530,10 +545,29 @@ Route::middleware('auth')->group(function () {
         Route::post('/initiate-payment', [PosController::class, 'initiatePayment'])->name('initiate-payment');
         Route::post('/complete-payment/{order}', [PosController::class, 'completePayment'])->name('complete-payment');
         Route::get('/barcode', [PosController::class, 'findByBarcode'])->name('barcode');
+        Route::get('/search', [PosController::class, 'searchProducts'])->name('search');
 
         // Payment UI Routes
         Route::get('/payment/qris/{transactionNumber}', [PaymentUIController::class, 'showQrisPayment'])->name('payment.qris');
         Route::get('/payment/history', [PaymentUIController::class, 'paymentHistory'])->name('payment.history');
+
+        // Sesi Kasir (open/close/recap)
+        Route::prefix('sessions')->name('sessions.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Pos\SessionController::class, 'index'])->name('index');
+            Route::get('/buka', [\App\Http\Controllers\Pos\SessionController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Pos\SessionController::class, 'store'])->name('store');
+            Route::get('/{session}', [\App\Http\Controllers\Pos\SessionController::class, 'show'])->name('show');
+            Route::get('/{session}/tutup', [\App\Http\Controllers\Pos\SessionController::class, 'closeForm'])->name('close-form');
+            Route::post('/{session}/tutup', [\App\Http\Controllers\Pos\SessionController::class, 'close'])->name('close');
+        });
+
+        // Kirim struk
+        Route::post('/send-receipt', [PosController::class, 'sendReceiptEmail'])->name('send-receipt');
+        Route::post('/send-receipt-whatsapp', [PosController::class, 'sendReceiptWhatsApp'])->name('send-receipt-whatsapp');
+        Route::post('/sync-offline', [PosController::class, 'syncOffline'])->name('sync-offline');
+
+        // Loyalty
+        Route::get('/loyalty-balance/{customer}', [PosController::class, 'getLoyaltyBalance'])->name('loyalty-balance');
     });
 
     // Payment Gateway Settings (Tenant self-configuration)
@@ -1496,12 +1530,13 @@ Route::prefix('payroll')->name('payroll.')->middleware(['role:admin,manager', 't
 });
 
 // Slip Gaji Self-Service (semua role tenant)
-Route::prefix('payroll/slip')->name('payroll.slip.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('payroll/slip')->name('payroll.slip.')->group(function () {
     Route::get('/', [\App\Http\Controllers\PayslipController::class, 'index'])->name('index');
     Route::get('/{item}', [\App\Http\Controllers\PayslipController::class, 'show'])->name('show');
+    Route::get('/{item}/pdf', [\App\Http\Controllers\PayslipController::class, 'downloadPdf'])->name('pdf');
 });
 
-// Self-Service Karyawan: Cuti & Absensi (semua role tenant)
+// Self-Service Karyawan: Cuti, Absensi, Lembur, Reimbursement (semua role tenant)
 Route::middleware(['auth', 'verified'])->prefix('self-service')->name('self-service.')->group(function () {
     Route::get('/', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'profile'])->name('profile');
@@ -1512,6 +1547,17 @@ Route::middleware(['auth', 'verified'])->prefix('self-service')->name('self-serv
     Route::get('/attendance', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'attendanceIndex'])->name('attendance.index');
     Route::post('/attendance/clock-in', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockIn'])->name('attendance.clock-in');
     Route::post('/attendance/clock-out', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'clockOut'])->name('attendance.clock-out');
+    // Lembur self-service
+    Route::get('/overtime', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'overtimeIndex'])->name('overtime.index');
+    Route::post('/overtime', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'overtimeStore'])->name('overtime.store');
+    Route::delete('/overtime/{overtime}', [\App\Http\Controllers\EmployeeSelfServiceController::class, 'overtimeCancel'])->name('overtime.cancel');
+    // Reimbursement self-service (alias ke ReimbursementController)
+    Route::get('/reimbursement', [\App\Http\Controllers\ReimbursementController::class, 'myReimbursements'])->name('reimbursement.index');
+    Route::post('/reimbursement', [\App\Http\Controllers\ReimbursementController::class, 'submitMy'])->name('reimbursement.store');
+    // Slip gaji self-service
+    Route::get('/payslip', [\App\Http\Controllers\PayslipController::class, 'index'])->name('payslip.index');
+    Route::get('/payslip/{item}', [\App\Http\Controllers\PayslipController::class, 'show'])->name('payslip.show');
+    Route::get('/payslip/{item}/pdf', [\App\Http\Controllers\PayslipController::class, 'downloadPdf'])->name('payslip.pdf');
 });
 
 // Assets
@@ -1996,6 +2042,10 @@ Route::prefix('accounting')->name('accounting.')->middleware(['role:admin,manage
     // Trial Balance
     Route::get('/trial-balance', [AccountingController::class, 'trialBalance'])->name('trial-balance');
 
+    // General Ledger (Buku Besar)
+    Route::get('/general-ledger', [AccountingController::class, 'generalLedger'])->name('general-ledger');
+    Route::get('/general-ledger/pdf', [AccountingController::class, 'generalLedgerPdf'])->name('general-ledger.pdf');
+
     // Balance Sheet (Neraca)
     Route::get('/balance-sheet', [AccountingController::class, 'balanceSheet'])->name('balance-sheet');
     Route::get('/balance-sheet/pdf', [AccountingController::class, 'balanceSheetPdf'])->name('balance-sheet.pdf');
@@ -2252,6 +2302,7 @@ Route::prefix('hotel')->name('hotel.')->middleware('tenant.isolation')->group(fu
 
     // Rooms
     Route::get('rooms/availability', [App\Http\Controllers\Hotel\RoomController::class, 'availability'])->name('rooms.availability');
+    Route::get('rooms/by-type/{roomTypeId}', [App\Http\Controllers\Hotel\RoomController::class, 'byType'])->name('rooms.by-type');
     Route::patch('rooms/{room}/status', [App\Http\Controllers\Hotel\RoomController::class, 'updateStatus'])->name('rooms.status');
     Route::resource('rooms', App\Http\Controllers\Hotel\RoomController::class)->except(['show', 'edit', 'create'])->names('rooms');
 
@@ -3425,7 +3476,7 @@ Route::prefix('portal')->name('customer-portal.')->middleware(['auth', 'tenant.i
 // ==========================================
 // Integration Marketplace Routes
 // ==========================================
-Route::middleware(['auth', 'tenant'])->prefix('integrations')->name('integrations.')->group(function () {
+Route::middleware(['auth', 'tenant.isolation'])->prefix('integrations')->name('integrations.')->group(function () {
     // Main Routes
     Route::get('/', [\App\Http\Controllers\Integrations\IntegrationController::class, 'index'])->name('index');
     Route::get('/create', [\App\Http\Controllers\Integrations\IntegrationController::class, 'create'])->name('create');
@@ -3470,36 +3521,7 @@ Route::prefix('api/integrations/webhooks')->name('api.integrations.webhooks.')->
     Route::post('/test', [\App\Http\Controllers\Integrations\WebhookController::class, 'test'])->name('test');
 });
 
-// Healthcare Module Routes
-Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.')->group(function () {
-
-    // Patient Management
-    Route::prefix('patients')->name('patients.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PatientController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\PatientController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\PatientController::class, 'store'])->name('store');
-        Route::get('/{patient}', [\App\Http\Controllers\PatientController::class, 'show'])->name('show');
-        Route::get('/{patient}/edit', [\App\Http\Controllers\PatientController::class, 'edit'])->name('edit');
-        Route::put('/{patient}', [\App\Http\Controllers\PatientController::class, 'update'])->name('update');
-        Route::post('/{patient}/deactivate', [\App\Http\Controllers\PatientController::class, 'deactivate'])->name('deactivate');
-
-        // Patient Search
-        Route::get('/search', [\App\Http\Controllers\PatientController::class, 'search'])->name('search');
-
-        // Patient Allergies
-        Route::post('/{patient}/allergies', [\App\Http\Controllers\PatientController::class, 'addAllergy'])->name('allergies.add');
-        Route::delete('/allergies/{allergy}', [\App\Http\Controllers\PatientController::class, 'removeAllergy'])->name('allergies.remove');
-        Route::get('/{patient}/allergies/api', [\App\Http\Controllers\PatientController::class, 'getAllergies'])->name('allergies.api');
-
-        // Patient Insurance
-        Route::post('/{patient}/insurance', [\App\Http\Controllers\PatientController::class, 'addInsurance'])->name('insurance.add');
-        Route::get('/{patient}/insurance/api', [\App\Http\Controllers\PatientController::class, 'getInsurance'])->name('insurance.api');
-
-        // QR Code
-        Route::post('/{patient}/qr/generate', [\App\Http\Controllers\PatientController::class, 'generateQrCode'])->name('qr.generate');
-        Route::get('/{patient}/qr/download', [\App\Http\Controllers\PatientController::class, 'downloadQrCode'])->name('qr.download');
-    });
-});
+// Healthcare Module Routes — loaded from routes/healthcare.php below
 
 /*
 |--------------------------------------------------------------------------

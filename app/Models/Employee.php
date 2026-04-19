@@ -15,6 +15,16 @@ class Employee extends Model
     use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
+    const STATUS_ACTIVE   = 'active';
+    const STATUS_INACTIVE = 'inactive';
+    const STATUS_RESIGNED = 'resigned';
+
+    const STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_INACTIVE,
+        self::STATUS_RESIGNED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'user_id',

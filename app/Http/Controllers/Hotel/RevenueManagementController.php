@@ -23,8 +23,7 @@ class RevenueManagementController extends Controller
 {
     private function getTenantId(): int
     {
-        $user = request()->user();
-        return $user->current_tenant_id ?? $user->tenant_id;
+        return $this->tenantId();
     }
 
     /**

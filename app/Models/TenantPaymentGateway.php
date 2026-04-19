@@ -99,7 +99,7 @@ class TenantPaymentGateway extends Model
             return $this->attributes['webhook_url'];
         }
 
-        return route('api.payment.webhook', ['provider' => $this->provider, 'tenant' => $this->tenant_id]);
+        return route('payment.webhook', ['provider' => $this->provider, 'tenant' => $this->tenant_id]);
     }
 
     /**

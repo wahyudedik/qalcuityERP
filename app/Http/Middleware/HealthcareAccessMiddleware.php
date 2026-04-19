@@ -20,7 +20,7 @@ class HealthcareAccessMiddleware
         // Check if user is authenticated
         if (!$user) {
             return redirect()->route('login')
-                ->with('error', 'You must be logged in to access healthcare module.');
+                ->with('error', 'Anda harus login untuk mengakses modul kesehatan.');
         }
 
         // Superadmin has full access
@@ -33,7 +33,7 @@ class HealthcareAccessMiddleware
             $enabledModules = $user->tenant->enabled_modules ?? [];
 
             if (is_array($enabledModules) && !in_array('healthcare', $enabledModules)) {
-                abort(403, 'Healthcare module is not enabled for your tenant.');
+                abort(403, 'Modul kesehatan tidak diaktifkan untuk tenant Anda.');
             }
 
             // Check subscription status
@@ -41,14 +41,14 @@ class HealthcareAccessMiddleware
                 $user->tenant->subscription_status === 'expired' ||
                 $user->tenant->subscription_status === 'suspended'
             ) {
-                abort(403, 'Healthcare module access suspended. Please renew your subscription.');
+                abort(403, 'Akses modul kesehatan ditangguhkan. Silakan perpanjang langganan Anda.');
             }
         }
 
         // Check specific permission if provided
         if ($permission) {
             if (!$user->can($permission)) {
-                abort(403, 'You do not have permission to access this resource.');
+                abort(403, 'Anda tidak memiliki izin untuk mengakses sumber daya ini.');
             }
         } else {
             // Default healthcare access check
@@ -59,7 +59,7 @@ class HealthcareAccessMiddleware
                 $user->hasPermission('healthcare.access');
 
             if (!$hasHealthcareAccess) {
-                abort(403, 'You do not have access to the healthcare module.');
+                abort(403, 'Anda tidak memiliki akses ke modul kesehatan.');
             }
         }
 

@@ -10,6 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LeaveRequest extends Model
 {
     use BelongsToTenant;
+
+    const STATUS_PENDING  = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_REJECTED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'employee_id', 'type', 'start_date', 'end_date',
         'days', 'reason', 'status', 'approved_by', 'rejection_reason', 'approved_at',

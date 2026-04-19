@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class SampleDataLog extends Model
 {
-    protected $fillable = [
+    use BelongsToTenant;
+protected $fillable = [
         'tenant_id',
         'user_id',
         'template_id',

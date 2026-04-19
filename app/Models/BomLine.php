@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BomLine extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
-        'bom_id', 'product_id', 'quantity_per_batch', 'unit',
+        'tenant_id', 'bom_id', 'product_id', 'quantity_per_batch', 'unit',
         'child_bom_id', 'sort_order', 'notes',
     ];
 

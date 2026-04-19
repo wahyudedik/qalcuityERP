@@ -57,7 +57,7 @@
                         <div>
                             <p class="text-xs text-gray-500 dark:text-slate-400">No. Telepon</p>
                             <p class="text-sm text-gray-900 dark:text-white">
-                                {{ $invoice->patient ? $invoice->patient->phone : '-' }}</p>
+                                {{ $invoice->patient?->phone_primary ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

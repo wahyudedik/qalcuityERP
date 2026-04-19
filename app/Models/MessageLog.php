@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MessageLog extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

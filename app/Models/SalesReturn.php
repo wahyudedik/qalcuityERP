@@ -14,6 +14,18 @@ class SalesReturn extends Model
     use BelongsToTenant;
     use SoftDeletes;
 
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_APPROVED  = 'approved';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_APPROVED,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'invoice_id',

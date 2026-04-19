@@ -14,6 +14,18 @@ class DeliveryOrder extends Model
     use BelongsToTenant;
     use SoftDeletes;
 
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_SHIPPED   = 'shipped';
+    const STATUS_DELIVERED = 'delivered';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_SHIPPED,
+        self::STATUS_DELIVERED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'sales_order_id', 'warehouse_id', 'created_by',
         'number', 'delivery_date', 'status', 'shipping_address',

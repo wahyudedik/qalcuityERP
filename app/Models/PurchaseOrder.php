@@ -15,6 +15,20 @@ class PurchaseOrder extends Model
     use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
 
+    const STATUS_DRAFT = 'draft';
+    const STATUS_SENT = 'sent';
+    const STATUS_PARTIAL = 'partial';
+    const STATUS_RECEIVED = 'received';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_SENT,
+        self::STATUS_PARTIAL,
+        self::STATUS_RECEIVED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'supplier_id',

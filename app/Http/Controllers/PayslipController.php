@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompanyProfile;
 use App\Models\Employee;
 use App\Models\PayrollItem;
 use App\Models\OvertimeRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PayslipController extends Controller
@@ -40,9 +42,9 @@ class PayslipController extends Controller
     public function show(PayrollItem $item)
     {
         $employee = $this->myEmployee();
+        $user = auth()->user();
 
         // Admin/manager boleh lihat slip siapapun di tenant mereka
-        $user = auth()->user();
         if ($user->isAdmin() || $user->isManager()) {
             abort_unless($item->tenant_id === $user->tenant_id, 403);
         } else {
@@ -63,11 +65,53 @@ class PayslipController extends Controller
         // Ambil data perusahaan untuk kop slip
         $companyName = config('app.name', 'Perusahaan');
         try {
-            $profile = \App\Models\CompanyProfile::where('tenant_id', $item->tenant_id)->first();
+            $profile = CompanyProfile::where('tenant_id', $item->tenant_id)->first();
         } catch (\Throwable) {
             $profile = null;
         }
 
         return view('payroll.slip-show', compact('item', 'overtimes', 'companyName', 'profile'));
+    }
+
+    /**
+     * Download slip gaji sebagai PDF menggunakan barryvdh/laravel-dompdf.
+     * Template: resources/views/pdf/payslip.blade.php
+     */
+    public function downloadPdf(PayrollItem $item)
+    {
+        $employee = $this->myEmployee();
+        $user = auth()->user();
+
+        // Otorisasi: admin/manager boleh download slip siapapun di tenant mereka
+        if ($user->isAdmin() || $user->isManager()) {
+            abort_unless($item->tenant_id === $user->tenant_id, 403);
+        } else {
+            abort_unless($employee && $item->employee_id === $employee->id, 403);
+            abort_unless($item->tenant_id === $user->tenant_id, 403);
+        }
+
+        $item->load('employee', 'payrollRun', 'components');
+
+        $overtimes = OvertimeRequest::where('tenant_id', $item->tenant_id)
+            ->where('employee_id', $item->employee_id)
+            ->where('status', 'approved')
+            ->where('payroll_period', $item->payrollRun?->period)
+            ->get();
+
+        $companyName = config('app.name', 'Perusahaan');
+        try {
+            $profile = CompanyProfile::where('tenant_id', $item->tenant_id)->first();
+        } catch (\Throwable) {
+            $profile = null;
+        }
+
+        $pdf = Pdf::loadView('pdf.payslip', compact('item', 'overtimes', 'companyName', 'profile'))
+            ->setPaper('a4', 'portrait');
+
+        $period   = $item->payrollRun?->period ?? 'slip';
+        $empName  = str_replace(' ', '_', $item->employee?->name ?? 'karyawan');
+        $filename = "slip_gaji_{$empName}_{$period}.pdf";
+
+        return $pdf->download($filename);
     }
 }

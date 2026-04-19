@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 class IrrigationSchedule extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

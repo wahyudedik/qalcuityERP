@@ -9,16 +9,37 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 class SalesOrder extends Model
 {
     use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
 
+    // Status constants
+    const STATUS_PENDING = 'pending';
+    const STATUS_PENDING_PAYMENT = 'pending_payment';
+    const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_PROCESSING = 'processing';
+    const STATUS_SHIPPED = 'shipped';
+    const STATUS_DELIVERED = 'delivered';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_PENDING_PAYMENT,
+        self::STATUS_CONFIRMED,
+        self::STATUS_PROCESSING,
+        self::STATUS_SHIPPED,
+        self::STATUS_DELIVERED,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'customer_id',
         'user_id',
+        'cashier_session_id',
         'quotation_id',
         'number',
         'status',
@@ -51,6 +72,13 @@ class SalesOrder extends Model
         // Task 37: Numbering
         'doc_sequence',
         'doc_year',
+        // Payment tracking
+        'paid_amount',
+        'change_amount',
+        'payment_reference',
+        'split_payments',
+        'completed_at',
+        'stock_deducted_at',
     ];
 
     protected function casts(): array
@@ -71,6 +99,10 @@ class SalesOrder extends Model
             'tax_amount' => 'decimal:2',
             'currency_rate' => 'float',
             'posted_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'paid_amount' => 'decimal:2',
+            'change_amount' => 'decimal:2',
+            'split_payments' => 'array',
         ];
     }
 
@@ -91,6 +123,10 @@ class SalesOrder extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+    public function cashierSession(): BelongsTo
+    {
+        return $this->belongsTo(CashierSession::class);
     }
     public function customer(): BelongsTo
     {

@@ -10,6 +10,7 @@ use App\Models\RoomType;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class RoomController extends Controller
 {
@@ -48,7 +49,7 @@ class RoomController extends Controller
         // Filter options
         $roomTypes = RoomType::where('tenant_id', $tid)->where('is_active', true)->get();
         $floors = Room::where('tenant_id', $tid)->whereNotNull('floor')->distinct()->pluck('floor');
-        $statuses = ['available', 'occupied', 'cleaning', 'maintenance', 'out_of_order'];
+        $statuses = Room::STATUSES;
 
         return view('hotel.rooms.index', compact('rooms', 'roomTypes', 'floors', 'statuses'));
     }
@@ -60,7 +61,7 @@ class RoomController extends Controller
             'room_type_id' => 'required|exists:room_types,id',
             'floor' => 'nullable|string|max:10',
             'building' => 'nullable|string|max:50',
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order',
+            'status' => ['required', Rule::in(Room::STATUSES)],
             'description' => 'nullable|string',
         ]);
 
@@ -102,7 +103,7 @@ class RoomController extends Controller
             'room_type_id' => 'required|exists:room_types,id',
             'floor' => 'nullable|string|max:10',
             'building' => 'nullable|string|max:50',
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order',
+            'status' => ['required', Rule::in(Room::STATUSES)],
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
@@ -162,12 +163,28 @@ class RoomController extends Controller
         return view('hotel.rooms.availability', compact('calendar', 'roomTypes', 'month', 'year'));
     }
 
-    public function updateStatus(Request $request, Room $room)
+    /**
+     * Get available rooms by room type (for AJAX in reservation form)
+     */
+    public function byType(int $roomTypeId)
     {
+        $tid = $this->tenantId();
+
+        $rooms = Room::where('tenant_id', $tid)
+            ->where('room_type_id', $roomTypeId)
+            ->where('status', Room::STATUS_AVAILABLE)
+            ->where('is_active', true)
+            ->orderBy('number')
+            ->get(['id', 'number', 'floor', 'building']);
+
+        return response()->json(['rooms' => $rooms]);
+    }
+
+    public function updateStatus(Request $request, Room $room)    {
         abort_unless($room->tenant_id === $this->tenantId(), 403);
 
         $data = $request->validate([
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order',
+            'status' => ['required', Rule::in(Room::STATUSES)],
         ]);
 
         $old = $room->getOriginal();

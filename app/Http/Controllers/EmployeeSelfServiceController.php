@@ -284,4 +284,77 @@ class EmployeeSelfServiceController extends Controller
 
         return back()->with('success', 'Clock out berhasil pukul ' . $now->format('H:i') . '.');
     }
+
+    // ── Lembur Self-Service ───────────────────────────────────────
+
+    public function overtimeIndex()
+    {
+        $employee = $this->myEmployee();
+
+        if (!$employee) {
+            return view('self-service.overtime', ['employee' => null, 'overtimes' => collect()]);
+        }
+
+        $overtimes = OvertimeRequest::where('employee_id', $employee->id)
+            ->orderByDesc('date')
+            ->paginate(15);
+
+        $stats = [
+            'pending'  => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'pending')->count(),
+            'approved' => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'approved')
+                ->whereYear('date', now()->year)->count(),
+            'total_hours' => OvertimeRequest::where('employee_id', $employee->id)->where('status', 'approved')
+                ->whereYear('date', now()->year)->sum('duration_minutes') / 60,
+        ];
+
+        return view('self-service.overtime', compact('employee', 'overtimes', 'stats'));
+    }
+
+    public function overtimeStore(Request $request)
+    {
+        $employee = $this->myEmployee();
+        abort_unless($employee, 403, 'Akun Anda belum terhubung ke data karyawan.');
+
+        $data = $request->validate([
+            'date'       => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time'   => 'required|date_format:H:i|after:start_time',
+            'reason'     => 'required|string|max:500',
+        ]);
+
+        $start    = \Carbon\Carbon::parse($data['date'] . ' ' . $data['start_time']);
+        $end      = \Carbon\Carbon::parse($data['date'] . ' ' . $data['end_time']);
+        $minutes  = $start->diffInMinutes($end);
+
+        // Hitung upah lembur berdasarkan gaji karyawan
+        $hourlyRate = (float) $employee->salary / 173;
+        $hours      = $minutes / 60;
+        $overtimePay = $hours <= 1
+            ? round($hourlyRate * 1.5 * $hours, 2)
+            : round(($hourlyRate * 1.5) + ($hourlyRate * 2 * ($hours - 1)), 2);
+
+        OvertimeRequest::create([
+            'tenant_id'        => $employee->tenant_id,
+            'employee_id'      => $employee->id,
+            'date'             => $data['date'],
+            'start_time'       => $data['start_time'],
+            'end_time'         => $data['end_time'],
+            'duration_minutes' => $minutes,
+            'reason'           => $data['reason'],
+            'status'           => 'pending',
+            'overtime_pay'     => $overtimePay,
+        ]);
+
+        return back()->with('success', "Pengajuan lembur {$minutes} menit berhasil dikirim. Menunggu persetujuan.");
+    }
+
+    public function overtimeCancel(OvertimeRequest $overtime)
+    {
+        $employee = $this->myEmployee();
+        abort_unless($employee && $overtime->employee_id === $employee->id, 403);
+        abort_if($overtime->status !== 'pending', 403, 'Hanya pengajuan pending yang bisa dibatalkan.');
+
+        $overtime->delete();
+        return back()->with('success', 'Pengajuan lembur dibatalkan.');
+    }
 }

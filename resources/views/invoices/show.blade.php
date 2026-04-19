@@ -117,7 +117,6 @@
                         <p class="font-medium text-green-600 dark:text-green-400">Rp {{ number_format($invoice->total_amount * $invoice->currency_rate, 0, ',', '.') }}</p>
                     </div>
                     @endif
-                    @endif
                 </div>
             </div>
 
@@ -353,8 +352,8 @@
         </div>
     </div>
 
-    @if($invoice->status !== 'paid' && $invoice->customer_id)
     @push('scripts')
+    @if($invoice->status !== 'paid' && $invoice->customer_id)
     <script>
     (function() {
         const RISK_URL   = "{{ route('sales.ai.late-payment-risk') }}?customer_id={{ $invoice->customer_id }}";
@@ -397,6 +396,6 @@
             });
     })();
     </script>
-    @endpush
     @endif
+    @endpush
 </x-app-layout>

@@ -8,34 +8,23 @@
         ['label' => 'Laboratorium'],
     ]" />
 
-    @php $tid = auth()->user()->tenant_id; @endphp
-
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        @php
-            $totalOrders = \App\Models\LabOrder::where('tenant_id', $tid)->count();
-            $pendingOrders = \App\Models\LabOrder::where('tenant_id', $tid)->where('status', 'pending')->count();
-            $inProgressOrders = \App\Models\LabOrder::where('tenant_id', $tid)->where('status', 'in_progress')->count();
-            $completedToday = \App\Models\LabOrder::where('tenant_id', $tid)
-                ->where('status', 'completed')
-                ->whereDate('completed_at', today())
-                ->count();
-        @endphp
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Total Pesanan</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($totalOrders) }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($statistics['total_orders']) }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Pending</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $pendingOrders }}</p>
+            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $statistics['pending_orders'] }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Diproses</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $inProgressOrders }}</p>
+            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $statistics['in_progress_orders'] }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Selesai Hari Ini</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $completedToday }}</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $statistics['completed_today'] }}</p>
         </div>
     </div>
 
@@ -102,7 +91,7 @@
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                                    {{ str_replace('_', ' ', ucfirst($order->test_type ?? '-')) }}
+                                    {{ $order->labTest?->test_name ?? $order->labTest?->category ?? '-' }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
@@ -145,7 +134,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('healthcare.laboratory.results', $order) }}"
+                                    <a href="{{ route('healthcare.laboratory.orders.enter-results', $order) }}"
                                         class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
                                         title="Input Hasil">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +216,7 @@
                         <div>
                             <p class="text-gray-500 dark:text-slate-400">Jenis Test</p>
                             <p class="font-medium text-gray-900 dark:text-white">
-                                {{ str_replace('_', ' ', ucfirst($order->test_type ?? '-')) }}</p>
+                                {{ $order->labTest?->test_name ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-gray-500 dark:text-slate-400">Tanggal</p>
@@ -243,7 +232,7 @@
                     </div>
 
                     <div class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-white/5">
-                        <a href="{{ route('healthcare.laboratory.results', $order) }}"
+                        <a href="{{ route('healthcare.laboratory.orders.enter-results', $order) }}"
                             class="flex-1 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center hover:bg-blue-100 dark:hover:bg-blue-900/30">
                             Input Hasil
                         </a>

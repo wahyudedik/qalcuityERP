@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class InventoryTransfer extends Model
 {
-    use HasFactory;
+    use BelongsToTenant;
+use HasFactory;
 
     protected $fillable = [
         'company_group_id',

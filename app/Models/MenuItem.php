@@ -8,6 +8,7 @@ use App\Traits\AuditsChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MenuItem extends Model
@@ -73,9 +74,18 @@ class MenuItem extends Model
         return $this->hasMany(MinibarInventory::class);
     }
 
-    public function recipeIngredients(): HasMany
+    public function recipes(): HasMany
     {
-        return $this->hasMany(RecipeIngredient::class, 'menu_item_id');
+        return $this->hasMany(Recipe::class);
+    }
+
+    /**
+     * Get recipe ingredients through recipes
+     * Note: RecipeIngredient no longer has menu_item_id; use recipes()->ingredients instead
+     */
+    public function recipeIngredients(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(RecipeIngredient::class, Recipe::class);
     }
 
     /**
@@ -126,7 +136,7 @@ class MenuItem extends Model
      */
     public function calculateRecipeCost(): float
     {
-        $ingredients = $this->recipeIngredients()->with('supply')->get();
+        $ingredients = $this->recipeIngredients()->with('inventoryItem')->get();
 
         if ($ingredients->isEmpty()) {
             return $this->cost; // Return manual cost if no recipe
@@ -134,7 +144,8 @@ class MenuItem extends Model
 
         $totalCost = 0;
         foreach ($ingredients as $ingredient) {
-            $totalCost += $ingredient->quantity_required * $ingredient->supply->cost_per_unit;
+            $costPerUnit = $ingredient->inventoryItem?->unit_cost ?? $ingredient->cost_per_unit ?? 0;
+            $totalCost += ($ingredient->quantity ?? 0) * $costPerUnit;
         }
 
         return round($totalCost, 2);
@@ -173,18 +184,19 @@ class MenuItem extends Model
      */
     public function getRecipeAvailability(): array
     {
-        $ingredients = $this->recipeIngredients()->with('supply')->get();
+        $ingredients = $this->recipeIngredients()->with('inventoryItem')->get();
         $available = true;
         $unavailableItems = [];
 
         foreach ($ingredients as $ingredient) {
-            if ($ingredient->supply->current_stock < $ingredient->quantity_required) {
+            $inventoryItem = $ingredient->inventoryItem;
+            if ($inventoryItem && $inventoryItem->current_stock < ($ingredient->quantity ?? 0)) {
                 $available = false;
                 $unavailableItems[] = [
-                    'supply_name' => $ingredient->supply->name,
-                    'required' => $ingredient->quantity_required,
-                    'available' => $ingredient->supply->current_stock,
-                    'unit' => $ingredient->supply->unit,
+                    'supply_name' => $inventoryItem->name,
+                    'required' => $ingredient->quantity,
+                    'available' => $inventoryItem->current_stock,
+                    'unit' => $inventoryItem->unit ?? $ingredient->unit,
                 ];
             }
         }

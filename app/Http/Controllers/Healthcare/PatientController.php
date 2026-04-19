@@ -31,7 +31,7 @@ class PatientController extends Controller
                 $q->where('patient_number', 'like', "%{$search}%")
                     ->orWhere('full_name', 'like', "%{$search}%")
                     ->orWhere('nik', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone_primary', 'like', "%{$search}%");
             });
         }
 
@@ -96,25 +96,53 @@ class PatientController extends Controller
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'nik' => 'nullable|string|max:16|unique:patients,nik',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|in:male,female,other',
-            'phone' => 'required|string|max:20',
+            'birth_date' => 'required|date',
+            'birth_place' => 'nullable|string|max:100',
+            'gender' => 'required|in:male,female',
+            'phone_primary' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'address' => 'required|string',
+            'address_street' => 'nullable|string',
+            'address_rt' => 'nullable|string|max:10',
+            'address_rw' => 'nullable|string|max:10',
+            'address_kelurahan' => 'nullable|string|max:100',
+            'address_kecamatan' => 'nullable|string|max:100',
+            'address_city' => 'nullable|string|max:100',
+            'address_province' => 'nullable|string|max:100',
+            'address_postal_code' => 'nullable|string|max:5',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|string|max:20',
             'blood_type' => 'nullable|in:A,B,AB,O',
-            'patient_type' => 'required|in:outpatient,inpatient,emergency',
+            'religion' => 'nullable|in:islam,christian,catholic,hindu,buddhist,confucian',
+            'marital_status' => 'nullable|in:single,married,divorced,widowed',
+            'insurance_provider' => 'nullable|string|max:100',
+            'insurance_policy_number' => 'nullable|string|max:100',
+            'insurance_valid_until' => 'nullable|date',
+            'insurance_type' => 'nullable|in:bpjs,private,corporate,self_pay',
+            'known_allergies' => 'nullable|string',
+            'chronic_diseases' => 'nullable|string',
+            'current_medications' => 'nullable|string',
         ]);
 
+        // Convert comma-separated strings to arrays for JSON columns
+        if (!empty($validated['known_allergies'])) {
+            $validated['known_allergies'] = array_map('trim', explode(',', $validated['known_allergies']));
+        }
+        if (!empty($validated['chronic_diseases'])) {
+            $validated['chronic_diseases'] = array_map('trim', explode(',', $validated['chronic_diseases']));
+        }
+        if (!empty($validated['current_medications'])) {
+            $validated['current_medications'] = array_map('trim', explode(',', $validated['current_medications']));
+        }
+
         $validated['tenant_id'] = $tenantId;
+        $validated['status'] = 'active';
         $patient = Patient::create($validated);
 
         // Clear cache
         DashboardCacheService::clearStats("stats:patients:{$tenantId}");
 
         return redirect()->route('healthcare.patients.show', $patient)
-            ->with('success', 'Patient created successfully: ' . $patient->patient_number);
+            ->with('success', 'Pasien berhasil didaftarkan: ' . $patient->medical_record_number);
     }
 
     /**
@@ -129,8 +157,8 @@ class PatientController extends Controller
             'medicalRecords' => function ($q) {
                 $q->latest()->limit(10);
             },
-            'allergies',
-            'insurance',
+            'allergyRecords',
+            'insuranceRecords',
         ]);
 
         $statistics = [
@@ -161,16 +189,43 @@ class PatientController extends Controller
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'nik' => 'nullable|string|max:16|unique:patients,nik,' . $patient->id,
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|in:male,female,other',
-            'phone' => 'required|string|max:20',
+            'birth_date' => 'required|date',
+            'birth_place' => 'nullable|string|max:100',
+            'gender' => 'required|in:male,female',
+            'phone_primary' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'address' => 'required|string',
+            'address_street' => 'nullable|string',
+            'address_rt' => 'nullable|string|max:10',
+            'address_rw' => 'nullable|string|max:10',
+            'address_kelurahan' => 'nullable|string|max:100',
+            'address_kecamatan' => 'nullable|string|max:100',
+            'address_city' => 'nullable|string|max:100',
+            'address_province' => 'nullable|string|max:100',
+            'address_postal_code' => 'nullable|string|max:5',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_phone' => 'nullable|string|max:20',
             'blood_type' => 'nullable|in:A,B,AB,O',
+            'religion' => 'nullable|in:islam,christian,catholic,hindu,buddhist,confucian',
+            'marital_status' => 'nullable|in:single,married,divorced,widowed',
+            'insurance_provider' => 'nullable|string|max:100',
+            'insurance_policy_number' => 'nullable|string|max:100',
+            'insurance_valid_until' => 'nullable|date',
+            'known_allergies' => 'nullable|string',
+            'chronic_diseases' => 'nullable|string',
+            'current_medications' => 'nullable|string',
             'status' => 'required|in:active,inactive,deceased',
         ]);
+
+        // Convert comma-separated strings to arrays for JSON columns
+        if (isset($validated['known_allergies']) && !empty($validated['known_allergies'])) {
+            $validated['known_allergies'] = array_map('trim', explode(',', $validated['known_allergies']));
+        }
+        if (isset($validated['chronic_diseases']) && !empty($validated['chronic_diseases'])) {
+            $validated['chronic_diseases'] = array_map('trim', explode(',', $validated['chronic_diseases']));
+        }
+        if (isset($validated['current_medications']) && !empty($validated['current_medications'])) {
+            $validated['current_medications'] = array_map('trim', explode(',', $validated['current_medications']));
+        }
 
         $patient->update($validated);
 
@@ -178,7 +233,7 @@ class PatientController extends Controller
         DashboardCacheService::clearStats("stats:patients:{$tenantId}");
 
         return redirect()->route('healthcare.patients.show', $patient)
-            ->with('success', 'Patient updated successfully');
+            ->with('success', 'Data pasien berhasil diperbarui');
     }
 
     /**

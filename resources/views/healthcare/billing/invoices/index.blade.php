@@ -1,42 +1,28 @@
 <x-app-layout>
     <x-slot name="header">Tagihan Pasien</x-slot>
 
-    @php $tid = auth()->user()->tenant_id; @endphp
-
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-        @php
-            $totalInvoices = \App\Models\MedicalBill::where('tenant_id', $tid)->count();
-            $unpaidInvoices = \App\Models\MedicalBill::where('tenant_id', $tid)->where('status', 'unpaid')->count();
-            $partialInvoices = \App\Models\MedicalBill::where('tenant_id', $tid)->where('status', 'partial')->count();
-            $paidToday = \App\Models\MedicalBill::where('tenant_id', $tid)
-                ->where('status', 'paid')
-                ->whereDate('paid_at', today())
-                ->count();
-            $totalRevenue = \App\Models\MedicalBill::where('tenant_id', $tid)
-                ->where('status', 'paid')
-                ->sum('paid_amount');
-        @endphp
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Total Tagihan</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($totalInvoices) }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($statistics['total_invoices']) }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Belum Bayar</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ $unpaidInvoices }}</p>
+            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ $statistics['unpaid_invoices'] }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Sebagian</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $partialInvoices }}</p>
+            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $statistics['partial_invoices'] }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Lunas Hari Ini</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $paidToday }}</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $statistics['paid_today'] }}</p>
         </div>
         <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
             <p class="text-xs text-gray-500 dark:text-slate-400">Total Pendapatan</p>
             <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">Rp
-                {{ number_format($totalRevenue, 0, ',', '.') }}</p>
+                {{ number_format($statistics['total_revenue'], 0, ',', '.') }}</p>
         </div>
     </div>
 
@@ -134,7 +120,7 @@
                                         </svg>
                                     </a>
                                     @if ($invoice->status !== 'paid')
-                                        <a href="{{ route('healthcare.billing.invoices.payment', $invoice) }}"
+                                        <a href="{{ route('healthcare.billing.invoices.pay', $invoice) }}"
                                             class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
                                             title="Bayar">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"

@@ -1,0 +1,338 @@
+/**
+ * TASK 6.8: Responsive Utilities
+ * Memastikan semua halaman responsif di 320px (mobile), 768px (tablet), 1280px+ (desktop)
+ */
+
+/* ═══════════════════════════════════════════════
+   Touch Target — Minimum 44x44px (WCAG AAA)
+   ═══════════════════════════════════════════════ */
+
+.touch-target {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+@media (max-width: 767px) {
+    .touch-target-mobile {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Container
+   ═══════════════════════════════════════════════ */
+
+.container-responsive {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container-responsive {
+        max-width: 640px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container-responsive {
+        max-width: 768px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container-responsive {
+        max-width: 1024px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .container-responsive {
+        max-width: 1280px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Table
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive table {
+        min-width: 600px;
+    }
+
+    /* Card-style table untuk mobile */
+    .table-card-mobile {
+        display: block;
+    }
+
+    .table-card-mobile thead {
+        display: none;
+    }
+
+    .table-card-mobile tbody {
+        display: block;
+    }
+
+    .table-card-mobile tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: white;
+    }
+
+    html.dark .table-card-mobile tr {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .table-card-mobile td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border: none;
+    }
+
+    .table-card-mobile td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    html.dark .table-card-mobile td::before {
+        color: #9ca3af;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Grid
+   ═══════════════════════════════════════════════ */
+
+.grid-responsive {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+    .grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid-responsive {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .grid-responsive {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Typography
+   ═══════════════════════════════════════════════ */
+
+.text-responsive-xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+@media (min-width: 768px) {
+    .text-responsive-xl {
+        font-size: 2rem;
+        line-height: 2.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .text-responsive-xl {
+        font-size: 2.5rem;
+        line-height: 3rem;
+    }
+}
+
+.text-responsive-lg {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+@media (min-width: 768px) {
+    .text-responsive-lg {
+        font-size: 1.5rem;
+        line-height: 2rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Spacing
+   ═══════════════════════════════════════════════ */
+
+.section-padding {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .section-padding {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .section-padding {
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Mobile-First Utilities
+   ═══════════════════════════════════════════════ */
+
+/* Hide on mobile */
+@media (max-width: 767px) {
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+/* Show only on mobile */
+.show-mobile {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .show-mobile {
+        display: none !important;
+    }
+}
+
+/* Stack on mobile */
+@media (max-width: 767px) {
+    .stack-mobile {
+        flex-direction: column !important;
+    }
+
+    .stack-mobile>* {
+        width: 100% !important;
+    }
+}
+
+/* Full width on mobile */
+@media (max-width: 767px) {
+    .full-width-mobile {
+        width: 100% !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Form
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .form-responsive .form-row {
+        flex-direction: column;
+    }
+
+    .form-responsive .form-col {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .form-responsive button[type="submit"],
+    .form-responsive button[type="button"] {
+        width: 100%;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Responsive Modal
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .modal-responsive {
+        margin: 0 !important;
+        max-width: 100% !important;
+        min-height: 100vh;
+        border-radius: 0 !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   Scrollbar Utilities
+   ═══════════════════════════════════════════════ */
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* ═══════════════════════════════════════════════
+   Print Utilities
+   ═══════════════════════════════════════════════ */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-full-width {
+        width: 100% !important;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}

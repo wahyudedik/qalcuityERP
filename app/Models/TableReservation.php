@@ -60,7 +60,7 @@ class TableReservation extends Model
 
     public function orders(): HasMany
     {
-        return $this->hasMany(FbOrder::class, 'table_reservation_id');
+        return $this->hasMany(FbOrder::class, 'reservation_id');
     }
 
     /**

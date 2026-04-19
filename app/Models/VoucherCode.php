@@ -74,6 +74,14 @@ class VoucherCode extends Model
     }
 
     /**
+     * Get the customer who used this voucher (alias for usedByCustomer).
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'used_by_customer_id');
+    }
+
+    /**
      * Get the customer who used this voucher.
      */
     public function usedByCustomer(): BelongsTo

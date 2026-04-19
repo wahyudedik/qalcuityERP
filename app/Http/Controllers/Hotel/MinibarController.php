@@ -19,7 +19,7 @@ class MinibarController extends Controller
 
     public function index()
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $lowStockRooms = $this->minibarService->getLowStockRooms($tenantId);
 

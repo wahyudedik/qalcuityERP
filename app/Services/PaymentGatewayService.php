@@ -28,7 +28,7 @@ class PaymentGatewayService
     /**
      * Generate QRIS payment
      */
-    public function generateQrisPayment(SalesOrder $order, string $provider = null): array
+    public function generateQrisPayment(SalesOrder $order, ?string $provider = null): array
     {
         try {
             // Get gateway configuration
@@ -51,7 +51,7 @@ class PaymentGatewayService
                 'transaction_number' => $transactionNumber,
                 'gateway_provider' => $gateway->provider,
                 'payment_method' => 'qris',
-                'amount' => $order->grand_total,
+                'amount' => $order->total ?? $order->grand_total,
                 'status' => 'pending',
                 'expired_at' => now()->addMinutes(15), // QRIS expires in 15 minutes
             ]);
@@ -60,6 +60,7 @@ class PaymentGatewayService
             $result = match ($gateway->provider) {
                 self::PROVIDER_MIDTRANS => $this->generateMidtransQris($gateway, $order, $paymentTransaction),
                 self::PROVIDER_XENDIT => $this->generateXenditQris($gateway, $order, $paymentTransaction),
+                self::PROVIDER_DUITKU => $this->generateDuitkuQris($gateway, $order, $paymentTransaction),
                 default => throw new \Exception("Unsupported provider: {$gateway->provider}"),
             };
 
@@ -145,6 +146,7 @@ class PaymentGatewayService
             $result = match ($gateway->provider) {
                 self::PROVIDER_MIDTRANS => $this->checkMidtransStatus($gateway, $paymentTransaction),
                 self::PROVIDER_XENDIT => $this->checkXenditStatus($gateway, $paymentTransaction),
+                self::PROVIDER_DUITKU => $this->checkDuitkuStatus($gateway, $paymentTransaction),
                 default => throw new \Exception("Unsupported provider"),
             };
 
@@ -163,7 +165,7 @@ class PaymentGatewayService
     /**
      * Handle webhook callback
      */
-    public function handleWebhook(string $provider, array $payload, string $signature = null): array
+    public function handleWebhook(string $provider, array $payload, ?string $signature = null): array
     {
         try {
             // Log callback
@@ -238,6 +240,7 @@ class PaymentGatewayService
             return match ($provider) {
                 self::PROVIDER_MIDTRANS => $this->verifyMidtransCredentials($credentials),
                 self::PROVIDER_XENDIT => $this->verifyXenditCredentials($credentials),
+                self::PROVIDER_DUITKU => $this->verifyDuitkuCredentials($credentials),
                 default => ['success' => false, 'error' => 'Unsupported provider'],
             };
 
@@ -265,18 +268,18 @@ class PaymentGatewayService
             'payment_type' => 'qris',
             'transaction_details' => [
                 'order_id' => $paymentTransaction->transaction_number,
-                'gross_amount' => (int) $order->grand_total,
+                'gross_amount' => (int) ($order->total ?? $order->grand_total),
             ],
             'customer_details' => [
-                'first_name' => $order->customer_name ?? 'Customer',
-                'email' => $order->customer_email ?? 'customer@example.com',
-                'phone' => $order->customer_phone ?? '08123456789',
+                'first_name' => $order->customer?->name ?? $order->customer_name ?? 'Customer',
+                'email' => $order->customer?->email ?? $order->customer_email ?? 'customer@example.com',
+                'phone' => $order->customer?->phone ?? $order->customer_phone ?? '08123456789',
             ],
             'item_details' => $order->items->map(fn($item) => [
-                'id' => $item->product_id,
-                'price' => (int) $item->unit_price,
-                'quantity' => $item->quantity,
-                'name' => substr($item->product->name ?? $item->product_name, 0, 50),
+                'id' => (string) $item->product_id,
+                'price' => (int) $item->price,
+                'quantity' => (int) $item->quantity,
+                'name' => substr($item->product?->name ?? $item->product_name ?? 'Item', 0, 50),
             ])->toArray(),
         ];
 
@@ -445,8 +448,8 @@ class PaymentGatewayService
             'external_id' => $paymentTransaction->transaction_number,
             'type' => 'DYNAMIC',
             'callback_url' => $gateway->webhook_url,
-            'amount' => (int) $order->grand_total,
-            'description' => "Payment for Order #{$order->order_number}",
+            'amount' => (int) ($order->total ?? $order->grand_total),
+            'description' => "Pembayaran Order #{$order->number}",
             'currency' => 'IDR',
             'metadata' => [
                 'order_id' => $order->id,
@@ -587,6 +590,171 @@ class PaymentGatewayService
     }
 
     // ==================== HELPER METHODS ====================
+
+    // ==================== DUITKU METHODS ====================
+
+    private function generateDuitkuQris(TenantPaymentGateway $gateway, SalesOrder $order, PaymentTransaction $paymentTransaction): array
+    {
+        $credentials = $gateway->getDecryptedCredentials();
+        $merchantCode = $credentials['merchant_code'];
+        $merchantKey = $credentials['merchant_key'];
+        $isProduction = $gateway->environment === 'production';
+
+        $baseUrl = $isProduction
+            ? 'https://api.duitku.com/webapi/api/merchant/v2/inquiry'
+            : 'https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry';
+
+        $amount = (int) ($order->total ?? $order->grand_total);
+        $merchantOrderId = $paymentTransaction->transaction_number;
+        $datetime = now()->format('Y-m-d H:i:s');
+
+        // Duitku signature: MD5(merchantCode + merchantOrderId + amount + merchantKey)
+        $signature = md5($merchantCode . $merchantOrderId . $amount . $merchantKey);
+
+        $payload = [
+            'merchantCode' => $merchantCode,
+            'paymentAmount' => $amount,
+            'paymentMethod' => 'QR', // QRIS
+            'merchantOrderId' => $merchantOrderId,
+            'productDetails' => "Pembayaran Order #{$order->number}",
+            'additionalParam' => '',
+            'merchantUserInfo' => $order->customer?->name ?? 'Customer',
+            'customerVaName' => $order->customer?->name ?? 'Customer',
+            'email' => $order->customer?->email ?? 'customer@example.com',
+            'phoneNumber' => $order->customer?->phone ?? '08123456789',
+            'itemDetails' => $order->items->map(fn($item) => [
+                'name' => substr($item->product?->name ?? 'Item', 0, 50),
+                'price' => (int) $item->price,
+                'quantity' => (int) $item->quantity,
+            ])->toArray(),
+            'callbackUrl' => route('payment.webhook', ['provider' => 'duitku']),
+            'returnUrl' => config('app.url') . '/pos',
+            'signature' => $signature,
+            'expiryPeriod' => 15, // 15 minutes
+            'datetime' => $datetime,
+        ];
+
+        $response = Http::post($baseUrl, $payload);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            if (($data['statusCode'] ?? '') === '00') {
+                return [
+                    'success' => true,
+                    'gateway_transaction_id' => $data['reference'] ?? $merchantOrderId,
+                    'qr_string' => $data['qrString'] ?? $data['paymentUrl'] ?? '',
+                    'qr_image_url' => $data['qrUrl'] ?? null,
+                    'raw_response' => $data,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $data['statusMessage'] ?? 'Gagal membuat QRIS Duitku',
+            ];
+        }
+
+        return [
+            'success' => false,
+            'error' => $response->json('statusMessage') ?? 'Gagal membuat QRIS Duitku',
+        ];
+    }
+
+    private function checkDuitkuStatus(TenantPaymentGateway $gateway, PaymentTransaction $paymentTransaction): array
+    {
+        $credentials = $gateway->getDecryptedCredentials();
+        $merchantCode = $credentials['merchant_code'];
+        $merchantKey = $credentials['merchant_key'];
+        $isProduction = $gateway->environment === 'production';
+
+        $baseUrl = $isProduction
+            ? 'https://api.duitku.com/webapi/api/merchant/transactionStatus'
+            : 'https://sandbox.duitku.com/webapi/api/merchant/transactionStatus';
+
+        $merchantOrderId = $paymentTransaction->transaction_number;
+        $datetime = now()->format('Y-m-d H:i:s');
+        $signature = md5($merchantCode . $merchantOrderId . $merchantKey);
+
+        $response = Http::post($baseUrl, [
+            'merchantCode' => $merchantCode,
+            'merchantOrderId' => $merchantOrderId,
+            'signature' => $signature,
+            'datetime' => $datetime,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $resultCode = $data['statusCode'] ?? '01';
+
+            $status = match ($resultCode) {
+                '00' => 'success',
+                '01' => 'waiting_payment',
+                '02' => 'failed',
+                default => 'pending',
+            };
+
+            if ($status !== $paymentTransaction->status) {
+                $paymentTransaction->update([
+                    'status' => $status,
+                    'paid_at' => $status === 'success' ? now() : null,
+                    'gateway_response' => json_encode($data),
+                ]);
+
+                if ($status === 'success' && $paymentTransaction->salesOrder) {
+                    $paymentTransaction->salesOrder->update([
+                        'status' => 'completed',
+                        'payment_type' => 'qris',
+                        'payment_method' => 'qris',
+                        'paid_amount' => $paymentTransaction->amount,
+                        'completed_at' => now(),
+                    ]);
+                }
+            }
+
+            return [
+                'success' => true,
+                'status' => $status,
+                'paid_at' => $paymentTransaction->paid_at,
+                'transaction_number' => $paymentTransaction->transaction_number,
+            ];
+        }
+
+        return [
+            'success' => false,
+            'error' => 'Gagal memeriksa status pembayaran Duitku',
+        ];
+    }
+
+    private function verifyDuitkuCredentials(array $credentials): array
+    {
+        $merchantCode = $credentials['merchant_code'] ?? null;
+        $merchantKey = $credentials['merchant_key'] ?? null;
+
+        if (!$merchantCode || !$merchantKey) {
+            return [
+                'success' => false,
+                'error' => 'Merchant code dan merchant key wajib diisi',
+            ];
+        }
+
+        // Test with a simple status check
+        $datetime = now()->format('Y-m-d H:i:s');
+        $signature = md5($merchantCode . 'TEST-' . time() . $merchantKey);
+
+        $response = Http::post('https://sandbox.duitku.com/webapi/api/merchant/transactionStatus', [
+            'merchantCode' => $merchantCode,
+            'merchantOrderId' => 'TEST-' . time(),
+            'signature' => $signature,
+            'datetime' => $datetime,
+        ]);
+
+        // 400/404 means credentials are valid but order not found — that's OK
+        return [
+            'success' => $response->successful() || in_array($response->status(), [400, 404]),
+        ];
+    }
+
 
     private function getGateway(?string $provider = null): ?TenantPaymentGateway
     {

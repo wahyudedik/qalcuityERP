@@ -71,6 +71,13 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
 
     /*
     |--------------------------------------------------------------------------
+    | Healthcare Dashboard
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/', [\App\Http\Controllers\Healthcare\AnalyticsController::class, 'dashboard'])->name('dashboard');
+
+    /*
+    |--------------------------------------------------------------------------
     | Patient Management Routes (15 routes)
     |--------------------------------------------------------------------------
     */
@@ -107,6 +114,7 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
 
     Route::prefix('appointments')->name('appointments.')->group(function () {
         Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::get('/book', [AppointmentController::class, 'create'])->name('book');
         Route::post('/', [AppointmentController::class, 'store'])->name('store');
         Route::get('/{id}', [AppointmentController::class, 'show'])->name('show');
         Route::put('/{id}', [AppointmentController::class, 'update'])->name('update');
@@ -138,6 +146,11 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
         Route::get('/search-icd10', [EMRController::class, 'searchICD10'])->name('search-icd10');
         Route::post('/check-drug-interactions', [EMRController::class, 'checkDrugInteractions'])->name('check-drug-interactions');
         Route::get('/prescription/{prescription_id}/print', [EMRController::class, 'printPrescription'])->name('prescription.print');
+        // Prescribe & Diagnose shortcuts
+        Route::get('/visit/{visit_id}/prescribe', [EMRController::class, 'prescribeForm'])->name('prescribe');
+        Route::get('/visit/{visit_id}/diagnose', [EMRController::class, 'diagnoseForm'])->name('diagnose');
+        Route::post('/visit/{visit_id}/prescriptions', [EMRController::class, 'addPrescription'])->name('prescriptions.store');
+        Route::post('/visit/{visit_id}/diagnoses', [EMRController::class, 'addDiagnosis'])->name('diagnoses.store');
     });
 
     /*
@@ -150,6 +163,7 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
         Route::get('/wards/{id}/beds', [BedManagementController::class, 'wardBeds'])->name('wards.beds');
 
         Route::prefix('admissions')->name('admissions.')->group(function () {
+            Route::get('/create', [AdmissionController::class, 'create'])->name('create');
             Route::post('/', [AdmissionController::class, 'store'])->name('store');
             Route::get('/', [AdmissionController::class, 'index'])->name('index');
             Route::get('/{id}', [AdmissionController::class, 'show'])->name('show');

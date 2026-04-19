@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PharmacyInventory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
         'item_code',
@@ -72,6 +73,22 @@ class PharmacyInventory extends Model
     public function getAvailableStockAttribute()
     {
         return $this->stock_quantity - $this->reserved_stock;
+    }
+
+    /**
+     * Alias: name → item_name (for view compatibility)
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->item_name ?? '';
+    }
+
+    /**
+     * Alias: reorder_level → minimum_stock (for view compatibility)
+     */
+    public function getReorderLevelAttribute(): int
+    {
+        return $this->minimum_stock ?? 0;
     }
 
     /**

@@ -286,7 +286,7 @@ class ChannelManagerService
 
         return [
             'success' => $allSuccess,
-            'message' => $allSuccess ? 'Full sync completed successfully.' : 'Sync completed with some errors.',
+            'message' => $allSuccess ? 'Sinkronisasi selesai dengan sukses.' : 'Sinkronisasi selesai dengan beberapa error.',
             'results' => $results,
             'synced_at' => now()->toIso8601String(),
         ];

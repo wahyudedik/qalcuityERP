@@ -14,7 +14,8 @@ class ZeroInputController extends Controller
 
     public function index()
     {
-        $logs = ZeroInputLog::where('tenant_id', $this->tid())
+        $logs = ZeroInputLog::with('user')
+            ->where('tenant_id', $this->tid())
             ->latest()
             ->paginate(20);
 

@@ -156,6 +156,32 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('endcannotmodule', function () {
             return '<?php endif; ?>';
         });
+
+        // TASK 6.9: Indonesian number formatting directives
+        // Usage: @idr($amount) → Rp 1.234.567
+        Blade::directive('idr', function (string $expression) {
+            return "<?php echo \App\Helpers\NumberHelper::currency({$expression}); ?>";
+        });
+
+        // Usage: @number($value) → 1.234.567
+        Blade::directive('number', function (string $expression) {
+            return "<?php echo \App\Helpers\NumberHelper::format({$expression}); ?>";
+        });
+
+        // Usage: @decimal($value, 2) → 1.234,56
+        Blade::directive('decimal', function (string $expression) {
+            return "<?php echo \App\Helpers\NumberHelper::format({$expression}); ?>";
+        });
+
+        // Usage: @percent($value) → 12,34%
+        Blade::directive('percent', function (string $expression) {
+            return "<?php echo \App\Helpers\NumberHelper::percentage({$expression}); ?>";
+        });
+
+        // Usage: @abbr($value) → 1,2 Jt
+        Blade::directive('abbr', function (string $expression) {
+            return "<?php echo \App\Helpers\NumberHelper::abbreviate({$expression}); ?>";
+        });
     }
 
     protected function configureRateLimiting(): void

@@ -7,6 +7,7 @@ import errorBoundary from './error-boundary';
 import moduleLoader from './module-loader';
 import helpSystem from './help-system';
 import './chart-theme'; // BUG-1.9 FIX: theme-changed listener for Chart.js instances
+import numberFormat from './utils/number-format'; // TASK 6.9: Indonesian number formatting
 
 // Register Alpine plugins
 Alpine.plugin(collapse);
@@ -17,6 +18,14 @@ try {
 } catch (e) {
     console.warn('[App] error-boundary plugin failed to load', e);
 }
+
+// TASK 6.9: Register number formatting utilities globally
+window.NumberFormat = numberFormat;
+
+// TASK 6.9: Register Alpine magic helpers for number formatting
+document.addEventListener('alpine:init', () => {
+    numberFormat.registerAlpineMagics();
+});
 
 // FIX JS-001: Set window.Alpine SETELAH semua plugin terdaftar, sebelum Alpine.start()
 window.Alpine = Alpine;

@@ -80,10 +80,10 @@ class DashboardController extends Controller
         // Top Devices by Bandwidth Usage
         $topDevices = $this->getTopDevicesByBandwidth($tenantId, 5);
 
-        // Recent Alerts
+                        // Recent Alerts
         $recentAlerts = NetworkAlert::where('tenant_id', $tenantId)
             ->with(['device', 'subscription.customer'])
-            ->orderBy('triggered_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 

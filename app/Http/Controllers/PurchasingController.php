@@ -22,6 +22,7 @@ use App\Services\InventoryCostingService;
 use App\Services\TransactionStateMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PurchasingController extends Controller
 {
@@ -218,7 +219,7 @@ class PurchasingController extends Controller
     {
         abort_unless($order->tenant_id === $this->tenantId(), 403);
 
-        $data = $request->validate(['status' => 'required|in:draft,sent,partial,received,cancelled']);
+        $data = $request->validate(['status' => ['required', Rule::in(PurchaseOrder::STATUSES)]]);
         $oldStatus = $order->status;
 
         // Task 35: Cek apakah boleh ubah status operasional
@@ -509,6 +510,11 @@ class PurchasingController extends Controller
         ]);
 
         foreach ($requisition->items as $item) {
+            // Skip items without product_id (free-text items)
+            if (!$item->product_id) {
+                continue;
+            }
+
             $po->items()->create([
                 'product_id' => $item->product_id,
                 'quantity_ordered' => $item->quantity,

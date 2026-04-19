@@ -10,6 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StockTransfer extends Model
 {
     use BelongsToTenant;
+
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_SHIPPED   = 'shipped';
+    const STATUS_RECEIVED  = 'received';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_SHIPPED,
+        self::STATUS_RECEIVED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'user_id', 'product_id',
         'from_warehouse_id', 'to_warehouse_id',

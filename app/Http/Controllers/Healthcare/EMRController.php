@@ -397,4 +397,28 @@ class EMRController extends Controller
 
         return view('healthcare.emr.prescription-print', $data);
     }
+
+    /**
+     * Show prescribe form for a visit.
+     */
+    public function prescribeForm($visitId)
+    {
+        $visit = \App\Models\PatientVisit::with(['patient', 'doctor'])->findOrFail($visitId);
+
+        $pharmacyItems = \App\Models\PharmacyInventory::where('stock_quantity', '>', 0)
+            ->orderBy('name')
+            ->get(['id', 'name', 'generic_name', 'unit', 'stock_quantity']);
+
+        return view('healthcare.emr.prescribe', compact('visit', 'pharmacyItems'));
+    }
+
+    /**
+     * Show diagnose form for a visit.
+     */
+    public function diagnoseForm($visitId)
+    {
+        $visit = \App\Models\PatientVisit::with(['patient', 'doctor', 'diagnoses'])->findOrFail($visitId);
+
+        return view('healthcare.emr.diagnose', compact('visit'));
+    }
 }

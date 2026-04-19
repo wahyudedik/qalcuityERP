@@ -14,6 +14,21 @@ class TelecomSubscription extends Model
     use BelongsToTenant;
     use SoftDeletes;
 
+    // Status constants
+    const STATUS_PENDING   = 'pending';
+    const STATUS_ACTIVE    = 'active';
+    const STATUS_SUSPENDED = 'suspended';
+    const STATUS_CANCELLED = 'cancelled';
+    const STATUS_EXPIRED   = 'expired';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_ACTIVE,
+        self::STATUS_SUSPENDED,
+        self::STATUS_CANCELLED,
+        self::STATUS_EXPIRED,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'customer_id',
@@ -21,6 +36,8 @@ class TelecomSubscription extends Model
         'device_id',
         'subscription_number',
         'status',
+        'started_at',
+        'ends_at',
         'activated_at',
         'suspended_at',
         'cancelled_at',
@@ -42,9 +59,12 @@ class TelecomSubscription extends Model
         'priority_level',
         'current_price',
         'notes',
+        'auth_type',
     ];
 
     protected $casts = [
+        'started_at' => 'datetime',
+        'ends_at' => 'datetime',
         'activated_at' => 'datetime',
         'suspended_at' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -127,6 +147,14 @@ class TelecomSubscription extends Model
     public function alerts(): HasMany
     {
         return $this->hasMany(NetworkAlert::class, 'subscription_id');
+    }
+
+    /**
+     * Get current usage bytes (alias for quota_used_bytes).
+     */
+    public function getCurrentUsageBytesAttribute(): int
+    {
+        return $this->quota_used_bytes ?? 0;
     }
 
     /**

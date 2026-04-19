@@ -203,9 +203,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900 dark:text-white">
-                                            {{ $voucher->package->name }}</div>
+                                            {{ $voucher->package?->name ?? '-' }}</div>
                                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $voucher->package->download_speed_mbps }}/{{ $voucher->package->upload_speed_mbps }}
+                                            {{ $voucher->package?->download_speed_mbps ?? 0 }}/{{ $voucher->package?->upload_speed_mbps ?? 0 }}
                                             Mbps
                                         </div>
                                     </td>

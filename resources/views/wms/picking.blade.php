@@ -151,7 +151,7 @@
                 const cls =
                     'w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white';
                 d.innerHTML =
-                    `<input type="number" name="items[${i}][product_id]" required placeholder="Product ID" class="${cls}"><input type="number" name="items[${i}][quantity]" required min="0.001" step="1" placeholder="Qty" class="${cls}">`;
+                    `<input type="number" name="items[${i}][product_id]" required placeholder="ID Produk" class="${cls}"><input type="number" name="items[${i}][quantity]" required min="0.001" step="1" placeholder="Jml" class="${cls}">`;
                 c.appendChild(d);
             }
             addPickLine();

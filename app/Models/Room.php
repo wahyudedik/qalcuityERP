@@ -16,6 +16,25 @@ class Room extends Model
     use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
+    // Status constants
+    const STATUS_AVAILABLE   = 'available';
+    const STATUS_OCCUPIED    = 'occupied';
+    const STATUS_MAINTENANCE = 'maintenance';
+    const STATUS_CLEANING    = 'cleaning';
+    const STATUS_BLOCKED     = 'blocked';
+    const STATUS_OUT_OF_ORDER = 'out_of_order';
+    const STATUS_DIRTY       = 'dirty';
+
+    const STATUSES = [
+        self::STATUS_AVAILABLE,
+        self::STATUS_OCCUPIED,
+        self::STATUS_MAINTENANCE,
+        self::STATUS_CLEANING,
+        self::STATUS_BLOCKED,
+        self::STATUS_OUT_OF_ORDER,
+        self::STATUS_DIRTY,
+    ];
+
     protected $appends = ['housekeeping_stats'];
 
     protected $fillable = [
@@ -93,10 +112,8 @@ class Room extends Model
 
         $this->update([
             'status' => $newStatus,
-            'cleaned_by' => in_array($newStatus, ['clean', 'inspected']) ? ($userId ?? auth()->id()) : null,
-            'last_cleaned_at' => $newStatus === 'clean' ? now() : $this->last_cleaned_at,
-            'inspected_by' => $newStatus === 'inspected' ? ($userId ?? auth()->id()) : null,
-            'last_inspected_at' => $newStatus === 'inspected' ? now() : $this->last_inspected_at,
+            'cleaned_by' => in_array($newStatus, [self::STATUS_AVAILABLE, self::STATUS_CLEANING]) ? ($userId ?? auth()->id()) : null,
+            'last_cleaned_at' => $newStatus === self::STATUS_AVAILABLE ? now() : $this->last_cleaned_at,
         ]);
 
         ActivityLog::record(

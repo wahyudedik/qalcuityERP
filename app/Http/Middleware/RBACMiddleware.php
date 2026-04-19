@@ -89,7 +89,7 @@ class RBACMiddleware
 
         if (!$user) {
             return redirect()->route('login')
-                ->with('error', 'Authentication required.');
+                ->with('error', 'Anda harus login terlebih dahulu.');
         }
 
         // Superadmin bypass
@@ -108,7 +108,7 @@ class RBACMiddleware
                 'ip_address' => $request->ip(),
             ]);
 
-            abort(403, 'Insufficient permissions. You do not have access to this resource.');
+            abort(403, 'Izin tidak mencukupi. Anda tidak memiliki akses ke sumber daya ini.');
         }
 
         return $next($request);

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Prescription extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
         'visit_id',
@@ -196,5 +197,29 @@ class Prescription extends Model
             'is_dispensed' => $this->is_dispensed,
             'items_count' => $this->items()->count(),
         ];
+    }
+
+    /**
+     * Accessor: medication_name — returns first item's drug name for simple display
+     */
+    public function getMedicationNameAttribute(): ?string
+    {
+        return $this->items()->value('drug_name');
+    }
+
+    /**
+     * Accessor: dosage — returns first item's dosage for simple display
+     */
+    public function getDosageAttribute(): ?string
+    {
+        return $this->items()->value('dosage');
+    }
+
+    /**
+     * Accessor: frequency — returns first item's frequency for simple display
+     */
+    public function getFrequencyAttribute(): ?string
+    {
+        return $this->items()->value('frequency');
     }
 }

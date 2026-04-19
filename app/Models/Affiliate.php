@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +11,8 @@ use Illuminate\Support\Str;
 
 class Affiliate extends Model
 {
-    protected $fillable = [
+    use BelongsToTenant;
+protected $fillable = [
         'user_id', 'demo_tenant_id', 'code', 'company_name', 'phone',
         'bank_name', 'bank_account', 'bank_holder',
         'commission_rate', 'total_earned', 'total_paid', 'balance',

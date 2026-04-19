@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyGroup extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'name',

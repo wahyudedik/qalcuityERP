@@ -12,6 +12,7 @@ use App\Models\PayrollItemComponent;
 use App\Models\PayrollRun;
 use App\Models\User;
 use App\Notifications\PayrollProcessedNotification;
+use App\Notifications\PayslipAvailableNotification;
 use App\Services\PayrollGlService;
 use Illuminate\Http\Request;
 
@@ -234,6 +235,22 @@ class PayrollController extends Controller
                 'body' => "Penggajian periode {$period} untuk {$employees->count()} karyawan berhasil diproses. Total: Rp " . number_format($run->total_net, 0, ',', '.'),
                 'data' => ['payroll_run_id' => $run->id, 'period' => $period],
             ]);
+        }
+
+        // Kirim notifikasi slip gaji ke setiap karyawan yang memiliki akun user
+        $payrollItems = PayrollItem::where('payroll_run_id', $run->id)
+            ->with('employee.user')
+            ->get();
+
+        foreach ($payrollItems as $payrollItem) {
+            $empUser = $payrollItem->employee?->user;
+            if ($empUser) {
+                try {
+                    $empUser->notify(new PayslipAvailableNotification($payrollItem));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Gagal kirim notifikasi slip gaji ke user {$empUser->id}: " . $e->getMessage());
+                }
+            }
         }
 
         return back()->with('success', "Penggajian periode {$period} berhasil diproses untuk {$employees->count()} karyawan.")

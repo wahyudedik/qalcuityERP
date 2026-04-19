@@ -105,7 +105,7 @@
                                         <p class="font-medium text-gray-900 dark:text-white">{{ $patient->full_name }}
                                         </p>
                                         <p class="text-xs text-gray-500 dark:text-slate-400">
-                                            {{ $patient->date_of_birth ? \Carbon\Carbon::parse($patient->date_of_birth)->age . ' tahun' : '-' }}
+                                            {{ $patient->birth_date ? $patient->birth_date->age . ' tahun' : '-' }}
                                         </p>
                                     </div>
                                 </div>
@@ -128,7 +128,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-gray-600 dark:text-slate-300">
-                                {{ $patient->phone ?? '-' }}</td>
+                                {{ $patient->phone_primary ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
                                 @if ($patient->status === 'active')
                                     <span
@@ -198,7 +198,7 @@
                                 <p class="font-semibold text-gray-900 dark:text-white truncate">
                                     {{ $patient->full_name }}</p>
                                 <p class="text-xs text-gray-500 dark:text-slate-400">
-                                    {{ $patient->date_of_birth ? \Carbon\Carbon::parse($patient->date_of_birth)->age . ' tahun' : '-' }}
+                                    {{ $patient->birth_date ? $patient->birth_date->age . ' tahun' : '-' }}
                                 </p>
                             </div>
                         </div>
@@ -240,8 +240,8 @@
                         @endif
                         <div class="col-span-2">
                             <p class="text-gray-400 dark:text-slate-500">Telepon</p>
-                            <a href="tel:{{ $patient->phone }}"
-                                class="text-blue-600 dark:text-blue-400 hover:underline">{{ $patient->phone ?? '-' }}</a>
+                            <a href="tel:{{ $patient->phone_primary }}"
+                                class="text-blue-600 dark:text-blue-400 hover:underline">{{ $patient->phone_primary ?? '-' }}</a>
                         </div>
                     </div>
 
@@ -315,7 +315,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Tanggal Lahir
                             *</label>
-                        <input type="date" name="date_of_birth" required
+                        <input type="date" name="birth_date" required
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
@@ -330,7 +330,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Telepon</label>
-                        <input type="tel" name="phone"
+                        <input type="tel" name="phone_primary"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
@@ -340,7 +340,7 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Alamat</label>
-                        <textarea name="address" rows="3"
+                        <textarea name="address_street" rows="3"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>

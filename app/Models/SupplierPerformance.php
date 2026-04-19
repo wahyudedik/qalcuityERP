@@ -253,6 +253,7 @@ class SupplierPerformance extends Model
                 'total_pos' => 0,
                 'total_po_value' => 0,
                 'trend' => 'stable',
+                'chart_data' => ['labels' => [], 'overall' => [], 'delivery' => [], 'quality' => [], 'cost' => []],
             ];
         }
 

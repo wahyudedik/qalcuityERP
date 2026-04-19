@@ -28,9 +28,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div>
-                            <label for="search" class="sr-only">{{ __('Search') }}</label>
+                            <label for="search" class="sr-only">Cari</label>
                             <input type="text" name="search" id="search"
-                                placeholder="{{ __('Search customer...') }}" value="{{ request('search') }}"
+                                placeholder="Cari pelanggan..." value="{{ request('search') }}"
                                 class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
 
@@ -210,16 +210,16 @@
                                                         class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                                                         <span
                                                             class="text-indigo-600 dark:text-indigo-400 font-semibold">
-                                                            {{ substr($sub->customer->name, 0, 2) }}
+                                                            {{ substr($sub->customer?->name ?? '?', 0, 2) }}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {{ $sub->customer->name }}
+                                                        {{ $sub->customer?->name ?? '-' }}
                                                     </div>
                                                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                        {{ $sub->customer->email }}
+                                                        {{ $sub->customer?->email ?? '' }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -228,9 +228,9 @@
                                         <!-- Package -->
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 dark:text-white">
-                                                {{ $sub->package->name }}</div>
+                                                {{ $sub->package?->name ?? '-' }}</div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                {{ $sub->package->download_speed_mbps }}/{{ $sub->package->upload_speed_mbps }}
+                                                {{ $sub->package?->download_speed_mbps ?? 0 }}/{{ $sub->package?->upload_speed_mbps ?? 0 }}
                                                 Mbps
                                             </div>
                                         </td>
@@ -304,7 +304,6 @@
                                                         action="{{ route('telecom.subscriptions.suspend', $sub->id) }}"
                                                         method="POST" class="inline">
                                                         @csrf
-                                                        @method('PATCH')
                                                         <button type="submit"
                                                             class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300"
                                                             title="{{ __('Suspend') }}"
@@ -317,7 +316,6 @@
                                                         action="{{ route('telecom.subscriptions.reactivate', $sub->id) }}"
                                                         method="POST" class="inline">
                                                         @csrf
-                                                        @method('PATCH')
                                                         <button type="submit"
                                                             class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
                                                             title="{{ __('Reactivate') }}"

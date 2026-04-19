@@ -293,7 +293,7 @@
                                         @endif
                                     </div>
                                     <span
-                                        class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">{{ $alert->triggered_at->diffForHumans() }}</span>
+                                        class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">{{ $alert->created_at->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @empty

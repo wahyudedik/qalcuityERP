@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConsolidationOwnership extends Model
 {
-    protected $table = 'consolidation_ownership';
+    use BelongsToTenant;
+protected $table = 'consolidation_ownership';
 
     protected $fillable = [
         'company_group_id',

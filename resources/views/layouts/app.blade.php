@@ -22,15 +22,38 @@
         <meta name="vapid-public-key" content="{{ config('services.vapid.public_key') }}">
     @endif
     <script>
-        // BUG-1.8 FIX: FOUC prevention — runs BEFORE first render, handles all 3 theme modes
+        // TASK 5.1: FOUC prevention — runs BEFORE first render, handles all 3 theme modes (light/dark/system)
         // MUST be placed before the vite directive to prevent flash of unstyled content
         (function() {
-            var theme = localStorage.getItem('theme') || 'system';
-            if (theme === 'dark' ||
-                (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            try {
+                var theme = localStorage.getItem('theme') || 'system';
+                var htmlRoot = document.documentElement;
+                
+                // Determine if should be dark
+                var shouldBeDark = false;
+                if (theme === 'dark') {
+                    shouldBeDark = true;
+                } else if (theme === 'system') {
+                    // Check system preference
+                    shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                }
+                // theme === 'light' → shouldBeDark remains false
+                
+                // Apply dark class immediately
+                if (shouldBeDark) {
+                    htmlRoot.classList.add('dark');
+                } else {
+                    htmlRoot.classList.remove('dark');
+                }
+                
+                // Update meta theme-color for mobile browsers
+                var metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor) {
+                    metaThemeColor.content = shouldBeDark ? '#0f172a' : '#ffffff';
+                }
+            } catch (e) {
+                // Fallback to dark mode if error occurs
                 document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
             }
         })();
     </script>
@@ -56,9 +79,7 @@
             transition: transform 0.26s cubic-bezier(.16, 1, .3, 1), opacity 0.2s;
             opacity: 0;
             pointer-events: none;
-            background: rgba(10, 18, 38, 0.97);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 18, 38, 0.99);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
         }
@@ -695,8 +716,8 @@
 
             {{-- Topbar --}}
             <header
-                class="sticky top-0 z-20 h-14 backdrop-blur border-b flex items-center px-4 sm:px-6 gap-4
-                       bg-[#f0f0f0]/95 dark:bg-[#0f172a]/95 border-gray-200 dark:border-white/10">
+                class="sticky top-0 z-20 h-14 border-b flex items-center px-4 sm:px-6 gap-4
+                       bg-[#f0f0f0] dark:bg-[#0f172a] border-gray-200 dark:border-white/10">
 
                 {{-- Mobile menu --}}
                 <button onclick="toggleMobileSidebar()"
@@ -1392,14 +1413,14 @@
                                     active: {{ request()->routeIs('manufacturing.mrp.predictive*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($canView('printing'))
+                            @if (($navTenant?->isModuleEnabled('manufacturing') ?? true) && $canView('printing'))
                                 {
                                     label: 'Printing Jobs',
                                     href: '{{ route('printing.dashboard') }}',
                                     active: {{ request()->routeIs('printing*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if (auth()->user()?->tenant_id && $canView('cosmetic'))
+                            @if (($navTenant?->isModuleEnabled('manufacturing') ?? true) && auth()->user()?->tenant_id && $canView('cosmetic'))
                                 {
                                     label: 'Cosmetic Formulas',
                                     href: '{{ route('cosmetic.formulas.index') }}',
@@ -1438,7 +1459,7 @@
                                     active: {{ request()->routeIs('cosmetic.analytics*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if (($navTenant?->isModuleEnabled('tour_travel') ?? true) && $canView('tour_travel'))
+                            @if (($navTenant?->isModuleEnabled('hotel') ?? true) && $canView('tour_travel'))
                                 {
                                     section: 'Tour & Travel'
                                 }, {
@@ -1455,7 +1476,7 @@
                                     active: {{ request()->routeIs('tour-travel.analytics*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($navTenant?->isModuleEnabled('livestock_enhancement') ?? true)
+                            @if (($navTenant?->isModuleEnabled('livestock') ?? true) && $canView('livestock'))
                                 {
                                     section: 'Livestock Enhancement'
                                 }, {
@@ -1503,14 +1524,14 @@
                                     active: {{ request()->routeIs('fleet.maintenance*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($canView('shipping'))
+                            @if (($navTenant?->isModuleEnabled('inventory') ?? true) && $canView('shipping'))
                                 {
                                     label: 'Pengiriman',
                                     href: '{{ route('shipping.index') }}',
                                     active: {{ request()->routeIs('shipping*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($navTenant?->isModuleEnabled('agriculture') ?? true)
+                            @if (($navTenant?->isModuleEnabled('agriculture') ?? true) && $canView('agriculture'))
                                 {
                                     label: 'Manajemen Lahan',
                                     href: '{{ route('farm.plots') }}',
@@ -1533,7 +1554,7 @@
                                     active: {{ request()->routeIs('farm.livestock*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($navTenant?->isModuleEnabled('fisheries') ?? true)
+                            @if (($navTenant?->isModuleEnabled('livestock') ?? true) && $canView('livestock'))
                                 {
                                     section: 'Perikanan (Fisheries)'
                                 }, {
@@ -1613,16 +1634,18 @@
                                     active: {{ request()->routeIs('project-billing*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if ($canView('timesheets'))
+                            @if (($navTenant?->isModuleEnabled('projects') ?? true) && $canView('timesheets'))
                                 {
                                     label: 'Timesheet',
                                     href: '{{ route('timesheets.index') }}',
                                     active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }}
                                 },
                             @endif
+                            @if (($navTenant?->isModuleEnabled('hrm') ?? true) || ($navTenant?->isModuleEnabled('payroll') ?? true) || ($navTenant?->isModuleEnabled('reimbursement') ?? true))
                             {
                                 section: 'SDM & Karyawan'
                             },
+                            @endif
                         @if ($user?->isAdmin() || $user?->isManager())
                             @if (($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm'))
                                 {
@@ -1724,7 +1747,7 @@
                     finance: {
                         title: 'Keuangan',
                         items: [
-                            @if ($canView('expenses'))
+                            @if (($navTenant?->isModuleEnabled('accounting') ?? true) && $canView('expenses'))
                                 {
                                     label: 'Pengeluaran',
                                     href: '{{ route('expenses.index') }}',
@@ -1797,6 +1820,10 @@
                                     label: 'Neraca Saldo',
                                     href: '{{ route('accounting.trial-balance') }}',
                                     active: {{ request()->routeIs('accounting.trial-balance*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Buku Besar',
+                                    href: '{{ route('accounting.general-ledger') }}',
+                                    active: {{ request()->routeIs('accounting.general-ledger*') ? 'true' : 'false' }}
                                 }, {
                                     label: 'Neraca (Balance Sheet)',
                                     href: '{{ route('accounting.balance-sheet') }}',
@@ -2286,6 +2313,103 @@
                 }
             }
         };
+
+        // ── IDLE SCREEN LOCK ─────────────────────────────────────────────────
+        // Blur overlay muncul hanya setelah user tidak aktif selama IDLE_MINUTES.
+        // Tidak muncul saat page load / navigasi biasa.
+        // Klik atau tekan tombol apapun untuk unlock.
+        (function() {
+            const IDLE_MINUTES = {{ config('security.session.idle_timeout_minutes', 15) }};
+            const IDLE_MS      = IDLE_MINUTES * 60 * 1000;
+            const STORAGE_KEY  = 'qalcuity_last_activity';
+
+            let idleTimer = null;
+            let locked    = false;
+
+            // Overlay element — dibuat sekali, disembunyikan by default
+            const overlay = document.createElement('div');
+            overlay.id = 'idle-lock-overlay';
+            overlay.style.cssText = [
+                'position:fixed', 'inset:0', 'z-index:99999',
+                'display:none',
+                'align-items:center', 'justify-content:center',
+                'flex-direction:column', 'gap:16px',
+                'background:rgba(8,15,30,0.75)',
+                'backdrop-filter:blur(12px)',
+                '-webkit-backdrop-filter:blur(12px)',
+                'transition:opacity 0.3s',
+                'cursor:pointer',
+            ].join(';');
+            overlay.innerHTML = `
+                <div style="text-align:center;color:#e2e8f0;user-select:none;pointer-events:none">
+                    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+                    <div style="font-size:16px;font-weight:600;margin-bottom:6px">Sesi Tidak Aktif</div>
+                    <div style="font-size:13px;color:#94a3b8">Klik atau tekan tombol apapun untuk melanjutkan</div>
+                    <div id="idle-lock-time" style="font-size:11px;color:#64748b;margin-top:8px"></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            function showLock() {
+                if (locked) return;
+                locked = true;
+                overlay.style.display = 'flex';
+                // Tampilkan waktu terkunci
+                const lockedAt = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                const el = document.getElementById('idle-lock-time');
+                if (el) el.textContent = 'Terkunci sejak ' + lockedAt;
+            }
+
+            function hideLock() {
+                if (!locked) return;
+                locked = false;
+                overlay.style.display = 'none';
+                resetTimer();
+            }
+
+            function resetTimer() {
+                clearTimeout(idleTimer);
+                // Simpan timestamp aktivitas terakhir ke localStorage
+                // agar tab lain juga ikut reset
+                localStorage.setItem(STORAGE_KEY, Date.now());
+                idleTimer = setTimeout(showLock, IDLE_MS);
+            }
+
+            // Unlock saat overlay diklik atau tombol ditekan
+            overlay.addEventListener('click', hideLock);
+            overlay.addEventListener('keydown', hideLock);
+            document.addEventListener('keydown', function(e) {
+                if (locked) hideLock();
+            });
+
+            // Event yang dianggap sebagai aktivitas user
+            const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
+            activityEvents.forEach(evt => {
+                document.addEventListener(evt, function() {
+                    if (!locked) resetTimer();
+                }, { passive: true });
+            });
+
+            // Sinkronisasi antar tab: jika tab lain aktif, reset timer di tab ini juga
+            window.addEventListener('storage', function(e) {
+                if (e.key === STORAGE_KEY && !locked) {
+                    resetTimer();
+                }
+            });
+
+            // Mulai timer saat halaman pertama kali dimuat
+            // Cek apakah ada aktivitas baru-baru ini dari tab lain
+            const lastActivity = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            const elapsed = Date.now() - lastActivity;
+            if (lastActivity > 0 && elapsed >= IDLE_MS) {
+                // Sudah idle sebelum page load — langsung lock
+                showLock();
+            } else {
+                // Mulai timer normal
+                resetTimer();
+            }
+        })();
+        // ─────────────────────────────────────────────────────────────────────
     </script>
 
     {{-- Hidden logout form --}}

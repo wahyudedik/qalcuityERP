@@ -23,12 +23,16 @@ class ModuleSettingsController extends Controller
     {
         $tenant = auth()->user()->tenant;
         $enabled = $tenant->enabledModules();
+        $planSlug = $tenant->subscriptionPlan->slug ?? $tenant->plan ?? null;
+        $allowedByPlan = PlanModuleMap::getAllowedModules($planSlug);
 
         return view('settings.modules', [
-            'tenant' => $tenant,
-            'enabled' => $enabled,
-            'meta' => ModuleRecommendationService::MODULE_META,
-            'all' => ModuleRecommendationService::ALL_MODULES,
+            'tenant'        => $tenant,
+            'enabled'       => $enabled,
+            'meta'          => ModuleRecommendationService::MODULE_META,
+            'all'           => ModuleRecommendationService::ALL_MODULES,
+            'planSlug'      => $planSlug,
+            'allowedByPlan' => $allowedByPlan,
         ]);
     }
 
@@ -47,16 +51,27 @@ class ModuleSettingsController extends Controller
         $cleanupStrategy = $request->input('cleanup_strategy', 'keep');
 
         // Plan-based module validation (skip for legacy tenants with null enabled_modules)
+        $planSlug = $tenant->subscriptionPlan->slug ?? $tenant->plan ?? null;
         if ($tenant->enabled_modules !== null) {
-            $planSlug = $tenant->subscriptionPlan->slug ?? $tenant->plan ?? null;
             $disallowedModules = PlanModuleMap::getDisallowedModules($newModules, $planSlug);
 
             if (!empty($disallowedModules)) {
-                $errorMessage = "Modul berikut tidak diizinkan untuk paket {$planSlug}: " . implode(', ', $disallowedModules);
+                $disallowedLabels = array_map(function ($key) {
+                    return ModuleRecommendationService::MODULE_META[$key]['label'] ?? $key;
+                }, $disallowedModules);
+
+                $errorMessage = 'Modul berikut tidak tersedia untuk paket ' . strtoupper($planSlug ?? 'Anda') . ': '
+                    . implode(', ', $disallowedLabels)
+                    . '. Silakan upgrade paket untuk mengaktifkan modul ini.';
+
                 if ($request->expectsJson()) {
                     return response()->json(['errors' => ['modules' => [$errorMessage]]], 422);
                 }
-                return response($errorMessage, 422);
+
+                return back()
+                    ->withInput()
+                    ->with('error', $errorMessage)
+                    ->with('upgrade_required', true);
             }
         }
 
@@ -76,11 +91,11 @@ class ModuleSettingsController extends Controller
                     'tenant_id' => $tenant->id,
                     'module' => $module,
                     'strategy' => $cleanupStrategy,
-                    'records_affected' => $impact['total_records'],
+                    'records_affected' => $impact['total_records'] ?? 0,
                 ]);
 
                 // Perform cleanup if there's data
-                if ($impact['total_records'] > 0) {
+                if (($impact['total_records'] ?? 0) > 0) {
                     $result = $cleanupService->cleanupModule($tenant->id, $module, $cleanupStrategy);
                     $cleanupResults[$module] = $result;
                 }

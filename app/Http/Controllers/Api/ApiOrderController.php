@@ -23,7 +23,8 @@ class ApiOrderController extends ApiBaseController
         'confirmed' => ['processing', 'cancelled'],
         'processing' => ['shipped', 'cancelled'],
         'shipped' => ['delivered', 'cancelled'],
-        'delivered' => [], // Terminal state
+        'delivered' => ['completed', 'cancelled'],
+        'completed' => [], // Terminal state
         'cancelled' => [], // Terminal state
     ];
 
@@ -151,7 +152,7 @@ class ApiOrderController extends ApiBaseController
     {
         $order = SalesOrder::where('tenant_id', $this->tenantId())->findOrFail($id);
 
-        $request->validate(['status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled']);
+        $request->validate(['status' => 'required|in:pending,confirmed,processing,shipped,delivered,completed,cancelled']);
 
         // BUG-SALES-001 FIX: Validate status transition
         $this->validateStatusTransition($order, $request->status);

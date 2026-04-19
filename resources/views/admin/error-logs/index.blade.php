@@ -1,8 +1,6 @@
-@extends('layouts.admin')
-
-@section('title', 'Error Logs Dashboard')
-@section('page-title', 'Error Logs Monitoring')
-
+<x-app-layout>
+    <x-slot name="header">Error Logs Monitoring</x-slot>
+    <x-slot name="title">Error Logs Dashboard</x-slot>
 @section('content')
     <div class="space-y-6">
         <!-- Statistics Cards -->
@@ -232,4 +230,4 @@
             @endif
         </div>
     </div>
-@endsection
+</x-app-layout>

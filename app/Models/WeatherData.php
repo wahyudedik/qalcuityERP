@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WeatherData extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',

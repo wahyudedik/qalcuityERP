@@ -2,6 +2,7 @@
 
 use App\Jobs\AnalyzeUserPatterns;
 use App\Jobs\CheckTrialExpiry;
+use App\Jobs\GenerateProactiveInsightsJob;
 use App\Jobs\ProcessRecurringJournals;
 use App\Jobs\ExpireLoyaltyPoints;
 use App\Jobs\GenerateAiInsights;
@@ -63,6 +64,17 @@ Schedule::call(function () {
             ->delay(now()->addSeconds(rand(1, 30)));
     });
 })->dailyAt('08:00')->name('send-ai-digest-daily')->withoutOverlapping();
+
+// ─── Proactive Insights (ERP AI Agent) ───────────────────────────────────────
+
+// Generate proactive insights untuk semua tenant aktif — setiap 6 jam
+// Job memanggil ProactiveInsightEngine::analyze() per tenant dan mengirim
+// push notification untuk insight high/critical jika push aktif.
+Schedule::job(new GenerateProactiveInsightsJob())
+    ->everySixHours()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('generate-proactive-insights');
 
 // ─── ERP Notifications ────────────────────────────────────────────────────────
 

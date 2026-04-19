@@ -263,4 +263,145 @@ class AccountingController extends Controller
                      ->setPaper('a4', 'portrait');
         return $pdf->download('arus-kas-' . $from . '-sd-' . $to . '.pdf');
     }
+
+    // ── General Ledger (Buku Besar) ───────────────────────────────
+
+    public function generalLedger(Request $request)
+    {
+        $tid       = $this->tid();
+        $accountId = $request->get('account_id');
+        $from      = $request->get('from', now()->startOfMonth()->toDateString());
+        $to        = $request->get('to',   now()->toDateString());
+
+        $accounts = ChartOfAccount::where('tenant_id', $tid)
+            ->where('is_header', false)
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get();
+
+        $entries = collect();
+        $openingBalance = 0;
+        $account = null;
+
+        if ($accountId) {
+            $account = ChartOfAccount::where('tenant_id', $tid)->findOrFail($accountId);
+
+            // Calculate opening balance (before $from date)
+            $openingBalance = $account->journalLines()
+                ->whereHas('journalEntry', fn($q) => $q
+                    ->where('tenant_id', $tid)
+                    ->where('status', 'posted')
+                    ->where('date', '<', $from)
+                )
+                ->get()
+                ->reduce(function ($balance, $line) use ($account) {
+                    if ($account->normal_balance === 'debit') {
+                        return $balance + $line->debit - $line->credit;
+                    }
+                    return $balance + $line->credit - $line->debit;
+                }, 0);
+
+            // Get journal entries for the period
+            $entries = $account->journalLines()
+                ->with(['journalEntry' => fn($q) => $q->with('creator')])
+                ->whereHas('journalEntry', fn($q) => $q
+                    ->where('tenant_id', $tid)
+                    ->where('status', 'posted')
+                    ->whereBetween('date', [$from, $to])
+                )
+                ->get()
+                ->map(function ($line) use ($account, &$openingBalance) {
+                    $debit = $line->debit;
+                    $credit = $line->credit;
+                    
+                    if ($account->normal_balance === 'debit') {
+                        $openingBalance += $debit - $credit;
+                    } else {
+                        $openingBalance += $credit - $debit;
+                    }
+
+                    return [
+                        'date'        => $line->journalEntry->date,
+                        'reference'   => $line->journalEntry->reference,
+                        'description' => $line->description ?: $line->journalEntry->description,
+                        'debit'       => $debit,
+                        'credit'      => $credit,
+                        'balance'     => $openingBalance,
+                        'created_by'  => $line->journalEntry->creator->name ?? 'System',
+                    ];
+                })
+                ->sortBy('date')
+                ->values();
+        }
+
+        return view('accounting.general-ledger', compact('accounts', 'account', 'entries', 'openingBalance', 'from', 'to'));
+    }
+
+    public function generalLedgerPdf(Request $request)
+    {
+        $request->validate([
+            'account_id' => 'required|exists:chart_of_accounts,id',
+            'from'       => 'required|date',
+            'to'         => 'required|date|after_or_equal:from',
+        ]);
+
+        $tid       = $this->tid();
+        $accountId = $request->account_id;
+        $from      = $request->from;
+        $to        = $request->to;
+
+        $account = ChartOfAccount::where('tenant_id', $tid)->findOrFail($accountId);
+
+        // Calculate opening balance
+        $openingBalance = $account->journalLines()
+            ->whereHas('journalEntry', fn($q) => $q
+                ->where('tenant_id', $tid)
+                ->where('status', 'posted')
+                ->where('date', '<', $from)
+            )
+            ->get()
+            ->reduce(function ($balance, $line) use ($account) {
+                if ($account->normal_balance === 'debit') {
+                    return $balance + $line->debit - $line->credit;
+                }
+                return $balance + $line->credit - $line->debit;
+            }, 0);
+
+        // Get journal entries
+        $entries = $account->journalLines()
+            ->with(['journalEntry' => fn($q) => $q->with('creator')])
+            ->whereHas('journalEntry', fn($q) => $q
+                ->where('tenant_id', $tid)
+                ->where('status', 'posted')
+                ->whereBetween('date', [$from, $to])
+            )
+            ->get()
+            ->map(function ($line) use ($account, &$openingBalance) {
+                $debit = $line->debit;
+                $credit = $line->credit;
+                
+                if ($account->normal_balance === 'debit') {
+                    $openingBalance += $debit - $credit;
+                } else {
+                    $openingBalance += $credit - $debit;
+                }
+
+                return [
+                    'date'        => $line->journalEntry->date,
+                    'reference'   => $line->journalEntry->reference,
+                    'description' => $line->description ?: $line->journalEntry->description,
+                    'debit'       => $debit,
+                    'credit'      => $credit,
+                    'balance'     => $openingBalance,
+                ];
+            })
+            ->sortBy('date')
+            ->values();
+
+        $tenant = auth()->user()->tenant;
+        $pdf    = Pdf::loadView('accounting.pdf.general-ledger', compact('account', 'entries', 'openingBalance', 'from', 'to', 'tenant'))
+                     ->setPaper('a4', 'portrait');
+        
+        return $pdf->download('buku-besar-' . $account->code . '-' . $from . '-sd-' . $to . '.pdf');
+    }
 }

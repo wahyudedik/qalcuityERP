@@ -1,28 +1,51 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-                    📊 {{ $supplier->name }} - Performance Details
-                </h2>
-                <p class="text-sm text-gray-500 mt-1">{{ $supplier->company ?? '' }} | {{ $supplier->email ?? '' }}</p>
-            </div>
-            <div class="flex gap-2">
-                <select id="periodSelector" onchange="changePeriod(this.value)" class="border rounded-lg px-3 py-2">
-                    <option value="30" {{ $period == 30 ? 'selected' : '' }}>30 Days</option>
-                    <option value="90" {{ $period == 90 ? 'selected' : '' }}>90 Days</option>
-                    <option value="180" {{ $period == 180 ? 'selected' : '' }}>6 Months</option>
-                </select>
-                <a href="{{ route('supplier-performance.dashboard') }}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                    ← Back
-                </a>
-            </div>
+        <div class="flex items-center gap-2 text-sm">
+            <a href="{{ route('supplier-performance.dashboard') }}" class="text-gray-400 dark:text-slate-500 hover:text-blue-500 transition-colors">
+                Supplier Performance
+            </a>
+            <span class="text-gray-300 dark:text-slate-600">/</span>
+            <span class="text-gray-600 dark:text-slate-300 font-medium truncate">{{ $supplier->name }}</span>
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+            {{-- Page Title Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="min-w-0">
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 truncate">
+                        {{ $supplier->name }}
+                    </h1>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        @if($supplier->company)
+                            <span class="text-sm text-gray-500 dark:text-slate-400">{{ $supplier->company }}</span>
+                        @endif
+                        @if($supplier->email)
+                            <span class="text-gray-300 dark:text-slate-600">·</span>
+                            <span class="text-sm text-gray-400 dark:text-slate-500">{{ $supplier->email }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <form method="GET" action="{{ request()->url() }}">
+                        <select name="period" onchange="this.form.submit()"
+                            class="text-sm border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="30" {{ $period == 30 ? 'selected' : '' }}>30 Hari</option>
+                            <option value="90" {{ $period == 90 ? 'selected' : '' }}>90 Hari</option>
+                            <option value="180" {{ $period == 180 ? 'selected' : '' }}>6 Bulan</option>
+                        </select>
+                    </form>
+                    <a href="{{ route('supplier-performance.dashboard') }}"
+                        class="inline-flex items-center gap-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Kembali
+                    </a>
+                </div>
+            </div>
 
             {{-- Performance Summary Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -59,7 +82,7 @@
             {{-- Performance Trend Chart --}}
             @if ($performance['chart_data']['labels'])
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📈 Performance Trends</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Performance Trends</h3>
                     <canvas id="performanceChart" height="100"></canvas>
                 </div>
             @endif
@@ -67,7 +90,7 @@
             {{-- Score Breakdown --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📊 Score Breakdown</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Score Breakdown</h3>
                     <div class="space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
@@ -106,7 +129,7 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">💰 Purchase Summary</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Purchase Summary</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Total POs Evaluated:</span>
@@ -120,11 +143,11 @@
                         <div class="flex justify-between">
                             <span class="text-gray-500">Trend:</span>
                             @if ($performance['trend'] === 'improving')
-                                <span class="text-green-600 font-bold">📈 Improving</span>
+                                <span class="text-green-600 font-bold">Improving</span>
                             @elseif($performance['trend'] === 'declining')
-                                <span class="text-red-600 font-bold">📉 Declining</span>
+                                <span class="text-red-600 font-bold">Declining</span>
                             @else
-                                <span class="text-gray-600">➡️ Stable</span>
+                                <span class="text-gray-600">Stable</span>
                             @endif
                         </div>
                     </div>
@@ -133,7 +156,7 @@
 
             {{-- Evaluation History --}}
             <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📋 Evaluation History</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Evaluation History</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
@@ -203,7 +226,8 @@
                     {{ $evaluations->links() }}
                 </div>
             </div>
-        </div>
+
+        </div>{{-- end page content --}}
     </div>
 
     @if ($performance['chart_data']['labels'])
@@ -267,12 +291,6 @@
                     }
                 }
             });
-
-            function changePeriod(period) {
-                const url = new URL(window.location.href);
-                url.searchParams.set('period', period);
-                window.location.href = url.toString();
-            }
         </script>
     @endif
 </x-app-layout>

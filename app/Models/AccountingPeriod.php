@@ -11,6 +11,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AccountingPeriod extends Model
 {
     use BelongsToTenant;
+
+    const STATUS_OPEN   = 'open';
+    const STATUS_CLOSED = 'closed';
+    const STATUS_LOCKED = 'locked';
+
+    const STATUSES = [
+        self::STATUS_OPEN,
+        self::STATUS_CLOSED,
+        self::STATUS_LOCKED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'name', 'start_date', 'end_date',
         'status', 'closed_by', 'closed_at',

@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class SalesOrderController extends Controller
 {
@@ -282,7 +283,7 @@ class SalesOrderController extends Controller
     public function show(SalesOrder $salesOrder)
     {
         abort_if($salesOrder->tenant_id !== $this->tid(), 403);
-        $salesOrder->load(['customer', 'items.product', 'user', 'invoice', 'quotation']);
+        $salesOrder->load(['customer', 'items.product', 'user', 'invoices', 'quotation']);
         return view('sales.show', compact('salesOrder'));
     }
 
@@ -291,7 +292,7 @@ class SalesOrderController extends Controller
         abort_if($salesOrder->tenant_id !== $this->tid(), 403);
 
         $data = $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,shipped,completed,cancelled',
+            'status' => ['required', Rule::in(SalesOrder::STATUSES)],
         ]);
 
         // BUG-SALES-001 FIX: Validate status transition
@@ -340,7 +341,8 @@ class SalesOrderController extends Controller
             'pending' => ['confirmed', 'cancelled'],
             'confirmed' => ['processing', 'cancelled'],
             'processing' => ['shipped', 'cancelled'],
-            'shipped' => ['completed', 'cancelled'],
+            'shipped' => ['delivered', 'cancelled'],
+            'delivered' => ['completed', 'cancelled'],
             'completed' => [], // Terminal state - no transitions allowed
             'cancelled' => [], // Terminal state - no transitions allowed
         ];
@@ -379,7 +381,7 @@ class SalesOrderController extends Controller
             }
 
             // Check if already delivered/shipped
-            if (in_array($order->status, ['shipped', 'completed'])) {
+            if (in_array($order->status, ['shipped', 'delivered', 'completed'])) {
                 throw new \RuntimeException(
                     "Sales Order yang sudah dikirim/selesai tidak bisa dibatalkan."
                 );
@@ -428,7 +430,7 @@ class SalesOrderController extends Controller
     public function destroy(SalesOrder $salesOrder)
     {
         abort_if($salesOrder->tenant_id !== $this->tid(), 403);
-        abort_if(in_array($salesOrder->status, ['shipped', 'completed']), 403, 'SO yang sudah dikirim/selesai tidak bisa dihapus.');
+        abort_if(in_array($salesOrder->status, ['shipped', 'delivered', 'completed']), 403, 'SO yang sudah dikirim/selesai tidak bisa dihapus.');
 
         ActivityLog::record('sales_order_deleted', "SO dihapus: {$salesOrder->number}", $salesOrder, $salesOrder->toArray());
         $salesOrder->items()->delete();

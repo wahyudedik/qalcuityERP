@@ -55,6 +55,13 @@ class AttendanceService
             // Determine status based on shift
             $status = $this->determineAttendanceStatus($employee, $shift, $now);
 
+            // Calculate late minutes if late
+            $lateMinutes = 0;
+            if ($status === 'late' && $shift) {
+                $shiftStart = $this->parseShiftStartTime($shift, $today);
+                $lateMinutes = max(0, (int) $shiftStart->diffInMinutes($now, false));
+            }
+
             // Create or update attendance record
             $attendance = Attendance::updateOrCreate(
                 [
@@ -63,9 +70,10 @@ class AttendanceService
                     'date' => $today,
                 ],
                 [
-                    'check_in' => $currentTime,
-                    'status' => $status,
-                    'shift_id' => $shift?->id,
+                    'check_in'     => $currentTime,
+                    'status'       => $status,
+                    'shift_id'     => $shift?->id,
+                    'late_minutes' => $lateMinutes,
                 ]
             );
 

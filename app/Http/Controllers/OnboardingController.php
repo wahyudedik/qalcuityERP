@@ -58,6 +58,16 @@ class OnboardingController extends Controller
         // Get progress
         $progress = $this->getProgress($tenantId, $userId);
 
+        // If all steps already done, mark tenant as completed and redirect
+        if ($progress['total_steps'] > 0 && $progress['completed_steps'] >= $progress['total_steps']) {
+            Tenant::where('id', $tenantId)->update(['onboarding_completed' => true]);
+            OnboardingProfile::where('tenant_id', $tenantId)
+                ->where('user_id', $userId)
+                ->whereNull('completed_at')
+                ->update(['completed_at' => now()]);
+            return redirect()->route('dashboard');
+        }
+
         // Get pending tips
         $tips = UserTip::where('tenant_id', $tenantId)
             ->where('user_id', $userId)
@@ -179,11 +189,31 @@ class OnboardingController extends Controller
     public function completeStep(Request $request, string $stepKey)
     {
         $tenantId = $this->getTenantId();
-        $userId = $this->getUserId();
+        $userId   = $this->getUserId();
 
         $this->markStepCompleted($tenantId, $userId, $stepKey);
 
-        return response()->json(['success' => true]);
+        // Check if all steps are now complete
+        $progress  = $this->getProgress($tenantId, $userId);
+        $allDone   = $progress['total_steps'] > 0
+                  && $progress['completed_steps'] >= $progress['total_steps'];
+
+        if ($allDone) {
+            // Mark tenant onboarding as completed so DashboardController stops redirecting
+            Tenant::where('id', $tenantId)->update(['onboarding_completed' => true]);
+
+            // Also stamp the profile
+            OnboardingProfile::where('tenant_id', $tenantId)
+                ->where('user_id', $userId)
+                ->whereNull('completed_at')
+                ->update(['completed_at' => now()]);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'all_done'  => $allDone,
+            'redirect'  => $allDone ? route('dashboard') : null,
+        ]);
     }
 
     /**
@@ -487,15 +517,19 @@ class OnboardingController extends Controller
         $allSteps = array_merge($commonSteps, $industrySpecificSteps);
 
         foreach ($allSteps as $step) {
-            OnboardingProgress::create([
-                'tenant_id' => $tenantId,
-                'user_id' => $userId,
-                'step_key' => $step['key'],
-                'step_name' => $step['name'],
-                'category' => $step['category'],
-                'order' => $step['order'],
-                'description' => "Complete this step to continue your onboarding journey",
-            ]);
+            OnboardingProgress::firstOrCreate(
+                [
+                    'tenant_id' => $tenantId,
+                    'user_id'   => $userId,
+                    'step_key'  => $step['key'],
+                ],
+                [
+                    'step_name'   => $step['name'],
+                    'category'    => $step['category'],
+                    'order'       => $step['order'],
+                    'description' => "Complete this step to continue your onboarding journey",
+                ]
+            );
         }
     }
 

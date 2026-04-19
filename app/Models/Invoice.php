@@ -15,6 +15,25 @@ class Invoice extends Model
     use BelongsToTenant;
     use AuditsChanges, SoftDeletes;
 
+    // Konstanta status untuk type safety
+    const STATUS_UNPAID       = 'unpaid';
+    const STATUS_PARTIAL      = 'partial';
+    const STATUS_PARTIAL_PAID = 'partial_paid';
+    const STATUS_PAID         = 'paid';
+    const STATUS_CANCELLED    = 'cancelled';
+    const STATUS_VOIDED       = 'voided';
+    const STATUS_OVERDUE      = 'overdue';
+
+    const STATUSES = [
+        self::STATUS_UNPAID,
+        self::STATUS_PARTIAL,
+        self::STATUS_PARTIAL_PAID,
+        self::STATUS_PAID,
+        self::STATUS_CANCELLED,
+        self::STATUS_VOIDED,
+        self::STATUS_OVERDUE,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'sales_order_id',

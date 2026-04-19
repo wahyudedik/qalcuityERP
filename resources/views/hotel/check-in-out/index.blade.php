@@ -101,7 +101,7 @@
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2 mb-1">
                                                 <h3 class="font-semibold text-gray-900 dark:text-white">
-                                                    {{ $reservation->guest->name }}
+                                                    {{ $reservation->guest?->name ?? '-' }}
                                                 </h3>
                                                 @if ($hasPreArrival)
                                                     <span
@@ -116,10 +116,10 @@
                                                 @endif
                                             </div>
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                {{ $reservation->roomType->name ?? '-' }} •
+                                                {{ $reservation->roomType?->name ?? '-' }} •
                                                 @if ($roomAssigned)
                                                     <span class="text-green-600 dark:text-green-400 font-medium">Room
-                                                        {{ $reservation->room->number ?? 'TBA' }}</span>
+                                                        {{ $reservation->room?->number ?? 'TBA' }}</span>
                                                 @else
                                                     <span class="text-amber-600 dark:text-amber-400">Room: Not
                                                         Assigned</span>
@@ -240,11 +240,11 @@
                                     <div class="flex items-start justify-between mb-3">
                                         <div class="flex-1">
                                             <h3 class="font-semibold text-gray-900 dark:text-white">
-                                                {{ $reservation->guest->name }}
+                                                {{ $reservation->guest?->name ?? '-' }}
                                             </h3>
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                {{ $reservation->roomType->name }} • Room
-                                                {{ $reservation->room->number ?? '-' }}
+                                                {{ $reservation->roomType?->name ?? '-' }} • Room
+                                                {{ $reservation->room?->number ?? '-' }}
                                             </p>
                                         </div>
                                         <span
@@ -315,7 +315,7 @@
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="font-medium text-gray-900 dark:text-white">
-                                                    {{ $reservation->guest->name }}</p>
+                                                    {{ $reservation->guest?->name ?? '-' }}</p>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                                     Scheduled: {{ $reservation->check_in_date->format('d M Y') }}
                                                 </p>
@@ -348,7 +348,7 @@
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="font-medium text-gray-900 dark:text-white">
-                                                    {{ $reservation->guest->name }}</p>
+                                                    {{ $reservation->guest?->name ?? '-' }}</p>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                                     Due: {{ $reservation->check_out_date->format('d M Y') }}
                                                 </p>

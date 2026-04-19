@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error 500 - Internal Server Error | {{ config('app.name') }}</title>
+    <title>Error 500 - Kesalahan Server | {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -24,10 +24,10 @@
 
             <h1 class="text-6xl font-bold text-red-600 dark:text-red-400 mb-4">500</h1>
             <h2 class="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
-                Internal Server Error
+                Kesalahan Server
             </h2>
             <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                {{ $message ?? 'An unexpected error occurred. Please try again later.' }}
+                {{ $message ?? 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi nanti.' }}
             </p>
         </div>
 
@@ -40,9 +40,9 @@
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                        <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Error Reference</h3>
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Referensi Error</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            If you need assistance, please provide this error ID to support:
+                            Jika Anda memerlukan bantuan, berikan ID error ini kepada tim support:
                         </p>
                         <code
                             class="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-md font-mono text-sm text-gray-800 dark:text-gray-200">
@@ -61,7 +61,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Back to Home
+                Kembali ke Beranda
             </a>
 
             <button onclick="window.location.reload()"
@@ -70,7 +70,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.058h5V4.058A1.992 1.992 0 008 4H4a1 1 0 00-1 1v5a1 1 0 001 1h5a1 1 0 001-1V5a1 1 0 00-1-1H4zM4 20v-5h.058h5V20H4a1 1 0 01-1-1v-5a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H4z" />
                 </svg>
-                Try Again
+                Coba Lagi
             </button>
 
             <a href="{{ route('contact') ?? '#' }}"
@@ -79,8 +79,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                Contact Support
-            </a>
+                Hubungi Support
+            </button>
         </div>
 
         <!-- Technical Details (Development Only) -->
@@ -91,7 +91,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
-                    Debug Information
+                    Informasi Debug
                 </h3>
                 <div class="space-y-2 text-sm">
                     <div>
@@ -100,7 +100,7 @@
                             class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $exception->getMessage() }}</code>
                     </div>
                     <div>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Lokasi:</span>
                         <code
                             class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $exception->getFile() }}:{{ $exception->getLine() }}</code>
                     </div>

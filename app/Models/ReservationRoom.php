@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Traits\AuditsChanges;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReservationRoom extends Model
 {
-    use AuditsChanges;
+    use AuditsChanges, BelongsToTenant;
 
     protected $fillable = [
+        'tenant_id',
         'reservation_id',
         'room_id',
         'check_in_date',

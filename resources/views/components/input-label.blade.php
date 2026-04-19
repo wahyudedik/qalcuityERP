@@ -1,5 +1,9 @@
-@props(['value'])
+@props(['value', 'required' => false])
 
-<label {{ $attributes->merge(['class' => 'block font-medium text-sm text-gray-700']) }}>
+{{-- TASK 6.3: Label jelas dengan indikator required --}}
+<label {{ $attributes->merge(['class' => 'block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1']) }}>
     {{ $value ?? $slot }}
+    @if($required)
+        <span class="text-red-500 ml-0.5" title="Wajib diisi">*</span>
+    @endif
 </label>

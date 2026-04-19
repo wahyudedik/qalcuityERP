@@ -113,9 +113,17 @@ class PaymentController extends Controller
     {
         try {
             $payload = $request->all();
-            $signature = $request->header('X-Signature')
-                ?? $request->header('Signature')
-                ?? $request->header('x-callback-token');
+
+            // Extract signature based on provider
+            // Midtrans: signature_key in payload
+            // Xendit: x-callback-token header
+            // Duitku: signature in payload
+            $signature = match ($provider) {
+                'midtrans' => $payload['signature_key'] ?? $request->header('X-Signature'),
+                'xendit' => $request->header('x-callback-token') ?? $request->header('X-Callback-Token'),
+                'duitku' => $payload['signature'] ?? null,
+                default => $request->header('X-Signature') ?? $request->header('Signature'),
+            };
 
             // Extract tenant ID from payload or URL
             $tenantId = $request->input('tenant_id')
@@ -132,6 +140,7 @@ class PaymentController extends Controller
             $result = match ($provider) {
                 'midtrans' => $webhookService->handleMidtrans($payload, $signature),
                 'xendit' => $webhookService->handleXendit($payload, $signature),
+                'duitku' => $webhookService->handleDuitku($payload, $signature),
                 default => ['success' => false, 'error' => "Unsupported provider: {$provider}"],
             };
 

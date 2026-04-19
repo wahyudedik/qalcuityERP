@@ -9,6 +9,19 @@ use Illuminate\Database\Eloquent\Model;
 class PayrollRun extends Model
 {
     use BelongsToTenant;
+
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_PROCESSED = 'processed';
+    const STATUS_PAID      = 'paid';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_PROCESSED,
+        self::STATUS_PAID,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'period', 'status', 'total_gross',
         'total_deductions', 'total_net', 'processed_by', 'processed_at',

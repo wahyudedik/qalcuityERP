@@ -272,7 +272,25 @@ class PharmacyController extends Controller
             'today_dispensed' => Prescription::whereDate('dispensed_at', today())->count(),
         ];
 
-        return view('healthcare.pharmacy.dashboard', compact('statistics'));
+        $pendingPrescriptionsList = Prescription::with(['patient', 'doctor'])
+            ->where('status', 'pending')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $lowStockItemsList = PharmacyInventory::whereColumn('stock_quantity', '<=', 'minimum_stock')
+            ->orderBy('stock_quantity')
+            ->limit(5)
+            ->get();
+
+        $recentActivities = collect(); // Placeholder — extend with actual activity log if available
+
+        return view('healthcare.pharmacy.dashboard', compact(
+            'statistics',
+            'pendingPrescriptionsList',
+            'lowStockItemsList',
+            'recentActivities'
+        ));
     }
 
     /**

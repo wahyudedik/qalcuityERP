@@ -121,17 +121,19 @@ class RecipeCostCalculatorService
             })
             ->map(function ($recipe) {
                 return [
+                    'recipe' => $recipe,
                     'recipe_id' => $recipe->id,
                     'recipe_name' => $recipe->name,
                     'menu_item_name' => $recipe->menuItem?->name,
-                    'selling_price' => $recipe->menuItem?->price,
+                    'selling_price' => $recipe->menuItem?->price ?? 0,
                     'cost_per_serving' => $recipe->calculateCostPerServing(),
+                    'margin_percentage' => $recipe->getProfitMargin(),
                     'profit_margin' => $recipe->getProfitMargin(),
                     'recommendation' => $this->generateRecommendation($recipe),
                 ];
             });
 
-        return $recipes->sortBy('profit_margin')->values();
+        return $recipes->sortBy('margin_percentage')->values();
     }
 
     /**

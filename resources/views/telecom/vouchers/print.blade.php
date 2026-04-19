@@ -149,8 +149,8 @@
             @foreach ($vouchers as $voucher)
                 <div class="voucher-card">
                     <div class="voucher-header">
-                        <h2>{{ $voucher->package->name }}</h2>
-                        <p>{{ $voucher->package->download_speed_mbps }}/{{ $voucher->package->upload_speed_mbps }} Mbps
+                        <h2>{{ $voucher->package?->name ?? 'Paket Internet' }}</h2>
+                        <p>{{ $voucher->package?->download_speed_mbps ?? 0 }}/{{ $voucher->package?->upload_speed_mbps ?? 0 }} Mbps
                         </p>
                     </div>
 
@@ -167,7 +167,7 @@
                             <span class="label">Valid Until:</span>
                             <span class="value">{{ $voucher->valid_until->format('d M Y H:i') }}</span>
                         </div>
-                        @if ($voucher->package->quota_bytes)
+                        @if ($voucher->package?->quota_bytes)
                             <div class="detail-row">
                                 <span class="label">Quota:</span>
                                 <span class="value">{{ round($voucher->package->quota_bytes / 1073741824, 2) }}

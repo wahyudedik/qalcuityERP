@@ -10,7 +10,45 @@ use Carbon\Carbon;
 
 class CropCycle extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
+
+    // Crop cycle status constants
+    const STATUS_PLANNING     = 'planning';
+    const STATUS_LAND_PREP    = 'land_prep';
+    const STATUS_PLANTING     = 'planting';
+    const STATUS_VEGETATIVE   = 'vegetative';
+    const STATUS_GENERATIVE   = 'generative';
+    const STATUS_HARVEST      = 'harvest';
+    const STATUS_POST_HARVEST = 'post_harvest';
+    const STATUS_COMPLETED    = 'completed';
+    const STATUS_CANCELLED    = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_PLANNING,
+        self::STATUS_LAND_PREP,
+        self::STATUS_PLANTING,
+        self::STATUS_VEGETATIVE,
+        self::STATUS_GENERATIVE,
+        self::STATUS_HARVEST,
+        self::STATUS_POST_HARVEST,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
+    // Growth stage constants (used by growth_stage column)
+    const PHASE_PLANTED          = 'planted';
+    const PHASE_VEGETATIVE       = 'vegetative';
+    const PHASE_FLOWERING        = 'flowering';
+    const PHASE_FRUITING         = 'fruiting';
+    const PHASE_READY_TO_HARVEST = 'ready_to_harvest';
+
+    const PHASES = [
+        self::PHASE_PLANTED,
+        self::PHASE_VEGETATIVE,
+        self::PHASE_FLOWERING,
+        self::PHASE_FRUITING,
+        self::PHASE_READY_TO_HARVEST,
+    ];
 
     protected $fillable = [
         'tenant_id',

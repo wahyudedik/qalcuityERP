@@ -25,10 +25,11 @@ class WebhookHandlerService
     {
         try {
             // BUG-API-001 FIX: Check idempotency BEFORE processing
-            $idempotency = app(\App\Services\WebhookIdempotencyService::class)
+            $idempotencyResult = app(\App\Services\WebhookIdempotencyService::class)
                 ->checkIdempotency('midtrans', $payload);
+            $idempotencyKey = $idempotencyResult['idempotency_key'];
 
-            if ($idempotency['is_duplicate']) {
+            if ($idempotencyResult['is_duplicate']) {
                 Log::info('BUG-API-001: Duplicate Midtrans webhook ignored', [
                     'order_id' => $payload['order_id'] ?? 'unknown',
                     'transaction_id' => $payload['transaction_id'] ?? 'unknown',
@@ -38,15 +39,16 @@ class WebhookHandlerService
                     'success' => true,
                     'message' => 'Webhook already processed (duplicate ignored)',
                     'duplicate' => true,
-                    'previous_callback_id' => $idempotency['previous_callback']?->id,
+                    'previous_callback_id' => $idempotencyResult['previous_callback']?->id,
                 ];
             }
 
             // Log incoming webhook
             $callback = PaymentCallback::create([
                 'tenant_id' => $this->tenantId,
-                'provider' => 'midtrans',
-                'payload' => json_encode($payload),
+                'gateway_provider' => 'midtrans',
+                'event_type' => $payload['transaction_status'] ?? 'notification',
+                'payload' => $payload,
                 'signature' => $signature,
                 'processed' => false,
             ]);
@@ -125,9 +127,6 @@ class WebhookHandlerService
                 ]);
 
                 // BUG-API-001 FIX: Mark as processed in idempotency service
-                $idempotencyKey = app(\App\Services\WebhookIdempotencyService::class)
-                    ->checkIdempotency('midtrans', $payload)['idempotency_key'];
-
                 app(\App\Services\WebhookIdempotencyService::class)
                     ->markAsProcessed($idempotencyKey, $callback);
 
@@ -159,8 +158,9 @@ class WebhookHandlerService
             // Log incoming webhook
             $callback = PaymentCallback::create([
                 'tenant_id' => $this->tenantId,
-                'provider' => 'xendit',
-                'payload' => json_encode($payload),
+                'gateway_provider' => 'xendit',
+                'event_type' => $payload['status'] ?? 'notification',
+                'payload' => $payload,
                 'signature' => $signature,
                 'processed' => false,
             ]);
@@ -280,6 +280,7 @@ class WebhookHandlerService
 
     /**
      * Verify Xendit webhook signature
+     * Xendit uses x-callback-token header — plain string comparison against configured token
      */
     private function verifyXenditSignature(array $payload, ?string $signature, string $secret): bool
     {
@@ -287,11 +288,8 @@ class WebhookHandlerService
             return false;
         }
 
-        // Xendit uses HMAC SHA256
-        $payloadJson = json_encode($payload);
-        $expectedSignature = hash_hmac('sha256', $payloadJson, $secret);
-
-        return hash_equals($expectedSignature, $signature);
+        // Xendit uses x-callback-token: plain comparison (not HMAC)
+        return hash_equals($secret, $signature);
     }
 
     /**
@@ -328,6 +326,146 @@ class WebhookHandlerService
             'EXPIRED' => 'expired',
             'FAILED' => 'failed',
             'PENDING' => 'waiting_payment',
+            default => 'pending',
+        };
+    }
+
+    /**
+     * Handle Duitku webhook notification
+     * Duitku sends: merchantCode, amount, merchantOrderId, productDetail, additionalParam,
+     *               paymentCode, resultCode, merchantUserId, reference, signature
+     */
+    public function handleDuitku(array $payload, ?string $signature): array
+    {
+        try {
+            // Log incoming webhook
+            $callback = PaymentCallback::create([
+                'tenant_id' => $this->tenantId,
+                'gateway_provider' => 'duitku',
+                'event_type' => $payload['resultCode'] ?? 'notification',
+                'payload' => $payload,
+                'signature' => $signature,
+                'processed' => false,
+            ]);
+
+            // Verify signature if webhook secret is configured
+            $gateway = TenantPaymentGateway::where('tenant_id', $this->tenantId)
+                ->where('provider', 'duitku')
+                ->first();
+
+            if ($gateway && $gateway->webhook_secret) {
+                if (!$this->verifyDuitkuSignature($payload, $gateway->webhook_secret)) {
+                    $callback->update(['error_message' => 'Invalid signature']);
+                    return ['success' => false, 'error' => 'Invalid signature'];
+                }
+            }
+
+            // Extract transaction data
+            $merchantOrderId = $payload['merchantOrderId'] ?? null;
+            $resultCode = $payload['resultCode'] ?? null;
+            $amount = $payload['amount'] ?? 0;
+            $reference = $payload['reference'] ?? null;
+
+            if (!$merchantOrderId || !$resultCode) {
+                $callback->update(['error_message' => 'Missing required fields']);
+                return ['success' => false, 'error' => 'Missing required fields'];
+            }
+
+            // Find payment transaction
+            $paymentTransaction = PaymentTransaction::where('tenant_id', $this->tenantId)
+                ->where('transaction_number', $merchantOrderId)
+                ->first();
+
+            if (!$paymentTransaction) {
+                $callback->update(['error_message' => 'Transaction not found']);
+                return ['success' => false, 'error' => 'Transaction not found'];
+            }
+
+            // Process based on result code
+            DB::transaction(function () use ($paymentTransaction, $resultCode, $amount, $reference, $callback, $payload) {
+                $newStatus = $this->mapDuitkuStatus($resultCode);
+
+                $updateData = [
+                    'gateway_transaction_id' => $reference,
+                    'status' => $newStatus,
+                    'amount' => $amount,
+                    'gateway_response' => json_encode($payload),
+                ];
+
+                if ($newStatus === 'success') {
+                    $updateData['paid_at'] = now();
+                }
+
+                $paymentTransaction->update($updateData);
+
+                // If payment successful, update sales order
+                if ($newStatus === 'success' && $paymentTransaction->sales_order_id) {
+                    $salesOrder = SalesOrder::find($paymentTransaction->sales_order_id);
+
+                    if ($salesOrder) {
+                        $salesOrder->update([
+                            'status' => 'completed',
+                            'payment_type' => 'qris',
+                            'payment_method' => 'qris',
+                            'paid_amount' => $amount,
+                            'completed_at' => now(),
+                        ]);
+
+                        if (!$salesOrder->stock_deducted_at) {
+                            $this->deductStockForOrder($salesOrder);
+                        }
+                    }
+                }
+
+                $callback->update([
+                    'processed' => true,
+                    'processed_at' => now(),
+                ]);
+
+                Log::info("Duitku webhook processed", [
+                    'merchant_order_id' => $paymentTransaction->transaction_number,
+                    'status' => $newStatus,
+                    'result_code' => $resultCode,
+                ]);
+            });
+
+            return ['success' => true, 'message' => 'Webhook processed successfully'];
+
+        } catch (\Exception $e) {
+            Log::error("Duitku webhook error: {$e->getMessage()}", [
+                'payload' => $payload,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Verify Duitku webhook signature
+     * Duitku signature: MD5(merchantCode + amount + merchantOrderId + merchantKey)
+     */
+    private function verifyDuitkuSignature(array $payload, string $merchantKey): bool
+    {
+        $merchantCode = $payload['merchantCode'] ?? '';
+        $amount = $payload['amount'] ?? '';
+        $merchantOrderId = $payload['merchantOrderId'] ?? '';
+
+        $expectedSignature = md5($merchantCode . $amount . $merchantOrderId . $merchantKey);
+
+        return hash_equals($expectedSignature, $payload['signature'] ?? '');
+    }
+
+    /**
+     * Map Duitku result code to internal status
+     * 00 = Success, 01 = Pending, 02 = Failed
+     */
+    private function mapDuitkuStatus(string $resultCode): string
+    {
+        return match ($resultCode) {
+            '00' => 'success',
+            '01' => 'waiting_payment',
+            '02' => 'failed',
             default => 'pending',
         };
     }
@@ -412,9 +550,10 @@ class WebhookHandlerService
         foreach ($failedCallbacks as $callback) {
             try {
                 $payload = json_decode($callback->payload, true);
-                $result = match ($callback->provider) {
+                $result = match ($callback->gateway_provider) {
                     'midtrans' => $this->handleMidtrans($payload, $callback->signature),
                     'xendit' => $this->handleXendit($payload, $callback->signature),
+                    'duitku' => $this->handleDuitku($payload, $callback->signature),
                     default => ['success' => false, 'error' => 'Unknown provider'],
                 };
 

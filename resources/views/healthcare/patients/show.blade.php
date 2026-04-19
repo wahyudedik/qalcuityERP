@@ -38,7 +38,7 @@
                 <div>
                     <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal Lahir</p>
                     <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                        {{ $patient->date_of_birth ? \Carbon\Carbon::parse($patient->date_of_birth)->format('d M Y') : '-' }}
+                        {{ $patient->birth_date ? $patient->birth_date->format('d M Y') : '-' }}
                     </p>
                 </div>
                 <div>
@@ -49,7 +49,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-slate-400">Telepon</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">{{ $patient->phone ?? '-' }}</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">{{ $patient->phone_primary ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 dark:text-slate-400">Status</p>
@@ -108,16 +108,16 @@
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ $visit->visit_type ?? 'Kunjungan' }}</p>
+                                            {{ $visit->visit_type_label ?? $visit->visit_type ?? 'Kunjungan' }}</p>
                                         <p class="text-xs text-gray-500 dark:text-slate-400">
                                             {{ $visit->doctor ? $visit->doctor->name : '-' }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-sm text-gray-900 dark:text-white">
-                                        {{ $visit->visit_date ? \Carbon\Carbon::parse($visit->visit_date)->format('d M Y') : '-' }}
+                                        {{ $visit->visit_date ? $visit->visit_date->format('d M Y') : '-' }}
                                     </p>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ $visit->status ?? '-' }}
+                                    <p class="text-xs text-gray-500 dark:text-slate-400">{{ $visit->visit_status_label ?? $visit->visit_status ?? '-' }}
                                     </p>
                                 </div>
                             </div>
@@ -199,7 +199,7 @@
                     <div class="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
                         <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Alergi</p>
                         <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                            {{ $patient->allergies ?? '-' }}
+                            {{ is_array($patient->known_allergies) ? implode(', ', $patient->known_allergies) : ($patient->known_allergies ?? '-') }}
                         </p>
                     </div>
                     <div class="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
@@ -210,7 +210,7 @@
                     <div class="p-4 bg-gray-50 dark:bg-white/5 rounded-xl">
                         <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">No. Polis</p>
                         <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                            {{ $patient->insurance_policy ?? '-' }}</p>
+                            {{ $patient->insurance_policy_number ?? '-' }}</p>
                     </div>
                 </div>
             </div>

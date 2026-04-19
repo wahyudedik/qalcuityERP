@@ -12,6 +12,33 @@ use Illuminate\Support\Facades\DB;
 class AdmissionController extends Controller
 {
     /**
+     * Show form to create a new admission.
+     */
+    public function create(Request $request)
+    {
+        $patients = Patient::where('status', 'active')
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'medical_record_number']);
+
+        $doctors = \App\Models\Doctor::where('status', 'active')
+            ->orderBy('id')
+            ->get();
+
+        $availableBeds = Bed::where('status', 'available')
+            ->with('ward')
+            ->get();
+
+        $selectedPatientId = $request->query('patient_id');
+
+        return view('healthcare.inpatient.admissions.create', compact(
+            'patients',
+            'doctors',
+            'availableBeds',
+            'selectedPatientId'
+        ));
+    }
+
+    /**
      * Display a listing of admissions.
      */
     public function index(Request $request)
@@ -31,7 +58,7 @@ class AdmissionController extends Controller
         $admissions = $query->latest()->paginate(20);
 
         $statistics = [
-            'total_active' => Admission::whereIn('status', ['admitted', 'transferred'])->count(),
+            'total_active' => Admission::whereIn('status', ['active', 'transferred'])->count(),
             'today_admissions' => Admission::whereDate('admission_date', today())->count(),
             'today_discharges' => Admission::whereDate('actual_discharge_date', today())->count(),
             'avg_length_of_stay' => Admission::whereNotNull('actual_discharge_date')
@@ -60,10 +87,10 @@ class AdmissionController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'bed_id' => 'required|exists:beds,id',
-            'doctor_id' => 'required|exists:doctors,id',
+            'admitting_doctor_id' => 'required|exists:doctors,id',
             'admission_date' => 'required|date',
             'admission_diagnosis' => 'required|string',
-            'admission_type' => 'required|in:emergency,elective,transfer,re-admission',
+            'admission_type' => 'required|in:emergency,elective,referral,maternity',
             'estimated_discharge_date' => 'nullable|date|after:admission_date',
         ]);
 
@@ -75,6 +102,7 @@ class AdmissionController extends Controller
 
         DB::beginTransaction();
         try {
+            $validated['status'] = 'active';
             $admission = Admission::create($validated);
 
             // Mark bed as occupied
@@ -147,7 +175,8 @@ class AdmissionController extends Controller
 
         DB::beginTransaction();
         try {
-            $admission->transfer($validated['new_bed_id'], $validated['transfer_reason']);
+            $newBed = Bed::findOrFail($validated['new_bed_id']);
+            $admission->transfer($newBed->ward_id, $validated['new_bed_id']);
 
             DB::commit();
 
@@ -164,7 +193,7 @@ class AdmissionController extends Controller
     public function rounds(Request $request)
     {
         $query = Admission::with(['patient', 'bed.ward'])
-            ->whereIn('status', ['admitted', 'transferred']);
+            ->whereIn('status', ['active', 'transferred']);
 
         if ($request->filled('ward_id')) {
             $query->whereHas('bed', function ($q) use ($request) {
@@ -203,7 +232,7 @@ class AdmissionController extends Controller
     public function dashboard()
     {
         $statistics = [
-            'total_active' => Admission::whereIn('status', ['admitted', 'transferred'])->count(),
+            'total_active' => Admission::whereIn('status', ['active', 'transferred'])->count(),
             'today_admissions' => Admission::whereDate('admission_date', today())->count(),
             'today_discharges' => Admission::whereDate('actual_discharge_date', today())->count(),
             'pending_discharge' => Admission::where('status', 'pending_discharge')->count(),

@@ -11,6 +11,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class GoodsReceipt extends Model
 {
     use BelongsToTenant;
+
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_RECEIVED  = 'received';
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_RECEIVED,
+        self::STATUS_CANCELLED,
+    ];
+
     protected $fillable = [
         'tenant_id', 'purchase_order_id', 'warehouse_id', 'received_by',
         'number', 'receipt_date', 'delivery_note', 'status', 'notes',

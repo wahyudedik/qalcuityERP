@@ -24,6 +24,22 @@ class Reservation extends Model
     use BelongsToTenant;
     use SoftDeletes, AuditsChanges;
 
+    const STATUS_PENDING     = 'pending';
+    const STATUS_CONFIRMED   = 'confirmed';
+    const STATUS_CHECKED_IN  = 'checked_in';
+    const STATUS_CHECKED_OUT = 'checked_out';
+    const STATUS_CANCELLED   = 'cancelled';
+    const STATUS_NO_SHOW     = 'no_show';
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_CONFIRMED,
+        self::STATUS_CHECKED_IN,
+        self::STATUS_CHECKED_OUT,
+        self::STATUS_CANCELLED,
+        self::STATUS_NO_SHOW,
+    ];
+
     protected $fillable = [
         'tenant_id',
         'guest_id',

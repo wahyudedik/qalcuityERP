@@ -19,7 +19,7 @@ class RoomServiceController extends Controller
 
     public function index()
     {
-        $tenantId = auth()->user()->current_tenant_id;
+        $tenantId = $this->tenantId();
 
         $activeOrders = FbOrder::where('tenant_id', $tenantId)
             ->where('order_type', 'room_service')

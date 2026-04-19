@@ -108,6 +108,24 @@ class User extends Authenticatable implements MustVerifyEmail
 
     // ─── Role Helpers ─────────────────────────────────────────────
 
+    const ROLE_SUPER_ADMIN = 'super_admin';
+    const ROLE_ADMIN       = 'admin';
+    const ROLE_MANAGER     = 'manager';
+    const ROLE_STAFF       = 'staff';
+    const ROLE_KASIR       = 'kasir';
+    const ROLE_GUDANG      = 'gudang';
+    const ROLE_AFFILIATE   = 'affiliate';
+
+    const ROLES = [
+        self::ROLE_SUPER_ADMIN,
+        self::ROLE_ADMIN,
+        self::ROLE_MANAGER,
+        self::ROLE_STAFF,
+        self::ROLE_KASIR,
+        self::ROLE_GUDANG,
+        self::ROLE_AFFILIATE,
+    ];
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
@@ -271,6 +289,69 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * TASK 8.2 & 8.3: Check if user can access a module considering:
+     * 1. Subscription plan (via PlanModuleMap)
+     * 2. Tenant module settings (enabled_modules)
+     * 3. User role permissions (via PermissionService)
+     * 
+     * @param string $moduleKey Module key from ModuleRecommendationService::ALL_MODULES
+     * @return bool True if user can access the module
+     */
+    public function canAccessModule(string $moduleKey): bool
+    {
+        // SuperAdmin bypasses all checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Check if tenant exists
+        if (!$this->tenant) {
+            return false;
+        }
+
+        // 1. Check subscription plan allows this module
+        $planSlug = $this->tenant->subscriptionPlan->slug ?? $this->tenant->plan ?? null;
+        if (!\App\Services\PlanModuleMap::isModuleAllowedForPlan($moduleKey, $planSlug)) {
+            return false;
+        }
+
+        // 2. Check tenant has enabled this module
+        if (!$this->tenant->isModuleEnabled($moduleKey)) {
+            return false;
+        }
+
+        // 3. Check user role has permission to view this module
+        // Map module keys to permission module names (some differ)
+        $permissionModule = $this->mapModuleKeyToPermission($moduleKey);
+        if ($permissionModule && !$this->hasPermission($permissionModule, 'view')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Map module key to permission module name.
+     * Some modules use different keys in PermissionService.
+     */
+    private function mapModuleKeyToPermission(string $moduleKey): ?string
+    {
+        // Direct mapping for most modules
+        $map = [
+            'invoicing' => 'invoices',
+            'bank_reconciliation' => 'bank',
+            'subscription_billing' => 'subscription_billing',
+            'project_billing' => 'project_billing',
+            'fnb' => null, // No specific permission, covered by general access
+            'spa' => null,
+            'hotel' => null,
+            'telecom' => null,
+        ];
+
+        return $map[$moduleKey] ?? $moduleKey;
+    }
+
+    /**
      * URL avatar — fallback ke initials avatar jika belum upload.
      */
     public function avatarUrl(): string
@@ -281,5 +362,46 @@ class User extends Authenticatable implements MustVerifyEmail
         // UI Avatars fallback
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name)
             . '&background=3b82f6&color=fff&size=128&bold=true';
+    }
+
+    // ─── Notification Preferences ──────────────────────────────────
+
+    /**
+     * Get notification channels based on user preferences.
+     * 
+     * @param string $notificationClass Fully qualified notification class name
+     * @return array Array of channels: 'database', 'mail', 'broadcast'
+     */
+    public function getNotificationChannels(string $notificationClass): array
+    {
+        // Extract notification type from class name
+        $notificationType = $this->extractNotificationType($notificationClass);
+        
+        $channels = [];
+        
+        if (NotificationPreference::isEnabled($this->id, $notificationType, 'in_app')) {
+            $channels[] = 'database';
+        }
+        if (NotificationPreference::isEnabled($this->id, $notificationType, 'email')) {
+            $channels[] = 'mail';
+        }
+        if (NotificationPreference::isEnabled($this->id, $notificationType, 'push')) {
+            $channels[] = 'broadcast';
+        }
+        
+        // Fallback to in-app if no channels enabled
+        return $channels ?: ['database'];
+    }
+
+    /**
+     * Extract notification type from class name.
+     * Example: App\Notifications\LeaveApprovedNotification -> leave_approved
+     */
+    private function extractNotificationType(string $notificationClass): string
+    {
+        $className = class_basename($notificationClass);
+        // Remove "Notification" suffix and convert to snake_case
+        $type = str_replace('Notification', '', $className);
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $type));
     }
 }

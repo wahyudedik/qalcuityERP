@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkOrderOperation extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
-        'work_order_id', 'work_center_id', 'sequence', 'name',
+        'tenant_id', 'work_order_id', 'work_center_id', 'sequence', 'name',
         'estimated_hours', 'actual_hours', 'status',
         'started_at', 'completed_at', 'notes',
     ];

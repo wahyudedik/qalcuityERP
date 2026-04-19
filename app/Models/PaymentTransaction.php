@@ -9,36 +9,55 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentTransaction extends Model
 {
-    use HasFactory, BelongsToTenant;
+use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'tenant_id',
-        'transaction_id',
-        'order_id',
+        'sales_order_id',
+        'transaction_number',
         'gateway_provider',
-        'amount',
-        'currency',
-        'status',
+        'gateway_transaction_id',
         'payment_method',
-        'payment_type',
+        'payment_channel',
+        'amount',
+        'fee',
+        'status',
         'gateway_response',
-        'metadata',
+        'qr_string',
+        'qr_image_url',
         'paid_at',
         'expired_at',
         'failure_reason',
+        'metadata',
+        'stock_deducted_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'gateway_response' => 'array',
+        'fee' => 'decimal:2',
+        'gateway_response' => 'string',
         'metadata' => 'array',
         'paid_at' => 'datetime',
         'expired_at' => 'datetime',
+        'stock_deducted_at' => 'datetime',
     ];
 
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function salesOrder()
+    {
+        return $this->belongsTo(\App\Models\SalesOrder::class);
+    }
+
+    /**
+     * Check if transaction is expired
+     */
+    public function isExpired(): bool
+    {
+        return $this->expired_at && $this->expired_at->isPast();
     }
 
     public function markAsPaid(): void

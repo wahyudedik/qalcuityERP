@@ -34,7 +34,7 @@
                         <h3 class="text-lg font-bold">{{ $visit->patient->full_name }}</h3>
                         <p class="text-sm text-white/80">
                             MRN: {{ $visit->patient->medical_record_number }} |
-                            Age: {{ $visit->patient->date_of_birth ? $visit->patient->date_of_birth->age : 'N/A' }} |
+                            Age: {{ $visit->patient->birth_date ? $visit->patient->birth_date->age : 'N/A' }} |
                             Gender: {{ ucfirst($visit->patient->gender) }}
                         </p>
                     </div>

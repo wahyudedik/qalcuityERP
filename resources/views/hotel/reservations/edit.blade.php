@@ -1,0 +1,1 @@
+@include('hotel.reservations.create')
