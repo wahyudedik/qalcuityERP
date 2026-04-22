@@ -152,11 +152,11 @@
                 @foreach($companyGroup->members as $member)
                 <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/5">
                     <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $member->name }}</p>
-                        <p class="text-xs text-gray-400">{{ ucfirst($member->pivot->role) }} · ID #{{ $member->id }}</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $member->tenant?->name ?? 'Unknown' }}</p>
+                        <p class="text-xs text-gray-400">{{ ucfirst($member->role) }} · ID #{{ $member->tenant_id }}</p>
                     </div>
-                    @if($member->pivot->role !== 'owner')
-                    <form method="POST" action="{{ route('company-groups.members.remove', [$companyGroup, $member]) }}" onsubmit="return confirm('Hapus dari grup?')">
+                    @if($member->role !== 'owner')
+                    <form method="POST" action="{{ route('company-groups.members.remove', [$companyGroup, $member->tenant]) }}" onsubmit="return confirm('Hapus dari grup?')">
                         @csrf @method('DELETE')
                         <button class="text-xs text-red-400 hover:text-red-600">Hapus</button>
                     </form>
