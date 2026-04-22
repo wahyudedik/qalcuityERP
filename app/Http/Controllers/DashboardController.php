@@ -962,6 +962,7 @@ class DashboardController extends Controller
     /**
      * Convert nested array to object recursively
      * Handles nested relationships like admins, subscription_plan, etc.
+     * Also converts date strings back to Carbon instances
      */
     private function arrayToObject($array)
     {
@@ -983,10 +984,38 @@ class DashboardController extends Controller
                     $object->$key = $this->arrayToObject($value);
                 }
             } else {
-                $object->$key = $value;
+                // Convert date strings back to Carbon instances
+                if ($this->isDateField($key) && is_string($value) && $value) {
+                    try {
+                        $object->$key = \Carbon\Carbon::parse($value);
+                    } catch (\Exception $e) {
+                        $object->$key = $value; // Keep as string if parsing fails
+                    }
+                } else {
+                    $object->$key = $value;
+                }
             }
         }
 
         return $object;
+    }
+
+    /**
+     * Check if a field name represents a date field
+     */
+    private function isDateField($fieldName)
+    {
+        $dateFields = [
+            'created_at', 'updated_at', 'deleted_at',
+            'trial_ends_at', 'plan_expires_at',
+            'email_verified_at', 'last_login_at',
+            'expires_at', 'starts_at', 'ends_at',
+            'due_date', 'paid_at', 'cancelled_at',
+            'activated_at', 'deactivated_at',
+        ];
+
+        return in_array($fieldName, $dateFields) || 
+               str_ends_with($fieldName, '_at') || 
+               str_ends_with($fieldName, '_date');
     }
 }
