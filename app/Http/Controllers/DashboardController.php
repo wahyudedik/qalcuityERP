@@ -325,7 +325,7 @@ class DashboardController extends Controller
     private function superAdminStats(): array
     {
         // ✅ OPTIMASI: Cache super admin stats selama 5 menit
-        return cache()->remember('super_admin_dashboard', 300, function () {
+        $cached = cache()->remember('super_admin_dashboard', 300, function () {
             $totalTenants = Tenant::count();
             $activeTenants = Tenant::where('is_active', true)->get();
             $trialTenants = Tenant::where('plan', 'trial')->count();
@@ -353,18 +353,20 @@ class DashboardController extends Controller
                 ->sum('subscription_plans.price_monthly');
 
             // ✅ OPTIMASI: Tenants expiring in 7 / 14 / 30 days
+            // Convert to array to avoid serialization issues
             $expiringIn7 = Tenant::where('is_active', true)->where(
                 fn($q) => $q
                     ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(7)]))
                     ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(7)]))
-            )->get();
+            )->get()->toArray();
 
             // ✅ OPTIMASI: Eager loading admins untuk hindari N+1
+            // Convert to array to avoid serialization issues
             $expiringIn30 = Tenant::where('is_active', true)->where(
                 fn($q) => $q
                     ->where(fn($q2) => $q2->where('plan', 'trial')->whereBetween('trial_ends_at', [now(), now()->addDays(30)]))
                     ->orWhere(fn($q2) => $q2->where('plan', '!=', 'trial')->whereBetween('plan_expires_at', [now(), now()->addDays(30)]))
-            )->with('admins')->orderByRaw("COALESCE(trial_ends_at, plan_expires_at) ASC")->get();
+            )->with('admins')->orderByRaw("COALESCE(trial_ends_at, plan_expires_at) ASC")->get()->toArray();
 
             // ✅ OPTIMASI: Tenant growth chart — 1 aggregate query
             $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
@@ -389,18 +391,21 @@ class DashboardController extends Controller
                 ->toArray();
 
             // ✅ OPTIMASI: Eager loading subscriptionPlan
+            // Convert to array to avoid serialization issues
             $recentTenants = Tenant::with('subscriptionPlan')
-                ->latest()->take(8)->get();
+                ->latest()->take(8)->get()->toArray();
 
             // AI usage per tenant this month (top 5)
             // ✅ OPTIMASI: Eager loading tenant
+            // Convert to array to avoid serialization issues
             $topAiTenants = AiUsageLog::where('month', now()->format('Y-m'))
                 ->selectRaw('tenant_id, SUM(message_count) as total')
                 ->groupBy('tenant_id')
                 ->orderByDesc('total')
                 ->limit(5)
                 ->get()
-                ->load('tenant');
+                ->load('tenant')
+                ->toArray();
 
             return compact(
                 'totalTenants',
@@ -418,6 +423,16 @@ class DashboardController extends Controller
                 'planDist',
                 'recentTenants',
                 'topAiTenants'
+            );
+        });
+
+        // Convert arrays back to Collections for view compatibility
+        $cached['expiringIn7'] = collect($cached['expiringIn7']);
+        $cached['expiringIn30'] = collect($cached['expiringIn30']);
+        $cached['recentTenants'] = collect($cached['recentTenants']);
+        $cached['topAiTenants'] = collect($cached['topAiTenants']);
+
+        return $cached;
             );
         });
     }
