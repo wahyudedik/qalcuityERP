@@ -427,10 +427,18 @@ class DashboardController extends Controller
         });
 
         // Convert arrays back to Collections for view compatibility
-        $cached['expiringIn7'] = collect($cached['expiringIn7']);
-        $cached['expiringIn30'] = collect($cached['expiringIn30']);
-        $cached['recentTenants'] = collect($cached['recentTenants']);
-        $cached['topAiTenants'] = collect($cached['topAiTenants']);
+        $cached['expiringIn7'] = collect($cached['expiringIn7'])->map(function ($item) {
+            return $this->arrayToObject($item);
+        });
+        $cached['expiringIn30'] = collect($cached['expiringIn30'])->map(function ($item) {
+            return $this->arrayToObject($item);
+        });
+        $cached['recentTenants'] = collect($cached['recentTenants'])->map(function ($item) {
+            return $this->arrayToObject($item);
+        });
+        $cached['topAiTenants'] = collect($cached['topAiTenants'])->map(function ($item) {
+            return $this->arrayToObject($item);
+        });
 
         return $cached;
     }
@@ -949,5 +957,36 @@ class DashboardController extends Controller
             'value' => $value,
             'display' => $mock->formatValue($value),
         ]);
+    }
+
+    /**
+     * Convert nested array to object recursively
+     * Handles nested relationships like admins, subscription_plan, etc.
+     */
+    private function arrayToObject($array)
+    {
+        if (!is_array($array)) {
+            return $array;
+        }
+
+        $object = new \stdClass();
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                // Handle nested arrays (relationships)
+                if (is_numeric(array_keys($value)[0] ?? null)) {
+                    // Indexed array (collection of items)
+                    $object->$key = collect($value)->map(function ($item) {
+                        return $this->arrayToObject($item);
+                    });
+                } else {
+                    // Associative array (single nested object)
+                    $object->$key = $this->arrayToObject($value);
+                }
+            } else {
+                $object->$key = $value;
+            }
+        }
+
+        return $object;
     }
 }
