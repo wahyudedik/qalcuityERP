@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\ChartOfAccount;
 use App\Models\CompanyGroup;
-use App\Models\IntercompanyTransaction;
+use App\Models\InterCompanyTransaction;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
@@ -92,7 +92,7 @@ class ConsolidationService
             $totalExpense += $exp;
         }
 
-        $eliminationTotal = (float) IntercompanyTransaction::where('company_group_id', $groupId)
+        $eliminationTotal = (float) InterCompanyTransaction::where('company_group_id', $groupId)
             ->where('status', 'posted')
             ->whereYear('date', $year)->whereMonth('date', $month)
             ->sum('amount');
@@ -170,7 +170,7 @@ class ConsolidationService
      */
     private function intercompanyElimination(int $groupId, int $year, int $month): array
     {
-        $transactions = IntercompanyTransaction::where('company_group_id', $groupId)
+        $transactions = InterCompanyTransaction::where('company_group_id', $groupId)
             ->where('status', 'posted')
             ->whereYear('date', $year)->whereMonth('date', $month)
             ->with(['fromTenant', 'toTenant'])
@@ -304,8 +304,8 @@ class ConsolidationService
         float  $amount,
         string $description,
         string $date
-    ): IntercompanyTransaction {
-        return IntercompanyTransaction::create([
+    ): InterCompanyTransaction {
+        return InterCompanyTransaction::create([
             'company_group_id' => $group->id,
             'from_tenant_id'   => $fromTenantId,
             'to_tenant_id'     => $toTenantId,
