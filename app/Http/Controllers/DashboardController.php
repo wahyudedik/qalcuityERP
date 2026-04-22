@@ -433,8 +433,6 @@ class DashboardController extends Controller
         $cached['topAiTenants'] = collect($cached['topAiTenants']);
 
         return $cached;
-            );
-        });
     }
 
     private function salesStats(int $tenantId): array
