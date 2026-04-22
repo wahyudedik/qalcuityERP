@@ -17,13 +17,13 @@ use HasFactory, BelongsToTenant;
         'role',
         'permissions',
         'is_active',
-        'joined_at',
+        'joined_date',
     ];
 
     protected $casts = [
         'permissions' => 'array',
         'is_active' => 'boolean',
-        'joined_at' => 'datetime',
+        'joined_date' => 'date',
     ];
 
     public function companyGroup(): BelongsTo
