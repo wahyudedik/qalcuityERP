@@ -2,8 +2,10 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\Product;
 use App\Models\QcInspection;
 use App\Models\QcTestTemplate;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WorkOrder;
 use Tests\TestCase;
@@ -22,11 +24,24 @@ class QcModelsTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user and work order
-        $this->user = User::factory()->create();
+        // Create tenant first
+        $tenant = Tenant::factory()->create();
+        
+        // Create test user with the tenant
+        $this->user = User::factory()->create([
+            'tenant_id' => $tenant->id,
+        ]);
+        
+        // Create product with the same tenant
+        $product = Product::factory()->create([
+            'tenant_id' => $tenant->id,
+        ]);
+        
+        // Create work order with same tenant, user, and product
         $this->workOrder = WorkOrder::factory()->create([
-            'tenant_id' => $this->user->tenant_id,
+            'tenant_id' => $tenant->id,
             'user_id' => $this->user->id,
+            'product_id' => $product->id,
         ]);
     }
 
@@ -44,7 +59,7 @@ class QcModelsTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $this->assertMatchesPattern('/^QCI-\d{8}-\d{4}$/', $inspection->inspection_number);
+        $this->assertMatchesRegularExpression('/^QCI-\d{8}-\d{4}$/', $inspection->inspection_number);
     }
 
     /**

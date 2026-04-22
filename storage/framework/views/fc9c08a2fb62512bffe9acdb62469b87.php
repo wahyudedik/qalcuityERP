@@ -1,0 +1,743 @@
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+     <?php $__env->slot('title', null, []); ?> System Settings — Qalcuity ERP <?php $__env->endSlot(); ?>
+     <?php $__env->slot('header', null, []); ?> System Settings — SuperAdmin <?php $__env->endSlot(); ?>
+
+    <?php if(session('success')): ?>
+        <div
+            class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-2xl text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <?php echo e(session('success')); ?>
+
+        </div>
+    <?php endif; ?>
+    <?php if(session('error')): ?>
+        <div
+            class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <?php echo e(session('error')); ?>
+
+        </div>
+    <?php endif; ?>
+
+    <div x-data="{ tab: 'ai' }" class="space-y-6">
+
+        
+        <div class="flex flex-wrap gap-1 bg-gray-100 dark:bg-white/5 rounded-2xl p-1.5">
+            <?php
+                $tabs = [
+                    'ai' => [
+                        'icon' =>
+                            'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+                        'label' => 'AI / Gemini',
+                    ],
+                    'mail' => [
+                        'icon' =>
+                            'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+                        'label' => 'Email SMTP',
+                    ],
+                    'oauth' => [
+                        'icon' =>
+                            'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z',
+                        'label' => 'Google OAuth',
+                    ],
+                    'push' => [
+                        'icon' =>
+                            'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+                        'label' => 'Push Notification',
+                    ],
+                    'alert' => [
+                        'icon' =>
+                            'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+                        'label' => 'Alert & Error',
+                    ],
+                    'app' => [
+                        'icon' =>
+                            'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
+                        'label' => 'App Settings',
+                    ],
+                ];
+            ?>
+            <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <button @click="tab = '<?php echo e($key); ?>'"
+                    :class="tab === '<?php echo e($key); ?>' ?
+                        'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm' :
+                        'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'"
+                    class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                            d="<?php echo e($tab['icon']); ?>" />
+                    </svg>
+                    <?php echo e($tab['label']); ?>
+
+                </button>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+
+        
+        <div x-show="tab === 'ai'" x-transition>
+            <form method="POST" action="<?php echo e(route('super-admin.settings.update')); ?>">
+                <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-6">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            Konfigurasi AI / Gemini
+                        </h2>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">API key Gemini digunakan oleh semua
+                            tenant. Biaya ditanggung oleh owner/platform.</p>
+                    </div>
+
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Gemini API Key <span class="text-red-400">*</span>
+                                <?php if($grouped['ai']['gemini_api_key']['is_set'] ?? false): ?>
+                                    <span class="ml-2 text-green-500 font-normal normal-case tracking-normal">✓
+                                        Tersimpan di DB</span>
+                                <?php elseif($envFallbacks['gemini_api_key']): ?>
+                                    <span class="ml-2 text-amber-500 font-normal normal-case tracking-normal">From
+                                        .env (fallback)</span>
+                                <?php else: ?>
+                                    <span class="ml-2 text-red-500 font-normal normal-case tracking-normal">✗ Belum
+                                        dikonfigurasi</span>
+                                <?php endif; ?>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="password" id="gemini_api_key_input" name="gemini_api_key"
+                                    placeholder="<?php echo e($grouped['ai']['gemini_api_key']['is_set'] ?? false ? '••••••••••••••••••• (sudah diset, kosongkan untuk tidak mengubah)' : 'AIzaSy...'); ?>"
+                                    class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                <button type="button" id="testGeminiBtn" @click="testGeminiApiKey()"
+                                    class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Test API Key
+                                </button>
+                            </div>
+                            <div id="geminiTestResult" class="mt-2 hidden">
+                                <div class="p-3 rounded-xl text-sm"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Model</label>
+                            <select name="gemini_model"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <?php
+                                    $currentModel =
+                                        $grouped['ai']['gemini_model']['value'] ??
+                                        config('gemini.model', 'gemini-2.5-flash');
+                                    $models = [
+                                        'gemini-2.5-flash',
+                                        'gemini-2.5-flash-lite',
+                                        'gemini-1.5-flash',
+                                        'gemini-2.5-pro',
+                                    ];
+                                ?>
+                                <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($m); ?>" <?php if($currentModel === $m): echo 'selected'; endif; ?>><?php echo e($m); ?>
+
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Timeout
+                                (detik)</label>
+                            <input type="number" name="gemini_timeout" min="10" max="300"
+                                value="<?php echo e($grouped['ai']['gemini_timeout']['value'] ?? config('gemini.timeout', 60)); ?>"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    
+                    <div class="border-t border-gray-100 dark:border-white/10 pt-4">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Optimasi Cache &
+                            Performa</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                                <input type="hidden" name="ai_response_cache_enabled" value="0">
+                                <input type="checkbox" name="ai_response_cache_enabled" id="ai_cache" value="1"
+                                    <?php if(($grouped['ai']['ai_response_cache_enabled']['value'] ?? '1') == '1'): echo 'checked'; endif; ?>
+                                    class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                <label for="ai_cache" class="text-sm text-gray-700 dark:text-slate-300">Cache Response
+                                    AI</label>
+                            </div>
+                            <div class="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                                <input type="hidden" name="ai_rule_based_enabled" value="0">
+                                <input type="checkbox" name="ai_rule_based_enabled" id="ai_rule" value="1"
+                                    <?php if(($grouped['ai']['ai_rule_based_enabled']['value'] ?? '1') == '1'): echo 'checked'; endif; ?>
+                                    class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                <label for="ai_rule" class="text-sm text-gray-700 dark:text-slate-300">Rule-Based
+                                    Response</label>
+                            </div>
+                            <div class="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-3">
+                                <input type="hidden" name="ai_streaming_enabled" value="0">
+                                <input type="checkbox" name="ai_streaming_enabled" id="ai_stream" value="1"
+                                    <?php if(($grouped['ai']['ai_streaming_enabled']['value'] ?? '1') == '1'): echo 'checked'; endif; ?>
+                                    class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                <label for="ai_stream" class="text-sm text-gray-700 dark:text-slate-300">Streaming
+                                    AI</label>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-4 mt-3">
+                            <?php $__currentLoopData = [['ai_cache_short_ttl', 'Cache TTL Pendek (detik)', '300'], ['ai_cache_default_ttl', 'Cache TTL Default (detik)', '3600'], ['ai_cache_long_ttl', 'Cache TTL Panjang (detik)', '86400']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$k, $lbl, $def]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div>
+                                    <label
+                                        class="block text-xs text-gray-500 dark:text-slate-400 mb-1"><?php echo e($lbl); ?></label>
+                                    <input type="number" name="<?php echo e($k); ?>"
+                                        value="<?php echo e($grouped['ai'][$k]['value'] ?? $def); ?>"
+                                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                    </div>
+
+                    
+                    <div class="border-t border-gray-100 dark:border-white/10 pt-4">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                            Gemini Auto-Switching
+                        </h3>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mb-4">Konfigurasi fallback otomatis ke model alternatif saat model utama mengalami rate limit atau quota habis.</p>
+
+                        <div class="space-y-4">
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                    Fallback Models
+                                    <?php if($grouped['ai']['gemini_fallback_models']['is_set'] ?? false): ?>
+                                        <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓ Tersimpan</span>
+                                    <?php endif; ?>
+                                </label>
+                                <?php
+                                    $fallbackRaw = $grouped['ai']['gemini_fallback_models']['value'] ?? null;
+                                    $fallbackDisplay = '';
+                                    if ($fallbackRaw) {
+                                        $decoded = json_decode($fallbackRaw, true);
+                                        $fallbackDisplay = is_array($decoded)
+                                            ? implode(', ', $decoded)
+                                            : $fallbackRaw;
+                                    } else {
+                                        $fallbackDisplay = implode(', ', config('gemini.fallback_models', ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-flash-lite']));
+                                    }
+                                ?>
+                                <textarea name="gemini_fallback_models" rows="3"
+                                    placeholder='["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.5-flash-lite"] atau: gemini-2.5-flash, gemini-1.5-flash'
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none"><?php echo e($fallbackDisplay); ?></textarea>
+                                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Urutan model fallback — model pertama adalah prioritas utama. Gunakan JSON array atau comma-separated. Contoh: <code class="bg-gray-100 dark:bg-white/10 px-1 rounded">gemini-2.5-flash, gemini-1.5-flash</code></p>
+                            </div>
+
+                            <div class="grid md:grid-cols-3 gap-4">
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Rate Limit Cooldown (detik)
+                                    </label>
+                                    <input type="number" name="gemini_rate_limit_cooldown" min="1" max="86400"
+                                        value="<?php echo e($grouped['ai']['gemini_rate_limit_cooldown']['value'] ?? config('gemini.rate_limit_cooldown', 60)); ?>"
+                                        placeholder="60"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Durasi cooldown saat model kena rate limit (HTTP 429). Default: 60 detik.</p>
+                                </div>
+
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Quota Cooldown (detik)
+                                    </label>
+                                    <input type="number" name="gemini_quota_cooldown" min="1" max="86400"
+                                        value="<?php echo e($grouped['ai']['gemini_quota_cooldown']['value'] ?? config('gemini.quota_cooldown', 3600)); ?>"
+                                        placeholder="3600"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Durasi cooldown saat quota harian habis. Default: 3600 detik (1 jam).</p>
+                                </div>
+
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                        Retensi Log Switch (hari)
+                                    </label>
+                                    <input type="number" name="gemini_log_retention_days" min="1" max="365"
+                                        value="<?php echo e($grouped['ai']['gemini_log_retention_days']['value'] ?? config('gemini.log_retention_days', 30)); ?>"
+                                        placeholder="30"
+                                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Berapa hari riwayat switch event disimpan sebelum dihapus otomatis. Default: 30 hari.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-xs text-orange-700 dark:text-orange-300 flex items-start gap-2">
+                                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Menyimpan konfigurasi ini akan mereset cache auto-switching sehingga model aktif kembali ke model utama. Pantau status model di <a href="<?php echo e(route('super-admin.ai-model.index')); ?>" class="underline font-semibold">halaman monitoring AI</a>.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                            Simpan Konfigurasi AI
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        
+        <div x-show="tab === 'mail'" x-transition>
+            <form method="POST" action="<?php echo e(route('super-admin.settings.update')); ?>">
+                <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-5">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            Konfigurasi Email SMTP
+                        </h2>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Digunakan untuk email system:
+                            registrasi, reset password, notifikasi sistem.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <?php
+                            $mailFields = [
+                                'mail_host' => [
+                                    'label' => 'SMTP Host',
+                                    'type' => 'text',
+                                    'placeholder' => 'smtp.gmail.com',
+                                    'encrypt' => false,
+                                ],
+                                'mail_port' => [
+                                    'label' => 'SMTP Port',
+                                    'type' => 'number',
+                                    'placeholder' => '587',
+                                    'encrypt' => false,
+                                ],
+                                'mail_username' => [
+                                    'label' => 'Username',
+                                    'type' => 'text',
+                                    'placeholder' => 'user@email.com',
+                                    'encrypt' => false,
+                                ],
+                                'mail_password' => [
+                                    'label' => 'Password',
+                                    'type' => 'password',
+                                    'placeholder' => '••••••••',
+                                    'encrypt' => true,
+                                ],
+                                'mail_from_address' => [
+                                    'label' => 'From Address',
+                                    'type' => 'email',
+                                    'placeholder' => 'noreply@domain.com',
+                                    'encrypt' => false,
+                                ],
+                                'mail_from_name' => [
+                                    'label' => 'From Name',
+                                    'type' => 'text',
+                                    'placeholder' => 'Qalcuity ERP',
+                                    'encrypt' => false,
+                                ],
+                            ];
+                        ?>
+                        <?php $__currentLoopData = $mailFields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $field): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div>
+                                <label
+                                    class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                    <?php echo e($field['label']); ?>
+
+                                    <?php if($grouped['mail'][$key]['is_set'] ?? false): ?>
+                                        <span
+                                            class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓</span>
+                                    <?php endif; ?>
+                                </label>
+                                <input type="<?php echo e($field['type']); ?>" name="<?php echo e($key); ?>"
+                                    <?php if(!$field['encrypt']): ?> value="<?php echo e($grouped['mail'][$key]['value'] ?? ($envFallbacks[$key] ?? '')); ?>" <?php endif; ?>
+                                    placeholder="<?php echo e($field['encrypt'] && ($grouped['mail'][$key]['is_set'] ?? false) ? '••• tersimpan — kosongkan untuk tidak mengubah •••' : $field['placeholder']); ?>"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Enkripsi</label>
+                            <select name="mail_encryption"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <?php $currentEnc = $grouped['mail']['mail_encryption']['value'] ?? config('mail.mailers.smtp.encryption', 'tls'); ?>
+                                <option value="tls" <?php if($currentEnc === 'tls'): echo 'selected'; endif; ?>>TLS (Recommended)</option>
+                                <option value="ssl" <?php if($currentEnc === 'ssl'): echo 'selected'; endif; ?>>SSL</option>
+                                <option value="starttls" <?php if($currentEnc === 'starttls'): echo 'selected'; endif; ?>>STARTTLS</option>
+                                <option value="" <?php if($currentEnc === '' || $currentEnc === null): echo 'selected'; endif; ?>>None</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-white/10">
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                            Simpan SMTP
+                        </button>
+                        
+                        <form method="POST" action="<?php echo e(route('super-admin.settings.test-mail')); ?>"
+                            class="flex items-center gap-2">
+                            <?php echo csrf_field(); ?>
+                            <input type="email" name="test_email" placeholder="test@email.com"
+                                class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 w-52">
+                            <button type="submit"
+                                class="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition whitespace-nowrap">
+                                Test Kirim Email
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        
+        <div x-show="tab === 'oauth'" x-transition>
+            <form method="POST" action="<?php echo e(route('super-admin.settings.update')); ?>">
+                <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-5">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            Google OAuth (Login dengan Google)
+                        </h2>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Diperlukan agar tombol "Login dengan
+                            Google" berfungsi. Daftarkan di Google Cloud Console.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Client ID
+                                <?php if($grouped['oauth']['google_client_id']['is_set'] ?? false): ?>
+                                    <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓
+                                        Tersimpan</span>
+                                <?php elseif($envFallbacks['google_client_id']): ?>
+                                    <span class="ml-1 text-amber-500 font-normal normal-case tracking-normal">From
+                                        .env</span>
+                                <?php endif; ?>
+                            </label>
+                            <input type="text" name="google_client_id"
+                                value="<?php echo e($grouped['oauth']['google_client_id']['value'] ?? ''); ?>"
+                                placeholder="123456789-abc.apps.googleusercontent.com"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Client Secret
+                                <?php if($grouped['oauth']['google_client_secret']['is_set'] ?? false): ?>
+                                    <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓
+                                        Tersimpan</span>
+                                <?php endif; ?>
+                            </label>
+                            <input type="password" name="google_client_secret"
+                                placeholder="<?php echo e($grouped['oauth']['google_client_secret']['is_set'] ?? false ? '••• tersimpan — kosongkan untuk tidak mengubah •••' : 'GOCSPX-...'); ?>"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                        </div>
+                    </div>
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                        <p class="font-semibold">Cara Setup Google OAuth:</p>
+                        <ol class="list-decimal list-inside space-y-0.5">
+                            <li>Buka <a href="https://console.cloud.google.com/" target="_blank"
+                                    class="underline">Google Cloud Console</a></li>
+                            <li>Buat project baru atau pilih yang ada</li>
+                            <li>Aktifkan "Google+ API" atau "Google Identity"</li>
+                            <li>Buat OAuth 2.0 Credentials</li>
+                            <li>Tambahkan Authorized redirect URI: <code
+                                    class="bg-blue-100 dark:bg-blue-900 px-1 rounded"><?php echo e(config('app.url')); ?>/auth/google/callback</code>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                            Simpan OAuth
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        
+        <div x-show="tab === 'push'" x-transition>
+            <div
+                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-5">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                        Push Notification (VAPID Keys)
+                    </h2>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">VAPID keys diperlukan untuk fitur push
+                        notification browser. Generate sekali, berlaku permanen.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            Public Key
+                            <?php if($grouped['push']['vapid_public_key']['is_set'] ?? false): ?>
+                                <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓
+                                    Tersimpan</span>
+                            <?php elseif($envFallbacks['vapid_public_key']): ?>
+                                <span class="ml-1 text-amber-500 font-normal normal-case tracking-normal">From
+                                    .env</span>
+                            <?php else: ?>
+                                <span class="ml-1 text-red-500 font-normal normal-case tracking-normal">✗ Belum
+                                    di-generate</span>
+                            <?php endif; ?>
+                        </label>
+                        <input type="text" readonly
+                            value="<?php echo e($grouped['push']['vapid_public_key']['value'] ?? config('services.vapid.public_key', '')); ?>"
+                            placeholder="Generate VAPID keys terlebih dahulu..."
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 text-xs text-gray-600 dark:text-slate-400 font-mono cursor-default">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Private
+                            Key</label>
+                        <input type="text" readonly
+                            value="<?php echo e($grouped['push']['vapid_private_key']['is_set'] ?? false ? '••••••••••••••••••••••••••••••••••••••••••••' : 'Belum di-generate'); ?>"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/5 text-xs text-gray-600 dark:text-slate-400 font-mono cursor-default">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-white/10">
+                    <form method="POST" action="<?php echo e(route('super-admin.settings.regenerate-vapid')); ?>"
+                        onsubmit="return confirm('Generate ulang VAPID keys? Semua push subscription yang ada akan tidak valid dan user perlu subscribe ulang.')">
+                        <?php echo csrf_field(); ?>
+                        <button type="submit"
+                            class="px-5 py-2.5 <?php echo e($grouped['push']['vapid_public_key']['is_set'] ?? false ? 'bg-amber-500 hover:bg-amber-600' : 'bg-purple-600 hover:bg-purple-700'); ?> text-white text-sm font-semibold rounded-xl transition">
+                            <?php echo e($grouped['push']['vapid_public_key']['is_set'] ?? false ? 'Regenerate VAPID Keys' : 'Generate VAPID Keys'); ?>
+
+                        </button>
+                    </form>
+                    <?php if($grouped['push']['vapid_public_key']['is_set'] ?? false): ?>
+                        <p class="text-xs text-amber-600 dark:text-amber-400">Regenerate akan membatalkan semua push
+                            subscription yang ada!</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        
+        <div x-show="tab === 'alert'" x-transition>
+            <form method="POST" action="<?php echo e(route('super-admin.settings.update')); ?>">
+                <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-5">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            Alert & Error Monitoring
+                        </h2>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Notifikasi error critical ke
+                            owner/developer via Slack atau email.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Slack Webhook URL
+                                <?php if($grouped['alert']['slack_error_webhook_url']['is_set'] ?? false): ?>
+                                    <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓</span>
+                                <?php endif; ?>
+                            </label>
+                            <input type="url" name="slack_error_webhook_url"
+                                value="<?php echo e($grouped['alert']['slack_error_webhook_url']['value'] ?? ''); ?>"
+                                placeholder="https://hooks.slack.com/services/..."
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Email Penerima Error (pisahkan dengan koma)
+                                <?php if($grouped['alert']['error_alert_email']['is_set'] ?? false): ?>
+                                    <span class="ml-1 text-green-500 font-normal normal-case tracking-normal">✓</span>
+                                <?php endif; ?>
+                            </label>
+                            <input type="text" name="error_alert_email"
+                                value="<?php echo e($grouped['alert']['error_alert_email']['value'] ?? ''); ?>"
+                                placeholder="admin@example.com, dev@example.com"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                            Simpan Alert Settings
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        
+        <div x-show="tab === 'app'" x-transition>
+            <form method="POST" action="<?php echo e(route('super-admin.settings.update')); ?>">
+                <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+                <div
+                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-5">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                            App Settings
+                        </h2>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Konfigurasi dasar aplikasi. Perubahan
+                            ini override nilai di .env saat runtime.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nama
+                                Aplikasi</label>
+                            <input type="text" name="app_name"
+                                value="<?php echo e($grouped['app']['app_name']['value'] ?? $envFallbacks['app_name']); ?>"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">App
+                                URL</label>
+                            <input type="url" name="app_url"
+                                value="<?php echo e($grouped['app']['app_url']['value'] ?? $envFallbacks['app_url']); ?>"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Timezone</label>
+                            <select name="app_timezone"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <?php $currentTz = $grouped['app']['app_timezone']['value'] ?? $envFallbacks['app_timezone']; ?>
+                                <?php $__currentLoopData = ['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura', 'UTC', 'Asia/Singapore', 'Asia/Kuala_Lumpur']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tz): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($tz); ?>" <?php if($currentTz === $tz): echo 'selected'; endif; ?>>
+                                        <?php echo e($tz); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-xs text-amber-700 dark:text-amber-300">
+                        <strong>Catatan:</strong> Perubahan app_name dan app_url hanya berlaku di runtime (saat
+                        request). Untuk perubahan permanen, update juga file .env di server.
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                            Simpan App Settings
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    
+    <script>
+        function testGeminiApiKey() {
+            const btn = document.getElementById('testGeminiBtn');
+            const resultDiv = document.getElementById('geminiTestResult');
+            const apiKeyInput = document.getElementById('gemini_api_key_input');
+
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML =
+                '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Testing...';
+            resultDiv.classList.remove('hidden');
+            resultDiv.querySelector('div').className =
+                'p-3 rounded-xl text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300';
+            resultDiv.querySelector('div').innerHTML = '⏳ Menguji koneksi ke Gemini API...';
+
+            // Get API key from input or use stored one
+            const apiKey = apiKeyInput.value;
+
+            fetch('<?php echo e(route('super-admin.settings.test-gemini-api-key')); ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                    },
+                    body: JSON.stringify({
+                        gemini_api_key: apiKey || null
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success
+                        resultDiv.querySelector('div').className =
+                            'p-3 rounded-xl text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300';
+                        resultDiv.querySelector('div').innerHTML = `
+                    <div class="font-semibold mb-1">✓ ${data.message}</div>
+                    ${data.details ? `
+                                <div class="text-xs mt-2 space-y-1 opacity-80">
+                                    <div>Model: ${data.details.model}</div>
+                                    <div>API Key: ${data.details.api_key_prefix}</div>
+                                    <div>Response: ${data.details.response}</div>
+                                </div>
+                            ` : ''}
+                `;
+                    } else {
+                        // Error
+                        resultDiv.querySelector('div').className =
+                            'p-3 rounded-xl text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300';
+                        resultDiv.querySelector('div').innerHTML = `
+                    <div class="font-semibold mb-1">✗ ${data.message}</div>
+                    ${data.details ? `
+                                <div class="text-xs mt-2 opacity-80">
+                                    Status: ${data.details.status_code || 'N/A'}<br>
+                                    ${data.details.error ? `Error: ${data.details.error.substring(0, 200)}${data.details.error.length > 200 ? '...' : ''}` : ''}
+                                </div>
+                            ` : ''}
+                `;
+                    }
+                })
+                .catch(error => {
+                    resultDiv.querySelector('div').className =
+                        'p-3 rounded-xl text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300';
+                    resultDiv.querySelector('div').innerHTML = `
+                <div class="font-semibold mb-1">✗ Gagal terhubung ke server</div>
+                <div class="text-xs mt-2 opacity-80">${error.message}</div>
+            `;
+                })
+                .finally(() => {
+                    // Reset button
+                    btn.disabled = false;
+                    btn.innerHTML =
+                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Test API Key';
+                });
+        }
+    </script>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php /**PATH E:\PROJEKU\qalcuityERP\resources\views\super-admin\settings\index.blade.php ENDPATH**/ ?>

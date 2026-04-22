@@ -258,14 +258,14 @@
   - [x] 24.7 Buat `tests/Unit/Audit/JournalBalanceTest.php` — unit test kalkulasi balance jurnal
   - [x] 24.8 Buat `tests/Unit/Audit/StockCalculationTest.php` — unit test kalkulasi stok FIFO dan Average Cost
 
-- [-] 25. Verifikasi Final dan Dokumentasi
+- [ ] 25. Verifikasi Final dan Dokumentasi
   - [x] 25.1 Jalankan semua property-based tests — pastikan semua lulus dengan minimum 100 iterasi
-  - [ ] 25.2 Jalankan semua feature dan unit tests — pastikan zero failures
-  - [ ] 25.3 Verifikasi zero PHP errors/warnings di log setelah semua perbaikan diterapkan
-  - [ ] 25.4 Verifikasi aplikasi berjalan normal di semua modul utama (manual smoke test)
-  - [ ] 25.5 Verifikasi dark mode dan light mode konsisten di semua halaman utama
-  - [ ] 25.6 Verifikasi responsivitas di mobile (320px), tablet (768px), dan desktop (1280px+)
-  - [ ] 25.7 Dokumentasikan semua perbaikan yang dilakukan dan rekomendasi pengembangan selanjutnya
+  - [x] 25.2 Jalankan semua feature dan unit tests — pastikan zero failures
+  - [x] 25.3 Verifikasi zero PHP errors/warnings di log setelah semua perbaikan diterapkan
+  - [x] 25.4 Verifikasi aplikasi berjalan normal di semua modul utama (manual smoke test)
+  - [x] 25.5 Verifikasi dark mode dan light mode konsisten di semua halaman utama
+  - [x] 25.6 Verifikasi responsivitas di mobile (320px), tablet (768px), dan desktop (1280px+)
+  - [x] 25.7 Dokumentasikan semua perbaikan yang dilakukan dan rekomendasi pengembangan selanjutnya
 
 ## Fase 8: Modul Industri Tambahan
 

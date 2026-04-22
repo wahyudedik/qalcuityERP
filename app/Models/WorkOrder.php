@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Traits\BelongsToTenant;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkOrder extends Model
 {
-    use BelongsToTenant;
+    use BelongsToTenant, HasFactory;
     protected $fillable = [
         'tenant_id',
         'product_id',
@@ -54,6 +55,13 @@ class WorkOrder extends Model
         // Metrics
         'efficiency_rate',
         'schedule_variance',
+        // Quality Control fields
+        'quality_status',
+        'quality_grade',
+        'quality_score',
+        'quality_passed_at',
+        'quality_failed_at',
+        'quality_notes',
     ];
 
     protected function casts(): array
@@ -83,6 +91,9 @@ class WorkOrder extends Model
             'progress_percent' => 'decimal:2',
             'efficiency_rate' => 'decimal:2',
             'schedule_variance' => 'decimal:2',
+            'quality_score' => 'decimal:2',
+            'quality_passed_at' => 'datetime',
+            'quality_failed_at' => 'datetime',
         ];
     }
 

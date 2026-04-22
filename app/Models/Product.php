@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\AuditsChanges;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use App\Traits\BelongsToTenant;
 
 class Product extends Model
 {
-    use BelongsToTenant;
+    use BelongsToTenant, HasFactory;
     use SoftDeletes, AuditsChanges, \App\Traits\CacheableModel;
 
     protected $cacheModule = 'products';

@@ -1984,37 +1984,38 @@ class TenantDemoSeeder extends Seeder
     {
         if (DB::table('fishing_vessels')->where('tenant_id',$this->tenantId)->exists()) return;
         $vesselId = DB::table('fishing_vessels')->insertGetId([
-            'tenant_id'=>$this->tenantId,'name'=>'KM Maju Jaya 01','registration_number'=>'GT-2026-001',
-            'vessel_type'=>'purse_seiner','length_meters'=>25,'capacity_tons'=>50,
-            'engine_power_hp'=>300,'home_port'=>'Pelabuhan Muara Baru, Jakarta',
-            'status'=>'active','created_at'=>now(),'updated_at'=>now(),
+            'tenant_id'=>$this->tenantId,'vessel_name'=>'KM Maju Jaya 01','registration_number'=>'GT-2026-001',
+            'vessel_type'=>'purse_seiner','gross_tonnage'=>25,'crew_capacity'=>50,
+            'fuel_capacity'=>300,'home_port'=>'Pelabuhan Muara Baru, Jakarta',
+            'is_active'=>true,'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Fishing trip
+        $captainId = !empty($this->employeeIds) ? $this->employeeIds[0] : 1;
         $tripId = DB::table('fishing_trips')->insertGetId([
             'tenant_id'=>$this->tenantId,'vessel_id'=>$vesselId,
+            'captain_id'=>$captainId,
             'trip_number'=>'TRIP/MBI/2026/001',
-            'departure_date'=>Carbon::now()->subDays(10)->format('Y-m-d'),
-            'return_date'=>Carbon::now()->subDays(3)->format('Y-m-d'),
-            'fishing_zone'=>'Laut Jawa - WPP 712','crew_count'=>12,
-            'status'=>'completed','total_catch_kg'=>8500,'total_revenue'=>127500000,
+            'departure_time'=>Carbon::now()->subDays(10),
+            'return_time'=>Carbon::now()->subDays(3),
+            'status'=>'completed','total_catch_weight'=>8500,
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Aquaculture pond
         $pondId = DB::table('aquaculture_ponds')->insertGetId([
-            'tenant_id'=>$this->tenantId,'name'=>'Kolam Udang A1','pond_code'=>'KU-A1',
-            'type'=>'shrimp','area_m2'=>5000,'depth_meters'=>1.5,
-            'water_source'=>'air_laut','status'=>'active',
+            'tenant_id'=>$this->tenantId,'pond_name'=>'Kolam Udang A1','pond_code'=>'KU-A1',
+            'pond_type'=>'earthen','surface_area'=>5000,'depth'=>1.5,
+            'volume'=>7500,'water_source'=>'natural','status'=>'stocked',
             'stocking_date'=>Carbon::now()->subDays(45)->format('Y-m-d'),
-            'stocking_count'=>100000,'species'=>'Litopenaeus vannamei',
+            'current_stock'=>100000,'carrying_capacity'=>120000,
             'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Water quality log
         DB::table('water_quality_logs')->insert([
             'tenant_id'=>$this->tenantId,'pond_id'=>$pondId,
-            'recorded_at'=>Carbon::now()->subHours(6),
-            'temperature'=>28.5,'ph'=>7.8,'dissolved_oxygen'=>6.2,
+            'measured_at'=>Carbon::now()->subHours(6),
+            'temperature'=>28.5,'ph_level'=>7.8,'dissolved_oxygen'=>6.2,
             'salinity'=>15,'ammonia'=>0.02,'turbidity'=>25,
-            'status'=>'normal','created_at'=>now(),'updated_at'=>now(),
+            'created_at'=>now(),'updated_at'=>now(),
         ]);
         // Cold storage
         $storageId = DB::table('cold_storage_units')->insertGetId([
