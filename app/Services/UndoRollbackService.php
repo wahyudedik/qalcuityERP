@@ -10,7 +10,7 @@ class UndoRollbackService
     /**
      * Log an action for potential undo
      */
-    public function logAction(string $actionType, string $modelType, $modelId, array $beforeState = null, array $afterState = null, array $metadata = []): ActionLog
+    public function logAction(string $actionType, string $modelType, $modelId, ?array $beforeState = null, ?array $afterState = null, array $metadata = []): ActionLog
     {
         return ActionLog::create([
             'tenant_id' => auth()->user()->tenant_id,
@@ -29,7 +29,7 @@ class UndoRollbackService
     /**
      * Undo last action by user
      */
-    public function undoLastAction(int $userId = null): array
+    public function undoLastAction(?int $userId = null): array
     {
         $userId = $userId ?? auth()->id();
         $tenantId = auth()->user()->tenant_id;
