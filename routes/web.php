@@ -1296,7 +1296,7 @@ Route::prefix('cosmetic')->name('cosmetic.')->middleware(['auth', 'tenant.isolat
         Route::get('/{id}/inventory', [\App\Http\Controllers\Cosmetic\VariantController::class, 'inventory'])->name('inventory');
 
         // Variant Matrix
-        Route::post('/matrix', [\App\Http\Controllers\Cosmetic\VariantController::class, 'generateMatrix'])->name('matrix');
+        Route::post('/matrix', [\App\Http\Controllers\Cosmetic\VariantController::class, 'generateMatrix'])->name('generate-matrix');
         Route::post('/bulk-create', [\App\Http\Controllers\Cosmetic\VariantController::class, 'bulkCreate'])->name('bulk-create');
     });
 
