@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => {
                 input: [
                     'resources/css/app.css',
                     'resources/js/app.js',
+                    'resources/js/offline-manager.js',
+                    'resources/js/conflict-resolution.js',
+                    'resources/js/topbar-offline-indicator.js',
                 ],
                 refresh: true,
             }),
