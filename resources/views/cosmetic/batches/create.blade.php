@@ -15,13 +15,13 @@
 
         <!-- Success/Error Messages -->
         @if (session('success'))
-            <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            <div class="mb-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg">
                 {{ session('success') }}
             </div>
         @endif
 
         @if (session('error'))
-            <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            <div class="mb-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
                 {{ session('error') }}
             </div>
         @endif
@@ -31,16 +31,16 @@
 
             <div class="space-y-6">
                 <!-- Batch Information -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Batch Information</h2>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Information</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Formula <span class="text-red-500">*</span>
                             </label>
                             <select name="formula_id" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('formula_id') border-red-500 @enderror"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 @error('formula_id') border-red-500 @enderror"
                                 onchange="updateFormulaInfo(this.value)">
                                 <option value="">Select Formula</option>
                                 @foreach ($formulas as $formula)
@@ -54,12 +54,12 @@
                                 @endforeach
                             </select>
                             @error('formula_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
 
                             <!-- Formula Info Display -->
-                            <div id="formula-info" class="mt-2 p-3 bg-blue-50 rounded-lg hidden">
-                                <div class="text-sm text-blue-900">
+                            <div id="formula-info" class="mt-2 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg hidden">
+                                <div class="text-sm text-blue-900 dark:text-blue-200">
                                     <div><strong>Code:</strong> <span id="info-code">-</span></div>
                                     <div><strong>Type:</strong> <span id="info-type">-</span></div>
                                     <div><strong>Standard Batch:</strong> <span id="info-batch">-</span></div>
@@ -68,69 +68,69 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Batch Number
                             </label>
                             <input type="text" name="batch_number" value="{{ old('batch_number', 'Auto-generated') }}"
                                 readonly
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                            <p class="mt-1 text-xs text-gray-500">Auto-generated (BMR-YYYY-NNNN)</p>
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 rounded-lg bg-gray-50 text-gray-500">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Auto-generated (BMR-YYYY-NNNN)</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Production Date <span class="text-red-500">*</span>
                             </label>
                             <input type="date" name="production_date"
                                 value="{{ old('production_date', date('Y-m-d')) }}" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('production_date') border-red-500 @enderror">
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 @error('production_date') border-red-500 @enderror">
                             @error('production_date')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Expiry Date
                             </label>
                             <input type="date" name="expiry_date" value="{{ old('expiry_date') }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <p class="mt-1 text-xs text-gray-500">Optional - based on shelf life</p>
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional - based on shelf life</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Planned Quantity <span class="text-red-500">*</span>
                             </label>
                             <input type="number" name="planned_quantity" value="{{ old('planned_quantity') }}"
                                 step="0.01" min="0" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('planned_quantity') border-red-500 @enderror"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 @error('planned_quantity') border-red-500 @enderror"
                                 placeholder="e.g., 1000">
                             @error('planned_quantity')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
 
                     <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Production Notes
                         </label>
                         <textarea name="production_notes" rows="4"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             placeholder="Any special instructions, equipment used, operator notes...">{{ old('production_notes') }}</textarea>
                     </div>
                 </div>
 
                 <!-- Quick Info -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
                     <div class="flex">
-                        <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <div class="text-sm text-yellow-800">
+                        <div class="text-sm text-yellow-800 dark:text-yellow-200">
                             <strong>Next Steps After Creation:</strong>
                             <ul class="mt-1 ml-4 list-disc space-y-1">
                                 <li>Update status to "In Progress" when starting production</li>
@@ -150,7 +150,7 @@
                         Create Batch Record
                     </button>
                     <a href="{{ route('cosmetic.batches.index') }}"
-                        class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium rounded-lg text-center transition">
+                        class="px-6 py-3 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg text-center transition">
                         Cancel
                     </a>
                 </div>

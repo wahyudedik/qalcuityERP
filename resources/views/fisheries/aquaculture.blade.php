@@ -35,7 +35,7 @@
             <select name="status" onchange="this.form.submit()"
                 class="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
                 <option value="">Semua Status</option>
-                @foreach (\App\Models\AquaculturePond::STATUS_LABELS as $v => $l)
+                @foreach (\App\Models\AquaculturePond::STATUSES as $v => $l)
                     <option value="{{ $v }}" @selected(request('status') === $v)>{{ $l }}</option>
                 @endforeach
             </select>

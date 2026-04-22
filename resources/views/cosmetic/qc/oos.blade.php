@@ -23,26 +23,26 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Total OOS</div>
-                <div class="mt-2 text-2xl font-bold text-gray-900">{{ $stats['total_oos'] }}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total OOS</div>
+                <div class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_oos'] }}</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Open</div>
-                <div class="mt-2 text-2xl font-bold text-yellow-600">{{ $stats['open_oos'] }}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Open</div>
+                <div class="mt-2 text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $stats['open_oos'] }}</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Critical</div>
-                <div class="mt-2 text-2xl font-bold text-red-600">{{ $stats['critical_oos'] }}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Critical</div>
+                <div class="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{{ $stats['critical_oos'] }}</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">High Priority</div>
-                <div class="mt-2 text-2xl font-bold text-orange-600">{{ $stats['high_oos'] }}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">High Priority</div>
+                <div class="mt-2 text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $stats['high_oos'] }}</div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
             <form method="GET" action="{{ route('cosmetic.qc.oos') }}" class="flex gap-4">
                 <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg">
                     <option value="">All Status</option>
@@ -69,7 +69,7 @@
         <div class="space-y-4">
             @forelse($oosList as $oos)
                 <div
-                    class="bg-white rounded-lg shadow p-6 border-l-4
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4
             @if ($oos->severity == 'critical') border-red-500
             @elseif($oos->severity == 'high') border-orange-500
             @elseif($oos->severity == 'medium') border-yellow-500
@@ -151,7 +151,7 @@
                     </div>
                 </div>
             @empty
-                <div class="bg-white rounded-lg shadow p-12 text-center text-gray-400">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center text-gray-400 dark:text-gray-500">
                     <p class="text-lg">No OOS investigations found. Great job!</p>
                 </div>
             @endforelse
@@ -164,7 +164,7 @@
 
     <!-- Add OOS Modal -->
     <div id="add-oos-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white dark:bg-gray-800">
             <h3 class="text-lg font-semibold mb-4">Create OOS Investigation</h3>
             <form method="POST" action="{{ route('cosmetic.qc.oos.store') }}">
                 @csrf

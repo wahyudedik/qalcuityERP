@@ -17,19 +17,15 @@ class FishingZone extends Model
         'tenant_id',
         'zone_code',
         'zone_name',
-        'description',
         'coordinates',
         'area_size',
-        'max_depth',
-        'min_depth',
-        'water_temperature',
-        'salinity_level',
-        'status',
+        'water_type',
         'allowed_species',
-        'fishing_methods',
-        'seasonal_restrictions',
-        'permit_required',
-        'notes',
+        'quota_limit',
+        'season_start',
+        'season_end',
+        'regulations',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -37,14 +33,11 @@ class FishingZone extends Model
         return [
             'coordinates' => 'array',
             'allowed_species' => 'array',
-            'fishing_methods' => 'array',
-            'seasonal_restrictions' => 'array',
             'area_size' => 'decimal:2',
-            'max_depth' => 'decimal:2',
-            'min_depth' => 'decimal:2',
-            'water_temperature' => 'decimal:2',
-            'salinity_level' => 'decimal:2',
-            'permit_required' => 'boolean',
+            'quota_limit' => 'decimal:2',
+            'season_start' => 'date',
+            'season_end' => 'date',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -55,7 +48,7 @@ class FishingZone extends Model
 
     public function trips(): HasMany
     {
-        return $this->hasMany(FishingTrip::class);
+        return $this->hasMany(FishingTrip::class, 'fishing_zone_id');
     }
 
     /**
@@ -63,7 +56,7 @@ class FishingZone extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('is_active', true);
     }
 
     /**
@@ -73,8 +66,7 @@ class FishingZone extends Model
     {
         return $query->where(function ($q) use ($search) {
             $q->where('zone_name', 'like', "%{$search}%")
-                ->orWhere('zone_code', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+                ->orWhere('zone_code', 'like', "%{$search}%");
         });
     }
 }

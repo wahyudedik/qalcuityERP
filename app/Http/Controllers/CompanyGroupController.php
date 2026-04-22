@@ -53,7 +53,10 @@ class CompanyGroupController extends Controller
         ]);
 
         if (auth()->user()->tenant_id) {
-            $group->members()->attach(auth()->user()->tenant_id, ['role' => 'owner']);
+            $group->members()->create([
+                'tenant_id' => auth()->user()->tenant_id,
+                'role' => 'owner',
+            ]);
         }
 
         return redirect()->route('company-groups.show', $group)
@@ -95,7 +98,10 @@ class CompanyGroupController extends Controller
         ]);
 
         if (!$companyGroup->members()->where('tenant_id', $data['tenant_id'])->exists()) {
-            $companyGroup->members()->attach($data['tenant_id'], ['role' => 'member']);
+            $companyGroup->members()->create([
+                'tenant_id' => $data['tenant_id'],
+                'role' => 'member',
+            ]);
         }
 
         return back()->with('success', 'Perusahaan berhasil ditambahkan ke grup.');
@@ -104,7 +110,7 @@ class CompanyGroupController extends Controller
     public function removeMember(CompanyGroup $companyGroup, Tenant $tenant)
     {
         $this->authorizeGroup($companyGroup);
-        $companyGroup->members()->detach($tenant->id);
+        $companyGroup->members()->where('tenant_id', $tenant->id)->delete();
         return back()->with('success', 'Perusahaan dihapus dari grup.');
     }
 

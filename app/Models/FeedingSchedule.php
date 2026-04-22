@@ -16,33 +16,25 @@ class FeedingSchedule extends Model
     protected $fillable = [
         'tenant_id',
         'pond_id',
+        'feed_product_id',
+        'schedule_date',
         'feeding_time',
-        'feed_type',
-        'feed_quantity',
-        'feed_cost',
-        'protein_content',
-        'fat_content',
-        'fiber_content',
-        'moisture_content',
-        'feeding_method',
-        'weather_condition',
-        'water_temperature',
-        'notes',
-        'fed_by',
+        'planned_quantity',
+        'actual_quantity',
         'status',
+        'fed_by_user_id',
+        'completed_at',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'feeding_time' => 'datetime',
-            'feed_quantity' => 'decimal:2',
-            'feed_cost' => 'decimal:2',
-            'protein_content' => 'decimal:2',
-            'fat_content' => 'decimal:2',
-            'fiber_content' => 'decimal:2',
-            'moisture_content' => 'decimal:2',
-            'water_temperature' => 'decimal:2',
+            'schedule_date' => 'date',
+            'feeding_time' => 'time',
+            'planned_quantity' => 'decimal:2',
+            'actual_quantity' => 'decimal:2',
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -56,9 +48,14 @@ class FeedingSchedule extends Model
         return $this->belongsTo(AquaculturePond::class, 'pond_id');
     }
 
+    public function feedProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'feed_product_id');
+    }
+
     public function fedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'fed_by');
+        return $this->belongsTo(User::class, 'fed_by_user_id');
     }
 
     /**
@@ -66,7 +63,7 @@ class FeedingSchedule extends Model
      */
     public function scopeToday($query)
     {
-        return $query->whereDate('feeding_time', today());
+        return $query->whereDate('schedule_date', today());
     }
 
     /**

@@ -54,63 +54,63 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Planned Quantity</div>
-                <div class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($batch->planned_quantity, 2) }}</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Planned Quantity</div>
+                <div class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($batch->planned_quantity, 2) }}</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Actual Quantity</div>
-                <div class="mt-2 text-2xl font-bold text-blue-600">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Actual Quantity</div>
+                <div class="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {{ $batch->actual_quantity ? number_format($batch->actual_quantity, 2) : '-' }}
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Yield</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Yield</div>
                 <div
                     class="mt-2 text-2xl font-bold 
-                @if ($batch->yield_percentage >= 95) text-green-600
-                @elseif($batch->yield_percentage >= 90) text-yellow-600
-                @elseif($batch->yield_percentage) text-red-600
-                @else text-gray-400 @endif">
+                @if ($batch->yield_percentage >= 95) text-green-600 dark:text-green-400
+                @elseif($batch->yield_percentage >= 90) text-yellow-600 dark:text-yellow-400
+                @elseif($batch->yield_percentage) text-red-600 dark:text-red-400
+                @else text-gray-400 dark:text-gray-500 @endif">
                     {{ $batch->yield_percentage ? number_format($batch->yield_percentage, 1) . '%' : '-' }}
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">QC Checks</div>
-                <div class="mt-2 text-2xl font-bold text-gray-900">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">QC Checks</div>
+                <div class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
                     {{ $qualityChecks->where('result', 'pass')->count() }}/{{ $qualityChecks->count() }}
                 </div>
-                <div class="text-xs text-gray-500">Passed</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Passed</div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div x-data="{ activeTab: 'production' }" class="space-y-6">
             <!-- Tab Navigation -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="border-b border-gray-200">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="flex -mb-px">
                         <button @click="activeTab = 'production'"
-                            :class="activeTab === 'production' ? 'border-blue-500 text-blue-600' :
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            :class="activeTab === 'production' ? 'border-blue-500 text-blue-600 dark:text-blue-400' :
+                                'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
                             class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition">
                             Production Info
                         </button>
                         <button @click="activeTab = 'qc'"
-                            :class="activeTab === 'qc' ? 'border-blue-500 text-blue-600' :
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            :class="activeTab === 'qc' ? 'border-blue-500 text-blue-600 dark:text-blue-400' :
+                                'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
                             class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition">
                             QC Checks ({{ $qualityChecks->count() }})
                         </button>
                         <button @click="activeTab = 'rework'"
-                            :class="activeTab === 'rework' ? 'border-blue-500 text-blue-600' :
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            :class="activeTab === 'rework' ? 'border-blue-500 text-blue-600 dark:text-blue-400' :
+                                'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
                             class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition">
                             Rework Logs ({{ $reworkLogs->count() }})
                         </button>
                         <button @click="activeTab = 'actions'"
-                            :class="activeTab === 'actions' ? 'border-blue-500 text-blue-600' :
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            :class="activeTab === 'actions' ? 'border-blue-500 text-blue-600 dark:text-blue-400' :
+                                'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
                             class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition">
                             Actions
                         </button>
@@ -119,7 +119,7 @@
 
                 <!-- Production Info Tab -->
                 <div x-show="activeTab === 'production'" class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Production Details</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Production Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <strong class="text-sm text-gray-700">Batch Number:</strong>
@@ -159,9 +159,9 @@
                     </div>
 
                     @if ($batch->production_notes)
-                        <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                            <strong class="text-sm text-gray-700">Production Notes:</strong>
-                            <p class="text-gray-900 mt-1">{{ $batch->production_notes }}</p>
+                        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <strong class="text-sm text-gray-700 dark:text-gray-300">Production Notes:</strong>
+                            <p class="text-gray-900 dark:text-gray-100 mt-1">{{ $batch->production_notes }}</p>
                         </div>
                     @endif
                 </div>
@@ -169,7 +169,7 @@
                 <!-- QC Checks Tab -->
                 <div x-show="activeTab === 'qc'" class="p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Quality Control Checks</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Quality Control Checks</h3>
                         @if (!$batch->isReleased() && !$batch->isRejected())
                             <button onclick="document.getElementById('add-qc-modal').classList.remove('hidden')"
                                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition">
@@ -180,8 +180,8 @@
 
                     @if ($qualityChecks->count() > 0)
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                             Checkpoint</th>
@@ -197,7 +197,7 @@
                                             Inspector</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach ($qualityChecks as $check)
                                         <tr>
                                             <td class="px-4 py-3 text-sm text-gray-900">{{ $check->check_point_label }}
@@ -224,7 +224,7 @@
                             </table>
                         </div>
                     @else
-                        <div class="text-center py-8 text-gray-400">
+                        <div class="text-center py-8 text-gray-400 dark:text-gray-500">
                             <p>No quality checks yet. Add QC checks during production.</p>
                         </div>
                     @endif
@@ -233,7 +233,7 @@
                 <!-- Rework Logs Tab -->
                 <div x-show="activeTab === 'rework'" class="p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Rework Logs</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Rework Logs</h3>
                         @if (!$batch->isReleased() && !$batch->isRejected())
                             <button onclick="document.getElementById('add-rework-modal').classList.remove('hidden')"
                                 class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition">
@@ -245,7 +245,7 @@
                     @if ($reworkLogs->count() > 0)
                         <div class="space-y-4">
                             @foreach ($reworkLogs as $rework)
-                                <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg p-4">
                                     <div class="flex justify-between items-start mb-2">
                                         <div>
                                             <span
@@ -287,7 +287,7 @@
                             @endforeach
                         </div>
                     @else
-                        <div class="text-center py-8 text-gray-400">
+                        <div class="text-center py-8 text-gray-400 dark:text-gray-500">
                             <p>No rework logs. Good job! No rework needed for this batch.</p>
                         </div>
                     @endif
@@ -295,12 +295,12 @@
 
                 <!-- Actions Tab -->
                 <div x-show="activeTab === 'actions'" class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Batch Actions</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Actions</h3>
 
                     <div class="space-y-4">
                         @if ($batch->isDraft())
-                            <div class="p-4 bg-blue-50 rounded-lg">
-                                <h4 class="font-medium text-blue-900 mb-2">Start Production</h4>
+                            <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                <h4 class="font-medium text-blue-900 dark:text-blue-200 mb-2">Start Production</h4>
                                 <form method="POST" action="{{ route('cosmetic.batches.update-status', $batch) }}"
                                     class="flex gap-2">
                                     @csrf
@@ -316,9 +316,9 @@
                         @endif
 
                         @if ($batch->canBeReleased())
-                            <div class="p-4 bg-green-50 rounded-lg">
-                                <h4 class="font-medium text-green-900 mb-2">Release Batch</h4>
-                                <p class="text-sm text-green-700 mb-3">All QC checks passed and no open rework. Ready to
+                            <div class="p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+                                <h4 class="font-medium text-green-900 dark:text-green-200 mb-2">Release Batch</h4>
+                                <p class="text-sm text-green-700 dark:text-green-300 mb-3">All QC checks passed and no open rework. Ready to
                                     release?</p>
                                 <form method="POST" action="{{ route('cosmetic.batches.release', $batch) }}">
                                     @csrf
@@ -336,7 +336,7 @@
 
         <!-- Add QC Check Modal -->
         <div id="add-qc-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white dark:bg-gray-800">
                 <h3 class="text-lg font-semibold mb-4">Add Quality Check</h3>
                 <form method="POST" action="{{ route('cosmetic.batches.quality-check.add', $batch) }}">
                     @csrf
@@ -402,7 +402,7 @@
         <!-- Add Rework Modal -->
         <div id="add-rework-modal"
             class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
+            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white dark:bg-gray-800">
                 <h3 class="text-lg font-semibold mb-4">Add Rework Log</h3>
                 <form method="POST" action="{{ route('cosmetic.batches.rework.add', $batch) }}">
                     @csrf

@@ -78,6 +78,13 @@ class FishingTrip extends Model
         return $this->catchLogs();
     }
 
+    public function crew()
+    {
+        return $this->belongsToMany(Employee::class, 'fishing_trip_crew', 'fishing_trip_id', 'employee_id')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public function statusLabel(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;

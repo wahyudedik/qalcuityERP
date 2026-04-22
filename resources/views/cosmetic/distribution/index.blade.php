@@ -24,7 +24,7 @@
         <!-- Quick Links -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <a href="{{ route('cosmetic.distribution.index') }}"
-                class="bg-white rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.index') ? 'ring-2 ring-blue-500' : '' }}">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.index') ? 'ring-2 ring-blue-500' : '' }}">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@
                 </div>
             </a>
             <a href="{{ route('cosmetic.distribution.pricing') }}"
-                class="bg-white rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.pricing') ? 'ring-2 ring-blue-500' : '' }}">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.pricing') ? 'ring-2 ring-blue-500' : '' }}">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
                 </div>
             </a>
             <a href="{{ route('cosmetic.distribution.inventory') }}"
-                class="bg-white rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.inventory') ? 'ring-2 ring-blue-500' : '' }}">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.inventory') ? 'ring-2 ring-blue-500' : '' }}">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +69,7 @@
                 </div>
             </a>
             <a href="{{ route('cosmetic.distribution.performance') }}"
-                class="bg-white rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.performance') ? 'ring-2 ring-blue-500' : '' }}">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition {{ request()->routeIs('cosmetic.distribution.performance') ? 'ring-2 ring-blue-500' : '' }}">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
                         <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div class="text-sm font-medium text-gray-500">Total Channels</div>
                 <div class="mt-2 text-3xl font-bold text-gray-900">{{ $stats['total_channels'] }}</div>
             </div>
@@ -110,7 +110,7 @@
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
             <form method="GET" action="{{ route('cosmetic.distribution.index') }}" class="flex gap-4">
                 <div class="flex-1">
                     <select name="type"
@@ -133,9 +133,9 @@
         </div>
 
         <!-- Channels Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code
                         </th>
@@ -155,7 +155,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($channels as $channel)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -240,7 +240,7 @@
 
     <!-- Add Channel Modal -->
     <div id="addChannelModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-900">Add Distribution Channel</h3>
                 <button type="button" onclick="document.getElementById('addChannelModal').classList.add('hidden')"

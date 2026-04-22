@@ -85,13 +85,13 @@ class FisheriesViewController extends Controller
         $units = $storageUnits->items();
         $safeUnits = collect($units)->filter(fn($u) => $u->isTemperatureSafe())->count();
         $alerts = ColdChainAlert::where('tenant_id', $tenantId)
-            ->where('status', 'active')
+            ->where('is_acknowledged', false)
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get()
             ->map(fn($alert) => [
-                'title' => "Temperature Alert - {$alert->storageUnit->unit_code}",
-                'description' => "Current: {$alert->current_temperature}°C, Range: {$alert->threshold_min}-{$alert->threshold_max}°C",
+                'title' => "Temperature Alert - {$alert->coldStorageUnit->unit_code}",
+                'description' => "Current: {$alert->recorded_temperature}°C, Range: {$alert->threshold_min}-{$alert->threshold_max}°C",
                 'severity' => $alert->severity,
                 'severity_color' => $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue'),
                 'time' => $alert->created_at->diffForHumans(),
@@ -116,11 +116,11 @@ class FisheriesViewController extends Controller
         $unit = ColdStorageUnit::where('tenant_id', $this->tenantId())
             ->findOrFail($id);
 
-        $temperatureLogs = TemperatureLog::where('storage_unit_id', $id)
-            ->orderBy('logged_at', 'desc')
+        $temperatureLogs = TemperatureLog::where('cold_storage_unit_id', $id)
+            ->orderBy('recorded_at', 'desc')
             ->paginate(50);
 
-        $alerts = ColdChainAlert::where('storage_unit_id', $id)
+        $alerts = ColdChainAlert::where('cold_storage_unit_id', $id)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -152,17 +152,15 @@ class FisheriesViewController extends Controller
                 ->sum('total_weight'),
             'total_estimated_value' => CatchLog::whereHas('trip', fn($q) => $q->where('tenant_id', $tenantId))
                 ->get()
-                ->sum('estimated_value'),
+                ->map(fn($c) => ($c->total_weight ?? 0) * ($c->species?->market_price_per_kg ?? 0))
+                ->sum(),
         ];
 
         // Dropdown options
         $species_list = FishSpecies::where('tenant_id', $tenantId)->orderBy('common_name')->get();
         $grades = QualityGrade::where('tenant_id', $tenantId)->orderBy('grade_code')->get();
-        $vessels = FishingVessel::where('tenant_id', $tenantId)->where('status', 'active')->get();
-        $captains = \App\Models\User::where('tenant_id', $tenantId)
-            ->where('role', 'captain')
-            ->orWhere('role', 'crew')
-            ->get();
+        $vessels = FishingVessel::where('tenant_id', $tenantId)->where('is_active', true)->get();
+        $captains = Employee::where('tenant_id', $tenantId)->get();
         $zones = FishingZone::where('tenant_id', $tenantId)->get();
 
         return view('fisheries.operations', compact(
@@ -185,7 +183,7 @@ class FisheriesViewController extends Controller
             ->with(['vessel', 'captain', 'crew', 'catches.species', 'catches.grade', 'fishingZone'])
             ->findOrFail($id);
 
-        $catches = CatchLog::where('trip_id', $id)
+        $catches = CatchLog::where('fishing_trip_id', $id)
             ->with(['species', 'grade'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -201,19 +199,20 @@ class FisheriesViewController extends Controller
         $tenantId = $this->tenantId();
 
         $ponds = AquaculturePond::where('tenant_id', $tenantId)
-            ->with(['latestWaterQuality'])
-            ->orderBy('code')
+            ->orderBy('pond_code')
             ->paginate(12);
 
         // Stats
         $stats = [
             'total_ponds' => AquaculturePond::where('tenant_id', $tenantId)->count(),
             'active_ponds' => AquaculturePond::where('tenant_id', $tenantId)
-                ->where('status', 'active')
+                ->whereIn('status', ['stocked', 'growing', 'ready_harvest'])
                 ->count(),
             'avg_utilization' => AquaculturePond::where('tenant_id', $tenantId)
-                ->where('status', 'active')
-                ->avg('utilization_percentage') ?? 0,
+                ->whereIn('status', ['stocked', 'growing', 'ready_harvest'])
+                ->get()
+                ->map(fn($p) => $p->carrying_capacity > 0 ? ($p->current_stock / $p->carrying_capacity) * 100 : 0)
+                ->avg() ?? 0,
             'avg_fcr' => 1.5, // This would be calculated from actual data
         ];
 
@@ -229,11 +228,11 @@ class FisheriesViewController extends Controller
             ->findOrFail($id);
 
         $waterQualityLogs = WaterQualityLog::where('pond_id', $id)
-            ->orderBy('logged_at', 'desc')
+            ->orderBy('measured_at', 'desc')
             ->paginate(30);
 
         $feedings = FeedingSchedule::where('pond_id', $id)
-            ->orderBy('feeding_time', 'desc')
+            ->orderBy('schedule_date', 'desc')
             ->paginate(20);
 
         return view('fisheries.aquaculture-detail', compact('pond', 'waterQualityLogs', 'feedings'));
@@ -283,17 +282,18 @@ class FisheriesViewController extends Controller
 
         $stats = [
             'active_permits' => ExportPermit::where('tenant_id', $tenantId)
-                ->where('status', 'approved')
-                ->where('valid_until', '>=', now())
+                ->where('status', 'active')
+                ->where('expiry_date', '>=', now())
                 ->count(),
             'health_certificates' => HealthCertificate::where('tenant_id', $tenantId)
-                ->where('valid_until', '>=', now())
+                ->where('status', 'valid')
+                ->where('expiry_date', '>=', now())
                 ->count(),
             'customs_declarations' => CustomsDeclaration::where('tenant_id', $tenantId)
                 ->where('status', 'approved')
                 ->count(),
             'shipments_this_month' => ExportShipment::where('tenant_id', $tenantId)
-                ->whereMonth('created_at', now()->month)
+                ->whereMonth('shipment_date', now()->month)
                 ->count(),
         ];
 
@@ -328,7 +328,7 @@ class FisheriesViewController extends Controller
                 $request->search,
                 fn($q, $search) =>
                 $q->where('permit_number', 'like', "%{$search}%")
-                    ->orWhere('commodity', 'like', "%{$search}%")
+                    ->orWhere('destination_country', 'like', "%{$search}%")
             )
             ->orderBy('created_at', 'desc')
             ->paginate(10);

@@ -29,7 +29,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500">Total Materials</p>
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
             <form method="GET" action="{{ route('cosmetic.packaging.index') }}"
                 class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
@@ -134,9 +134,9 @@
         </div>
 
         <!-- Materials Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material
@@ -153,7 +153,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($materials as $material)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -232,7 +232,7 @@
     <!-- Add Material Modal -->
     <div id="add-material-modal"
         class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-lg bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-lg bg-white dark:bg-gray-800">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">Add Packaging Material</h3>
                 <button onclick="document.getElementById('add-material-modal').classList.add('hidden')"

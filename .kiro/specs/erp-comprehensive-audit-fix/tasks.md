@@ -269,19 +269,19 @@
 
 ## Fase 8: Modul Industri Tambahan
 
-- [ ] 26. Audit & Perbaikan Modul Cosmetic
-  - [ ] 26.1 Audit modul Cosmetic — formula builder, batch produksi, QC, packaging, distribusi
-  - [ ] 26.2 Verifikasi fitur BPOM registration — pendaftaran produk kosmetik ke BPOM
-  - [ ] 26.3 Verifikasi fitur expiry tracking — produk mendekati kadaluarsa mendapat alert
-  - [ ] 26.4 Verifikasi fitur variant management — varian produk kosmetik (warna, ukuran, dll.)
-  - [ ] 26.5 Verifikasi integrasi Cosmetic dengan modul Inventory dan Accounting
-  - [ ] 26.6 Pastikan semua view Cosmetic mendukung dark/light mode dan responsif
+- [x] 26. Audit & Perbaikan Modul Cosmetic
+  - [x] 26.1 Audit modul Cosmetic — formula builder, batch produksi, QC, packaging, distribusi
+  - [x] 26.2 Verifikasi fitur BPOM registration — pendaftaran produk kosmetik ke BPOM
+  - [x] 26.3 Verifikasi fitur expiry tracking — produk mendekati kadaluarsa mendapat alert
+  - [x] 26.4 Verifikasi fitur variant management — varian produk kosmetik (warna, ukuran, dll.)
+  - [x] 26.5 Verifikasi integrasi Cosmetic dengan modul Inventory dan Accounting
+  - [x] 26.6 Pastikan semua view Cosmetic mendukung dark/light mode dan responsif
 
-- [ ] 27. Audit & Perbaikan Modul Fisheries
-  - [ ] 27.1 Audit modul Fisheries — manajemen kolam/tambak, siklus budidaya, panen, penjualan
-  - [ ] 27.2 Verifikasi FisheriesController dan FisheriesViewController berfungsi tanpa error
-  - [ ] 27.3 Verifikasi integrasi Fisheries dengan modul Inventory dan Accounting
-  - [ ] 27.4 Pastikan semua view Fisheries mendukung dark/light mode dan responsif
+- [x] 27. Audit & Perbaikan Modul Fisheries
+  - [x] 27.1 Audit modul Fisheries — manajemen kolam/tambak, siklus budidaya, panen, penjualan
+  - [x] 27.2 Verifikasi FisheriesController dan FisheriesViewController berfungsi tanpa error
+  - [x] 27.3 Verifikasi integrasi Fisheries dengan modul Inventory dan Accounting
+  - [x] 27.4 Pastikan semua view Fisheries mendukung dark/light mode dan responsif
 
 - [ ] 28. Audit & Perbaikan Modul Livestock
   - [ ] 28.1 Audit modul Livestock — manajemen ternak, breeding, dairy, poultry, kesehatan hewan
@@ -354,10 +354,10 @@
   - [ ] 38.5 Verifikasi DocumentSignatureService — tanda tangan digital berfungsi
   - [ ] 38.6 Pastikan semua view Document Management mendukung dark/light mode dan responsif
 
-- [ ] 39. Audit & Perbaikan Modul Multi-Company & Konsolidasi
-  - [ ] 39.1 Verifikasi MultiCompanyController — manajemen entitas bisnis dalam satu platform
-  - [ ] 39.2 Verifikasi ConsolidationService — konsolidasi laporan keuangan antar entitas
-  - [ ] 39.3 Verifikasi CompanyGroupController — pengelompokan perusahaan untuk konsolidasi
+- [x] 39. Audit & Perbaikan Modul Multi-Company & Konsolidasi
+  - [x] 39.1 Verifikasi MultiCompanyController — manajemen entitas bisnis dalam satu platform
+  - [x] 39.2 Verifikasi ConsolidationService — konsolidasi laporan keuangan antar entitas
+  - [x] 39.3 Verifikasi CompanyGroupController — pengelompokan perusahaan untuk konsolidasi (Fixed HasMany::attach() error)
   - [ ] 39.4 Pastikan semua view Multi-Company mendukung dark/light mode dan responsif
 
 - [ ] 40. Audit & Perbaikan Modul IoT & Smart Devices

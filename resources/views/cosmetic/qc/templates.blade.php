@@ -24,7 +24,7 @@
         <!-- Templates Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($templates as $template)
-                <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition">
                     <div class="p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -57,13 +57,13 @@
                         </div>
 
                         @if ($template->procedure)
-                            <div class="p-3 bg-gray-50 rounded text-sm text-gray-700 mb-4">
+                            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300 mb-4">
                                 <strong>Procedure:</strong>
                                 <p class="mt-1 line-clamp-3">{{ Str::limit($template->procedure, 150) }}</p>
                             </div>
                         @endif
 
-                        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                        <div class="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
                             <span class="text-xs text-gray-500">
                                 Created: {{ $template->created_at->format('d M Y') }}
                             </span>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
             @empty
-                <div class="col-span-3 bg-white rounded-lg shadow p-12 text-center text-gray-400">
+                <div class="col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center text-gray-400 dark:text-gray-500">
                     <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -94,7 +94,7 @@
     <!-- Add Template Modal -->
     <div id="add-template-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
         <div
-            class="relative top-10 mx-auto p-5 border w-[800px] shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+            class="relative top-10 mx-auto p-5 border w-[800px] shadow-lg rounded-md bg-white dark:bg-gray-800 max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4">Create QC Test Template</h3>
             <form method="POST" action="{{ route('cosmetic.qc.templates.store') }}">
                 @csrf

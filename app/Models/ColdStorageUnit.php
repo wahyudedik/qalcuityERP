@@ -57,6 +57,11 @@ class ColdStorageUnit extends Model
         return $this->hasMany(ColdChainAlert::class);
     }
 
+    public function latestTemperatureLog()
+    {
+        return $this->hasOne(TemperatureLog::class)->latestOfMany();
+    }
+
     public function typeLabel(): string
     {
         return self::TYPES[$this->type] ?? $this->type;
@@ -73,6 +78,15 @@ class ColdStorageUnit extends Model
 
         return $this->current_temperature >= $this->min_temperature
             && $this->current_temperature <= $this->max_temperature;
+    }
+
+    /**
+     * Get utilization percentage (mock - based on capacity)
+     */
+    public function getUtilizationPercentageAttribute(): float
+    {
+        // This is a placeholder - actual utilization would come from inventory tracking
+        return 0;
     }
 
     /**

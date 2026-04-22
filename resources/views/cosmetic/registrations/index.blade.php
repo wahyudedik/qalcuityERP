@@ -30,7 +30,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div class="text-sm font-medium text-gray-500">Total</div>
                 <div class="mt-2 text-2xl font-bold text-gray-900">{{ $stats['total_registrations'] }}</div>
             </div>
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
             <form method="GET" action="{{ route('cosmetic.registrations.index') }}" class="flex gap-4">
                 <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg">
                     <option value="">All Status</option>
@@ -77,9 +77,9 @@
         </div>
 
         <!-- Registrations Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reg. Number</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
@@ -90,7 +90,7 @@
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($registrations as $reg)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
