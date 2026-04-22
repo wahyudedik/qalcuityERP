@@ -38,7 +38,7 @@ class GeminiService
 
         // BUG-AI-003 FIX: Validate API key exists before creating client
         if (empty($apiKey)) {
-            $message = 'Gemini API key tidak dikonfigurasi. Silakan tambah GEMINI_API_KEY di file .env atau pengaturan Admin → AI Settings.';
+            $message = 'AI Assistant tidak dikonfigurasi. Silakan hubungi administrator untuk mengatur AI Service.';
             Log::error('GeminiService: ' . $message);
             throw new \RuntimeException($message, 500);
         }
@@ -47,7 +47,7 @@ class GeminiService
             $this->client = \Gemini::factory()->withApiKey($apiKey)->make();
         } catch (\Throwable $e) {
             // BUG-AI-003 FIX: Clear error message when API key is invalid
-            $message = 'Gemini API key tidak valid. Error: ' . $e->getMessage() . '. Periksa GEMINI_API_KEY di .env atau pengaturan Admin → AI Settings.';
+            $message = 'Konfigurasi AI Assistant tidak valid. Silakan hubungi administrator untuk memeriksa pengaturan AI Service.';
             Log::error('GeminiService: ' . $message, ['error' => $e->getMessage()]);
             throw new \RuntimeException($message, 500);
         }
@@ -1075,7 +1075,7 @@ PROMPT,
                 if ($this->isApiKeyError($e)) {
                     Log::error("GeminiService: Invalid API key on [{$currentModel}]. Check GEMINI_API_KEY configuration.");
                     throw new \RuntimeException(
-                        'Gemini API key tidak valid. Silakan periksa pengaturan API key di Admin → AI Settings atau file .env.',
+                        'Konfigurasi AI Assistant tidak valid. Silakan hubungi administrator untuk memeriksa pengaturan AI Service.',
                         401
                     );
                 }
@@ -1090,7 +1090,7 @@ PROMPT,
                         'error_type' => get_class($e),
                     ]);
                     throw new \RuntimeException(
-                        'Gagal terhubung ke Gemini AI. Error: ' . $this->getUserFriendlyError($e),
+                        'Gagal terhubung ke AI Assistant. Error: ' . $this->getUserFriendlyError($e),
                         503
                     );
                 }
@@ -1182,7 +1182,7 @@ PROMPT,
                 if ($this->isApiKeyError($e)) {
                     Log::error("GeminiService: Invalid API key on [{$model}]. Check GEMINI_API_KEY configuration.");
                     throw new \RuntimeException(
-                        'Gemini API key tidak valid. Silakan periksa pengaturan API key di Admin → AI Settings atau file .env.',
+                        'Konfigurasi AI Assistant tidak valid. Silakan hubungi administrator untuk memeriksa pengaturan AI Service.',
                         401
                     );
                 }
@@ -1195,7 +1195,7 @@ PROMPT,
                 if ($this->isQuotaExceededError($e)) {
                     Log::error("GeminiService: Quota exceeded on [{$model}]. Billing may need to be enabled.");
                     throw new \RuntimeException(
-                        'Kuota Gemini API telah habis. Silakan upgrade billing account atau tunggu reset kuota besok.',
+                        'Layanan AI sedang mengalami keterbatasan. Silakan coba beberapa saat lagi.',
                         429
                     );
                 }
@@ -1208,13 +1208,13 @@ PROMPT,
                 ]);
 
                 throw new \RuntimeException(
-                    'Gagal terhubung ke Gemini AI. Error: ' . $this->getUserFriendlyError($e),
+                    'Gagal terhubung ke AI Assistant. Error: ' . $this->getUserFriendlyError($e),
                     503
                 );
             }
         }
 
-        throw new \RuntimeException('Semua model Gemini AI sedang tidak tersedia (rate-limited atau down). Silakan coba beberapa saat lagi.');
+        throw new \RuntimeException('Layanan AI sedang mengalami gangguan. Silakan coba beberapa saat lagi.');
     }
 
     protected function buildModelQueue(): array
@@ -1392,12 +1392,12 @@ PROMPT,
 
         // Timeout errors
         if ($code === 0 && str_contains($message, 'timed out')) {
-            return 'Koneksi ke Gemini AI timeout. Silakan coba lagi.';
+            return 'Koneksi ke AI Assistant timeout. Silakan coba lagi.';
         }
 
         // Network errors
         if (str_contains($message, 'connection') || str_contains($message, 'network')) {
-            return 'Gagal terhubung ke server Gemini. Periksa koneksi internet Anda.';
+            return 'Gagal terhubung ke server AI. Periksa koneksi internet Anda.';
         }
 
         // Default: return generic message

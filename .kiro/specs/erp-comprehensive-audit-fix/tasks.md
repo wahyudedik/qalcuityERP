@@ -267,6 +267,18 @@
   - [x] 25.6 Verifikasi responsivitas di mobile (320px), tablet (768px), dan desktop (1280px+)
   - [ ] 25.7 Dokumentasikan semua perbaikan yang dilakukan dan rekomendasi pengembangan selanjutnya
 
+- [x] 26. Hide Gemini AI Model Name in Error Messages
+  - [x] 26.1 Replace "Gagal terhubung ke Gemini AI" with "Gagal terhubung ke AI Assistant" in GeminiService
+  - [x] 26.2 Replace "Semua model Gemini AI sedang tidak tersedia" with "Layanan AI sedang mengalami gangguan"
+  - [x] 26.3 Replace "Koneksi ke Gemini AI timeout" with "Koneksi ke AI Assistant timeout"
+  - [x] 26.4 Replace "Gagal terhubung ke server Gemini" with "Gagal terhubung ke server AI"
+  - [x] 26.5 Replace "Gemini API key tidak valid" with "Konfigurasi AI Assistant tidak valid"
+  - [x] 26.6 Replace "Kuota Gemini API telah habis" with "Layanan AI sedang mengalami keterbatasan"
+  - [x] 26.7 Replace "Gemini AI — All Models Unavailable" with "AI Service — All Models Unavailable" in alerts
+  - [x] 26.8 Replace "🧠 Gemini AI" with "🧠 AI Model" in manufacturing predictive MRP view
+  - [x] 26.9 Update SystemSettingsController testGeminiApiKey method to use generic "AI Service" terminology
+  - [x] 26.10 Verify no user-facing "Gemini" references remain in error messages
+
 ## Fase 8: Modul Industri Tambahan
 
 - [x] 26. Audit & Perbaikan Modul Cosmetic

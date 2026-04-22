@@ -49,7 +49,7 @@ class NotifyAllModelsUnavailable
                 : '';
 
             $payload = [
-                'text' => ":rotating_light: *Gemini AI — All Models Unavailable*{$tenantInfo}",
+                'text' => ":rotating_light: *AI Service — All Models Unavailable*{$tenantInfo}",
                 'attachments' => [
                     [
                         'color' => 'danger',
@@ -70,7 +70,7 @@ class NotifyAllModelsUnavailable
                                 'short' => true,
                             ],
                         ],
-                        'footer' => 'Gemini Auto-Switching',
+                        'footer' => 'AI Auto-Switching',
                     ],
                 ],
             ];
@@ -109,7 +109,7 @@ class NotifyAllModelsUnavailable
             $time = now()->toDateTimeString();
 
             Mail::raw(
-                "ALERT: All Gemini AI models are currently unavailable{$tenantInfo}.\n\n"
+                "ALERT: All AI service models are currently unavailable{$tenantInfo}.\n\n"
                 . "Unavailable models: {$modelList}\n"
                 . "Time: {$time}\n"
                 . "Environment: {$environment}\n\n"
@@ -117,7 +117,7 @@ class NotifyAllModelsUnavailable
                 function ($message) use ($addresses, $environment) {
                     $message
                         ->to($addresses)
-                        ->subject("[{$environment}] ALERT: All Gemini AI Models Unavailable");
+                        ->subject("[{$environment}] ALERT: All AI Service Models Unavailable");
                 }
             );
         } catch (\Throwable $e) {

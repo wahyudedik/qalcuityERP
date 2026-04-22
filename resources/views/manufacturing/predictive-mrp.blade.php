@@ -58,7 +58,7 @@
                             <div>
                                 <div class="text-sm opacity-80">Model</div>
                                 <div class="font-bold">
-                                    {{ ($forecast['model'] ?? '') === 'gemini-2.5-flash' ? '🧠 Gemini AI' : '📊 Statistical' }}
+                                    {{ ($forecast['model'] ?? '') === 'gemini-2.5-flash' ? '🧠 AI Model' : '📊 Statistical' }}
                                 </div>
                             </div>
                             <div>

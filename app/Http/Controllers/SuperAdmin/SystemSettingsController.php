@@ -205,7 +205,7 @@ class SystemSettingsController extends Controller
             if (empty($apiKey)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gemini API key tidak ditemukan. Silakan simpan API key terlebih dahulu di pengaturan.',
+                    'message' => 'AI Service configuration tidak ditemukan. Silakan simpan konfigurasi terlebih dahulu di pengaturan.',
                     'details' => null,
                 ], 400);
             }
@@ -220,7 +220,7 @@ class SystemSettingsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Gemini API key berhasil divalidasi! Koneksi aktif.',
+                'message' => 'AI Service configuration berhasil divalidasi! Koneksi aktif.',
                 'details' => [
                     'model' => $model,
                     'response' => substr($text, 0, 100),
@@ -234,13 +234,13 @@ class SystemSettingsController extends Controller
             $errorBody = $e->getResponse()->getBody()->getContents();
 
             $errorMessage = match ($statusCode) {
-                401 => 'API key tidak valid (Unauthorized). Periksa kembali API key Anda.',
-                403 => 'API key tidak memiliki akses (Forbidden). Pastikan billing aktif di Google Cloud Console.',
-                429 => 'Kuota API telah habis (Rate Limited). Tunggu reset kuota atau upgrade billing.',
+                401 => 'Konfigurasi tidak valid (Unauthorized). Periksa kembali pengaturan AI Service Anda.',
+                403 => 'Konfigurasi tidak memiliki akses (Forbidden). Pastikan layanan AI sudah diaktifkan.',
+                429 => 'Layanan AI sedang mengalami keterbatasan (Rate Limited). Silakan coba beberapa saat lagi.',
                 default => 'Error HTTP ' . $statusCode . ': ' . $errorBody,
             };
 
-            \Log::error('Gemini API Key Test Failed', [
+            \Log::error('AI Service Configuration Test Failed', [
                 'status' => $statusCode,
                 'error' => $errorBody,
             ]);
@@ -255,7 +255,7 @@ class SystemSettingsController extends Controller
             ], $statusCode);
 
         } catch (\Throwable $e) {
-            \Log::error('Gemini API Key Test Failed', [
+            \Log::error('AI Service Configuration Test Failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
