@@ -5,6 +5,11 @@ namespace App\Services;
 use App\Models\CosmeticBatchRecord;
 use App\Models\CosmeticFormula;
 use App\Models\BatchQualityCheck;
+use App\Models\StockMovement;
+use App\Models\Warehouse;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
+use App\Models\ChartOfAccount;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -221,6 +226,9 @@ class BatchProductionService
 
         $batch->release($userId);
 
+        // Create accounting entries for production
+        $this->createProductionJournal($batch);
+
         // Update inventory with produced quantity
         $this->updateInventoryForReleasedBatch($batch);
 
@@ -299,16 +307,151 @@ class BatchProductionService
     }
 
     /**
+     * Create production journal entry when batch is released
+     */
+    protected function createProductionJournal(CosmeticBatchRecord $batch): void
+    {
+        try {
+            $formula = $batch->formula;
+            if (!$formula) {
+                Log::warning('Formula not found for batch journal creation', [
+                    'batch_id' => $batch->id,
+                ]);
+                return;
+            }
+
+            $totalCost = ($formula->total_cost ?? 0) * $batch->actual_quantity;
+
+            // Get accounts from tenant settings
+            $finishedGoodsAccount = $this->getFinishedGoodsAccount($batch->tenant_id);
+            $wipAccount = $this->getWIPAccount($batch->tenant_id);
+
+            if (!$finishedGoodsAccount || !$wipAccount) {
+                Log::warning('Missing accounting accounts for batch production', [
+                    'batch_id' => $batch->id,
+                    'tenant_id' => $batch->tenant_id,
+                    'has_fg_account' => (bool) $finishedGoodsAccount,
+                    'has_wip_account' => (bool) $wipAccount,
+                ]);
+                return;
+            }
+
+            // Create journal entry
+            $journalEntry = JournalEntry::create([
+                'tenant_id' => $batch->tenant_id,
+                'user_id' => Auth::id(),
+                'number' => JournalEntry::generateNumber($batch->tenant_id, 'AUTO'),
+                'date' => now()->toDateString(),
+                'description' => "Produksi batch {$batch->batch_number}",
+                'reference_type' => 'cosmetic_batch',
+                'reference_id' => $batch->id,
+                'status' => 'draft',
+            ]);
+
+            // Add journal lines
+            // Debit: Finished Goods
+            JournalEntryLine::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $finishedGoodsAccount->id,
+                'debit' => $totalCost,
+                'credit' => 0,
+                'description' => "Barang jadi dari batch {$batch->batch_number}",
+            ]);
+
+            // Credit: Work in Progress
+            JournalEntryLine::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $wipAccount->id,
+                'debit' => 0,
+                'credit' => $totalCost,
+                'description' => "Penyelesaian WIP untuk batch {$batch->batch_number}",
+            ]);
+
+            // Post the journal entry
+            $journalEntry->post(Auth::id());
+
+            Log::info('Production journal entry created', [
+                'batch_id' => $batch->id,
+                'batch_number' => $batch->batch_number,
+                'journal_id' => $journalEntry->id,
+                'total_cost' => $totalCost,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create production journal entry', [
+                'batch_id' => $batch->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    /**
+     * Get finished goods account for tenant
+     */
+    protected function getFinishedGoodsAccount(int $tenantId): ?ChartOfAccount
+    {
+        return ChartOfAccount::where('tenant_id', $tenantId)
+            ->where('type', 'asset')
+            ->where('is_active', true)
+            ->where('name', 'like', '%Barang Jadi%')
+            ->orWhere('name', 'like', '%Finished Goods%')
+            ->first();
+    }
+
+    /**
+     * Get work in progress account for tenant
+     */
+    protected function getWIPAccount(int $tenantId): ?ChartOfAccount
+    {
+        return ChartOfAccount::where('tenant_id', $tenantId)
+            ->where('type', 'asset')
+            ->where('is_active', true)
+            ->where('name', 'like', '%Barang Dalam Proses%')
+            ->orWhere('name', 'like', '%Work in Progress%')
+            ->first();
+    }
+
+    /**
      * Update inventory when batch is released
      */
     protected function updateInventoryForReleasedBatch(CosmeticBatchRecord $batch): void
     {
-        // This would integrate with inventory management
-        // For now, just log the action
-        Log::info('Inventory update triggered for batch', [
-            'batch_number' => $batch->batch_number,
-            'quantity' => $batch->actual_quantity,
-        ]);
+        $warehouse = Warehouse::where('tenant_id', $batch->tenant_id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$warehouse) {
+            Log::warning('No active warehouse found for batch inventory update', [
+                'batch_id' => $batch->id,
+                'tenant_id' => $batch->tenant_id,
+            ]);
+            return;
+        }
+
+        try {
+            StockMovement::create([
+                'tenant_id' => $batch->tenant_id,
+                'product_id' => $batch->formula_id,
+                'warehouse_id' => $warehouse->id,
+                'user_id' => Auth::id(),
+                'type' => 'production',
+                'quantity' => $batch->actual_quantity,
+                'reference' => $batch->batch_number,
+                'notes' => "Batch {$batch->batch_number} released from production",
+            ]);
+
+            Log::info('Stock movement created for batch', [
+                'batch_id' => $batch->id,
+                'batch_number' => $batch->batch_number,
+                'quantity' => $batch->actual_quantity,
+                'warehouse_id' => $warehouse->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create stock movement for batch', [
+                'batch_id' => $batch->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

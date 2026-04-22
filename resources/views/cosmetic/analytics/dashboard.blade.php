@@ -8,13 +8,13 @@
         <div class="mb-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Cosmetic Analytics & Reports</h1>
-                    <p class="mt-1 text-sm text-gray-500">Comprehensive insights into manufacturing quality and compliance
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Cosmetic Analytics & Reports</h1>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Comprehensive insights into manufacturing quality and compliance
                     </p>
                 </div>
                 <div class="flex gap-2">
                     <select id="periodSelect" onchange="updatePeriod(this.value)"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="7" {{ $period == 7 ? 'selected' : '' }}>Last 7 Days</option>
                         <option value="30" {{ $period == 30 ? 'selected' : '' }}>Last 30 Days</option>
                         <option value="90" {{ $period == 90 ? 'selected' : '' }}>Last 90 Days</option>
@@ -26,78 +26,78 @@
 
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Avg Batch Yield</div>
-                <div class="mt-2 text-3xl font-bold text-green-600">{{ number_format($stats['batch_yield_avg'], 1) }}%</div>
-                <div class="text-xs text-gray-500 mt-1">Production efficiency</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Batch Yield</div>
+                <div class="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($stats['batch_yield_avg'], 1) }}%</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Production efficiency</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">QC Pass Rate</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">QC Pass Rate</div>
                 <div
-                    class="mt-2 text-3xl font-bold {{ $stats['qc_pass_rate'] >= 95 ? 'text-green-600' : ($stats['qc_pass_rate'] >= 85 ? 'text-yellow-600' : 'text-red-600') }}">
+                    class="mt-2 text-3xl font-bold {{ $stats['qc_pass_rate'] >= 95 ? 'text-green-600 dark:text-green-400' : ($stats['qc_pass_rate'] >= 85 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400') }}">
                     {{ number_format($stats['qc_pass_rate'], 1) }}%</div>
-                <div class="text-xs text-gray-500 mt-1">Quality control</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Quality control</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Active Registrations</div>
-                <div class="mt-2 text-3xl font-bold text-blue-600">{{ $stats['active_registrations'] }}</div>
-                <div class="text-xs text-gray-500 mt-1">Regulatory compliance</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Registrations</div>
+                <div class="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{{ $stats['active_registrations'] }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Regulatory compliance</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Open Recalls</div>
-                <div class="mt-2 text-3xl font-bold {{ $stats['open_recalls'] > 0 ? 'text-red-600' : 'text-green-600' }}">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Open Recalls</div>
+                <div class="mt-2 text-3xl font-bold {{ $stats['open_recalls'] > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
                     {{ $stats['open_recalls'] }}</div>
-                <div class="text-xs text-gray-500 mt-1">Product safety</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Product safety</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500">Expiry Alerts (30d)</div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Expiry Alerts (30d)</div>
                 <div
-                    class="mt-2 text-3xl font-bold {{ $stats['expiry_alerts_30d'] > 0 ? 'text-orange-600' : 'text-green-600' }}">
+                    class="mt-2 text-3xl font-bold {{ $stats['expiry_alerts_30d'] > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400' }}">
                     {{ $stats['expiry_alerts_30d'] }}</div>
-                <div class="text-xs text-gray-500 mt-1">Upcoming expirations</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Upcoming expirations</div>
             </div>
         </div>
 
         <!-- Report Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <a href="{{ route('cosmetic.analytics.batch-performance') }}"
-                class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition p-6">
                 <div class="flex items-center mb-4">
-                    <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 rounded-lg p-3">
+                        <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Batch Performance</h3>
-                        <p class="text-sm text-gray-500">Yield & QC analysis</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Batch Performance</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Yield & QC analysis</p>
                     </div>
                 </div>
-                <div class="text-sm text-blue-600 font-medium">View Report →</div>
+                <div class="text-sm text-blue-600 dark:text-blue-400 font-medium">View Report →</div>
             </a>
 
             <a href="{{ route('cosmetic.analytics.qc-trend') }}"
-                class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition p-6">
                 <div class="flex items-center mb-4">
-                    <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex-shrink-0 bg-green-100 dark:bg-green-900 rounded-lg p-3">
+                        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-lg font-semibold text-gray-900">QC Trend Analysis</h3>
-                        <p class="text-sm text-gray-500">Test results over time</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">QC Trend Analysis</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Test results over time</p>
                     </div>
                 </div>
-                <div class="text-sm text-green-600 font-medium">View Report →</div>
+                <div class="text-sm text-green-600 dark:text-green-400 font-medium">View Report →</div>
             </a>
 
             <a href="{{ route('cosmetic.analytics.regulatory') }}"
-                class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+                class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition p-6">
                 <div class="flex items-center mb-4">
-                    <div class="flex-shrink-0 bg-red-100 rounded-lg p-3">
+                    <div class="flex-shrink-0 bg-red-100 dark:bg-red-900 rounded-lg p-3">
                         <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

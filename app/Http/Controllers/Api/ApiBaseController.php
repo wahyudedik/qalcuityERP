@@ -17,9 +17,13 @@ class ApiBaseController extends Controller
         return $this->ok($data, $message, 201);
     }
 
-    protected function error(string $message, int $status = 400): JsonResponse
+    protected function error(string $message, int $status = 400, mixed $data = null): JsonResponse
     {
-        return response()->json(['success' => false, 'message' => $message], $status);
+        $response = ['success' => false, 'message' => $message];
+        if ($data !== null) {
+            $response['data'] = $data;
+        }
+        return response()->json($response, $status);
     }
 
     protected function success(mixed $data, string $message = 'OK', int $status = 200): JsonResponse

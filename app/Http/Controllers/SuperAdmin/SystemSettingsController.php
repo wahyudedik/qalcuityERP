@@ -216,11 +216,7 @@ class SystemSettingsController extends Controller
 
             // Make a simple test request using the configured model
             $response = $client->generativeModel(
-                model: $model,
-                generationConfig: [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 100,
-                ]
+                model: $model
             )->generateContent('Test connection - respond with: OK');
             $text = $response->text();
 

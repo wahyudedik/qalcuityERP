@@ -476,13 +476,13 @@
   - [ ] 51.8 Pastikan semua view SuperAdmin mendukung dark/light mode dan responsif
 
 - [ ] 52. Audit & Perbaikan Public API
-  - [ ] 52.1 Verifikasi semua API controller di `app/Http/Controllers/Api/` berfungsi tanpa error
-  - [ ] 52.2 Verifikasi ApiBaseController — autentikasi API token, rate limiting, response format
-  - [ ] 52.3 Verifikasi ApiInvoiceController, ApiOrderController, ApiProductController, ApiCustomerController
-  - [ ] 52.4 Verifikasi ApiStatsController — endpoint statistik bisnis untuk integrasi eksternal
-  - [ ] 52.5 Verifikasi semua API industri spesifik (Healthcare, Hotel, HRM, Inventory, dll.)
-  - [ ] 52.6 Pastikan semua API mengembalikan response JSON yang konsisten dengan format standar
-  - [ ] 52.7 Verifikasi dokumentasi API tersedia dan akurat di halaman `/documentation`
+  - [x] 52.1 Verifikasi semua API controller di `app/Http/Controllers/Api/` berfungsi tanpa error
+  - [x] 52.2 Verifikasi ApiBaseController — autentikasi API token, rate limiting, response format
+  - [x] 52.3 Verifikasi ApiInvoiceController, ApiOrderController, ApiProductController, ApiCustomerController
+  - [x] 52.4 Verifikasi ApiStatsController — endpoint statistik bisnis untuk integrasi eksternal
+  - [x] 52.5 Verifikasi semua API industri spesifik (Healthcare, Hotel, HRM, Inventory, dll.)
+  - [x] 52.6 Pastikan semua API mengembalikan response JSON yang konsisten dengan format standar
+  - [x] 52.7 Verifikasi dokumentasi API tersedia dan akurat di halaman `/documentation`
 
 - [ ] 53. Audit & Perbaikan Auth & Security
   - [ ] 53.1 Verifikasi alur registrasi tenant baru — register → verifikasi email → onboarding
