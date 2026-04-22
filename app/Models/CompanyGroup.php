@@ -12,8 +12,10 @@ class CompanyGroup extends Model
 use HasFactory;
 
     protected $fillable = [
+        'owner_user_id',
         'name',
         'code',
+        'currency_code',
         'description',
         'parent_tenant_id',
         'is_active',
