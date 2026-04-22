@@ -963,6 +963,7 @@ class DashboardController extends Controller
      * Convert nested array to object recursively
      * Handles nested relationships like admins, subscription_plan, etc.
      * Also converts date strings back to Carbon instances
+     * Adds computed properties for Tenant objects
      */
     private function arrayToObject($array)
     {
@@ -997,7 +998,47 @@ class DashboardController extends Controller
             }
         }
 
+        // Add computed methods for Tenant objects
+        if (isset($object->plan) && isset($object->is_active)) {
+            $this->addTenantMethods($object);
+        }
+
         return $object;
+    }
+
+    /**
+     * Add computed methods to Tenant objects
+     */
+    private function addTenantMethods($tenant)
+    {
+        // Add subscriptionStatus method
+        $tenant->subscriptionStatus = function() use ($tenant) {
+            if (!$tenant->is_active) {
+                return 'nonaktif';
+            }
+            
+            // Check trial expired
+            if ($tenant->plan === 'trial' 
+                && isset($tenant->trial_ends_at) 
+                && $tenant->trial_ends_at 
+                && $tenant->trial_ends_at->isPast()) {
+                return 'trial_expired';
+            }
+            
+            // Check plan expired
+            if ($tenant->plan !== 'trial' 
+                && isset($tenant->plan_expires_at) 
+                && $tenant->plan_expires_at 
+                && $tenant->plan_expires_at->isPast()) {
+                return 'expired';
+            }
+            
+            if ($tenant->plan === 'trial') {
+                return 'trial';
+            }
+            
+            return 'active';
+        };
     }
 
     /**
