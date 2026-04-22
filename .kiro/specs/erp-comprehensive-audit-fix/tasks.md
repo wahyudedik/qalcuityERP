@@ -279,6 +279,16 @@
   - [x] 26.9 Update SystemSettingsController testGeminiApiKey method to use generic "AI Service" terminology
   - [x] 26.10 Verify no user-facing "Gemini" references remain in error messages
 
+- [x] 27. Fix Dashboard Super Admin View Cached Object Errors
+  - [x] 27.1 Fix maxAiMessages() method call on cached stdClass object in topAiTenants section
+  - [x] 27.2 Fix admins relationship access on cached array in expiringIn30 section
+  - [x] 27.3 Fix created_at date formatting on cached string in recentTenants section
+  - [x] 27.4 Fix expiryDate formatting on cached string in expiringIn30 section
+
+- [x] 28. Fix TableReservation Foreign Key Mismatch
+  - [x] 28.1 Fix RestaurantTable::reservations() relationship to use correct 'table_id' foreign key
+  - [x] 28.2 Verify no other references to incorrect 'restaurant_table_id' column name
+
 ## Fase 8: Modul Industri Tambahan
 
 - [x] 26. Audit & Perbaikan Modul Cosmetic

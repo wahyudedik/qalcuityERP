@@ -228,7 +228,8 @@
                 @foreach ($expiringIn30 as $tenant)
                     @php
                         $expiryDate = $tenant->plan === 'trial' ? $tenant->trial_ends_at : $tenant->plan_expires_at;
-                        $daysLeft = $expiryDate ? now()->diffInDays($expiryDate, false) : null;
+                        $expiryDateCarbon = $expiryDate ? \Carbon\Carbon::parse($expiryDate) : null;
+                        $daysLeft = $expiryDateCarbon ? now()->diffInDays($expiryDateCarbon, false) : null;
                         $urgency = $daysLeft !== null && $daysLeft <= 7 ? 'text-red-400' : 'text-amber-400';
                     @endphp
                     <div class="flex items-center justify-between py-2.5">
@@ -241,11 +242,11 @@
                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                                     {{ $tenant->name }}</p>
                                 <p class="text-xs text-gray-400 dark:text-slate-500">
-                                    {{ $tenant->admins->first()?->email ?? $tenant->slug }}</p>
+                                    {{ $tenant->admins[0]?->email ?? $tenant->slug }}</p>
                             </div>
                         </div>
                         <div class="text-right shrink-0 ml-3">
-                            <p class="text-xs font-semibold {{ $urgency }}">{{ $expiryDate?->format('d M Y') }}
+                            <p class="text-xs font-semibold {{ $urgency }}">{{ $expiryDateCarbon?->format('d M Y') }}
                             </p>
                             <p class="text-xs text-gray-400 dark:text-slate-500">
                                 {{ $daysLeft !== null ? $daysLeft . ' hari lagi' : '—' }}</p>
@@ -294,7 +295,7 @@
                                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                                         {{ $tenant->name }}</p>
                                     <p class="text-xs text-gray-400 dark:text-slate-500">
-                                        {{ $tenant->created_at->format('d M Y') }}</p>
+                                        {{ \Carbon\Carbon::parse($tenant->created_at)->format('d M Y') }}</p>
                                 </div>
                             </div>
                             <span
@@ -324,7 +325,7 @@
                                             pesan</span>
                                     </div>
                                     @php
-                                        $maxAi = $log->tenant?->maxAiMessages() ?? 100;
+                                        $maxAi = $log->tenant?->subscription_plan?->max_ai_messages ?? 100;
                                         $pct = $maxAi > 0 ? min(100, round(($log->total / $maxAi) * 100)) : 0;
                                     @endphp
                                     <div class="w-full bg-gray-100 dark:bg-white/10 rounded-full h-1.5">

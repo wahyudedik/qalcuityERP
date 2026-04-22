@@ -40,7 +40,7 @@ class RestaurantTable extends Model
 
     public function reservations(): HasMany
     {
-        return $this->hasMany(TableReservation::class);
+        return $this->hasMany(TableReservation::class, 'table_id');
     }
 
     /**
