@@ -302,6 +302,11 @@ self.addEventListener('message', (event) => {
             })
         );
     }
+
+    // Trigger manual POS sync
+    if (event.data && event.data.type === 'POS_SYNC') {
+        event.waitUntil(syncPosQueue());
+    }
 });
 
 // Background sync for offline actions
@@ -311,12 +316,137 @@ self.addEventListener('sync', (event) => {
     if (event.tag === 'sync-data') {
         event.waitUntil(syncData());
     }
+
+    if (event.tag === 'pos-checkout-sync') {
+        event.waitUntil(syncPosQueue());
+    }
 });
 
 async function syncData() {
     // Get pending offline actions from IndexedDB
     // This would integrate with your offline-manager.js
     console.log('[SW] Syncing offline data...');
+}
+
+async function syncPosQueue() {
+    console.log('[SW] Syncing POS offline queue...');
+
+    try {
+        // Open IndexedDB
+        const db = await openPosDb();
+        const items = await getAllPosQueueItems(db);
+
+        if (items.length === 0) {
+            console.log('[SW] POS queue empty, nothing to sync');
+            return;
+        }
+
+        console.log(`[SW] Found ${items.length} POS transactions to sync`);
+
+        // Get CSRF token from a page client
+        const clients = await self.clients.matchAll({ type: 'window' });
+        let csrfToken = null;
+        for (const client of clients) {
+            // Ask the client for the CSRF token
+            const channel = new MessageChannel();
+            const tokenPromise = new Promise(resolve => {
+                channel.port1.onmessage = e => resolve(e.data?.csrf_token || null);
+                setTimeout(() => resolve(null), 2000);
+            });
+            client.postMessage({ type: 'GET_CSRF_TOKEN' }, [channel.port2]);
+            csrfToken = await tokenPromise;
+            if (csrfToken) break;
+        }
+
+        if (!csrfToken) {
+            console.warn('[SW] Could not get CSRF token, deferring sync');
+            return;
+        }
+
+        // Build transactions array for batch sync
+        const transactions = items.map(item => ({
+            offline_id: String(item.id),
+            ...item.payload,
+        }));
+
+        const response = await fetch('/pos/sync-offline', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Offline-Sync': '1',
+            },
+            body: JSON.stringify({ transactions }),
+        });
+
+        if (!response.ok) {
+            console.error('[SW] POS sync failed with status:', response.status);
+            return;
+        }
+
+        const result = await response.json();
+        console.log('[SW] POS sync result:', result);
+
+        // Remove successfully synced items from IndexedDB
+        const successIds = (result.results || [])
+            .filter(r => r.success)
+            .map(r => r.offline_id);
+
+        for (const offlineId of successIds) {
+            const item = items.find(i => String(i.id) === offlineId);
+            if (item) {
+                await deletePosQueueItem(db, item.id);
+            }
+        }
+
+        // Notify all open clients
+        const syncedCount = result.synced || 0;
+        const failedCount = result.failed || 0;
+        for (const client of clients) {
+            client.postMessage({
+                type: 'POS_SYNC_SUCCESS',
+                synced: syncedCount,
+                failed: failedCount,
+                message: result.message,
+            });
+        }
+
+    } catch (error) {
+        console.error('[SW] POS sync error:', error);
+    }
+}
+
+function openPosDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('qalcuity-pos', 1);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('pos_queue')) {
+                const store = db.createObjectStore('pos_queue', { keyPath: 'id', autoIncrement: true });
+                store.createIndex('queued_at', 'queued_at');
+            }
+        };
+    });
+}
+
+function getAllPosQueueItems(db) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('pos_queue', 'readonly');
+        const req = tx.objectStore('pos_queue').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = e => reject(e.target.error);
+    });
+}
+
+function deletePosQueueItem(db, id) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('pos_queue', 'readwrite');
+        const req = tx.objectStore('pos_queue').delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = e => reject(e.target.error);
+    });
 }
 
 // Push notification handling
