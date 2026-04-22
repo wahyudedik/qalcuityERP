@@ -94,7 +94,7 @@ class ConsolidationService
 
         $eliminationTotal = (float) InterCompanyTransaction::where('company_group_id', $groupId)
             ->where('status', 'posted')
-            ->whereYear('date', $year)->whereMonth('date', $month)
+            ->whereYear('transaction_date', $year)->whereMonth('transaction_date', $month)
             ->sum('amount');
 
         return [
@@ -172,11 +172,11 @@ class ConsolidationService
     {
         $transactions = InterCompanyTransaction::where('company_group_id', $groupId)
             ->where('status', 'posted')
-            ->whereYear('date', $year)->whereMonth('date', $month)
+            ->whereYear('transaction_date', $year)->whereMonth('transaction_date', $month)
             ->with(['fromTenant', 'toTenant'])
             ->get();
 
-        $byType = $transactions->groupBy('type')->map(fn($items) => [
+        $byType = $transactions->groupBy('transaction_type')->map(fn($items) => [
             'count'  => $items->count(),
             'amount' => $items->sum('amount'),
         ]);
@@ -187,9 +187,9 @@ class ConsolidationService
             'items'      => $transactions->map(fn($t) => [
                 'from'   => $t->fromTenant?->name ?? "#{$t->from_tenant_id}",
                 'to'     => $t->toTenant?->name ?? "#{$t->to_tenant_id}",
-                'type'   => $t->type,
+                'type'   => $t->transaction_type,
                 'amount' => (float) $t->amount,
-                'ref'    => $t->reference,
+                'ref'    => $t->reference_type,
             ])->toArray(),
         ];
     }
@@ -309,13 +309,13 @@ class ConsolidationService
             'company_group_id' => $group->id,
             'from_tenant_id'   => $fromTenantId,
             'to_tenant_id'     => $toTenantId,
-            'type'             => $type,
+            'transaction_type' => $type,
             'amount'           => $amount,
             'description'      => $description,
-            'date'             => $date,
-            'reference'        => 'IC-' . strtoupper(substr(uniqid(), -6)),
-            'currency_code'    => $group->currency_code ?? 'IDR',
+            'transaction_date' => $date,
+            'currency'         => $group->currency_code ?? 'IDR',
             'status'           => 'pending',
+            'created_by_user_id' => auth()->id(),
         ]);
     }
 

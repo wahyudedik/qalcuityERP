@@ -356,8 +356,8 @@
 
 - [x] 39. Audit & Perbaikan Modul Multi-Company & Konsolidasi
   - [x] 39.1 Verifikasi MultiCompanyController — manajemen entitas bisnis dalam satu platform
-  - [x] 39.2 Verifikasi ConsolidationService — konsolidasi laporan keuangan antar entitas (Fixed InterCompanyTransaction import)
-  - [x] 39.3 Verifikasi CompanyGroupController — pengelompokan perusahaan untuk konsolidasi (Fixed HasMany::attach() + joined_date + InterCompanyTransaction import)
+  - [x] 39.2 Verifikasi ConsolidationService — konsolidasi laporan keuangan antar entitas (Fixed InterCompanyTransaction import + column names)
+  - [x] 39.3 Verifikasi CompanyGroupController — pengelompokan perusahaan untuk konsolidasi (Fixed HasMany::attach() + joined_date + InterCompanyTransaction import + column names)
   - [ ] 39.4 Pastikan semua view Multi-Company mendukung dark/light mode dan responsif
 
 - [ ] 40. Audit & Perbaikan Modul IoT & Smart Devices

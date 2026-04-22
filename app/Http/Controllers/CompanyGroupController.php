@@ -75,7 +75,7 @@ class CompanyGroupController extends Controller
 
         $transactions = InterCompanyTransaction::where('company_group_id', $companyGroup->id)
             ->with(['fromTenant', 'toTenant'])
-            ->latest('date')
+            ->latest('transaction_date')
             ->paginate(30);
 
         $availableTenants = Tenant::where('is_active', true)
