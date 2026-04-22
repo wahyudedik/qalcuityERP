@@ -289,6 +289,11 @@
   - [x] 28.1 Fix RestaurantTable::reservations() relationship to use correct 'table_id' foreign key
   - [x] 28.2 Verify no other references to incorrect 'restaurant_table_id' column name
 
+- [x] 29. Fix Gemini API Key Test Using Outdated Model
+  - [x] 29.1 Replace geminiPro() call with generativeModel() using configured model
+  - [x] 29.2 Update model from 'gemini-2.0-flash' to 'gemini-2.5-flash'
+  - [x] 29.3 Add proper generation config for test request
+
 ## Fase 8: Modul Industri Tambahan
 
 - [x] 26. Audit & Perbaikan Modul Cosmetic

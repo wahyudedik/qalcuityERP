@@ -212,10 +212,16 @@ class SystemSettingsController extends Controller
 
             // Test API key by making a simple request
             $client = \Gemini::factory()->withApiKey($apiKey)->make();
-            $model = config('gemini.model', 'gemini-2.0-flash');
+            $model = config('gemini.model', 'gemini-2.5-flash');
 
-            // Make a simple test request
-            $response = $client->geminiPro()->generateContent('Test connection - respond with: OK');
+            // Make a simple test request using the configured model
+            $response = $client->generativeModel(
+                model: $model,
+                generationConfig: [
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 100,
+                ]
+            )->generateContent('Test connection - respond with: OK');
             $text = $response->text();
 
             return response()->json([
