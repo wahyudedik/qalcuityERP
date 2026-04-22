@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanyGroup;
-use App\Models\IntercompanyTransaction;
+use App\Models\InterCompanyTransaction;
 use App\Models\Tenant;
 use App\Services\ConsolidationService;
 use Illuminate\Http\Request;
@@ -73,7 +73,7 @@ class CompanyGroupController extends Controller
         $cashFlow = $this->consolidation->consolidatedCashFlow($companyGroup, $period);
         $trend = $this->consolidation->consolidatedTrend($companyGroup, 6);
 
-        $transactions = IntercompanyTransaction::where('company_group_id', $companyGroup->id)
+        $transactions = InterCompanyTransaction::where('company_group_id', $companyGroup->id)
             ->with(['fromTenant', 'toTenant'])
             ->latest('date')
             ->paginate(30);
@@ -140,7 +140,7 @@ class CompanyGroupController extends Controller
         return back()->with('success', 'Transaksi intercompany berhasil dicatat.');
     }
 
-    public function postTransaction(IntercompanyTransaction $transaction)
+    public function postTransaction(InterCompanyTransaction $transaction)
     {
         $group = CompanyGroup::find($transaction->company_group_id);
         abort_if(!$group, 404);
@@ -149,7 +149,7 @@ class CompanyGroupController extends Controller
         return back()->with('success', 'Transaksi diposting.');
     }
 
-    public function voidTransaction(IntercompanyTransaction $transaction)
+    public function voidTransaction(InterCompanyTransaction $transaction)
     {
         $group = CompanyGroup::find($transaction->company_group_id);
         abort_if(!$group, 404);
