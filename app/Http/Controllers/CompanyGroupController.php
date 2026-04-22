@@ -27,7 +27,7 @@ class CompanyGroupController extends Controller
         $user = auth()->user();
         $groups = CompanyGroup::where('owner_user_id', $user->id)
             ->orWhereHas('members', fn ($q) => $q->where('tenant_id', $user->tenant_id))
-            ->withCount('members')
+            ->withCount(['members' => fn ($q) => $q->where('tenant_id', $user->tenant_id)])
             ->latest()
             ->get();
 
