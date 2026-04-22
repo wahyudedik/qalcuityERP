@@ -327,7 +327,7 @@ class DashboardController extends Controller
         // ✅ OPTIMASI: Cache super admin stats selama 5 menit
         $cached = cache()->remember('super_admin_dashboard', 300, function () {
             $totalTenants = Tenant::count();
-            $activeTenants = Tenant::where('is_active', true)->get();
+            $activeTenants = Tenant::where('is_active', true)->get()->toArray();
             $trialTenants = Tenant::where('plan', 'trial')->count();
             $expiredTenants = Tenant::where('is_active', true)
                 ->where(
@@ -427,6 +427,9 @@ class DashboardController extends Controller
         });
 
         // Convert arrays back to Collections for view compatibility
+        $cached['activeTenants'] = collect($cached['activeTenants'])->map(function ($item) {
+            return $this->arrayToObject($item);
+        });
         $cached['expiringIn7'] = collect($cached['expiringIn7'])->map(function ($item) {
             return $this->arrayToObject($item);
         });
