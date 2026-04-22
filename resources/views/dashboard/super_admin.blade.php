@@ -269,13 +269,14 @@
                 <div class="divide-y divide-gray-100 dark:divide-white/5">
                     @foreach ($recentTenants as $tenant)
                         @php
-                            $statusColor = match ($tenant->subscriptionStatus()) {
+                            $subscriptionStatus = get_tenant_subscription_status($tenant);
+                            $statusColor = match ($subscriptionStatus) {
                                 'active' => 'bg-green-500/20 text-green-400',
                                 'trial' => 'bg-amber-500/20 text-amber-400',
                                 'trial_expired', 'expired' => 'bg-red-500/20 text-red-400',
                                 default => 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-slate-400',
                             };
-                            $statusLabel = match ($tenant->subscriptionStatus()) {
+                            $statusLabel = match ($subscriptionStatus) {
                                 'active' => 'Aktif',
                                 'trial' => 'Trial',
                                 'trial_expired' => 'Trial Expired',

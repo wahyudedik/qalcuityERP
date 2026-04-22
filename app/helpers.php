@@ -58,3 +58,40 @@ if (!function_exists('abbreviate_number_id')) {
         return NumberHelper::abbreviate($number, $decimals);
     }
 }
+
+if (!function_exists('get_tenant_subscription_status')) {
+    /**
+     * Get tenant subscription status from cached object
+     * 
+     * @param object $tenant
+     * @return string
+     */
+    function get_tenant_subscription_status($tenant): string
+    {
+        if (!$tenant->is_active) {
+            return 'nonaktif';
+        }
+        
+        // Check trial expired
+        if ($tenant->plan === 'trial' 
+            && isset($tenant->trial_ends_at) 
+            && $tenant->trial_ends_at 
+            && $tenant->trial_ends_at->isPast()) {
+            return 'trial_expired';
+        }
+        
+        // Check plan expired
+        if ($tenant->plan !== 'trial' 
+            && isset($tenant->plan_expires_at) 
+            && $tenant->plan_expires_at 
+            && $tenant->plan_expires_at->isPast()) {
+            return 'expired';
+        }
+        
+        if ($tenant->plan === 'trial') {
+            return 'trial';
+        }
+        
+        return 'active';
+    }
+}
