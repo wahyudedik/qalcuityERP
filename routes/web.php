@@ -2658,6 +2658,14 @@ Route::post('/webhook/xendit', [\App\Http\Controllers\PaymentGatewayController::
     ->name('webhook.xendit')
     ->middleware(['webhook.verify:xendit', 'throttle:webhook-inbound']);
 
+// Accounting Integration Webhooks (no auth, verified by signature)
+Route::post('/webhook/accounting/jurnal-id', [\App\Http\Controllers\Integrations\AccountingWebhookController::class, 'handleJurnalIdWebhook'])
+    ->name('webhook.accounting.jurnal-id')
+    ->middleware('throttle:webhook-inbound');
+Route::post('/webhook/accounting/accurate-online', [\App\Http\Controllers\Integrations\AccountingWebhookController::class, 'handleAccurateOnlineWebhook'])
+    ->name('webhook.accounting.accurate-online')
+    ->middleware('throttle:webhook-inbound');
+
 // ── Telecom Module - Device Management ──────────────────────────────────────
 Route::prefix('telecom')->name('telecom.')->middleware(['auth', 'verified', 'tenant.isolation'])->group(function () {
     // Dashboard
@@ -2924,6 +2932,10 @@ Route::prefix('integrations')->name('integrations.')->middleware(['auth', 'verif
     Route::prefix('accounting')->name('accounting.')->group(function () {
         Route::get('integrations', [\App\Http\Controllers\IntegrationController::class, 'accountingIntegrations'])->name('integrations');
         Route::post('connect', [\App\Http\Controllers\IntegrationController::class, 'connectAccounting'])->name('connect');
+        Route::post('test-connection', [\App\Http\Controllers\IntegrationController::class, 'testAccountingConnection'])->name('test-connection');
+        Route::post('sync-journals', [\App\Http\Controllers\IntegrationController::class, 'syncAccountingJournals'])->name('sync-journals');
+        Route::post('sync-invoices', [\App\Http\Controllers\IntegrationController::class, 'syncAccountingInvoices'])->name('sync-invoices');
+        Route::get('sync-logs', [\App\Http\Controllers\IntegrationController::class, 'getAccountingSyncLogs'])->name('sync-logs');
     });
 
     // Communication

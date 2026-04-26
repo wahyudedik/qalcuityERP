@@ -198,11 +198,148 @@ class IntegrationController extends Controller
             'api_secret' => 'required|string',
         ]);
 
-        $integration = \App\Models\AccountingIntegration::create(array_merge($request->all(), [
-            'tenant_id' => auth()->user()->tenant_id,
-        ]));
+        try {
+            $integration = \App\Models\AccountingIntegration::create(array_merge($request->all(), [
+                'tenant_id' => auth()->user()->tenant_id,
+            ]));
 
-        return response()->json(['success' => true, 'integration' => $integration]);
+            return response()->json(['success' => true, 'integration' => $integration]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('IntegrationController: connect accounting failed', [
+                'provider' => $request->provider,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal menghubungkan integrasi akuntansi: ' . $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Test koneksi ke layanan akuntansi eksternal
+     */
+    public function testAccountingConnection(Request $request)
+    {
+        $request->validate([
+            'integration_id' => 'required|exists:accounting_integrations,id',
+        ]);
+
+        try {
+            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+                ->where('tenant_id', auth()->user()->tenant_id)
+                ->firstOrFail();
+
+            $service = new \App\Services\AccountingIntegrationService();
+            $result = $service->testConnection($integration);
+
+            return response()->json($result);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal menguji koneksi: ' . $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Sinkronisasi jurnal ke layanan akuntansi eksternal
+     */
+    public function syncAccountingJournals(Request $request)
+    {
+        $request->validate([
+            'integration_id' => 'required|exists:accounting_integrations,id',
+            'journal_ids' => 'required|array|min:1',
+            'journal_ids.*' => 'integer|exists:journal_entries,id',
+        ]);
+
+        try {
+            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+                ->where('tenant_id', auth()->user()->tenant_id)
+                ->firstOrFail();
+
+            $service = new \App\Services\AccountingIntegrationService();
+            $syncLog = $service->syncJournals($integration, $request->journal_ids);
+
+            return response()->json([
+                'success' => $syncLog->status === 'success',
+                'sync_log' => $syncLog,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('IntegrationController: sync journals failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal sinkronisasi jurnal: ' . $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Sinkronisasi invoice ke layanan akuntansi eksternal
+     */
+    public function syncAccountingInvoices(Request $request)
+    {
+        $request->validate([
+            'integration_id' => 'required|exists:accounting_integrations,id',
+            'invoice_ids' => 'required|array|min:1',
+            'invoice_ids.*' => 'integer|exists:invoices,id',
+        ]);
+
+        try {
+            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+                ->where('tenant_id', auth()->user()->tenant_id)
+                ->firstOrFail();
+
+            $service = new \App\Services\AccountingIntegrationService();
+            $syncLog = $service->syncInvoices($integration, $request->invoice_ids);
+
+            return response()->json([
+                'success' => $syncLog->status === 'success',
+                'sync_log' => $syncLog,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('IntegrationController: sync invoices failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal sinkronisasi invoice: ' . $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Ambil sync logs untuk integrasi akuntansi
+     */
+    public function getAccountingSyncLogs(Request $request)
+    {
+        $request->validate([
+            'integration_id' => 'required|exists:accounting_integrations,id',
+            'limit' => 'nullable|integer|min:1|max:100',
+        ]);
+
+        try {
+            $integration = \App\Models\AccountingIntegration::where('id', $request->integration_id)
+                ->where('tenant_id', auth()->user()->tenant_id)
+                ->firstOrFail();
+
+            $logs = \App\Models\AccountingSyncLog::where('integration_id', $integration->id)
+                ->orderBy('started_at', 'desc')
+                ->limit($request->input('limit', 50))
+                ->get();
+
+            return response()->json(['logs' => $logs]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal mengambil sync logs: ' . $e->getMessage(),
+            ], 400);
+        }
     }
 
     // ==================== COMMUNICATION ====================
