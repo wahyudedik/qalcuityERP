@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,31 +12,31 @@
 
     <?php if(session('success')): ?>
         <div
-            class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">
+            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             <?php echo e(session('success')); ?></div>
     <?php endif; ?>
 
     
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Kapal</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Kapal</p>
             <p class="text-2xl font-bold text-blue-600"><?php echo e($stats['total_vessels'] ?? 0); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Trip Aktif</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Trip Aktif</p>
             <p class="text-2xl font-bold text-emerald-600"><?php echo e($stats['active_trips'] ?? 0); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Trip Hari Ini</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Trip Hari Ini</p>
             <p class="text-2xl font-bold text-cyan-600"><?php echo e($stats['trips_today'] ?? 0); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Tangkapan</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Tangkapan</p>
             <p class="text-2xl font-bold text-purple-600"><?php echo e(number_format($stats['total_catch_weight'] ?? 0, 1)); ?> kg
             </p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Estimasi Nilai</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Estimasi Nilai</p>
             <p class="text-2xl font-bold text-orange-600">Rp
                 <?php echo e(number_format($stats['total_estimated_value'] ?? 0, 0, ',', '.')); ?></p>
         </div>
@@ -46,9 +46,9 @@
     <div class="flex items-center justify-between mb-4">
         <form class="flex items-center gap-2">
             <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari trip..."
-                class="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white w-48">
+                class="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 w-48">
             <select name="status" onchange="this.form.submit()"
-                class="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
                 <?php $__currentLoopData = ['planned' => 'Direncanakan', 'departed' => 'Berangkat', 'fishing' => 'Menangkap', 'returning' => 'Pulang', 'completed' => 'Selesai']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($v); ?>" <?php if(request('status') === $v): echo 'selected'; endif; ?>><?php echo e($l); ?></option>
@@ -64,9 +64,9 @@
     
     <?php if(empty($trips) || count($trips) === 0): ?>
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
+            class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p class="text-4xl mb-3">⚓</p>
-            <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada trip penangkapan. Buat trip pertama Anda.</p>
+            <p class="text-sm text-gray-500">Belum ada trip penangkapan. Buat trip pertama Anda.</p>
         </div>
     <?php else: ?>
         <div class="space-y-4">
@@ -91,30 +91,30 @@
                     $color = $statusColors[$trip->status] ?? 'gray';
                     $label = $statusLabels[$trip->status] ?? $trip->status;
                 ?>
-                <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-lg transition"
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition"
                     x-data="{ showCatchForm: false }">
 
                     
                     <div
-                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100 dark:border-white/5">
+                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
                         <div class="flex-1">
                             <div class="flex items-center gap-3">
                                 <span
-                                    class="text-lg font-bold text-gray-900 dark:text-white"><?php echo e($trip->trip_number); ?></span>
+                                    class="text-lg font-bold text-gray-900"><?php echo e($trip->trip_number); ?></span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-<?php echo e($color); ?>-100 text-<?php echo e($color); ?>-700 dark:bg-<?php echo e($color); ?>-500/20 dark:text-<?php echo e($color); ?>-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-<?php echo e($color); ?>-100 text-<?php echo e($color); ?>-700 $color }}-500/20 $color }}-400">
                                     <?php echo e($label); ?>
 
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">
+                            <p class="text-sm text-gray-500 mt-1">
                                 🚢 <?php echo e($trip->vessel->name ?? 'N/A'); ?> | 👨‍✈️ <?php echo e($trip->captain->name ?? 'N/A'); ?>
 
                             </p>
                         </div>
                         <div class="text-right">
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Berangkat</p>
-                            <p class="text-sm font-medium text-gray-700 dark:text-slate-300">
+                            <p class="text-xs text-gray-500">Berangkat</p>
+                            <p class="text-sm font-medium text-gray-700">
                                 <?php echo e($trip->departure_time ? $trip->departure_time->format('d M Y, H:i') : '-'); ?>
 
                             </p>
@@ -128,14 +128,14 @@
                                 <div>
                                     <span class="text-gray-400 text-xs block">Zona Penangkapan</span>
                                     <span
-                                        class="text-gray-700 dark:text-slate-300 font-medium"><?php echo e($trip->fishing_zone->name ?? $trip->fishing_zone); ?></span>
+                                        class="text-gray-700 font-medium"><?php echo e($trip->fishing_zone->name ?? $trip->fishing_zone); ?></span>
                                 </div>
                             <?php endif; ?>
                             <?php if($trip->expected_return): ?>
                                 <div>
                                     <span class="text-gray-400 text-xs block">Kembali (Rencana)</span>
                                     <span
-                                        class="text-gray-700 dark:text-slate-300 font-medium"><?php echo e($trip->expected_return->format('d M Y, H:i')); ?></span>
+                                        class="text-gray-700 font-medium"><?php echo e($trip->expected_return->format('d M Y, H:i')); ?></span>
                                 </div>
                             <?php endif; ?>
                             <div>
@@ -154,9 +154,9 @@
 
                         
                         <?php if($trip->crew_count > 0): ?>
-                            <div class="mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+                            <div class="mt-3 pt-3 border-t border-gray-100">
                                 <span class="text-xs text-gray-400">Awak Kapal:</span>
-                                <span class="text-sm text-gray-700 dark:text-slate-300 ml-1"><?php echo e($trip->crew_count); ?>
+                                <span class="text-sm text-gray-700 ml-1"><?php echo e($trip->crew_count); ?>
 
                                     orang</span>
                             </div>
@@ -164,18 +164,18 @@
 
                         
                         <div x-show="showCatchForm" x-transition
-                            class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
-                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">🐟 Catat Tangkapan</h4>
+                            class="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-3">🐟 Catat Tangkapan</h4>
                             <form :action="'<?php echo e(route('fisheries.operations.record-catch', $trip->id)); ?>'"
                                 method="POST" class="space-y-3">
                                 <?php echo csrf_field(); ?>
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Spesies
+                                            class="block text-xs font-medium text-gray-600 mb-1">Spesies
                                             *</label>
                                         <select name="species_id" required
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                             <option value="">Pilih Spesies</option>
                                             <?php $__currentLoopData = $species_list ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <option value="<?php echo e($sp->id); ?>"><?php echo e($sp->common_name); ?>
@@ -186,28 +186,28 @@
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Jumlah
+                                            class="block text-xs font-medium text-gray-600 mb-1">Jumlah
                                             (ekor)</label>
                                         <input type="number" name="quantity" required step="1" min="0"
                                             placeholder="100"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Berat
+                                            class="block text-xs font-medium text-gray-600 mb-1">Berat
                                             Total (kg) *</label>
                                         <input type="number" name="total_weight" required step="0.01" min="0"
                                             placeholder="250.5"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Grade
+                                            class="block text-xs font-medium text-gray-600 mb-1">Grade
                                             Kualitas</label>
                                         <select name="grade_id"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                             <option value="">Pilih Grade</option>
                                             <?php $__currentLoopData = $grades ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $grade): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <option value="<?php echo e($grade->id); ?>"><?php echo e($grade->grade_code); ?> -
@@ -217,11 +217,11 @@
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Skor
+                                            class="block text-xs font-medium text-gray-600 mb-1">Skor
                                             Kesegaran (0-10)</label>
                                         <input type="number" name="freshness_score" step="0.1" min="0"
                                             max="10" placeholder="8.5"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
@@ -230,7 +230,7 @@
                                         💾 Simpan Tangkapan
                                     </button>
                                     <button type="button" @click="showCatchForm = false"
-                                        class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition">
+                                        class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg transition">
                                         Batal
                                     </button>
                                 </div>
@@ -240,7 +240,7 @@
 
                     
                     <div
-                        class="px-5 py-3 bg-gray-50 dark:bg-[#0f172a] border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                        class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                         <div class="flex gap-2">
                             <?php if($trip->status === 'planned'): ?>
                                 <form :action="'<?php echo e(route('fisheries.operations.depart-trip', $trip->id)); ?>'"
@@ -272,7 +272,7 @@
                             <?php endif; ?>
                         </div>
                         <a href="<?php echo e(route('fisheries.operations.show', $trip->id)); ?>"
-                            class="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                            class="text-blue-600 hover:underline text-sm">
                             Detail Lengkap →
                         </a>
                     </div>
@@ -286,19 +286,19 @@
     <div id="newTripModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🚢 Buat Trip Penangkapan Baru</h3>
+                <h3 class="text-base font-semibold text-gray-900">🚢 Buat Trip Penangkapan Baru</h3>
                 <button onclick="document.getElementById('newTripModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="<?php echo e(route('fisheries.operations.plan-trip')); ?>" class="space-y-4">
                 <?php echo csrf_field(); ?>
-                <?php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white'; ?>
+                <?php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; ?>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kapal *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kapal *</label>
                         <select name="vessel_id" required class="<?php echo e($cls); ?>">
                             <option value="">Pilih Kapal</option>
                             <?php $__currentLoopData = $vessels ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vessel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -309,7 +309,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nakhoda
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nakhoda
                             *</label>
                         <select name="captain_id" required class="<?php echo e($cls); ?>">
                             <option value="">Pilih Nakhoda</option>
@@ -322,19 +322,19 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Waktu Berangkat
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Waktu Berangkat
                             *</label>
                         <input type="datetime-local" name="departure_time" required class="<?php echo e($cls); ?>">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kembali
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kembali
                             (Rencana)</label>
                         <input type="datetime-local" name="expected_return" class="<?php echo e($cls); ?>">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Zona
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Zona
                         Penangkapan</label>
                     <select name="fishing_zone_id" class="<?php echo e($cls); ?>">
                         <option value="">Pilih Zona</option>
@@ -345,14 +345,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Awak Kapal (IDs,
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Awak Kapal (IDs,
                         pisahkan dengan koma)</label>
                     <input type="text" name="crew_ids" placeholder="1,2,3,4" class="<?php echo e($cls); ?>">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Masukkan ID anggota awak kapal</p>
+                    <p class="text-xs text-gray-500 mt-1">Masukkan ID anggota awak kapal</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                     <textarea name="notes" rows="2" placeholder="Target spesies, strategi, dll." class="<?php echo e($cls); ?>"></textarea>
                 </div>
 
@@ -362,7 +362,7 @@
                         🚀 Buat Trip
                     </button>
                     <button type="button" onclick="document.getElementById('newTripModal').classList.add('hidden')"
-                        class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition">
+                        class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg transition">
                         Batal
                     </button>
                 </div>

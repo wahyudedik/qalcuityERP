@@ -26,15 +26,19 @@ class CrmService
         // Cek duplikat berdasarkan email atau telepon dalam scope tenant
         $existing = Customer::where('tenant_id', $lead->tenant_id)
             ->where(function ($q) use ($lead) {
-                $q->where('email', $lead->email)
-                  ->orWhere('phone', $lead->phone);
+                if ($lead->email) {
+                    $q->where('email', $lead->email);
+                }
+                if ($lead->phone) {
+                    $q->orWhere('phone', $lead->phone);
+                }
             })->first();
 
         if ($existing) {
             // Gunakan customer existing, update lead dengan referensi ke customer tersebut
             $lead->update([
                 'converted_to_customer_id' => $existing->id,
-                'status' => 'converted',
+                'stage' => CrmLead::STAGE_CONVERTED,
             ]);
             return $existing;
         }
@@ -45,11 +49,14 @@ class CrmService
             'name'      => $lead->name,
             'email'     => $lead->email,
             'phone'     => $lead->phone,
+            'company'   => $lead->company,
+            'address'   => $lead->address ?? null,
+            'is_active' => true,
         ]);
 
         $lead->update([
             'converted_to_customer_id' => $customer->id,
-            'status' => 'converted',
+            'stage' => CrmLead::STAGE_CONVERTED,
         ]);
 
         return $customer;

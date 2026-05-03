@@ -6,11 +6,22 @@ use App\Models\ActivityLog;
 use App\Models\FarmPlot;
 use App\Models\LivestockHerd;
 use App\Models\LivestockMovement;
+use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 
 class LivestockController extends Controller
 {
-    private function tid(): int { return auth()->user()->tenant_id; }
+    protected LivestockIntegrationService $integrationService;
+
+    public function __construct(LivestockIntegrationService $integrationService)
+    {
+        $this->integrationService = $integrationService;
+    }
+
+    private function tid(): int
+    {
+        return auth()->user()->tenant_id;
+    }
 
     public function index(Request $request)
     {
@@ -20,7 +31,7 @@ class LivestockController extends Controller
         if ($request->type) $query->where('animal_type', $request->type);
         if ($request->search) {
             $s = $request->search;
-            $query->where(fn ($q) => $q->where('code', 'like', "%$s%")
+            $query->where(fn($q) => $q->where('code', 'like', "%$s%")
                 ->orWhere('name', 'like', "%$s%")
                 ->orWhere('animal_type', 'like', "%$s%"));
         }
@@ -31,7 +42,7 @@ class LivestockController extends Controller
         $stats = [
             'active_herds'   => LivestockHerd::where('tenant_id', $this->tid())->where('status', 'active')->count(),
             'total_animals'  => LivestockHerd::where('tenant_id', $this->tid())->where('status', 'active')->sum('current_count'),
-            'total_mortality'=> LivestockMovement::where('tenant_id', $this->tid())->whereIn('type', ['death', 'cull'])->sum('quantity'),
+            'total_mortality' => LivestockMovement::where('tenant_id', $this->tid())->whereIn('type', ['death', 'cull'])->sum('quantity'),
             'total_sold'     => abs((int) LivestockMovement::where('tenant_id', $this->tid())->where('type', 'sold')->sum('quantity')),
         ];
 
@@ -43,10 +54,10 @@ class LivestockController extends Controller
         abort_if($livestockHerd->tenant_id !== $this->tid(), 403);
         $livestockHerd->load(['plot', 'movements.user', 'healthRecords.user', 'vaccinations']);
 
-        $overdueVaccinations = $livestockHerd->vaccinations->filter(fn ($v) => $v->isOverdue());
+        $overdueVaccinations = $livestockHerd->vaccinations->filter(fn($v) => $v->isOverdue());
         $upcomingVaccinations = $livestockHerd->vaccinations
             ->where('status', 'scheduled')
-            ->filter(fn ($v) => $v->scheduled_date->isFuture() && $v->scheduled_date->diffInDays(now()) <= 7);
+            ->filter(fn($v) => $v->scheduled_date->isFuture() && $v->scheduled_date->diffInDays(now()) <= 7);
 
         return view('farm.livestock-show', compact('livestockHerd', 'overdueVaccinations', 'upcomingVaccinations'));
     }
@@ -63,7 +74,7 @@ class LivestockController extends Controller
             'entry_age_days'     => 'nullable|integer|min:0',
             'entry_weight_kg'    => 'nullable|numeric|min:0',
             'purchase_price'     => 'nullable|numeric|min:0',
-            'target_harvest_date'=> 'nullable|date',
+            'target_harvest_date' => 'nullable|date',
             'target_weight_kg'   => 'nullable|numeric|min:0',
             'notes'              => 'nullable|string',
         ]);
@@ -76,7 +87,7 @@ class LivestockController extends Controller
         ]));
 
         // Record initial purchase movement
-        LivestockMovement::create([
+        $movement = LivestockMovement::create([
             'livestock_herd_id' => $herd->id,
             'tenant_id'         => $this->tid(),
             'user_id'           => auth()->id(),
@@ -87,6 +98,20 @@ class LivestockController extends Controller
             'weight_kg'         => (float) ($data['entry_weight_kg'] ?? 0) * $data['initial_count'],
             'price_total'       => (float) ($data['purchase_price'] ?? 0),
         ]);
+
+        // Post journal entry for livestock purchase (integration with Accounting)
+        if (($data['purchase_price'] ?? 0) > 0) {
+            $paymentMethod = $request->input('payment_method', 'credit');
+            $result = $this->integrationService->postLivestockPurchase(
+                $this->tid(),
+                auth()->id(),
+                $herd,
+                $paymentMethod
+            );
+            if ($result->isFailed()) {
+                \Illuminate\Support\Facades\Log::warning("Livestock purchase journal failed: " . $result->reason);
+            }
+        }
 
         ActivityLog::record('livestock_created', "Ternak masuk: {$herd->code} — {$data['initial_count']} ekor {$data['animal_type']}");
         return redirect()->route('farm.livestock.show', $herd)->with('success', "Ternak {$herd->code} berhasil dicatat.");
@@ -118,7 +143,7 @@ class LivestockController extends Controller
             return back()->with('error', "Populasi tidak bisa negatif. Saat ini: {$livestockHerd->current_count}, dikurangi: {$qty}.");
         }
 
-        LivestockMovement::create([
+        $movement = LivestockMovement::create([
             'livestock_herd_id' => $livestockHerd->id,
             'tenant_id'         => $this->tid(),
             'user_id'           => auth()->id(),
@@ -134,6 +159,20 @@ class LivestockController extends Controller
         ]);
 
         $livestockHerd->update(['current_count' => $newCount]);
+
+        // Post journal entry for livestock sale (integration with Accounting)
+        if (in_array($data['type'], ['sold', 'harvested']) && ($data['price_total'] ?? 0) > 0) {
+            $paymentMethod = $request->input('payment_method', 'credit');
+            $result = $this->integrationService->postLivestockSale(
+                $this->tid(),
+                auth()->id(),
+                $movement,
+                $paymentMethod
+            );
+            if ($result->isFailed()) {
+                \Illuminate\Support\Facades\Log::warning("Livestock sale journal failed: " . $result->reason);
+            }
+        }
 
         // Auto-update status if all sold/harvested
         if ($newCount <= 0 && in_array($data['type'], ['sold', 'harvested'])) {
@@ -161,12 +200,28 @@ class LivestockController extends Controller
             'notes'                => 'nullable|string',
         ]);
 
-        \App\Models\LivestockFeedLog::create(array_merge($data, [
+        $feedLog = \App\Models\LivestockFeedLog::create(array_merge($data, [
             'livestock_herd_id'     => $livestockHerd->id,
             'tenant_id'             => $this->tid(),
             'user_id'               => auth()->id(),
             'population_at_feeding' => $livestockHerd->current_count,
         ]));
+
+        // Post journal entry for feed consumption (integration with Accounting & Inventory)
+        if (($data['cost'] ?? 0) > 0) {
+            $productId = $request->input('product_id'); // Optional: link to inventory product
+            $warehouseId = $request->input('warehouse_id'); // Optional: link to warehouse
+            $result = $this->integrationService->postFeedConsumption(
+                $this->tid(),
+                auth()->id(),
+                $feedLog,
+                $productId,
+                $warehouseId
+            );
+            if ($result->isFailed()) {
+                \Illuminate\Support\Facades\Log::warning("Livestock feed journal failed: " . $result->reason);
+            }
+        }
 
         $fcr = $livestockHerd->fcr();
         $fcrMsg = $fcr ? " | FCR: {$fcr}" : '';
@@ -194,12 +249,28 @@ class LivestockController extends Controller
             'notes'           => 'nullable|string',
         ]);
 
-        \App\Models\LivestockHealthRecord::create(array_merge($data, [
+        $healthRecord = \App\Models\LivestockHealthRecord::create(array_merge($data, [
             'livestock_herd_id' => $livestockHerd->id,
             'tenant_id'         => $this->tid(),
             'user_id'           => auth()->id(),
             'status'            => $data['type'] === 'recovery' ? 'resolved' : 'active',
         ]));
+
+        // Post journal entry for medication cost (integration with Accounting)
+        if (($data['medication_cost'] ?? 0) > 0) {
+            $result = $this->integrationService->postVeterinaryExpense(
+                $this->tid(),
+                auth()->id(),
+                $healthRecord->id,
+                $livestockHerd->code,
+                (float) $data['medication_cost'],
+                $data['medication'] ?? $data['condition'],
+                $data['date']
+            );
+            if ($result->isFailed()) {
+                \Illuminate\Support\Facades\Log::warning("Livestock health journal failed: " . $result->reason);
+            }
+        }
 
         // Auto-record deaths if death_count > 0
         if (($data['death_count'] ?? 0) > 0) {
@@ -252,6 +323,23 @@ class LivestockController extends Controller
             'status'  => 'completed',
             'user_id' => auth()->id(),
         ]));
+
+        // Post journal entry for vaccination cost (integration with Accounting)
+        if (($data['cost'] ?? 0) > 0) {
+            $herd = $vaccination->herd;
+            $result = $this->integrationService->postVaccinationCost(
+                $this->tid(),
+                auth()->id(),
+                $vaccination->id,
+                $herd->code,
+                $vaccination->vaccine_name,
+                (float) $data['cost'],
+                $data['administered_date']
+            );
+            if ($result->isFailed()) {
+                \Illuminate\Support\Facades\Log::warning("Livestock vaccination journal failed: " . $result->reason);
+            }
+        }
 
         return back()->with('success', "Vaksinasi {$vaccination->vaccine_name} berhasil dicatat.");
     }

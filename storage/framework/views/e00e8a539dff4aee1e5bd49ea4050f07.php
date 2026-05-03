@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -30,37 +30,37 @@
                 ->where('status', 'scheduled')
                 ->count();
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Operasi</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e(number_format($totalSurgeries)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Operasi</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e(number_format($totalSurgeries)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Terjadwal Hari Ini</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e($scheduledToday); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Terjadwal Hari Ini</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e($scheduledToday); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Berlangsung</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"><?php echo e($inProgressSurgeries); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Berlangsung</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1"><?php echo e($inProgressSurgeries); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Selesai Hari Ini</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e($completedToday); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Selesai Hari Ini</p>
+            <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($completedToday); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Menunggu</p>
-            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1"><?php echo e($pendingSurgeries); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Menunggu</p>
+            <p class="text-2xl font-bold text-purple-600 mt-1"><?php echo e($pendingSurgeries); ?></p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
             <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                     placeholder="Cari pasien / dokter..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="scheduled" <?php if(request('status') === 'scheduled'): echo 'selected'; endif; ?>>Scheduled</option>
                     <option value="in_progress" <?php if(request('status') === 'in_progress'): echo 'selected'; endif; ?>>In Progress</option>
@@ -68,7 +68,7 @@
                     <option value="cancelled" <?php if(request('status') === 'cancelled'): echo 'selected'; endif; ?>>Cancelled</option>
                 </select>
                 <input type="date" name="date" value="<?php echo e(request('date')); ?>"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <button type="submit"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Filter</button>
             </form>
@@ -76,10 +76,10 @@
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">ID</th>
                         <th class="px-4 py-3 text-left">Pasien</th>
@@ -91,63 +91,63 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $schedules ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $schedule): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400"><?php echo e($schedule->schedule_number ?? '-'); ?></span>
+                                    class="font-mono text-sm font-bold text-blue-600"><?php echo e($schedule->schedule_number ?? '-'); ?></span>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">
+                                <p class="font-medium text-gray-900">
                                     <?php echo e($schedule->patient ? $schedule->patient->full_name : '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($schedule->patient ? $schedule->patient->medical_record_number : '-'); ?></p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
-                                <p class="text-gray-900 dark:text-white"><?php echo e($schedule->procedure_name ?? '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-gray-900"><?php echo e($schedule->procedure_name ?? '-'); ?></p>
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($schedule->procedure_type ?? '-'); ?></p>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 <p><?php echo e($schedule->surgeon ? $schedule->surgeon->name : '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($schedule->anesthesiologist ? 'Anest: ' . $schedule->anesthesiologist->name : ''); ?>
 
                                 </p>
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell">
-                                <p class="text-gray-900 dark:text-white">
+                                <p class="text-gray-900">
                                     <?php echo e($schedule->surgery_date ? \Carbon\Carbon::parse($schedule->surgery_date)->format('d M Y') : '-'); ?>
 
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($schedule->surgery_date ? \Carbon\Carbon::parse($schedule->surgery_date)->format('H:i') : '-'); ?>
 
                                 </p>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 <?php echo e($schedule->operating_room ?? '-'); ?></td>
                             <td class="px-4 py-3 text-center">
                                 <?php if($schedule->status === 'scheduled'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Scheduled</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Scheduled</span>
                                 <?php elseif($schedule->status === 'in_progress'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">In
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">In
                                         Progress</span>
                                 <?php elseif($schedule->status === 'completed'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Completed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Completed</span>
                                 <?php elseif($schedule->status === 'cancelled'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Cancelled</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Cancelled</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="<?php echo e(route('healthcare.surgery.schedule.show', $schedule)); ?>"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -159,7 +159,7 @@
                                     </a>
                                     <?php if($schedule->status === 'scheduled'): ?>
                                         <a href="<?php echo e(route('healthcare.surgery.operations.start', $schedule)); ?>"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                             title="Mulai Operasi">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -176,7 +176,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada jadwal operasi</p>
                             </td>
                         </tr>
@@ -186,7 +186,7 @@
         </div>
 
         <?php if(isset($schedules) && $schedules->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 <?php echo e($schedules->links()); ?>
 
             </div>

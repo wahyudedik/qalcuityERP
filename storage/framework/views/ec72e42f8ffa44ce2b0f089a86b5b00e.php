@@ -8,19 +8,17 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight"><?php echo e(__('Financial Reports')); ?></h2>
-            <div class="flex space-x-3">
-                <a href="<?php echo e(route('healthcare.financial-reports.aging')); ?>"
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Financial Reports')); ?> <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('healthcare.financial-reports.aging')); ?>"
                     class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"><i
                         class="fas fa-clock mr-2"></i>Aging Report</a>
-                <button onclick="exportReport()"
+        <button onclick="exportReport()"
                     class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"><i
                         class="fas fa-file-export mr-2"></i>Export</button>
-            </div>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

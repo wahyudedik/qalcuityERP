@@ -12,10 +12,6 @@ use Illuminate\Support\Facades\DB;
 class TourTravelAnalyticsController extends Controller
 {
     /**
-     * Get authenticated user's tenant ID
-     */
-    // tenantId() inherited from parent Controller
-    /**
      * Display tour & travel analytics dashboard
      */
     public function index(Request $request)
@@ -33,7 +29,8 @@ class TourTravelAnalyticsController extends Controller
                 ->sum('total_amount'),
             'pending_revenue' => TourBooking::where('tenant_id', $tenantId)
                 ->whereIn('status', ['confirmed', 'paid'])
-                ->sum('remaining_balance'),
+                ->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) as pending')
+                ->value('pending') ?? 0,
         ];
 
         // Package Performance
@@ -72,11 +69,16 @@ class TourTravelAnalyticsController extends Controller
             ->groupBy('status')
             ->get();
 
-        // Popular Destinations (if available in bookings)
-        $popularDestinations = TourBooking::where('tenant_id', $tenantId)
-            ->where('status', 'completed')
-            ->select('destination', DB::raw('COUNT(*) as bookings'), DB::raw('SUM(total_amount) as revenue'))
-            ->groupBy('destination')
+        // Popular Destinations — join through tour_packages to get destination
+        $popularDestinations = TourBooking::where('tour_bookings.tenant_id', $tenantId)
+            ->where('tour_bookings.status', 'completed')
+            ->join('tour_packages', 'tour_bookings.tour_package_id', '=', 'tour_packages.id')
+            ->select(
+                'tour_packages.destination',
+                DB::raw('COUNT(tour_bookings.id) as bookings'),
+                DB::raw('SUM(tour_bookings.total_amount) as revenue')
+            )
+            ->groupBy('tour_packages.destination')
             ->orderByDesc('bookings')
             ->limit(10)
             ->get();

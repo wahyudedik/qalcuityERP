@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -32,7 +32,7 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <th class="px-6 py-3 text-left w-12">
     <input type="checkbox" id="<?php echo e($selectAllId); ?>"
-        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         onclick="toggleAllCheckboxes(this)">
 </th>
 

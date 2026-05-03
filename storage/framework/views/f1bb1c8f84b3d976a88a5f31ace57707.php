@@ -10,10 +10,11 @@
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
+
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 </head>
 
-<body class="h-full font-[Inter,sans-serif] antialiased">
+<body class="h-full font-[Inter,sans-serif] antialiased bg-white">
 
     <div class="min-h-full flex">
 
@@ -79,7 +80,7 @@
         </div>
 
         
-        <div class="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 bg-[#f8fafc]">
+        <div class="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 bg-white">
             <div class="mx-auto w-full max-w-sm">
                 
                 <div class="lg:hidden flex items-center gap-2 mb-8">

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,21 +12,21 @@
 
     <div class="max-w-4xl mx-auto">
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">📦 Stock Movement</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">📦 Stock Movement</h3>
 
             <form method="POST" action="<?php echo e(route('inventory.movements.store')); ?>" id="movement-form">
                 <?php echo csrf_field(); ?>
 
                 
                 <div
-                    class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-                    <label class="block text-sm font-medium text-blue-900 dark:text-blue-200 mb-2">
+                    class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <label class="block text-sm font-medium text-blue-900 mb-2">
                         📷 Scan Barcode Produk
                     </label>
                     <div class="flex gap-3">
                         <input type="text" id="barcode-input" placeholder="Scan barcode atau ketik SKU..."
-                            class="flex-1 px-4 py-2.5 rounded-xl border border-blue-200 dark:border-blue-700 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="flex-1 px-4 py-2.5 rounded-xl border border-blue-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             autocomplete="off">
                         <button type="button" onclick="openBarcodeScanner()"
                             class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition flex items-center gap-2">
@@ -37,7 +37,7 @@
                             Scan
                         </button>
                     </div>
-                    <p class="text-xs text-blue-600 dark:text-blue-300 mt-2">
+                    <p class="text-xs text-blue-600 mt-2">
                         💡 Tip: Gunakan hardware barcode scanner untuk hasil terbaik, atau klik tombol Scan untuk
                         menggunakan kamera
                     </p>
@@ -45,30 +45,30 @@
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Produk *
                     </label>
                     <div class="relative">
                         <select name="product_id" id="product-select" required
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             onchange="loadProductStock()">
                             <option value="">-- Pilih Produk --</option>
                         </select>
                         <div id="product-info"
-                            class="hidden mt-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
-                            <p class="text-sm font-medium text-green-900 dark:text-green-200" id="product-name"></p>
-                            <p class="text-xs text-green-700 dark:text-green-300" id="product-sku"></p>
+                            class="hidden mt-2 p-3 bg-green-50 rounded-xl border border-green-100">
+                            <p class="text-sm font-medium text-green-900" id="product-name"></p>
+                            <p class="text-xs text-green-700" id="product-sku"></p>
                         </div>
                     </div>
                 </div>
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Gudang *
                     </label>
                     <select name="warehouse_id" id="warehouse-select" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         onchange="loadProductStock()">
                         <option value="">-- Pilih Gudang --</option>
                         <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $warehouse): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -80,11 +80,11 @@
                 
                 <div class="mb-4 hidden" id="current-stock-card">
                     <div
-                        class="p-4 bg-gray-50 dark:bg-[#0f172a] rounded-xl border border-gray-200 dark:border-white/10">
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Stok Saat Ini:</p>
-                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <p class="text-xs text-gray-500 mb-1">Stok Saat Ini:</p>
+                        <p class="text-2xl font-bold text-blue-600">
                             <span id="current-stock-value">0</span>
-                            <span class="text-sm font-normal text-gray-500 dark:text-slate-400 ml-1"
+                            <span class="text-sm font-normal text-gray-500 ml-1"
                                 id="stock-unit">pcs</span>
                         </p>
                     </div>
@@ -92,7 +92,7 @@
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Jenis Transaksi *
                     </label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -100,7 +100,7 @@
                             <input type="radio" name="type" value="in" class="peer sr-only" checked
                                 onchange="toggleNotes()">
                             <div
-                                class="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-center peer-checked:bg-green-600 peer-checked:text-white peer-checked:border-green-600 transition">
+                                class="p-3 rounded-xl border border-gray-200 bg-gray-50 text-center peer-checked:bg-green-600 peer-checked:text-white peer-checked:border-green-600 transition">
                                 <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -113,7 +113,7 @@
                             <input type="radio" name="type" value="out" class="peer sr-only"
                                 onchange="toggleNotes()">
                             <div
-                                class="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-center peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600 transition">
+                                class="p-3 rounded-xl border border-gray-200 bg-gray-50 text-center peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600 transition">
                                 <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -126,7 +126,7 @@
                             <input type="radio" name="type" value="adjustment" class="peer sr-only"
                                 onchange="toggleNotes()">
                             <div
-                                class="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-center peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">
+                                class="p-3 rounded-xl border border-gray-200 bg-gray-50 text-center peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">
                                 <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -139,7 +139,7 @@
                             <input type="radio" name="type" value="transfer" class="peer sr-only"
                                 onchange="toggleNotes()">
                             <div
-                                class="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-center peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">
+                                class="p-3 rounded-xl border border-gray-200 bg-gray-50 text-center peer-checked:bg-purple-600 peer-checked:text-white peer-checked:border-purple-600 transition">
                                 <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -153,39 +153,39 @@
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Jumlah *
                     </label>
                     <input type="number" name="quantity" id="quantity-input" min="1" step="1"
                         required
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Masukkan jumlah">
                 </div>
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Catatan
                     </label>
                     <textarea name="notes" id="notes-input" rows="3"
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Catatan tambahan (opsional)"></textarea>
                 </div>
 
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
                         Referensi
                     </label>
                     <input type="text" name="reference" id="reference-input"
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="No. PO / SO / DO (opsional)">
                 </div>
 
                 
-                <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
+                <div class="flex gap-3 pt-4 border-t border-gray-200">
                     <a href="<?php echo e(route('inventory.movements.index')); ?>"
-                        class="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-center text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                        class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-center text-gray-700 hover:bg-gray-50 transition">
                         Batal
                     </a>
                     <button type="submit"
@@ -200,12 +200,12 @@
     
     <div id="barcode-scanner-modal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
             
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10">
-                <h4 class="font-semibold text-gray-900 dark:text-white">📷 Scan Barcode</h4>
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <h4 class="font-semibold text-gray-900">📷 Scan Barcode</h4>
                 <button onclick="closeBarcodeScanner()"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
             
@@ -238,11 +238,11 @@
             </div>
 
             
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400 mb-2">Atau ketik manual:</p>
+            <div class="px-4 py-3 border-t border-gray-100">
+                <p class="text-xs text-gray-500 mb-2">Atau ketik manual:</p>
                 <div class="flex gap-2">
                     <input type="text" id="manual-barcode" placeholder="Ketik barcode..."
-                        class="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white text-sm focus:outline-none"
+                        class="flex-1 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm focus:outline-none"
                         onkeypress="if(event.key==='Enter') submitManualBarcode()">
                     <button onclick="submitManualBarcode()"
                         class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition">

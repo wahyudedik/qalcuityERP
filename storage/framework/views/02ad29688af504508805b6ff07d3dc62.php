@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
@@ -47,12 +47,12 @@ unset($__defined_vars, $__key, $__value); ?>
 
 
 <div
-    class="md:hidden sticky top-0 z-30 bg-white dark:bg-[#1e293b] border-b border-gray-200 dark:border-white/10 shadow-sm">
+    class="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
     
     <?php if($selectedCount > 0): ?>
-        <div class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+        <div class="px-4 py-3 bg-blue-50 border-b border-blue-200">
             <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-blue-700 dark:text-blue-400">
+                <span class="text-sm font-medium text-blue-700">
                     <?php echo e($selectedCount); ?> dipilih
                 </span>
                 <?php if($bulkActions): ?>
@@ -77,7 +77,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <div class="flex items-center gap-2">
                 <?php if($searchToggle): ?>
                     <button type="button" onclick="document.getElementById('mobile-search').classList.toggle('hidden')"
-                        class="p-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        class="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                         aria-label="Toggle search">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -88,7 +88,7 @@ unset($__defined_vars, $__key, $__value); ?>
 
                 <?php if($filterUrl): ?>
                     <a href="<?php echo e($filterUrl); ?>"
-                        class="p-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        class="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                         aria-label="Filter">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -99,7 +99,7 @@ unset($__defined_vars, $__key, $__value); ?>
 
                 <?php if($sortUrl): ?>
                     <a href="<?php echo e($sortUrl); ?>"
-                        class="p-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        class="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
                         aria-label="Sort">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -127,7 +127,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <div id="mobile-search" class="hidden mt-3">
                 <form method="GET" class="flex gap-2">
                     <input type="search" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari..."
-                        class="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+                        class="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
                         aria-label="Search input">
                     <button type="submit"
                         class="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition min-h-[44px]">

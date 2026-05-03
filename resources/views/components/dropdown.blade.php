@@ -1,4 +1,4 @@
-@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white dark:bg-slate-800'])
+﻿@props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white'])
 
 @php
 // TASK 6.7: Dropdown dengan posisi benar, tidak terpotong di tepi layar
@@ -37,7 +37,7 @@ $width = match ($width) {
             style="display: none;"
             @click="open = false"
             x-cloak>
-        <div class="rounded-lg ring-1 ring-black/5 dark:ring-white/10 {{ $contentClasses }}">
+        <div class="rounded-lg ring-1 ring-black/5 {{ $contentClasses }}">
             {{ $content }}
         </div>
     </div>

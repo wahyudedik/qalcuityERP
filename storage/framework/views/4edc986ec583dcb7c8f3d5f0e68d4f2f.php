@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Predictive Analytics')); ?>
 
         </h2>
@@ -22,7 +22,7 @@
                 <div class="flex space-x-2">
                     <?php $__currentLoopData = [1, 3, 6, 12]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <a href="<?php echo e(route('analytics.predictive', ['months' => $m])); ?>"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition <?php echo e($months == $m ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'); ?>">
+                            class="px-4 py-2 rounded-lg text-sm font-medium transition <?php echo e($months == $m ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'); ?>">
                             <?php echo e($m); ?> <?php echo e($m == 1 ? 'Month' : 'Months'); ?>
 
                         </a>
@@ -44,19 +44,19 @@
                     </p>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Confidence Interval</h3>
+                <div class="bg-white rounded-xl p-6 shadow">
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Confidence Interval</h3>
                     <div class="space-y-2">
                         <div class="flex justify-between">
-                            <span class="text-gray-600 dark:text-gray-400">Lower Bound</span>
-                            <span class="font-semibold text-gray-900 dark:text-white">
+                            <span class="text-gray-600">Lower Bound</span>
+                            <span class="font-semibold text-gray-900">
                                 Rp <?php echo e(number_format($predictions['confidence_interval']['lower'], 0, ',', '.')); ?>
 
                             </span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600 dark:text-gray-400">Upper Bound</span>
-                            <span class="font-semibold text-gray-900 dark:text-white">
+                            <span class="text-gray-600">Upper Bound</span>
+                            <span class="font-semibold text-gray-900">
                                 Rp <?php echo e(number_format($predictions['confidence_interval']['upper'], 0, ',', '.')); ?>
 
                             </span>
@@ -64,19 +64,19 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Seasonality</h3>
+                <div class="bg-white rounded-xl p-6 shadow">
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Seasonality</h3>
                     <div class="flex items-center justify-center h-full">
                         <?php if($predictions['seasonality_detected']): ?>
                             <div class="text-center">
                                 <span class="text-4xl">📊</span>
-                                <p class="mt-2 font-semibold text-gray-900 dark:text-white">Detected</p>
+                                <p class="mt-2 font-semibold text-gray-900">Detected</p>
                                 <p class="text-xs text-gray-500">Pattern identified in data</p>
                             </div>
                         <?php else: ?>
                             <div class="text-center">
                                 <span class="text-4xl">➡️</span>
-                                <p class="mt-2 font-semibold text-gray-900 dark:text-white">Not Detected</p>
+                                <p class="mt-2 font-semibold text-gray-900">Not Detected</p>
                                 <p class="text-xs text-gray-500">Insufficient data or no pattern</p>
                             </div>
                         <?php endif; ?>
@@ -85,17 +85,17 @@
             </div>
 
             <!-- Historical Data & Forecast Chart -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📈 Revenue Trend & Forecast</h3>
+            <div class="bg-white rounded-xl p-6 shadow mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Revenue Trend & Forecast</h3>
                 <canvas id="forecastChart" height="100"></canvas>
             </div>
 
             <!-- Forecast Details -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📋 Forecast Breakdown</h3>
+            <div class="bg-white rounded-xl p-6 shadow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Forecast Breakdown</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Month</th>
                                 <th class="px-4 py-3 text-right">Predicted Revenue</th>
@@ -104,33 +104,33 @@
                                 <th class="px-4 py-3 text-center">Trend</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php for($i = 1; $i <= $months; $i++): ?>
                                 <?php
                                     $predicted = $predictions['forecast']['predicted'] * (1 + ($i - 1) * 0.02);
                                     $lower = $predicted * 0.9;
                                     $upper = $predicted * 1.1;
                                 ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 font-medium text-gray-900">
                                         <?php echo e(now()->addMonths($i)->format('F Y')); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">
+                                    <td class="px-4 py-3 text-right font-semibold text-gray-900">
                                         Rp <?php echo e(number_format($predicted, 0, ',', '.')); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400">
+                                    <td class="px-4 py-3 text-right text-gray-600">
                                         Rp <?php echo e(number_format($lower, 0, ',', '.')); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400">
+                                    <td class="px-4 py-3 text-right text-gray-600">
                                         Rp <?php echo e(number_format($upper, 0, ',', '.')); ?>
 
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <span
-                                            class="px-2 py-1 text-xs rounded-full <?php echo e($predictions['forecast']['trend'] === 'upward' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'); ?>">
+                                            class="px-2 py-1 text-xs rounded-full <?php echo e($predictions['forecast']['trend'] === 'upward' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'); ?>">
                                             <?php echo e(ucfirst(str_replace('_', ' ', $predictions['forecast']['trend']))); ?>
 
                                         </span>

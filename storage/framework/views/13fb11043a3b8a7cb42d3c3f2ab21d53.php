@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Shared Report: ') . $sharedReport->name); ?>
 
         </h2>
@@ -18,14 +18,14 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Report Info -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow mb-6">
+            <div class="bg-white rounded-xl p-6 shadow mb-6">
                 <div class="flex items-start justify-between">
                     <div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
                             <?php echo e($sharedReport->name); ?>
 
                         </h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <p class="text-sm text-gray-600">
                             Shared by <strong><?php echo e($sharedReport->creator->name ?? 'Unknown'); ?></strong>
                             on <?php echo e($sharedReport->created_at->format('d M Y H:i')); ?>
 
@@ -39,17 +39,17 @@
                                     📥 Download
                                 </button>
                                 <div
-                                    class="dropdown-menu absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg hidden">
+                                    class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg hidden">
                                     <a href="<?php echo e(route('analytics.shared.download', ['id' => $sharedReport->report_id, 'format' => 'pdf'])); ?>"
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         📄 PDF
                                     </a>
                                     <a href="<?php echo e(route('analytics.shared.download', ['id' => $sharedReport->report_id, 'format' => 'excel'])); ?>"
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         📊 Excel
                                     </a>
                                     <a href="<?php echo e(route('analytics.shared.download', ['id' => $sharedReport->report_id, 'format' => 'csv'])); ?>"
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         📋 CSV
                                     </a>
                                 </div>
@@ -60,30 +60,30 @@
 
                 <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                        <span class="text-gray-500 dark:text-gray-400">Type:</span>
-                        <p class="font-semibold text-gray-900 dark:text-white capitalize">
+                        <span class="text-gray-500">Type:</span>
+                        <p class="font-semibold text-gray-900 capitalize">
                             <?php echo e(str_replace('_', ' ', $sharedReport->type)); ?>
 
                         </p>
                     </div>
                     <div>
-                        <span class="text-gray-500 dark:text-gray-400">Access Level:</span>
-                        <p class="font-semibold text-gray-900 dark:text-white capitalize">
+                        <span class="text-gray-500">Access Level:</span>
+                        <p class="font-semibold text-gray-900 capitalize">
                             <?php echo e($sharedReport->access_level); ?>
 
                         </p>
                     </div>
                     <div>
-                        <span class="text-gray-500 dark:text-gray-400">Expires:</span>
+                        <span class="text-gray-500">Expires:</span>
                         <p
-                            class="font-semibold <?php echo e($sharedReport->isExpired() ? 'text-red-600' : 'text-gray-900 dark:text-white'); ?>">
+                            class="font-semibold <?php echo e($sharedReport->isExpired() ? 'text-red-600' : 'text-gray-900'); ?>">
                             <?php echo e($sharedReport->expires_at?->format('d M Y') ?? 'Never'); ?>
 
                         </p>
                     </div>
                     <div>
-                        <span class="text-gray-500 dark:text-gray-400">Views:</span>
-                        <p class="font-semibold text-gray-900 dark:text-white">
+                        <span class="text-gray-500">Views:</span>
+                        <p class="font-semibold text-gray-900">
                             <?php echo e($sharedReport->access_count); ?>
 
                         </p>
@@ -92,40 +92,40 @@
             </div>
 
             <!-- Report Content -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Report Data</h4>
+            <div class="bg-white rounded-xl p-6 shadow">
+                <h4 class="text-lg font-semibold text-gray-900 mb-4">📊 Report Data</h4>
 
                 <?php if(isset($sharedReport->report_data['financial_kpis'])): ?>
                     <!-- Executive Dashboard Data -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div
-                            class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Revenue</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                            class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Revenue</p>
+                            <p class="text-2xl font-bold text-gray-900">
                                 Rp
                                 <?php echo e(number_format($sharedReport->report_data['financial_kpis']['revenue']['current'] ?? 0, 0, ',', '.')); ?>
 
                             </p>
                         </div>
                         <div
-                            class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Profit Margin</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                            class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Profit Margin</p>
+                            <p class="text-2xl font-bold text-gray-900">
                                 <?php echo e($sharedReport->report_data['financial_kpis']['profit_margin']['current'] ?? 0); ?>%
                             </p>
                         </div>
                         <div
-                            class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Orders</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                            class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Orders</p>
+                            <p class="text-2xl font-bold text-gray-900">
                                 <?php echo e(number_format($sharedReport->report_data['operational_kpis']['orders']['current'] ?? 0, 0, ',', '.')); ?>
 
                             </p>
                         </div>
                         <div
-                            class="p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Customers</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                            class="p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg">
+                            <p class="text-sm text-gray-600">Customers</p>
+                            <p class="text-2xl font-bold text-gray-900">
                                 <?php echo e(number_format($sharedReport->report_data['customer_kpis']['new_customers']['current'] ?? 0, 0, ',', '.')); ?>
 
                             </p>
@@ -138,20 +138,20 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead
-                                class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                                class="bg-gray-50 text-xs text-gray-500 uppercase">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Metric</th>
                                     <th class="px-4 py-3 text-right">Value</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            <tbody class="divide-y divide-gray-100">
                                 <?php $__currentLoopData = $sharedReport->report_data['data']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $metric => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-medium text-gray-900">
                                             <?php echo e(ucwords(str_replace('_', ' ', $metric))); ?>
 
                                         </td>
-                                        <td class="px-4 py-3 text-right text-gray-600 dark:text-gray-400">
+                                        <td class="px-4 py-3 text-right text-gray-600">
                                             <?php if(is_array($value)): ?>
                                                 <?php echo e(json_encode($value)); ?>
 
@@ -172,7 +172,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div class="mt-6 text-center text-sm text-gray-500">
                 <p>This report was shared with you and will expire on
                     <?php echo e($sharedReport->expires_at?->format('d M Y H:i') ?? 'never'); ?>.</p>
                 <p class="mt-1">Powered by <?php echo e(config('app.name')); ?></p>

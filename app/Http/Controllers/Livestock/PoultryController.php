@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Livestock;
 use App\Http\Controllers\Controller;
 use App\Models\PoultryEggProduction;
 use App\Models\LivestockHerd;
+use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PoultryController extends Controller
 {
+    protected LivestockIntegrationService $integrationService;
+
+    public function __construct(LivestockIntegrationService $integrationService)
+    {
+        $this->integrationService = $integrationService;
+    }
+
     /**
      * Get authenticated user's tenant ID
      */
@@ -112,6 +120,21 @@ class PoultryController extends Controller
             $record->eggs_broken = $validated['eggs_broken'] ?? 0;
             $record->recorded_by = $this->userId();
             $record->save();
+
+            // Post journal entry for egg production (integration with Accounting)
+            // Price per egg can be configured in tenant settings or passed via request
+            $pricePerEgg = $request->input('price_per_egg', 0);
+            if ($pricePerEgg > 0) {
+                $result = $this->integrationService->postEggProduction(
+                    $this->tenantId(),
+                    $this->userId(),
+                    $record,
+                    (float) $pricePerEgg
+                );
+                if ($result->isFailed()) {
+                    \Illuminate\Support\Facades\Log::warning("Egg production journal failed: " . $result->reason);
+                }
+            }
 
             return back()->with('success', 'Egg production recorded successfully!');
         } catch (\Exception $e) {

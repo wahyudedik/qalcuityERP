@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,95 +9,125 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight"><?php echo e(__('Edit Telemedicine Consultation')); ?> -
-            <?php echo e($telemedicine->consultation_id); ?></h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <?php echo e(__('Edit Konsultasi Telemedicine')); ?> -
+            <?php echo e($telemedicine->consultation_number ?? ''); ?></h2>
      <?php $__env->endSlot(); ?>
 
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <form method="POST" action="<?php echo e(route('healthcare.telemedicine.update', $telemedicine)); ?>">
+            <div
+                class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border border-gray-200">
+                <form method="POST" action="<?php echo e(route('healthcare.teleconsultations.update', $telemedicine)); ?>">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('PUT'); ?>
                     <div class="space-y-6">
                         <div>
-                            <label for="consultation_type" class="block text-sm font-medium text-gray-700">Consultation
-                                Type *</label>
+                            <label for="consultation_type"
+                                class="block text-sm font-medium text-gray-700">Tipe Konsultasi
+                                *</label>
                             <select name="consultation_type" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="video"
-                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type) === 'video' ? 'selected' : ''); ?>>
+                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type ?? $telemedicine->platform) === 'video' ? 'selected' : ''); ?>>
                                     Video Call</option>
                                 <option value="voice"
-                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type) === 'voice' ? 'selected' : ''); ?>>
+                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type ?? $telemedicine->platform) === 'voice' ? 'selected' : ''); ?>>
                                     Voice Call</option>
                                 <option value="chat"
-                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type) === 'chat' ? 'selected' : ''); ?>>
+                                    <?php echo e(old('consultation_type', $telemedicine->consultation_type ?? $telemedicine->platform) === 'chat' ? 'selected' : ''); ?>>
                                     Chat</option>
                             </select>
+                            <?php $__errorArgs = ['consultation_type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                            <label for="status"
+                                class="block text-sm font-medium text-gray-700">Status</label>
                             <select name="status"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="scheduled"
                                     <?php echo e(old('status', $telemedicine->status) === 'scheduled' ? 'selected' : ''); ?>>
-                                    Scheduled</option>
+                                    Terjadwal</option>
                                 <option value="in_progress"
-                                    <?php echo e(old('status', $telemedicine->status) === 'in_progress' ? 'selected' : ''); ?>>In
-                                    Progress</option>
+                                    <?php echo e(old('status', $telemedicine->status) === 'in_progress' ? 'selected' : ''); ?>>
+                                    Berlangsung</option>
                                 <option value="completed"
                                     <?php echo e(old('status', $telemedicine->status) === 'completed' ? 'selected' : ''); ?>>
-                                    Completed</option>
+                                    Selesai</option>
                                 <option value="cancelled"
                                     <?php echo e(old('status', $telemedicine->status) === 'cancelled' ? 'selected' : ''); ?>>
-                                    Cancelled</option>
+                                    Dibatalkan</option>
                             </select>
+                            <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label for="chief_complaint" class="block text-sm font-medium text-gray-700">Chief Complaint
+                            <label for="chief_complaint"
+                                class="block text-sm font-medium text-gray-700">Keluhan Utama
                                 *</label>
                             <textarea name="chief_complaint" required rows="3"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"><?php echo e(old('chief_complaint', $telemedicine->chief_complaint)); ?></textarea>
+                            <?php $__errorArgs = ['chief_complaint'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label for="diagnosis" class="block text-sm font-medium text-gray-700">Diagnosis</label>
+                            <label for="diagnosis"
+                                class="block text-sm font-medium text-gray-700">Diagnosis</label>
                             <textarea name="diagnosis" rows="2"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"><?php echo e(old('diagnosis', $telemedicine->diagnosis)); ?></textarea>
                         </div>
 
                         <div>
-                            <label for="prescription"
-                                class="block text-sm font-medium text-gray-700">Prescription</label>
-                            <textarea name="prescription" rows="3"
+                            <label for="treatment_plan"
+                                class="block text-sm font-medium text-gray-700">Rencana
+                                Perawatan</label>
+                            <textarea name="treatment_plan" rows="3"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="Medications prescribed..."><?php echo e(old('prescription', $telemedicine->prescription)); ?></textarea>
+                                placeholder="Rencana perawatan..."><?php echo e(old('treatment_plan', $telemedicine->treatment_plan)); ?></textarea>
                         </div>
 
                         <div>
-                            <label for="scheduled_at" class="block text-sm font-medium text-gray-700">Scheduled
-                                Date/Time</label>
-                            <input type="datetime-local" name="scheduled_at"
-                                value="<?php echo e(old('scheduled_at', $telemedicine->scheduled_at ? $telemedicine->scheduled_at->format('Y-m-d\TH:i') : '')); ?>"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-
-                        <div>
-                            <label for="notes" class="block text-sm font-medium text-gray-700">Additional
-                                Notes</label>
+                            <label for="notes"
+                                class="block text-sm font-medium text-gray-700">Catatan
+                                Tambahan</label>
                             <textarea name="notes" rows="2"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"><?php echo e(old('notes', $telemedicine->notes)); ?></textarea>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-end space-x-3">
+                    <div class="mt-6 flex flex-col sm:flex-row justify-end gap-3">
                         <a href="<?php echo e(route('healthcare.telemedicine.index')); ?>"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Cancel</a>
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-center">Batal</a>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"><i
-                                class="fas fa-save mr-2"></i>Update Consultation</button>
+                                class="fas fa-save mr-2"></i>Perbarui Konsultasi</button>
                     </div>
                 </form>
             </div>

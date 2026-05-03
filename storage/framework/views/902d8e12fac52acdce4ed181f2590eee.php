@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Sedang Maintenance'); ?>
 <?php $__env->startSection('code', '503'); ?>
@@ -8,7 +8,7 @@
 <?php $__env->startSection('message', 'Qalcuity ERP sedang dalam pemeliharaan terjadwal. Kami akan kembali dalam beberapa menit.'); ?>
 
 <?php $__env->startSection('extra'); ?>
-<div class="mt-4 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4 text-sm text-indigo-700 dark:text-indigo-400">
+<div class="mt-4 bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-sm text-indigo-700">
     <p class="font-medium mb-1">Estimasi selesai:</p>
     <p>Biasanya kurang dari 15 menit. Halaman ini akan otomatis refresh.</p>
 </div>

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -19,37 +19,37 @@
             $activeProducts = \App\Models\Product::where('tenant_id',$tid)->where('is_active',true)->count();
             $totalStock = \App\Models\ProductStock::whereHas('product',fn($q)=>$q->where('tenant_id',$tid))->sum('quantity');
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Produk</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e($totalProducts); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Produk</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e($totalProducts); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Produk Aktif</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e($activeProducts); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Produk Aktif</p>
+            <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($activeProducts); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Stok</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e(number_format($totalStock)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Stok</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e(number_format($totalStock)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Stok Menipis</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"><?php echo e($lowCount); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Stok Menipis</p>
+            <p class="text-2xl font-bold text-red-600 mt-1"><?php echo e($lowCount); ?></p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
             <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari nama / SKU..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <select name="category" class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="category" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Kategori</option>
                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($cat); ?>" <?php if(request('category')===$cat): echo 'selected'; endif; ?>><?php echo e($cat); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
-                <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="active" <?php if(request('status')==='active'): echo 'selected'; endif; ?>>Aktif</option>
                     <option value="inactive" <?php if(request('status')==='inactive'): echo 'selected'; endif; ?>>Nonaktif</option>
@@ -58,8 +58,8 @@
                 <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
             </form>
             <div class="flex gap-2">
-                <a href="<?php echo e(route('inventory.movements')); ?>" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Riwayat Stok</a>
-                <a href="<?php echo e(route('inventory.warehouses')); ?>" class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Gudang</a>
+                <a href="<?php echo e(route('inventory.movements')); ?>" class="px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Riwayat Stok</a>
+                <a href="<?php echo e(route('inventory.warehouses')); ?>" class="px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Gudang</a>
                 <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'inventory', 'create')): ?>
                 <button onclick="document.getElementById('modal-add-product').classList.remove('hidden')"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Produk</button>
@@ -69,10 +69,10 @@
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Produk</th>
                         <th class="px-4 py-3 text-left hidden sm:table-cell">SKU</th>
@@ -84,19 +84,19 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <?php $totalStock = $product->productStocks->sum('quantity'); $isLow = $totalStock <= $product->stock_min; ?>
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <p class="font-medium text-gray-900 dark:text-white"><?php echo e($product->name); ?></p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($product->unit); ?></p>
+                            <p class="font-medium text-gray-900"><?php echo e($product->name); ?></p>
+                            <p class="text-xs text-gray-500"><?php echo e($product->unit); ?></p>
                         </td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500 dark:text-slate-400 font-mono text-xs"><?php echo e($product->sku); ?></td>
-                        <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400"><?php echo e($product->category ?? '-'); ?></td>
-                        <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">Rp <?php echo e(number_format($product->price_sell,0,',','.')); ?></td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500 font-mono text-xs"><?php echo e($product->sku); ?></td>
+                        <td class="px-4 py-3 hidden md:table-cell text-gray-500"><?php echo e($product->category ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-right font-medium text-gray-900">Rp <?php echo e(number_format($product->price_sell,0,',','.')); ?></td>
                         <td class="px-4 py-3 text-right">
-                            <span class="font-semibold <?php echo e($isLow ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'); ?>"><?php echo e($totalStock); ?></span>
+                            <span class="font-semibold <?php echo e($isLow ? 'text-red-600' : 'text-gray-900'); ?>"><?php echo e($totalStock); ?></span>
                             <?php if($isLow): ?><span class="ml-1 text-xs text-red-500">⚠</span><?php endif; ?>
                         </td>
                         
@@ -104,7 +104,7 @@
                             <div id="ai-inv-<?php echo e($product->id); ?>" class="text-xs text-slate-500 italic">—</div>
                         </td>
                         <td class="px-4 py-3 text-center hidden sm:table-cell">
-                            <span class="px-2 py-0.5 rounded-full text-xs <?php echo e($product->is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400'); ?>">
+                            <span class="px-2 py-0.5 rounded-full text-xs <?php echo e($product->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'); ?>">
                                 <?php echo e($product->is_active ? 'Aktif' : 'Nonaktif'); ?>
 
                             </span>
@@ -113,24 +113,24 @@
                             <div class="flex items-center justify-center gap-1">
                                 <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'inventory', 'create')): ?>
                                 <button onclick="openAddStock(<?php echo e($product->id); ?>, '<?php echo e(addslashes($product->name)); ?>', '<?php echo e($product->unit); ?>')"
-                                    class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10" title="Tambah Stok">
+                                    class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50" title="Tambah Stok">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 </button>
                                 <?php endif; ?>
                                 <button onclick="openAiDetail(<?php echo e($product->id); ?>, '<?php echo e(addslashes($product->name)); ?>', '<?php echo e($product->unit); ?>')"
-                                    class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10" title="Analisis AI">
+                                    class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50" title="Analisis AI">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.364.364A4.004 4.004 0 0112 16a4.004 4.004 0 01-2.772-1.1l-.364-.364z"/></svg>
                                 </button>
                                 <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'inventory', 'edit')): ?>
                                 <button onclick="openEditProduct(<?php echo e($product->id); ?>, '<?php echo e(addslashes($product->name)); ?>', '<?php echo e($product->sku); ?>', '<?php echo e(addslashes($product->category ?? '')); ?>', '<?php echo e($product->unit); ?>', <?php echo e($product->price_sell); ?>, <?php echo e($product->price_buy); ?>, <?php echo e($product->stock_min); ?>, <?php echo e($product->is_active ? 'true' : 'false'); ?>, '<?php echo e($product->image); ?>')"
-                                    class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10" title="Edit">
+                                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
                                 <?php endif; ?>
                                 <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'inventory', 'delete')): ?>
                                 <form method="POST" action="<?php echo e(route('inventory.destroy', $product)); ?>" onsubmit="return confirm('Hapus produk ini?')">
                                     <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
-                                    <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Hapus">
+                                    <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50" title="Hapus">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
@@ -139,34 +139,34 @@
                         </td>
                     </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada produk. Tambahkan produk pertama Anda.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400">Belum ada produk. Tambahkan produk pertama Anda.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
         <?php if($products->hasPages()): ?>
-        <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($products->links()); ?></div>
+        <div class="px-4 py-3 border-t border-gray-100"><?php echo e($products->links()); ?></div>
         <?php endif; ?>
     </div>
 
     
     <div id="modal-add-product" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Tambah Produk</h3>
-                <button onclick="document.getElementById('modal-add-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Tambah Produk</h3>
+                <button onclick="document.getElementById('modal-add-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="<?php echo e(route('inventory.store')); ?>" enctype="multipart/form-data" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Foto Produk</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Foto Produk</label>
                         <div class="flex items-center gap-4">
-                            <div id="add-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                            <div id="add-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                                 <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                                 Pilih Gambar
                                 <input type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this, 'add-img-preview')">
                             </label>
@@ -174,48 +174,48 @@
                         </div>
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Produk *</label>
-                        <input type="text" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Produk *</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">SKU (opsional)</label>
-                        <input type="text" name="sku" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">SKU (opsional)</label>
+                        <input type="text" name="sku" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
-                        <input type="text" name="category" list="cat-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                        <input type="text" name="category" list="cat-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <datalist id="cat-list"><?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($c); ?>"><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></datalist>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Satuan *</label>
-                        <input type="text" name="unit" value="pcs" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Satuan *</label>
+                        <input type="text" name="unit" value="pcs" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Jual *</label>
-                        <input type="number" name="price_sell" min="0" step="100" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Harga Jual *</label>
+                        <input type="number" name="price_sell" min="0" step="100" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Beli</label>
-                        <input type="number" name="price_buy" min="0" step="100" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Harga Beli</label>
+                        <input type="number" name="price_buy" min="0" step="100" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Stok Minimum</label>
-                        <input type="number" name="stock_min" value="5" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Stok Minimum</label>
+                        <input type="number" name="stock_min" value="5" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Stok Awal</label>
-                        <input type="number" name="initial_stock" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Stok Awal</label>
+                        <input type="number" name="initial_stock" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Gudang (untuk stok awal)</label>
-                        <select name="warehouse_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Gudang (untuk stok awal)</label>
+                        <select name="warehouse_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Gudang --</option>
                             <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($wh->id); ?>"><?php echo e($wh->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-add-product').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                    <button type="button" onclick="document.getElementById('modal-add-product').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
             </form>
@@ -224,22 +224,22 @@
 
     
     <div id="modal-edit-product" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Edit Produk</h3>
-                <button onclick="document.getElementById('modal-edit-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Edit Produk</h3>
+                <button onclick="document.getElementById('modal-edit-product').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-edit-product" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Foto Produk</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Foto Produk</label>
                         <div class="flex items-center gap-4">
-                            <div id="edit-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                            <div id="edit-img-preview" class="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                                 <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                            <label class="cursor-pointer px-3 py-2 text-xs border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                                 Ganti Gambar
                                 <input type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this, 'edit-img-preview')">
                             </label>
@@ -247,36 +247,36 @@
                         </div>
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Produk *</label>
-                        <input type="text" id="edit-name" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Produk *</label>
+                        <input type="text" id="edit-name" name="name" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
-                        <input type="text" id="edit-category" name="category" list="cat-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                        <input type="text" id="edit-category" name="category" list="cat-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Satuan *</label>
-                        <input type="text" id="edit-unit" name="unit" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Satuan *</label>
+                        <input type="text" id="edit-unit" name="unit" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Jual *</label>
-                        <input type="number" id="edit-price-sell" name="price_sell" min="0" step="100" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Harga Jual *</label>
+                        <input type="number" id="edit-price-sell" name="price_sell" min="0" step="100" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Beli</label>
-                        <input type="number" id="edit-price-buy" name="price_buy" min="0" step="100" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Harga Beli</label>
+                        <input type="number" id="edit-price-buy" name="price_buy" min="0" step="100" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Stok Minimum</label>
-                        <input type="number" id="edit-stock-min" name="stock_min" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Stok Minimum</label>
+                        <input type="number" id="edit-stock-min" name="stock_min" min="0" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2 flex items-center gap-2">
                         <input type="checkbox" id="edit-is-active" name="is_active" value="1" class="rounded">
-                        <label for="edit-is-active" class="text-sm text-gray-700 dark:text-slate-300">Produk Aktif</label>
+                        <label for="edit-is-active" class="text-sm text-gray-700">Produk Aktif</label>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-edit-product').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                    <button type="button" onclick="document.getElementById('modal-edit-product').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
             </form>
@@ -285,30 +285,30 @@
 
     
     <div id="modal-add-stock" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Tambah Stok</h3>
-                <button onclick="document.getElementById('modal-add-stock').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Tambah Stok</h3>
+                <button onclick="document.getElementById('modal-add-stock').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-add-stock" method="POST" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?>
-                <p id="stock-product-name" class="text-sm font-medium text-gray-900 dark:text-white"></p>
+                <p id="stock-product-name" class="text-sm font-medium text-gray-900"></p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Gudang *</label>
-                    <select name="warehouse_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Gudang *</label>
+                    <select name="warehouse_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($wh->id); ?>"><?php echo e($wh->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Jumlah *</label>
-                    <input type="number" name="quantity" min="1" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah *</label>
+                    <input type="number" name="quantity" min="1" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
-                    <input type="text" name="notes" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
+                    <input type="text" name="notes" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('modal-add-stock').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                    <button type="button" onclick="document.getElementById('modal-add-stock').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Tambah</button>
                 </div>
             </form>
@@ -317,10 +317,10 @@
 
     
     <div id="modal-ai-inventory" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 id="ai-modal-title" class="font-semibold text-gray-900 dark:text-white text-sm">Analisis AI Stok</h3>
-                <button onclick="document.getElementById('modal-ai-inventory').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 id="ai-modal-title" class="font-semibold text-gray-900 text-sm">Analisis AI Stok</h3>
+                <button onclick="document.getElementById('modal-ai-inventory').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div id="ai-modal-content" class="p-6 space-y-4"></div>
         </div>

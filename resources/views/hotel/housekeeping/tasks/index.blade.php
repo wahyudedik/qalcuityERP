@@ -1,21 +1,21 @@
-<x-app-layout title="Housekeeping Tasks">
+﻿<x-app-layout title="Housekeeping Tasks">
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Task Management</h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-slate-400">Manage and track housekeeping tasks</p>
+                <h1 class="text-2xl font-bold text-gray-900">Task Management</h1>
+                <p class="mt-1 text-sm text-gray-600">Manage and track housekeeping tasks</p>
             </div>
         </div>
     </x-slot>
 
     <div class="space-y-6">
         {{-- Filters --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Status</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                     <select name="status" onchange="this.form.submit()"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In
@@ -26,9 +26,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Type</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
                     <select name="type" onchange="this.form.submit()"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Types</option>
                         <option value="checkout_clean" {{ request('type') === 'checkout_clean' ? 'selected' : '' }}>
                             Checkout Clean</option>
@@ -42,9 +42,9 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Assigned To</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Assigned To</label>
                     <select name="assigned_to" onchange="this.form.submit()"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Staff</option>
                         @foreach ($staff as $user)
                             <option value="{{ $user->id }}"
@@ -56,7 +56,7 @@
                 <div class="flex items-end">
                     <button type="button"
                         onclick="window.location.href='{{ route('hotel.housekeeping.tasks.index') }}'"
-                        class="w-full px-4 py-2 text-sm bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-slate-300 rounded-xl hover:bg-gray-300 dark:hover:bg-white/20">
+                        class="w-full px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300">
                         Reset Filters
                     </button>
                 </div>
@@ -64,46 +64,46 @@
         </div>
 
         {{-- Tasks Table --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="bg-gray-50 dark:bg-white/5">
+                    <thead class="bg-gray-50">
                         <tr>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Room</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Type</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Priority</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Assigned To</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Scheduled</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-white/10">
+                    <tbody class="divide-y divide-gray-200">
                         @forelse($tasks as $task)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                        <p class="text-sm font-medium text-gray-900">
                                             {{ $task->room?->number }}</p>
-                                        <p class="text-xs text-gray-600 dark:text-slate-400">
+                                        <p class="text-xs text-gray-600">
                                             {{ $task->room?->roomType?->name }}</p>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                <td class="px-4 py-3 text-sm text-gray-600">
                                     {{ ucwords(str_replace('_', ' ', $task->type)) }}</td>
                                 <td class="px-4 py-3">
                                     <span
@@ -127,9 +127,9 @@
                                         {{ ucfirst(str_replace('_', ' ', $task->status)) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                <td class="px-4 py-3 text-sm text-gray-600">
                                     {{ $task->assignedTo?->name ?? 'Unassigned' }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                <td class="px-4 py-3 text-sm text-gray-600">
                                     {{ $task->scheduled_at?->format('M d, H:i') }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
@@ -146,7 +146,7 @@
                         @empty
                             <tr>
                                 <td colspan="7"
-                                    class="px-4 py-8 text-center text-sm text-gray-500 dark:text-slate-400">No tasks
+                                    class="px-4 py-8 text-center text-sm text-gray-500">No tasks
                                     found</td>
                             </tr>
                         @endforelse
@@ -155,7 +155,7 @@
             </div>
 
             {{-- Pagination --}}
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $tasks->links() }}
             </div>
         </div>
@@ -163,31 +163,31 @@
 
     {{-- Complete Task Modal --}}
     <div id="modal-complete-task" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl max-w-lg w-full p-6">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6">
             <form id="form-complete-task" method="POST">
                 @csrf
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Complete Task</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Complete Task</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Checklist
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Checklist
                             Items</label>
                         <textarea name="checklist" rows="3"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter completed checklist items (one per line)"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Notes</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                         <textarea name="notes" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Additional notes"></textarea>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeCompleteModal()"
-                        class="px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl">Cancel</button>
+                        class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-xl">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Complete
                         Task</button>

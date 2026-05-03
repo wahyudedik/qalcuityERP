@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,30 +8,30 @@
     @vite(['resources/css/app.css'])
 </head>
 
-<body class="bg-gray-50 dark:bg-[#0f172a] min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full">
         {{-- Card --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
             {{-- Header --}}
             <div class="flex items-center justify-between mb-5">
                 <div>
-                    <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $asset->name }}</h1>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    <h1 class="text-lg font-bold text-gray-900">{{ $asset->name }}</h1>
+                    <p class="text-xs text-gray-500 mt-0.5">
                         {{ ucfirst($asset->category) }} &bull; {{ $asset->asset_code }}
                     </p>
                 </div>
                 @php $sc = ['active'=>'green','maintenance'=>'amber','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 dark:bg-{{ $sc }}-500/20 dark:text-{{ $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst($asset->status) }}
                 </span>
             </div>
 
             {{-- Barcode Image --}}
-            <div class="bg-white dark:bg-white/5 rounded-xl p-6 text-center mb-5">
+            <div class="bg-white rounded-xl p-6 text-center mb-5">
                 <img src="data:image/png;base64,{{ base64_encode($barcodeImage) }}" alt="{{ $asset->asset_code }}"
                     class="mx-auto max-w-full h-auto" style="max-height: 120px;">
-                <p class="mt-3 text-sm font-mono tracking-widest text-gray-700 dark:text-slate-300">
+                <p class="mt-3 text-sm font-mono tracking-widest text-gray-700">
                     {{ $asset->asset_code }}
                 </p>
             </div>
@@ -40,31 +40,31 @@
             <div class="space-y-2 text-sm mb-6">
                 @if ($asset->serial_number)
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Serial Number</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $asset->serial_number }}</span>
+                        <span class="text-gray-500">Serial Number</span>
+                        <span class="font-medium text-gray-900">{{ $asset->serial_number }}</span>
                     </div>
                 @endif
                 @if ($asset->brand)
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Brand</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $asset->brand }}</span>
+                        <span class="text-gray-500">Brand</span>
+                        <span class="font-medium text-gray-900">{{ $asset->brand }}</span>
                     </div>
                 @endif
                 @if ($asset->model)
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Model</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $asset->model }}</span>
+                        <span class="text-gray-500">Model</span>
+                        <span class="font-medium text-gray-900">{{ $asset->model }}</span>
                     </div>
                 @endif
                 @if ($asset->location)
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Location</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $asset->location }}</span>
+                        <span class="text-gray-500">Location</span>
+                        <span class="font-medium text-gray-900">{{ $asset->location }}</span>
                     </div>
                 @endif
-                <div class="flex justify-between pt-2 border-t border-gray-100 dark:border-white/10 mt-3">
-                    <span class="text-gray-500 dark:text-slate-400">Purchase Date</span>
-                    <span class="font-medium text-gray-900 dark:text-white">
+                <div class="flex justify-between pt-2 border-t border-gray-100 mt-3">
+                    <span class="text-gray-500">Purchase Date</span>
+                    <span class="font-medium text-gray-900">
                         {{ $asset->purchase_date?->format('d M Y') ?? '-' }}
                     </span>
                 </div>
@@ -81,7 +81,7 @@
                     Print Label
                 </button>
                 <a href="{{ route('assets.index') }}"
-                    class="px-4 py-2.5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                    class="px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition">
                     Back
                 </a>
             </div>

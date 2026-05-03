@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Configure {{ ucfirst($channel) }}</x-slot>
 
     @php
@@ -18,40 +18,40 @@
         {{-- Header with Back Button --}}
         <div class="flex items-center gap-4">
             <a href="{{ route('hotel.channels.index') }}"
-                class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Configure {{ $channelName }}</h1>
-                <p class="text-sm text-gray-500 dark:text-slate-400">Set up API credentials and sync settings</p>
+                <h1 class="text-xl font-semibold text-gray-900">Configure {{ $channelName }}</h1>
+                <p class="text-sm text-gray-500">Set up API credentials and sync settings</p>
             </div>
         </div>
 
         {{-- Configuration Form --}}
         <form method="POST" action="{{ route('hotel.channels.update-config', $channel) }}"
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 space-y-6">
+            class="bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
             @csrf
             @method('PUT')
 
             {{-- API Credentials Section --}}
             <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">API
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">API
                     Credentials</h3>
 
                 <div class="space-y-4">
                     {{-- API Key --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">API Key
+                        <label class="block text-xs font-medium text-gray-600 mb-2">API Key
                             *</label>
                         <div class="relative">
                             <input :type="showApiKey ? 'text' : 'password'" name="api_key" required
                                 value="{{ old('api_key', $config?->api_key) }}"
-                                class="w-full px-3 py-2.5 pr-10 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                class="w-full px-3 py-2.5 pr-10 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                             <button type="button" @click="showApiKey = !showApiKey"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
                                 <svg x-show="!showApiKey" class="w-4 h-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,14 +70,14 @@
 
                     {{-- API Secret --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">API
+                        <label class="block text-xs font-medium text-gray-600 mb-2">API
                             Secret</label>
                         <div class="relative">
                             <input :type="showApiSecret ? 'text' : 'password'" name="api_secret"
                                 value="{{ old('api_secret', $config?->api_secret) }}"
-                                class="w-full px-3 py-2.5 pr-10 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                                class="w-full px-3 py-2.5 pr-10 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                             <button type="button" @click="showApiSecret = !showApiSecret"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
                                 <svg x-show="!showApiSecret" class="w-4 h-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -96,66 +96,66 @@
 
                     {{-- Property ID --}}
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-2">Property ID
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Property ID
                             *</label>
                         <input type="text" name="property_id" required
                             value="{{ old('property_id', $config?->property_id) }}" placeholder="e.g., 1234567"
-                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
             </div>
 
             {{-- Status Toggle --}}
-            <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-white/10">
+            <div class="flex items-center justify-between py-4 border-t border-gray-100">
                 <div>
-                    <p class="font-medium text-gray-900 dark:text-white">Active</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Enable sync with this channel</p>
+                    <p class="font-medium text-gray-900">Active</p>
+                    <p class="text-xs text-gray-500">Enable sync with this channel</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="is_active" value="1"
                         {{ $config?->is_active ?? false ? 'checked' : '' }} class="sr-only peer">
                     <div
-                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                     </div>
                 </label>
             </div>
 
             {{-- Sync Settings --}}
             <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">Sync
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Sync
                     Settings</h3>
 
                 <div class="space-y-3">
                     <label
-                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
+                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer">
                         <input type="checkbox" name="settings[sync_availability]" value="1"
                             {{ $syncSettings['sync_availability'] ?? true ? 'checked' : '' }}
                             class="rounded text-blue-600">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Sync Availability</p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Push room availability to the channel
+                            <p class="font-medium text-gray-900">Sync Availability</p>
+                            <p class="text-xs text-gray-500">Push room availability to the channel
                             </p>
                         </div>
                     </label>
 
                     <label
-                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
+                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer">
                         <input type="checkbox" name="settings[sync_rates]" value="1"
                             {{ $syncSettings['sync_rates'] ?? true ? 'checked' : '' }} class="rounded text-blue-600">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Sync Rates</p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Push room rates to the channel</p>
+                            <p class="font-medium text-gray-900">Sync Rates</p>
+                            <p class="text-xs text-gray-500">Push room rates to the channel</p>
                         </div>
                     </label>
 
                     <label
-                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer">
+                        class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer">
                         <input type="checkbox" name="settings[pull_reservations]" value="1"
                             {{ $syncSettings['pull_reservations'] ?? true ? 'checked' : '' }}
                             class="rounded text-blue-600">
                         <div>
-                            <p class="font-medium text-gray-900 dark:text-white">Auto-pull Reservations</p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Automatically import new reservations
+                            <p class="font-medium text-gray-900">Auto-pull Reservations</p>
+                            <p class="text-xs text-gray-500">Automatically import new reservations
                                 from the channel</p>
                         </div>
                     </label>
@@ -163,9 +163,9 @@
             </div>
 
             {{-- Submit Button --}}
-            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <a href="{{ route('hotel.channels.index') }}"
-                    class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Cancel</a>
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Cancel</a>
                 <button type="submit"
                     class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Save
                     Configuration</button>
@@ -174,11 +174,11 @@
 
         {{-- Connection Test --}}
         @if ($config && $config->is_active)
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
                     Connection Test</h3>
                 <button @click="testConnection()" :disabled="testing"
-                    class="w-full px-4 py-3 text-sm bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 disabled:opacity-50 text-gray-700 dark:text-slate-300 rounded-xl flex items-center justify-center gap-2">
+                    class="w-full px-4 py-3 text-sm bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 rounded-xl flex items-center justify-center gap-2">
                     <svg x-show="!testing" class="w-5 h-5" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -224,16 +224,16 @@
 
                         if (data.success) {
                             this.testResult =
-                                '<div class="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 rounded-lg p-3">✓ Connection successful! ' +
+                                '<div class="bg-green-50 text-green-700 rounded-lg p-3">✓ Connection successful! ' +
                                 (data.message || '') + '</div>';
                         } else {
                             this.testResult =
-                                '<div class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg p-3">✕ Connection failed: ' +
+                                '<div class="bg-red-50 text-red-700 rounded-lg p-3">✕ Connection failed: ' +
                                 (data.message || 'Unknown error') + '</div>';
                         }
                     } catch (error) {
                         this.testResult =
-                            '<div class="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg p-3">✕ Connection failed: ' +
+                            '<div class="bg-red-50 text-red-700 rounded-lg p-3">✕ Connection failed: ' +
                             error.message + '</div>';
                     } finally {
                         this.testing = false;

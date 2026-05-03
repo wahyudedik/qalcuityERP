@@ -89,11 +89,15 @@ class TourBookingController extends Controller
                 $booking->booking_number = 'TB-' . now()->format('Y') . '-' . str_pad(TourBooking::count() + 1, 4, '0', STR_PAD_LEFT);
                 $booking->fill($validated);
                 $booking->unit_price = $package->price_per_person;
+                $booking->total_pax = $totalPax;
+                $booking->subtotal = $subtotal;
                 $booking->discount_amount = $discount;
                 $booking->tax_amount = $tax;
-                $booking->currency = $package->currency;
+                $booking->total_amount = $totalAmount;
+                $booking->currency = $package->currency ?? 'IDR';
                 $booking->status = 'pending';
                 $booking->payment_status = 'unpaid';
+                $booking->paid_amount = 0;
                 $booking->created_by = auth()->id();
                 $booking->save();
 

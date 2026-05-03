@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -25,13 +25,13 @@
             <div class="space-y-5">
 
                 
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Informasi Order</h2>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h2 class="font-semibold text-gray-900 mb-4">Informasi Order</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Customer <span class="text-red-400">*</span></label>
+                            <label class="block text-xs text-gray-500 mb-1">Customer <span class="text-red-400">*</span></label>
                             <select name="customer_id" required
-                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih customer...</option>
                                 <?php $__currentLoopData = $customers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($c->id); ?>" <?php echo e(old('customer_id') == $c->id ? 'selected' : ''); ?>><?php echo e($c->name); ?></option>
@@ -39,9 +39,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Gudang Sumber <span class="text-red-400">*</span></label>
+                            <label class="block text-xs text-gray-500 mb-1">Gudang Sumber <span class="text-red-400">*</span></label>
                             <select name="warehouse_id" required
-                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih gudang...</option>
                                 <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $w): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($w->id); ?>" <?php echo e(old('warehouse_id') == $w->id ? 'selected' : ''); ?>><?php echo e($w->name); ?></option>
@@ -49,32 +49,32 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Tanggal Order <span class="text-red-400">*</span></label>
+                            <label class="block text-xs text-gray-500 mb-1">Tanggal Order <span class="text-red-400">*</span></label>
                             <input type="date" name="date" value="<?php echo e(old('date', today()->format('Y-m-d'))); ?>" required
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Tanggal Pengiriman</label>
+                            <label class="block text-xs text-gray-500 mb-1">Tanggal Pengiriman</label>
                             <input type="date" name="delivery_date" value="<?php echo e(old('delivery_date')); ?>"
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Tipe Pembayaran <span class="text-red-400">*</span></label>
+                            <label class="block text-xs text-gray-500 mb-1">Tipe Pembayaran <span class="text-red-400">*</span></label>
                             <select name="payment_type" id="payment_type" required
-                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="cash" <?php echo e(old('payment_type') === 'cash' ? 'selected' : ''); ?>>Tunai</option>
                                 <option value="credit" <?php echo e(old('payment_type') === 'credit' ? 'selected' : ''); ?>>Kredit</option>
                             </select>
                         </div>
                         <div id="due_date_wrap" class="<?php echo e(old('payment_type') === 'credit' ? '' : 'hidden'); ?>">
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Jatuh Tempo</label>
+                            <label class="block text-xs text-gray-500 mb-1">Jatuh Tempo</label>
                             <input type="date" name="due_date" value="<?php echo e(old('due_date')); ?>"
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Tarif Pajak</label>
+                            <label class="block text-xs text-gray-500 mb-1">Tarif Pajak</label>
                             <select name="tax_rate_id"
-                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Tanpa Pajak</option>
                                 <?php $__currentLoopData = $taxRates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($t->id); ?>" <?php echo e(old('tax_rate_id') == $t->id ? 'selected' : ''); ?>><?php echo e($t->name); ?> (<?php echo e($t->rate); ?>%)</option>
@@ -83,9 +83,9 @@
                         </div>
                         <?php if(isset($currencies) && $currencies->count() > 1): ?>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Mata Uang</label>
+                            <label class="block text-xs text-gray-500 mb-1">Mata Uang</label>
                             <select name="currency_code" id="currency_code"
-                                class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <?php $__currentLoopData = $currencies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cur): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($cur->code); ?>" data-rate="<?php echo e($cur->rate_to_idr); ?>" data-symbol="<?php echo e($cur->symbol); ?>"
                                         <?php echo e(old('currency_code', 'IDR') === $cur->code ? 'selected' : ''); ?>>
@@ -97,37 +97,37 @@
                         </div>
                         <?php endif; ?>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Diskon Global (Rp)</label>
+                            <label class="block text-xs text-gray-500 mb-1">Diskon Global (Rp)</label>
                             <input type="number" name="discount" value="<?php echo e(old('discount', 0)); ?>" min="0" step="1000"
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Alamat Pengiriman</label>
+                            <label class="block text-xs text-gray-500 mb-1">Alamat Pengiriman</label>
                             <input type="text" name="shipping_address" value="<?php echo e(old('shipping_address')); ?>" placeholder="Opsional"
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Catatan</label>
+                            <label class="block text-xs text-gray-500 mb-1">Catatan</label>
                             <textarea name="notes" rows="2" placeholder="Opsional"
-                                class="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo e(old('notes')); ?></textarea>
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo e(old('notes')); ?></textarea>
                         </div>
                     </div>
                 </div>
 
                 
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-semibold text-gray-900 dark:text-white">Item Produk</h2>
+                        <h2 class="font-semibold text-gray-900">Item Produk</h2>
                         <button type="button" id="add-item"
                             class="text-sm px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">+ Tambah Item</button>
                     </div>
 
                     <div id="items-container" class="space-y-3">
-                        <div class="item-row bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:dark:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
+                        <div class="item-row bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
                             <div class="sm:col-span-5">
-                                <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Produk</label>
+                                <label class="block text-xs text-gray-500 mb-1">Produk</label>
                                 <select name="items[0][product_id]" required
-                                    class="product-select w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    class="product-select w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Pilih produk...</option>
                                     <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($p->id); ?>" data-price="<?php echo e($p->price_sell); ?>"><?php echo e($p->name); ?> (<?php echo e($p->unit); ?>)</option>
@@ -136,37 +136,37 @@
                             </div>
                             <div class="grid grid-cols-3 gap-2 sm:contents">
                                 <div class="sm:col-span-2">
-                                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Qty</label>
+                                    <label class="block text-xs text-gray-500 mb-1">Qty</label>
                                     <input type="number" name="items[0][quantity]" min="0.001" step="0.001" value="1" required
-                                        class="qty-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        class="qty-input w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Harga</label>
+                                    <label class="block text-xs text-gray-500 mb-1">Harga</label>
                                     <input type="number" name="items[0][price]" min="0" step="100" value="0" required
-                                        class="price-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        class="price-input w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div class="sm:col-span-2 flex items-end justify-between sm:block">
                                     <div>
-                                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:mb-1">Subtotal</label>
-                                        <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
+                                        <label class="block text-xs text-gray-500 mb-1 sm:mb-1">Subtotal</label>
+                                        <div class="row-total text-sm font-medium text-gray-900 py-2">Rp 0</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="sm:col-span-1 flex justify-end -mt-1 sm:mt-0">
-                                <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs sm:mt-5 px-2 py-1 rounded-lg bg-red-50 dark:bg-red-500/10 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
+                                <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs sm:mt-5 px-2 py-1 rounded-lg bg-red-50 sm:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10 flex justify-end">
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-end">
                         <div class="text-right space-y-1">
-                            <p class="text-sm text-gray-500 dark:text-slate-400">Subtotal: <span id="grand-total" class="font-semibold text-gray-900 dark:text-white">Rp 0</span></p>
+                            <p class="text-sm text-gray-500">Subtotal: <span id="grand-total" class="font-semibold text-gray-900">Rp 0</span></p>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 sticky bottom-0 bg-[#f8f8f8] dark:bg-[#0f172a] py-3 -mx-4 px-4 sm:static sm:bg-transparent sm:dark:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-t border-gray-200 dark:border-white/10 sm:border-0">
-                    <a href="<?php echo e(route('sales.index')); ?>" class="px-5 py-2.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">Batal</a>
+                <div class="flex justify-end gap-3 sticky bottom-0 bg-[#f8f8f8] py-3 -mx-4 px-4 sm:static sm:bg-transparent sm:py-0 sm:mx-0 sm:px-0 border-t border-gray-200 sm:border-0">
+                    <a href="<?php echo e(route('sales.index')); ?>" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm hover:bg-gray-200 transition">Batal</a>
                     <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition flex-1 sm:flex-none">Buat Sales Order</button>
                 </div>
 
@@ -288,30 +288,30 @@
 
         function addRow() {
             const tpl = `
-            <div class="item-row bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:dark:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
+            <div class="item-row bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 sm:items-end sm:bg-transparent sm:p-0 sm:border-0 sm:rounded-none">
                 <div class="sm:col-span-5">
                     <select name="items[${idx}][product_id]" required
-                        class="product-select w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="product-select w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         ${buildOptions()}
                     </select>
                 </div>
                 <div class="grid grid-cols-3 gap-2 sm:contents">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:hidden">Qty</label>
+                        <label class="block text-xs text-gray-500 mb-1 sm:hidden">Qty</label>
                         <input type="number" name="items[${idx}][quantity]" min="0.001" step="0.001" value="1" required placeholder="Qty"
-                            class="qty-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="qty-input w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1 sm:hidden">Harga</label>
+                        <label class="block text-xs text-gray-500 mb-1 sm:hidden">Harga</label>
                         <input type="number" name="items[${idx}][price]" min="0" step="100" value="0" required placeholder="Harga"
-                            class="price-input w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="price-input w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2 flex items-end justify-between sm:block">
-                        <div class="row-total text-sm font-medium text-gray-900 dark:text-white py-2">Rp 0</div>
+                        <div class="row-total text-sm font-medium text-gray-900 py-2">Rp 0</div>
                     </div>
                 </div>
                 <div class="sm:col-span-1 flex justify-end -mt-1 sm:mt-0">
-                    <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs px-2 py-1 rounded-lg bg-red-50 dark:bg-red-500/10 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
+                    <button type="button" class="remove-item text-red-400 hover:text-red-300 transition text-xs px-2 py-1 rounded-lg bg-red-50 sm:bg-transparent sm:px-0 sm:py-0">✕ Hapus</button>
                 </div>
             </div>`;
             const container = document.getElementById('items-container');

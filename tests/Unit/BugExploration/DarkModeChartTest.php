@@ -7,115 +7,71 @@ use PHPUnit\Framework\TestCase;
 /**
  * Bug 1.9 — Chart.js Tidak Merespons Event theme-changed
  *
- * Membuktikan bahwa tidak ada listener theme-changed di Chart.js initialization.
- *
- * EXPECTED: Test ini HARUS GAGAL pada kode unfixed.
+ * UPDATED: Dark mode telah dihapus sepenuhnya dari aplikasi.
+ * chart-theme.js sekarang hanya menggunakan warna light mode.
+ * Test ini memverifikasi bahwa:
+ * - Tidak ada lagi listener theme-changed (tidak diperlukan)
+ * - chart-theme.js menggunakan warna light mode secara default
  */
 class DarkModeChartTest extends TestCase
 {
-    private array $jsFiles = [
-        'resources/js/app.js',
-        'resources/js/theme-manager.js',
-        'resources/js/charts.js',
-        'resources/js/dashboard.js',
-    ];
-
     /**
      * @test
-     * Bug 1.9: Verifikasi bahwa ada listener theme-changed untuk Chart.js
-     *
-     * AKAN GAGAL karena tidak ada listener theme-changed di Chart.js initialization
+     * Post dark mode removal: chart-theme.js should NOT have theme-changed listener
      */
     public function test_chartjs_has_theme_changed_listener(): void
     {
-        $allJsContent = '';
+        $chartThemeFile = 'resources/js/chart-theme.js';
 
-        foreach ($this->jsFiles as $jsFile) {
-            if (file_exists($jsFile)) {
-                $allJsContent .= file_get_contents($jsFile);
-            }
+        if (!file_exists($chartThemeFile)) {
+            $this->markTestSkipped("chart-theme.js tidak ditemukan");
         }
 
-        // Juga scan semua JS files di resources/js
-        if (is_dir('resources/js')) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator('resources/js', \RecursiveDirectoryIterator::SKIP_DOTS)
-            );
-            foreach ($iterator as $file) {
-                if ($file->isFile() && str_ends_with($file->getFilename(), '.js')) {
-                    $allJsContent .= file_get_contents($file->getPathname());
-                }
-            }
-        }
+        $content = file_get_contents($chartThemeFile);
 
-        // Cari listener theme-changed yang mengupdate Chart.js
-        $hasChartThemeListener = (
-            str_contains($allJsContent, 'theme-changed') &&
-            (
-                str_contains($allJsContent, 'chart') ||
-                str_contains($allJsContent, 'Chart')
-            ) &&
-            str_contains($allJsContent, 'addEventListener')
+        // After dark mode removal, there should be NO theme-changed listener
+        $hasThemeChangedListener = (
+            str_contains($content, 'theme-changed') &&
+            str_contains($content, 'addEventListener')
         );
 
-        // Test ini AKAN GAGAL karena tidak ada listener theme-changed untuk Chart.js
-        $this->assertTrue(
-            $hasChartThemeListener,
-            "Bug 1.9: Tidak ditemukan listener 'theme-changed' event yang mengupdate Chart.js. " .
-            "Chart.js tidak akan merespons perubahan tema dan akan tetap menggunakan " .
-            "warna background putih setelah tema berubah ke dark mode."
+        $this->assertFalse(
+            $hasThemeChangedListener,
+            "chart-theme.js should NOT have theme-changed event listener after dark mode removal"
+        );
+
+        // Verify light mode colors are used
+        $this->assertStringContainsString(
+            '#1e293b',
+            $content,
+            "chart-theme.js should use light mode text color #1e293b"
+        );
+
+        $this->assertStringContainsString(
+            '#64748b',
+            $content,
+            "chart-theme.js should use light mode muted color #64748b"
         );
     }
 
     /**
      * @test
-     * Bug 1.9: Verifikasi bahwa theme-manager.js mendispatch event theme-changed
-     *
-     * AKAN GAGAL jika theme-manager tidak mendispatch event
+     * Post dark mode removal: No theme-changed event dispatch needed
      */
     public function test_theme_manager_dispatches_theme_changed_event(): void
     {
         $themeManagerFile = 'resources/js/theme-manager.js';
 
-        // Cari di semua JS files jika theme-manager.js tidak ada
-        $allJsContent = '';
-        if (file_exists($themeManagerFile)) {
-            $allJsContent = file_get_contents($themeManagerFile);
-        } else {
-            // Scan semua JS files
-            if (is_dir('resources/js')) {
-                $iterator = new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator('resources/js', \RecursiveDirectoryIterator::SKIP_DOTS)
-                );
-                foreach ($iterator as $file) {
-                    if ($file->isFile() && str_ends_with($file->getFilename(), '.js')) {
-                        $allJsContent .= file_get_contents($file->getPathname());
-                    }
-                }
-            }
-        }
-
-        // Cari dispatchEvent dengan CustomEvent 'theme-changed'
-        $dispatchesThemeChanged = (
-            str_contains($allJsContent, "dispatchEvent") &&
-            str_contains($allJsContent, "theme-changed")
-        );
-
-        // Test ini AKAN GAGAL karena theme-manager tidak mendispatch event theme-changed
-        $this->assertTrue(
-            $dispatchesThemeChanged,
-            "Bug 1.9: Tidak ditemukan kode yang mendispatch CustomEvent 'theme-changed'. " .
-            "Komponen pihak ketiga (Chart.js, Flatpickr, dll) tidak akan mendapat notifikasi " .
-            "saat tema berubah."
+        // theme-manager.js should have been deleted
+        $this->assertFileDoesNotExist(
+            $themeManagerFile,
+            "theme-manager.js should have been deleted after dark mode removal"
         );
     }
 
     /**
      * @test
-     * Bug 1.9: Verifikasi bahwa ada listener theme-changed untuk Flatpickr
-     *
-     * Flatpickr tidak digunakan di project ini — test ini di-skip jika flatpickr
-     * tidak ditemukan di codebase.
+     * Post dark mode removal: Flatpickr theme-changed listener not needed
      */
     public function test_flatpickr_has_theme_changed_listener(): void
     {
@@ -132,9 +88,8 @@ class DarkModeChartTest extends TestCase
             }
         }
 
-        // Jika flatpickr tidak digunakan di project ini, skip test
         $flatpickrUsed = str_contains($allJsContent, 'flatpickr') ||
-                         file_exists('node_modules/flatpickr');
+            file_exists('node_modules/flatpickr');
 
         if (!$flatpickrUsed) {
             $this->markTestSkipped(
@@ -142,16 +97,15 @@ class DarkModeChartTest extends TestCase
             );
         }
 
-        // Cari listener theme-changed yang mengupdate Flatpickr
+        // After dark mode removal, no theme-changed listener should exist
         $hasFlatpickrThemeListener = (
             str_contains($allJsContent, 'theme-changed') &&
             str_contains($allJsContent, 'flatpickr')
         );
 
-        $this->assertTrue(
+        $this->assertFalse(
             $hasFlatpickrThemeListener,
-            "Bug 1.9: Tidak ditemukan listener 'theme-changed' event untuk Flatpickr. " .
-            "Flatpickr tidak akan merespons perubahan tema."
+            "No theme-changed listener for Flatpickr should exist after dark mode removal"
         );
     }
 }

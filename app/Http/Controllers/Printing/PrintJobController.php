@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PrintJob;
 use App\Models\PrintEstimate;
 use App\Models\WebToPrintOrder;
+use App\Models\PressRun;
+use App\Services\PrintJobService;
 use Illuminate\Http\Request;
 
 class PrintJobController extends Controller
@@ -15,25 +17,29 @@ class PrintJobController extends Controller
      */
     public function index(Request $request)
     {
+        $tenantId = auth()->user()->tenant_id;
+
         $stats = [
-            'total_jobs' => PrintJob::where('tenant_id', auth()->user()->tenant_id)->count(),
-            'active_jobs' => PrintJob::where('tenant_id', auth()->user()->tenant_id)->active()->count(),
-            'completed_today' => PrintJob::where('tenant_id', auth()->user()->tenant_id)
+            'total_jobs' => PrintJob::where('tenant_id', $tenantId)->count(),
+            'active_jobs' => PrintJob::where('tenant_id', $tenantId)->active()->count(),
+            'completed_today' => PrintJob::where('tenant_id', $tenantId)
                 ->whereDate('completed_at', today())->count(),
-            'overdue_jobs' => PrintJob::where('tenant_id', auth()->user()->tenant_id)->overdue()->count(),
-            'urgent_jobs' => PrintJob::where('tenant_id', auth()->user()->tenant_id)
+            'overdue_jobs' => PrintJob::where('tenant_id', $tenantId)->overdue()->count(),
+            'urgent_jobs' => PrintJob::where('tenant_id', $tenantId)
                 ->byPriority('urgent')->active()->count(),
         ];
 
-        $jobs = PrintJob::where('tenant_id', auth()->user()->tenant_id)
+        $jobs = PrintJob::where('tenant_id', $tenantId)
             ->with(['customer', 'assignedOperator'])
             ->active()
+            ->whereNotNull('job_name')
             ->orderBy('priority', 'desc')
             ->orderBy('due_date', 'asc')
             ->paginate(20);
 
-        $overdue = PrintJob::where('tenant_id', auth()->user()->tenant_id)
+        $overdue = PrintJob::where('tenant_id', $tenantId)
             ->overdue()
+            ->whereNotNull('job_name')
             ->with('customer')
             ->limit(5)
             ->get();
@@ -56,6 +62,7 @@ class PrintJobController extends Controller
     {
         $validated = $request->validate([
             'job_name' => 'required|string|max:255',
+            'customer_id' => 'nullable|exists:customers,id',
             'product_type' => 'required|string',
             'quantity' => 'required|integer|min:1',
             'priority' => 'nullable|in:low,normal,high,urgent',
@@ -63,20 +70,28 @@ class PrintJobController extends Controller
             'paper_type' => 'nullable|string',
             'colors_front' => 'nullable|integer|min:0|max:6',
             'colors_back' => 'nullable|integer|min:0|max:6',
+            'special_instructions' => 'nullable|string',
+            'quoted_price' => 'nullable|numeric|min:0',
+            'estimated_cost' => 'nullable|numeric|min:0',
         ]);
 
         try {
             $job = new PrintJob();
             $job->tenant_id = auth()->user()->tenant_id;
-            $job->job_number = 'PJ' . now()->format('Ymd') . str_pad(PrintJob::count() + 1, 4, '0', STR_PAD_LEFT);
+            $job->job_number = 'PJ' . now()->format('Ymd') . str_pad(
+                PrintJob::where('job_number', 'like', 'PJ' . now()->format('Ymd') . '%')->count() + 1,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
             $job->fill($validated);
             $job->status = 'queued';
             $job->save();
 
             return redirect()->route('printing.show', $job)
-                ->with('success', 'Print job created successfully!');
+                ->with('success', 'Print job berhasil dibuat!');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal membuat print job: ' . $e->getMessage());
         }
     }
 
@@ -104,7 +119,7 @@ class PrintJobController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validated = $request->validate([
-            'status' => 'required|string',
+            'status' => 'required|string|in:queued,prepress,platemaking,on_press,finishing,quality_check,completed,cancelled',
         ]);
 
         $job = PrintJob::findOrFail($id);
@@ -114,9 +129,18 @@ class PrintJobController extends Controller
             $job->completed_at = now();
         }
 
+        if ($validated['status'] === 'on_press' && !$job->started_at) {
+            $job->started_at = now();
+        }
+
         $job->save();
 
-        return back()->with('success', 'Status updated successfully!');
+        // Create journal entry when job is completed and has a quoted price
+        if ($validated['status'] === 'completed' && $job->quoted_price > 0) {
+            $this->createCompletionJournalEntry($job);
+        }
+
+        return back()->with('success', 'Status berhasil diperbarui!');
     }
 
     /**
@@ -132,7 +156,7 @@ class PrintJobController extends Controller
         $job->assigned_operator = $validated['operator_id'];
         $job->save();
 
-        return back()->with('success', 'Operator assigned successfully!');
+        return back()->with('success', 'Operator berhasil ditugaskan!');
     }
 
     /**
@@ -146,7 +170,7 @@ class PrintJobController extends Controller
         $job->approved_by = auth()->id();
         $job->save();
 
-        return back()->with('success', 'Proof approved successfully!');
+        return back()->with('success', 'Proof berhasil disetujui!');
     }
 
     /**
@@ -172,12 +196,12 @@ class PrintJobController extends Controller
 
         $job = PrintJob::findOrFail($id);
         $job->status = 'on_press';
-        $job->started_at = now();
+        $job->started_at = $job->started_at ?? now();
         $job->assigned_operator = $validated['operator_id'];
         $job->save();
 
         // Create press run record
-        $run = $job->pressRuns()->create([
+        $job->pressRuns()->create([
             'tenant_id' => auth()->user()->tenant_id,
             'press_machine' => $validated['machine'],
             'target_quantity' => $job->quantity,
@@ -186,7 +210,7 @@ class PrintJobController extends Controller
             'run_start' => now(),
         ]);
 
-        return back()->with('success', 'Press run started!');
+        return back()->with('success', 'Press run dimulai!');
     }
 
     /**
@@ -199,7 +223,7 @@ class PrintJobController extends Controller
             'waste_quantity' => 'nullable|integer|min:0',
         ]);
 
-        $run = \App\Models\PressRun::findOrFail($runId);
+        $run = PressRun::findOrFail($runId);
         $run->produced_quantity = $validated['produced_quantity'];
         $run->waste_quantity = $validated['waste_quantity'] ?? 0;
 
@@ -221,7 +245,7 @@ class PrintJobController extends Controller
 
         $run->save();
 
-        return back()->with('success', 'Production updated!');
+        return back()->with('success', 'Produksi diperbarui!');
     }
 
     /**
@@ -234,7 +258,7 @@ class PrintJobController extends Controller
     }
 
     /**
-     * Create estimate
+     * List estimates
      */
     public function estimates()
     {
@@ -260,9 +284,10 @@ class PrintJobController extends Controller
             'colors_front' => 'nullable|integer|min:0|max:6',
             'colors_back' => 'nullable|integer|min:0|max:6',
             'markup_percentage' => 'nullable|numeric|min:0|max:100',
+            'customer_id' => 'nullable|exists:customers,id',
         ]);
 
-        // Simplified calculation
+        // Cost calculation
         $quantity = $validated['quantity'];
         $paperCost = $quantity * 500;
         $plateCost = (($validated['colors_front'] ?? 4) + ($validated['colors_back'] ?? 0)) * 50000;
@@ -279,8 +304,13 @@ class PrintJobController extends Controller
 
         $estimate = PrintEstimate::create([
             'tenant_id' => auth()->user()->tenant_id,
-            'estimate_number' => 'EST' . now()->format('Ymd') . str_pad(PrintEstimate::count() + 1, 4, '0', STR_PAD_LEFT),
-            'customer_id' => $request->customer_id,
+            'estimate_number' => 'EST' . now()->format('Ymd') . str_pad(
+                PrintEstimate::where('estimate_number', 'like', 'EST' . now()->format('Ymd') . '%')->count() + 1,
+                4,
+                '0',
+                STR_PAD_LEFT
+            ),
+            'customer_id' => $validated['customer_id'] ?? null,
             'product_type' => $validated['product_type'],
             'quantity' => $quantity,
             'paper_type' => $validated['paper_type'],
@@ -305,7 +335,7 @@ class PrintJobController extends Controller
         ]);
 
         return redirect()->route('printing.estimates')
-            ->with('success', 'Estimate created successfully!');
+            ->with('success', 'Estimasi berhasil dibuat!');
     }
 
     /**
@@ -314,10 +344,51 @@ class PrintJobController extends Controller
     public function webOrders()
     {
         $orders = WebToPrintOrder::where('tenant_id', auth()->user()->tenant_id)
-            ->with('customer')
+            ->with(['customer', 'printJob'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
         return view('printing.web-orders', compact('orders'));
+    }
+
+    /**
+     * Create journal entry when print job is completed (integration with Accounting)
+     */
+    protected function createCompletionJournalEntry(PrintJob $job): void
+    {
+        try {
+            if (!class_exists(\App\Services\JournalService::class)) {
+                return;
+            }
+
+            $journalService = app(\App\Services\JournalService::class);
+
+            $journalService->createJournalEntry([
+                'tenant_id' => $job->tenant_id,
+                'date' => now()->toDateString(),
+                'description' => "Pendapatan cetak - {$job->job_number}: {$job->job_name}",
+                'reference_type' => 'print_job',
+                'reference_id' => $job->id,
+                'lines' => [
+                    [
+                        'account_code' => '1100', // Piutang Usaha
+                        'debit' => $job->quoted_price,
+                        'credit' => 0,
+                        'description' => "Piutang cetak {$job->job_number}",
+                    ],
+                    [
+                        'account_code' => '4100', // Pendapatan Jasa Cetak
+                        'debit' => 0,
+                        'credit' => $job->quoted_price,
+                        'description' => "Pendapatan cetak {$job->job_number}",
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // Log but don't fail the status update
+            \Illuminate\Support\Facades\Log::warning('Gagal membuat jurnal untuk print job: ' . $e->getMessage(), [
+                'print_job_id' => $job->id,
+            ]);
+        }
     }
 }

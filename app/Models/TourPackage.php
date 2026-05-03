@@ -175,6 +175,11 @@ class TourPackage extends Model
         return $this->status === 'active';
     }
 
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->isActive();
+    }
+
     public function canBook(): bool
     {
         if (!$this->isActive()) {

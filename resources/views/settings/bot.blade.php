@@ -1,10 +1,10 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Konfigurasi Bot WA/Telegram</x-slot>
 
     <div class="max-w-2xl mx-auto space-y-6">
 
         {{-- Telegram --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
                     <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
@@ -13,7 +13,7 @@
                 </div>
                 <div>
                     <h2 class="font-semibold text-white">Telegram Bot</h2>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Kirim notifikasi & terima perintah via Telegram</p>
+                    <p class="text-xs text-gray-500">Kirim notifikasi & terima perintah via Telegram</p>
                 </div>
                 @if($telegram?->is_active)
                     <span class="ml-auto px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full font-medium">Aktif</span>
@@ -25,25 +25,25 @@
                 <input type="hidden" name="platform" value="telegram">
 
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Bot Token</label>
+                    <label class="block text-xs text-gray-500 mb-1.5">Bot Token</label>
                     <input type="text" name="token" value="{{ $telegram?->token }}" placeholder="1234567890:ABCdef..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Dapatkan token dari <a href="https://t.me/BotFather" target="_blank" class="text-blue-400 hover:underline">@BotFather</a></p>
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
+                    <p class="text-xs text-gray-400 mt-1.5">Dapatkan token dari <a href="https://t.me/BotFather" target="_blank" class="text-blue-400 hover:underline">@BotFather</a></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     @foreach(['is_active' => 'Aktifkan Bot', 'notify_new_order' => 'Order Baru', 'notify_low_stock' => 'Stok Rendah', 'notify_payment' => 'Pembayaran', 'notify_approval' => 'Persetujuan'] as $field => $label)
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="{{ $field }}" value="1" {{ $telegram?->$field ? 'checked' : '' }}
-                            class="w-4 h-4 rounded border-white/20 bg-gray-50 dark:bg-[#0f172a] text-blue-500 focus:ring-blue-500 focus:ring-offset-0">
-                        <span class="text-sm text-gray-700 dark:text-slate-300">{{ $label }}</span>
+                            class="w-4 h-4 rounded border-white/20 bg-gray-50 text-blue-500 focus:ring-blue-500 focus:ring-offset-0">
+                        <span class="text-sm text-gray-700">{{ $label }}</span>
                     </label>
                     @endforeach
                 </div>
 
                 <div class="pt-1">
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mb-2">Webhook URL (daftarkan ke Telegram):</p>
-                    <code class="text-xs bg-gray-50 dark:bg-[#0f172a] text-gray-700 dark:text-slate-300 px-3 py-2 rounded-lg block break-all border border-gray-200 dark:border-white/10">{{ url('/webhook/telegram') }}</code>
+                    <p class="text-xs text-gray-400 mb-2">Webhook URL (daftarkan ke Telegram):</p>
+                    <code class="text-xs bg-gray-50 text-gray-700 px-3 py-2 rounded-lg block break-all border border-gray-200">{{ url('/webhook/telegram') }}</code>
                 </div>
 
                 <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition">
@@ -53,7 +53,7 @@
         </div>
 
         {{-- WhatsApp --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
                     <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="currentColor">
@@ -62,7 +62,7 @@
                 </div>
                 <div>
                     <h2 class="font-semibold text-white">WhatsApp Bot</h2>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Integrasi via WhatsApp Business API (Meta)</p>
+                    <p class="text-xs text-gray-500">Integrasi via WhatsApp Business API (Meta)</p>
                 </div>
                 @if($whatsapp?->is_active)
                     <span class="ml-auto px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full font-medium">Aktif</span>
@@ -74,24 +74,24 @@
                 <input type="hidden" name="platform" value="whatsapp">
 
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Access Token (Meta)</label>
+                    <label class="block text-xs text-gray-500 mb-1.5">Access Token (Meta)</label>
                     <input type="text" name="token" value="{{ $whatsapp?->token }}" placeholder="EAABs..."
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     @foreach(['is_active' => 'Aktifkan Bot', 'notify_new_order' => 'Order Baru', 'notify_low_stock' => 'Stok Rendah', 'notify_payment' => 'Pembayaran', 'notify_approval' => 'Persetujuan'] as $field => $label)
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="{{ $field }}" value="1" {{ $whatsapp?->$field ? 'checked' : '' }}
-                            class="w-4 h-4 rounded border-white/20 bg-gray-50 dark:bg-[#0f172a] text-green-500 focus:ring-green-500 focus:ring-offset-0">
-                        <span class="text-sm text-gray-700 dark:text-slate-300">{{ $label }}</span>
+                            class="w-4 h-4 rounded border-white/20 bg-gray-50 text-green-500 focus:ring-green-500 focus:ring-offset-0">
+                        <span class="text-sm text-gray-700">{{ $label }}</span>
                     </label>
                     @endforeach
                 </div>
 
                 <div class="pt-1">
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mb-2">Webhook URL (daftarkan ke Meta Developer):</p>
-                    <code class="text-xs bg-gray-50 dark:bg-[#0f172a] text-gray-700 dark:text-slate-300 px-3 py-2 rounded-lg block break-all border border-gray-200 dark:border-white/10">{{ url('/webhook/whatsapp') }}</code>
+                    <p class="text-xs text-gray-400 mb-2">Webhook URL (daftarkan ke Meta Developer):</p>
+                    <code class="text-xs bg-gray-50 text-gray-700 px-3 py-2 rounded-lg block break-all border border-gray-200">{{ url('/webhook/whatsapp') }}</code>
                 </div>
 
                 <button type="submit" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition">

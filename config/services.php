@@ -56,8 +56,19 @@ return [
     ],
 
     'vapid' => [
+        // Backward-compatible legacy keys (single pair)
         'public_key'  => env('VAPID_PUBLIC_KEY', ''),
         'private_key' => env('VAPID_PRIVATE_KEY', ''),
+
+        // Environment-specific keys
+        'development' => [
+            'public_key' => env('VAPID_PUBLIC_KEY_DEV', env('VAPID_PUBLIC_KEY', '')),
+            'private_key' => env('VAPID_PRIVATE_KEY_DEV', env('VAPID_PRIVATE_KEY', '')),
+        ],
+        'production' => [
+            'public_key' => env('VAPID_PUBLIC_KEY_PROD', env('VAPID_PUBLIC_KEY', '')),
+            'private_key' => env('VAPID_PRIVATE_KEY_PROD', env('VAPID_PRIVATE_KEY', '')),
+        ],
     ],
 
     'google' => [

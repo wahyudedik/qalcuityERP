@@ -25,15 +25,21 @@ class WorkflowEngine
     /**
      * Fire event and execute matching workflows
      */
-    public function fireEvent(string $event, array $context = []): void
+    public function fireEvent(string $event, array $context = [], ?int $tenantId = null): void
     {
         try {
             // Find workflows triggered by this event
-            $workflows = Workflow::where('trigger_type', 'event')
+            $query = Workflow::where('trigger_type', 'event')
                 ->where('is_active', true)
                 ->whereJsonContains('trigger_config->event', $event)
-                ->orderBy('priority', 'desc')
-                ->get();
+                ->orderBy('priority', 'desc');
+
+            // Scope to tenant if provided
+            if ($tenantId) {
+                $query->where('tenant_id', $tenantId);
+            }
+
+            $workflows = $query->get();
 
             foreach ($workflows as $workflow) {
                 $workflow->execute(array_merge($context, [
@@ -48,10 +54,10 @@ class WorkflowEngine
                     $callback($context);
                 }
             }
-
         } catch (\Exception $e) {
             Log::error('Workflow Event Fire Error', [
                 'event' => $event,
+                'tenant_id' => $tenantId,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -72,10 +78,19 @@ class WorkflowEngine
             $schedule = $workflow->trigger_config['schedule'] ?? null;
 
             if ($this->shouldExecute($schedule, $now)) {
-                $workflow->execute([
-                    'triggered_by' => 'schedule:' . $schedule,
-                    'executed_at' => $now->toIso8601String(),
-                ]);
+                try {
+                    $workflow->execute([
+                        'triggered_by' => 'schedule:' . $schedule,
+                        'executed_at' => $now->toIso8601String(),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Scheduled Workflow Execution Error', [
+                        'workflow_id' => $workflow->id,
+                        'tenant_id' => $workflow->tenant_id,
+                        'schedule' => $schedule,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
     }
@@ -92,10 +107,10 @@ class WorkflowEngine
         return match ($schedule) {
             'every_minute' => true,
             'hourly' => $now->minute === 0,
-            'daily_9am' => $now->hour === 9 && $now->minute === 0,
+            'daily_9am', 'invoice_overdue_check' => $now->hour === 9 && $now->minute === 0,
             'daily_midnight' => $now->hour === 0 && $now->minute === 0,
             'weekly_monday' => $now->dayOfWeek === 1 && $now->hour === 0 && $now->minute === 0,
-            'monthly_first' => $now->day === 1 && $now->hour === 0 && $now->minute === 0,
+            'monthly_first', 'monthly_bonus_calculation' => $now->day === 1 && $now->hour === 0 && $now->minute === 0,
             default => false,
         };
     }
@@ -149,7 +164,6 @@ class WorkflowEngine
                 'duration_ms' => $duration,
                 'message' => $success ? 'Workflow executed successfully' : 'Workflow execution failed',
             ];
-
         } catch (\Exception $e) {
             return [
                 'success' => false,

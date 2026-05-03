@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Billing History</x-slot>
 
     @php
@@ -8,40 +8,40 @@
 
     @if (!$patient)
         <div
-            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-2xl p-6 text-center">
-            <p class="text-sm text-red-700 dark:text-red-300">Patient profile not found. Please contact reception.</p>
+            class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+            <p class="text-sm text-red-700">Patient profile not found. Please contact reception.</p>
         </div>
     @else
         {{-- Stats --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Total Bills</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $statistics['total_bills'] ?? 0 }}
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Total Bills</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $statistics['total_bills'] ?? 0 }}
                 </p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Paid</p>
-                <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Paid</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">
                     {{ $statistics['paid_bills'] ?? 0 }}</p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Pending</p>
-                <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Pending</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">
                     {{ $statistics['pending_bills'] ?? 0 }}</p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Outstanding</p>
-                <p class="text-lg font-bold text-red-600 dark:text-red-400 mt-1">Rp
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Outstanding</p>
+                <p class="text-lg font-bold text-red-600 mt-1">Rp
                     {{ number_format($statistics['total_outstanding'] ?? 0, 0, ',', '.') }}</p>
             </div>
         </div>
 
         {{-- Filter --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-200 mb-6">
             <div class="p-4">
                 <form method="GET" class="flex flex-col sm:flex-row gap-3">
                     <select name="status"
-                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Status</option>
                         <option value="paid" @selected(request('status') === 'paid')>Paid</option>
                         <option value="pending" @selected(request('status') === 'pending')>Pending</option>
@@ -49,9 +49,9 @@
                         <option value="overdue" @selected(request('status') === 'overdue')>Overdue</option>
                     </select>
                     <input type="date" name="from" value="{{ request('from') }}"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <input type="date" name="to" value="{{ request('to') }}"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
                         Filter
@@ -61,10 +61,10 @@
         </div>
 
         {{-- Bills List --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left">Invoice No</th>
                             <th class="px-4 py-3 text-left hidden sm:table-cell">Tanggal</th>
@@ -76,7 +76,7 @@
                             <th class="px-4 py-3 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         @php
                             $bills = \App\Models\MedicalBill::where('patient_id', $patient->id)
                                 ->when(request('status'), function ($q) {
@@ -92,61 +92,61 @@
                                 ->paginate(10);
                         @endphp
                         @forelse($bills as $bill)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <span class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    <span class="font-mono text-sm font-bold text-blue-600">
                                         {{ $bill->invoice_number ?? '-' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-gray-900 dark:text-white hidden sm:table-cell">
+                                <td class="px-4 py-3 text-gray-900 hidden sm:table-cell">
                                     {{ $bill->bill_date ? \Carbon\Carbon::parse($bill->bill_date)->format('d M Y') : '-' }}
                                 </td>
                                 <td class="px-4 py-3 hidden md:table-cell">
-                                    <p class="text-gray-900 dark:text-white">
+                                    <p class="text-gray-900">
                                         {{ Str::limit($bill->description ?? 'Medical Services', 40) }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="text-xs text-gray-500">
                                         {{ $bill->visit ? $bill->visit->visit_date->format('d M Y') : '' }}
                                     </p>
                                 </td>
                                 <td class="px-4 py-3 text-right hidden lg:table-cell">
-                                    <span class="font-medium text-gray-900 dark:text-white">
+                                    <span class="font-medium text-gray-900">
                                         Rp {{ number_format($bill->total_amount, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-right hidden lg:table-cell">
-                                    <span class="text-green-600 dark:text-green-400">
+                                    <span class="text-green-600">
                                         Rp {{ number_format($bill->paid_amount ?? 0, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-right hidden lg:table-cell">
-                                    <span class="font-bold text-red-600 dark:text-red-400">
+                                    <span class="font-bold text-red-600">
                                         Rp {{ number_format($bill->outstanding_balance ?? 0, 0, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     @if ($bill->status === 'paid')
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">
                                             Paid
                                         </span>
                                     @elseif($bill->status === 'pending')
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">
                                             Pending
                                         </span>
                                     @elseif($bill->status === 'partial')
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">
                                             Partial
                                         </span>
                                     @elseif($bill->status === 'overdue')
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">
                                             Overdue
                                         </span>
                                     @else
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">
                                             {{ ucfirst($bill->status) }}
                                         </span>
                                     @endif
@@ -154,7 +154,7 @@
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         <a href="{{ route('healthcare.portal.billing.show', $bill) }}"
-                                            class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                             title="View Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -167,7 +167,7 @@
                                         </a>
                                         @if ($bill->status !== 'paid')
                                             <button onclick="payBill({{ $bill->id }})"
-                                                class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                                class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                                 title="Pay Now">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -183,8 +183,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
-                                    <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-slate-500 mb-3" fill="none"
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -199,7 +199,7 @@
             </div>
 
             @if ($bills->hasPages())
-                <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+                <div class="px-4 py-3 border-t border-gray-200">
                     {{ $bills->links() }}
                 </div>
             @endif
@@ -207,12 +207,12 @@
 
         {{-- Payment Methods Info --}}
         <div
-            class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-2xl p-6">
-            <h3 class="text-lg font-bold text-blue-900 dark:text-blue-200 mb-3">Payment Methods</h3>
+            class="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-6">
+            <h3 class="text-lg font-bold text-blue-900 mb-3">Payment Methods</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
@@ -220,13 +220,13 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">Cash</p>
-                        <p class="text-xs text-blue-700 dark:text-blue-300">Pay at counter</p>
+                        <p class="text-sm font-medium text-blue-900">Cash</p>
+                        <p class="text-xs text-blue-700">Pay at counter</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
@@ -234,21 +234,21 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">Credit/Debit Card</p>
-                        <p class="text-xs text-blue-700 dark:text-blue-300">Visa, Mastercard</p>
+                        <p class="text-sm font-medium text-blue-900">Credit/Debit Card</p>
+                        <p class="text-xs text-blue-700">Visa, Mastercard</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-blue-900 dark:text-blue-200">Digital Wallet</p>
-                        <p class="text-xs text-blue-700 dark:text-blue-300">GoPay, OVO, Dana</p>
+                        <p class="text-sm font-medium text-blue-900">Digital Wallet</p>
+                        <p class="text-xs text-blue-700">GoPay, OVO, Dana</p>
                     </div>
                 </div>
             </div>

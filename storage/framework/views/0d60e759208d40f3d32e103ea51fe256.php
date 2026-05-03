@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -16,18 +16,18 @@
 
             
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Informasi Pasien</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-semibold text-gray-900">Informasi Pasien</h3>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Pilih Pasien <span class="text-red-500">*</span>
                             </label>
                             <select name="patient_id" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['patient_id'];
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['patient_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -55,7 +55,7 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                            <p class="mt-1 text-xs text-gray-500">
                                 <a href="<?php echo e(route('healthcare.patients.create')); ?>"
                                     class="text-blue-600 hover:underline">+ Tambah pasien baru</a>
                             </p>
@@ -66,18 +66,18 @@ unset($__errorArgs, $__bag); ?>
 
             
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Detail Kunjungan</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-semibold text-gray-900">Detail Kunjungan</h3>
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Dokter Tujuan <span class="text-red-500">*</span>
                             </label>
                             <select name="doctor_id" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['doctor_id'];
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['doctor_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -108,12 +108,12 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Tanggal & Waktu Kunjungan <span class="text-red-500">*</span>
                             </label>
                             <input type="datetime-local" name="visit_date"
                                 value="<?php echo e(old('visit_date', now()->format('Y-m-d\TH:i'))); ?>" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['visit_date'];
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['visit_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -134,11 +134,11 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Keperluan / Keluhan <span class="text-red-500">*</span>
                             </label>
                             <textarea name="purpose" rows="3" required placeholder="Jelaskan keperluan atau keluhan pasien..."
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['purpose'];
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 <?php $__errorArgs = ['purpose'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -159,11 +159,11 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Tipe Kunjungan
                             </label>
                             <select name="visit_type"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="new">Pasien Baru</option>
                                 <option value="follow_up">Follow-up / Kontrol</option>
                                 <option value="referral">Rujukan</option>
@@ -172,11 +172,11 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Sumber Rujukan
                             </label>
                             <select name="referral_source"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Tidak Ada</option>
                                 <option value="internal">Internal (Dokter Lain)</option>
                                 <option value="external">Eksternal (RS Lain)</option>
@@ -186,19 +186,19 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Catatan Tambahan
                             </label>
                             <textarea name="notes" rows="2" placeholder="Catatan tambahan untuk kunjungan..."
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo e(old('notes')); ?></textarea>
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo e(old('notes')); ?></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Metode Pembayaran
                             </label>
                             <select name="payment_method"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="self_pay">Bayar Sendiri</option>
                                 <option value="bpjs">BPJS</option>
                                 <option value="insurance">Asuransi Swasta</option>
@@ -210,7 +210,7 @@ unset($__errorArgs, $__bag); ?>
                             <label class="flex items-center gap-2">
                                 <input type="checkbox" name="create_queue" value="1" checked
                                     class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700 dark:text-slate-300">Buat nomor antrian
+                                <span class="text-sm text-gray-700">Buat nomor antrian
                                     otomatis</span>
                             </label>
                         </div>
@@ -221,7 +221,7 @@ unset($__errorArgs, $__bag); ?>
             
             <div class="flex justify-end gap-3">
                 <a href="<?php echo e(route('healthcare.outpatient.visits.index')); ?>"
-                    class="px-6 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</a>
+                    class="px-6 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</a>
                 <button type="submit"
                     class="px-6 py-2.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium">
                     Daftarkan Kunjungan

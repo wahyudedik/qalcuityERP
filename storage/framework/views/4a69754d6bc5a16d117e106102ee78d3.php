@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -32,6 +32,6 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <td class="px-6 py-4 whitespace-nowrap w-12">
     <input type="checkbox" name="selected_ids[]" value="<?php echo e($id); ?>"
-        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" onchange="updateBulkBar()">
+        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" onchange="updateBulkBar()">
 </td>
 <?php /**PATH E:\PROJEKU\qalcuityERP\resources\views\components\bulk-table-row.blade.php ENDPATH**/ ?>

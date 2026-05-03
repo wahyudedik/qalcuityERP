@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -31,11 +31,11 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 <div id="bulk-action-bar"
-    class="hidden mb-4 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-lg">
+    class="hidden mb-4 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-700 dark:text-gray-300">
-                <span id="selected-count" class="font-semibold text-blue-600 dark:text-blue-400">0</span>
+            <span class="text-sm text-gray-700">
+                <span id="selected-count" class="font-semibold text-blue-600">0</span>
                 item dipilih
             </span>
         </div>
@@ -43,20 +43,20 @@ unset($__defined_vars, $__key, $__value); ?>
             <?php $__currentLoopData = $actions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $action): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if(isset($action['danger'])): ?>
                     <button type="button" onclick="<?php echo e($action['onclick'] ?? ''); ?>"
-                        class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-500/30 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition">
+                        class="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition">
                         <?php echo e($action['label']); ?>
 
                     </button>
                 <?php else: ?>
                     <button type="button" onclick="<?php echo e($action['onclick'] ?? ''); ?>"
-                        class="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-500/30 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 transition">
+                        class="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition">
                         <?php echo e($action['label']); ?>
 
                     </button>
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             <button type="button" onclick="clearSelection()"
-                class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                class="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                 Batal
             </button>
         </div>

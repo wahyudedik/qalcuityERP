@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Batch ' . $batch->batch_number); ?>
 
@@ -349,7 +349,7 @@
         <!-- Add QC Check Modal -->
         <div id="add-qc-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-                <h3 class="text-lg font-semibold mb-4">Add Quality Check</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Quality Check</h3>
                 <form method="POST" action="<?php echo e(route('cosmetic.batches.quality-check.add', $batch)); ?>">
                     <?php echo csrf_field(); ?>
                     <div class="space-y-3">
@@ -415,7 +415,7 @@
         <div id="add-rework-modal"
             class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-                <h3 class="text-lg font-semibold mb-4">Add Rework Log</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Rework Log</h3>
                 <form method="POST" action="<?php echo e(route('cosmetic.batches.rework.add', $batch)); ?>">
                     <?php echo csrf_field(); ?>
                     <div class="space-y-3">

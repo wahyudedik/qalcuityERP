@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Izin Akses — {{ $user->name }}</x-slot>
     <x-slot name="header">Izin Akses: {{ $user->name }}</x-slot>
     <x-slot name="pageHeader">
@@ -15,12 +15,12 @@
     @endphp
 
     {{-- User info --}}
-    <div class="mb-5 flex items-center gap-4 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4">
+    <div class="mb-5 flex items-center gap-4 bg-white border border-gray-200 rounded-2xl px-5 py-4">
         <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
         <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900 dark:text-white">{{ $user->name }}</p>
+            <p class="font-semibold text-gray-900">{{ $user->name }}</p>
             <p class="text-xs text-slate-400">{{ $user->email }} &middot; Role: <span class="text-blue-400 font-medium">{{ $user->roleLabel() }}</span></p>
         </div>
         <div class="text-xs text-slate-500 text-right hidden sm:block">
@@ -47,9 +47,9 @@
                 @endphp
                 @if(count($visibleModules) === 0) @continue @endif
 
-                <div class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+                <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                     {{-- Category header --}}
-                    <div class="px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03]">
+                    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">{{ $catLabel }}</h3>
                     </div>
 
@@ -57,18 +57,18 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 dark:border-white/5">
+                                <tr class="border-b border-gray-100">
                                     <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 w-52">Modul</th>
                                     @foreach($actionLabels as $act => $lbl)
                                         <th class="text-center px-4 py-2.5 text-xs font-semibold text-slate-500 w-20">{{ $lbl }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50 dark:divide-white/[0.03]">
+                            <tbody class="divide-y divide-gray-50">
                                 @foreach($visibleModules as $module)
                                     @php $actions = $modules[$module]; @endphp
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition">
-                                        <td class="px-5 py-3 font-medium text-gray-800 dark:text-slate-200 text-sm">
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-5 py-3 font-medium text-gray-800 text-sm">
                                             {{ \App\Services\PermissionService::moduleLabel($module) }}
                                             @php
                                                 // Show if this row has any override vs role default
@@ -98,7 +98,7 @@
                                                            value="1"
                                                            {{ $current ? 'checked' : '' }}
                                                            title="{{ $isDefault ? 'Default role: izin' : 'Default role: tolak' }}"
-                                                           class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-500 bg-white dark:bg-white/10 focus:ring-blue-500 cursor-pointer accent-blue-500">
+                                                           class="w-4 h-4 rounded border-gray-300 text-blue-500 bg-white focus:ring-blue-500 cursor-pointer accent-blue-500">
                                                 @else
                                                     <span class="text-slate-700 text-xs">—</span>
                                                 @endif
@@ -121,7 +121,7 @@
             </button>
             <button type="button"
                     onclick="if(confirm('Reset semua izin ke default role {{ $user->roleLabel() }}?')) document.getElementById('reset-form').submit()"
-                    class="px-6 py-2.5 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 text-sm font-semibold rounded-xl transition">
+                    class="px-6 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
                 Reset ke Default Role
             </button>
         </div>

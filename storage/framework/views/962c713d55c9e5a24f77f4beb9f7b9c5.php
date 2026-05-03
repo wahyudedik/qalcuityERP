@@ -8,15 +8,15 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight"><?php echo e(__('Lab Equipment Details')); ?> -
-                <?php echo e($equipment->name); ?></h2>
-            <a href="<?php echo e(route('healthcare.lab-equipment.index')); ?>"
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Lab Equipment Details')); ?> -
+                <?php echo e($equipment->name); ?> <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('healthcare.lab-equipment.index')); ?>"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
                     class="fas fa-arrow-left mr-2"></i>Back</a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

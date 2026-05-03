@@ -1,13 +1,12 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-2 text-sm">
-            <a href="{{ route('supplier-performance.dashboard') }}" class="text-gray-400 dark:text-slate-500 hover:text-blue-500 transition-colors">
+﻿<x-app-layout>
+    <x-slot name="header">/</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('supplier-performance.dashboard') }}" class="text-gray-400 hover:text-blue-500 transition-colors">
                 Supplier Performance
             </a>
-            <span class="text-gray-300 dark:text-slate-600">/</span>
-            <span class="text-gray-600 dark:text-slate-300 font-medium truncate">{{ $supplier->name }}</span>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -15,30 +14,30 @@
             {{-- Page Title Bar --}}
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div class="min-w-0">
-                    <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 truncate">
+                    <h1 class="text-xl font-bold text-gray-800 truncate">
                         {{ $supplier->name }}
                     </h1>
                     <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                         @if($supplier->company)
-                            <span class="text-sm text-gray-500 dark:text-slate-400">{{ $supplier->company }}</span>
+                            <span class="text-sm text-gray-500">{{ $supplier->company }}</span>
                         @endif
                         @if($supplier->email)
-                            <span class="text-gray-300 dark:text-slate-600">·</span>
-                            <span class="text-sm text-gray-400 dark:text-slate-500">{{ $supplier->email }}</span>
+                            <span class="text-gray-300">·</span>
+                            <span class="text-sm text-gray-400">{{ $supplier->email }}</span>
                         @endif
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <form method="GET" action="{{ request()->url() }}">
                         <select name="period" onchange="this.form.submit()"
-                            class="text-sm border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="text-sm border border-gray-200 bg-white text-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="30" {{ $period == 30 ? 'selected' : '' }}>30 Hari</option>
                             <option value="90" {{ $period == 90 ? 'selected' : '' }}>90 Hari</option>
                             <option value="180" {{ $period == 180 ? 'selected' : '' }}>6 Bulan</option>
                         </select>
                     </form>
                     <a href="{{ route('supplier-performance.dashboard') }}"
-                        class="inline-flex items-center gap-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                        class="inline-flex items-center gap-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -49,48 +48,48 @@
 
             {{-- Performance Summary Cards --}}
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Current Grade</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Current Grade</div>
                     <div
                         class="text-4xl font-bold {{ str_starts_with($performance['current_grade'], 'A') ? 'text-green-600' : 'text-blue-600' }}">
                         {{ $performance['current_grade'] }}
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Overall Score</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Overall Score</div>
                     <div class="text-3xl font-bold text-purple-600">
                         {{ number_format($performance['avg_overall_score'], 1) }}</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">On-Time Rate</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">On-Time Rate</div>
                     <div
                         class="text-3xl font-bold {{ $performance['on_time_delivery_rate'] >= 90 ? 'text-green-600' : 'text-red-600' }}">
                         {{ $performance['on_time_delivery_rate'] }}%
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Quality Rate</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Quality Rate</div>
                     <div class="text-3xl font-bold text-blue-600">
                         {{ number_format($performance['avg_quality_rate'], 1) }}%</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Total Evaluations</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Total Evaluations</div>
                     <div class="text-3xl font-bold text-orange-600">{{ $performance['total_evaluations'] }}</div>
                 </div>
             </div>
 
             {{-- Performance Trend Chart --}}
             @if ($performance['chart_data']['labels'])
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Performance Trends</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Performance Trends</h3>
                     <canvas id="performanceChart" height="100"></canvas>
                 </div>
             @endif
 
             {{-- Score Breakdown --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Score Breakdown</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Score Breakdown</h3>
                     <div class="space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
@@ -128,8 +127,8 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Purchase Summary</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Purchase Summary</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-500">Total POs Evaluated:</span>
@@ -155,11 +154,11 @@
             </div>
 
             {{-- Evaluation History --}}
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Evaluation History</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Evaluation History</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Date</th>
                                 <th class="px-4 py-3 text-left">PO Number</th>
@@ -172,9 +171,9 @@
                                 <th class="px-4 py-3 text-left">Evaluated By</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($evaluations as $eval)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">{{ $eval->evaluation_date->format('d M Y') }}</td>
                                     <td class="px-4 py-3">
                                         @if ($eval->purchaseOrder)

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,14 +12,14 @@
      <?php $__env->slot('header', null, []); ?> Tambah Pengguna <?php $__env->endSlot(); ?>
 
     <div class="max-w-lg">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <form method="POST" action="<?php echo e(route('tenant.users.store')); ?>" class="space-y-4">
                 <?php echo csrf_field(); ?>
 
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Nama Lengkap</label>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
                     <input id="name" type="text" name="name" value="<?php echo e(old('name')); ?>" required autofocus
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                                <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -39,9 +39,9 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Email</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                     <input id="email" type="email" name="email" value="<?php echo e(old('email')); ?>" required
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                                <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -61,9 +61,9 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <div>
-                    <label for="role" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Role</label>
+                    <label for="role" class="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
                     <select id="role" name="role"
-                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                         <option value="manager" <?php echo e(old('role') === 'manager' ? 'selected' : ''); ?>>Manajer — akses penuh semua modul</option>
                         <option value="staff"   <?php echo e(old('role') === 'staff'   ? 'selected' : ''); ?>>Staff — akses terbatas (baca + POS)</option>
                         <option value="kasir"   <?php echo e(old('role') === 'kasir'   ? 'selected' : ''); ?>>Kasir — hanya akses POS & penjualan</option>
@@ -74,9 +74,9 @@ unset($__errorArgs, $__bag); ?>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Password</label>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                         <input id="password" type="password" name="password" required autocomplete="new-password"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                                    <?php $__errorArgs = ['password'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -96,20 +96,20 @@ endif;
 unset($__errorArgs, $__bag); ?>
                     </div>
                     <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Konfirmasi</label>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1.5">Konfirmasi</label>
                         <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                             placeholder="••••••••">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <a href="<?php echo e(route('tenant.users.index')); ?>"
-                       class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl transition">
+                       class="px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition">
                         Batal
                     </a>
                     <button type="submit"
-                        class="px-5 py-2.5 text-sm font-semibold text-gray-900 dark:text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition">
+                        class="px-5 py-2.5 text-sm font-semibold text-gray-900 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition">
                         Simpan
                     </button>
                 </div>

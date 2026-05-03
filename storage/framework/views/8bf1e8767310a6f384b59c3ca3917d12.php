@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -14,11 +14,11 @@
         <form method="POST" action="<?php echo e(route('invoices.store')); ?>" class="space-y-5">
             <?php echo csrf_field(); ?>
 
-            <div class="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 space-y-5">
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-5">
 
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Customer <span class="text-red-500">*</span>
                         <?php if (isset($component)) { $__componentOriginalf80c6e4882377f1e95404ca80788f6ed = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalf80c6e4882377f1e95404ca80788f6ed = $attributes; } ?>
@@ -42,7 +42,7 @@
 <?php endif; ?>
                     </label>
                     <select name="customer_id" required
-                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih Customer --</option>
                         <?php $__currentLoopData = $customers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($c->id); ?>" <?php echo e(old('customer_id') == $c->id ? 'selected' : ''); ?>>
@@ -65,7 +65,7 @@ unset($__errorArgs, $__bag); ?>
 
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Sales Order <span class="text-gray-400 font-normal">(opsional)</span>
                         <?php if (isset($component)) { $__componentOriginalf80c6e4882377f1e95404ca80788f6ed = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalf80c6e4882377f1e95404ca80788f6ed = $attributes; } ?>
@@ -89,7 +89,7 @@ unset($__errorArgs, $__bag); ?>
 <?php endif; ?>
                     </label>
                     <select name="sales_order_id" id="sales_order_id"
-                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Tanpa Sales Order --</option>
                         <?php $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $o): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($o->id); ?>" data-total="<?php echo e($o->total); ?>"
@@ -104,7 +104,7 @@ unset($__errorArgs, $__bag); ?>
 
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Total Tagihan (Rp) <span class="text-red-500">*</span>
                         <?php if (isset($component)) { $__componentOriginalf80c6e4882377f1e95404ca80788f6ed = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalf80c6e4882377f1e95404ca80788f6ed = $attributes; } ?>
@@ -129,7 +129,7 @@ unset($__errorArgs, $__bag); ?>
                     </label>
                     <input type="number" name="total_amount" id="total_amount" value="<?php echo e(old('total_amount')); ?>"
                         min="0" step="1" required
-                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0">
                     <?php $__errorArgs = ['total_amount'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -145,7 +145,7 @@ unset($__errorArgs, $__bag); ?>
 
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
                         Jatuh Tempo <span class="text-red-500">*</span>
                         <?php if (isset($component)) { $__componentOriginalf80c6e4882377f1e95404ca80788f6ed = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalf80c6e4882377f1e95404ca80788f6ed = $attributes; } ?>
@@ -170,7 +170,7 @@ unset($__errorArgs, $__bag); ?>
                     </label>
                     <input type="date" name="due_date"
                         value="<?php echo e(old('due_date', now()->addDays(14)->format('Y-m-d'))); ?>" required
-                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <?php $__errorArgs = ['due_date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -186,10 +186,10 @@ unset($__errorArgs, $__bag); ?>
                 
                 <?php if(isset($currencies) && $currencies->count() > 1): ?>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Mata
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Mata
                             Uang</label>
                         <select name="currency_code"
-                            class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <?php $__currentLoopData = $currencies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cur): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($cur->code); ?>"
                                     <?php echo e(old('currency_code', 'IDR') === $cur->code ? 'selected' : ''); ?>>
@@ -205,10 +205,10 @@ unset($__errorArgs, $__bag); ?>
 
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Catatan <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Catatan <span
                             class="text-gray-400 font-normal">(opsional)</span></label>
                     <textarea name="notes" rows="3" placeholder="Instruksi pembayaran, nomor rekening, dll."
-                        class="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"><?php echo e(old('notes')); ?></textarea>
+                        class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"><?php echo e(old('notes')); ?></textarea>
                 </div>
             </div>
 
@@ -218,7 +218,7 @@ unset($__errorArgs, $__bag); ?>
                     Buat Invoice
                 </button>
                 <a href="<?php echo e(route('invoices.index')); ?>"
-                    class="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                    class="px-6 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition">
                     Batal
                 </a>
             </div>

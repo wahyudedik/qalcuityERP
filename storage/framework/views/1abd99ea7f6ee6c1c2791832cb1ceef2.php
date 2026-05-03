@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,45 +8,45 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex items-center gap-3">
-            <a href="<?php echo e(route('hotel.reservations.show', $reservation)); ?>"
-                class="text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            Room Change - <?php echo e($reservation->reservation_number); ?>
+     <?php $__env->slot('header', null, []); ?> Room Change - <?php echo e($reservation->reservation_number); ?> <?php $__env->endSlot(); ?>
 
-        </div>
-     <?php $__env->endSlot(); ?>
+    
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+        <a href="<?php echo e(route('hotel.reservations.show', $reservation)); ?>"
+            class="text-gray-600 hover:text-blue-600 inline-flex items-center gap-1 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Kembali
+        </a>
+    </div>
 
     <div class="max-w-4xl mx-auto">
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Current Reservation</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Current Reservation</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Guest</p>
-                    <p class="font-medium text-gray-900 dark:text-white"><?php echo e($reservation->guest->name); ?></p>
+                    <p class="text-xs text-gray-500">Guest</p>
+                    <p class="font-medium text-gray-900"><?php echo e($reservation->guest->name); ?></p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Current Room</p>
-                    <p class="font-medium text-gray-900 dark:text-white">
+                    <p class="text-xs text-gray-500">Current Room</p>
+                    <p class="font-medium text-gray-900">
                         Room <?php echo e($reservation->room?->number ?? 'Not Assigned'); ?> (<?php echo e($reservation->roomType->name); ?>)
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Stay Period</p>
-                    <p class="font-medium text-gray-900 dark:text-white">
+                    <p class="text-xs text-gray-500">Stay Period</p>
+                    <p class="font-medium text-gray-900">
                         <?php echo e(\Carbon\Carbon::parse($reservation->check_in_date)->format('d M')); ?> -
                         <?php echo e(\Carbon\Carbon::parse($reservation->check_out_date)->format('d M')); ?>
 
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Current Rate</p>
-                    <p class="font-medium text-gray-900 dark:text-white">
+                    <p class="text-xs text-gray-500">Current Rate</p>
+                    <p class="font-medium text-gray-900">
                         <?php echo e(number_format($reservation->rate_per_night, 0)); ?> / night
                     </p>
                 </div>
@@ -58,15 +58,15 @@
             <?php echo csrf_field(); ?>
 
             
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Select New Room</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Select New Room</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Room Type
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Room Type
                             *</label>
                         <select id="room-type-select" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Choose room type...</option>
                             <?php $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roomType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($roomType->id); ?>" data-rate="<?php echo e($roomType->base_rate); ?>">
@@ -77,10 +77,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Available Room
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Available Room
                             *</label>
                         <select name="to_room_id" id="room-select" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select room type first...</option>
                         </select>
                     </div>
@@ -91,15 +91,15 @@
             </div>
 
             
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Change Details</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Change Details</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Change Type
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Change Type
                             *</label>
                         <select name="change_type" id="change-type" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select change type...</option>
                             <option value="upgrade">Upgrade</option>
                             <option value="downgrade">Downgrade</option>
@@ -108,30 +108,30 @@
                     </div>
 
                     <div id="rate-display"
-                        class="hidden p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20">
+                        class="hidden p-4 rounded-xl bg-blue-50 border border-blue-200">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm text-gray-600 dark:text-slate-300">Rate Difference:</span>
+                            <span class="text-sm text-gray-600">Rate Difference:</span>
                             <span id="rate-diff-amount"
-                                class="text-lg font-bold text-blue-600 dark:text-blue-400"></span>
+                                class="text-lg font-bold text-blue-600"></span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600 dark:text-slate-300">Total Impact
+                            <span class="text-sm text-gray-600">Total Impact
                                 (<?php echo e($reservation->nights); ?> nights):</span>
-                            <span id="total-impact" class="text-lg font-bold text-blue-600 dark:text-blue-400"></span>
+                            <span id="total-impact" class="text-lg font-bold text-blue-600"></span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Reason *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Reason *</label>
                         <textarea name="reason" required rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Why is this room change needed?"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Notes</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                         <textarea name="notes" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Additional notes..."></textarea>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
             
             <div class="flex items-center justify-end gap-3">
                 <a href="<?php echo e(route('hotel.reservations.show', $reservation)); ?>"
-                    class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                     Cancel
                 </a>
                 <button type="submit" class="px-6 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -220,11 +220,11 @@
                     totalImpact.textContent = (rateDiff > 0 ? '+' : '') + numberFormat(rateDiff * nights, 0);
 
                     if (rateDiff > 0) {
-                        diffAmount.className = 'text-lg font-bold text-green-600 dark:text-green-400';
-                        totalImpact.className = 'text-lg font-bold text-green-600 dark:text-green-400';
+                        diffAmount.className = 'text-lg font-bold text-green-600';
+                        totalImpact.className = 'text-lg font-bold text-green-600';
                     } else {
-                        diffAmount.className = 'text-lg font-bold text-red-600 dark:text-red-400';
-                        totalImpact.className = 'text-lg font-bold text-red-600 dark:text-red-400';
+                        diffAmount.className = 'text-lg font-bold text-red-600';
+                        totalImpact.className = 'text-lg font-bold text-red-600';
                     }
                 } else {
                     display.classList.add('hidden');

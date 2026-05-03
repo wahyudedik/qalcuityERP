@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
@@ -44,12 +44,12 @@ unset($__defined_vars, $__key, $__value); ?>
     $nextDirection = $isSorted && $currentDirection === 'asc' ? 'desc' : 'asc';
 ?>
 
-<th <?php echo e($attributes->merge(['class' => 'px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider bg-gray-100 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600'])); ?>>
+<th <?php echo e($attributes->merge(['class' => 'px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-gray-100 border-b border-gray-200'])); ?>>
     <?php if($sortable): ?>
         <button 
             type="button"
             onclick="window.location.href='<?php echo e(request()->fullUrlWithQuery(['sort' => $sortKey, 'direction' => $nextDirection])); ?>'"
-            class="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            class="flex items-center gap-1 hover:text-blue-600 transition-colors"
         >
             <?php echo e($slot); ?>
 

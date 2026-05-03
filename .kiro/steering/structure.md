@@ -17,6 +17,7 @@ routes/
   web.php             # Main web routes
   api.php             # API routes
   auth.php            # Auth routes
+  console.php         # Artisan console routes / scheduled commands
   healthcare.php      # Healthcare module routes
 tests/                # PHPUnit tests
 .kiro/specs/          # Kiro spec files (requirements, design, tasks)
@@ -106,3 +107,9 @@ Controllers are grouped by domain under `app/Http/Controllers/`:
 - `config/healthcare.php` — healthcare module config
 - `config/bank_formats.php` — bank statement format definitions
 - `config/dashboard-templates.php` — dashboard widget templates
+- `config/audit.php` — audit trail settings
+- `config/data_retention.php` — data retention policies
+- `config/pos_printer.php` — POS thermal printer config
+- `config/iot_hardware.php` — IoT/hardware integration config
+- `config/database_transactions.php` — DB transaction isolation settings
+- `config/migration.php` — migration performance options

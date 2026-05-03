@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'title' => 'Tidak ada data',
     'description' => 'Belum ada data untuk ditampilkan',
     'icon' => 'empty',
@@ -57,19 +57,19 @@
 
 <div class="text-center py-12 px-4">
     {{-- Icon --}}
-    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-white/5 mb-4">
-        <svg class="w-10 h-10 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
+        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {!! $iconSvg !!}
         </svg>
     </div>
 
     {{-- Title --}}
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">
         {{ $title }}
     </h3>
 
     {{-- Description --}}
-    <p class="text-sm text-gray-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
+    <p class="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
         {{ $description }}
     </p>
 

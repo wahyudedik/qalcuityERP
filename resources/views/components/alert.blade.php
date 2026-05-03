@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'type' => 'info', // success, error, warning, info
     'dismissible' => true,
     'icon' => true,
@@ -7,10 +7,10 @@
 @php
     // TASK 6.5: Alert dengan warna sesuai dan dapat ditutup
     $typeClasses = [
-        'success' => 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300',
-        'error' => 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300',
-        'warning' => 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300',
-        'info' => 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300',
+        'success' => 'bg-green-50 border-green-200 text-green-800',
+        'error' => 'bg-red-50 border-red-200 text-red-800',
+        'warning' => 'bg-amber-50 border-amber-200 text-amber-800',
+        'info' => 'bg-blue-50 border-blue-200 text-blue-800',
     ];
 
     $icons = [
@@ -45,7 +45,7 @@
     @if($dismissible)
         <button 
             @click="show = false" 
-            class="ml-3 opacity-60 hover:opacity-100 transition-opacity p-1 rounded hover:bg-black/5 dark:hover:bg-white/5"
+            class="ml-3 opacity-60 hover:opacity-100 transition-opacity p-1 rounded hover:bg-black/5"
             aria-label="Tutup"
         >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

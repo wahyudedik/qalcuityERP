@@ -113,8 +113,7 @@ class WebPushService
      */
     private function getWebPushInstance(): ?WebPush
     {
-        $publicKey = config('services.vapid.public_key');
-        $privateKey = config('services.vapid.private_key');
+        [$publicKey, $privateKey] = $this->resolveVapidKeyPair();
 
         if (!$publicKey || !$privateKey) {
             return null;
@@ -134,7 +133,8 @@ class WebPushService
      */
     public static function vapidPublicKey(): ?string
     {
-        return config('services.vapid.public_key');
+        [$publicKey] = self::resolveVapidKeyPairStatic();
+        return $publicKey;
     }
 
     /**
@@ -142,7 +142,34 @@ class WebPushService
      */
     public function isConfigured(): bool
     {
-        return config('services.vapid.public_key') !== null
-            && config('services.vapid.private_key') !== null;
+        [$publicKey, $privateKey] = $this->resolveVapidKeyPair();
+        return !empty($publicKey) && !empty($privateKey);
+    }
+
+    /**
+     * @return array{0:string|null,1:string|null}
+     */
+    private function resolveVapidKeyPair(): array
+    {
+        return self::resolveVapidKeyPairStatic();
+    }
+
+    /**
+     * @return array{0:string|null,1:string|null}
+     */
+    private static function resolveVapidKeyPairStatic(): array
+    {
+        $isDevelopment = app()->environment(['local', 'development', 'testing']);
+        $envNamespace = $isDevelopment ? 'development' : 'production';
+
+        $publicKey = config("services.vapid.{$envNamespace}.public_key");
+        $privateKey = config("services.vapid.{$envNamespace}.private_key");
+
+        if (empty($publicKey) || empty($privateKey)) {
+            $publicKey = config('services.vapid.public_key');
+            $privateKey = config('services.vapid.private_key');
+        }
+
+        return [$publicKey ?: null, $privateKey ?: null];
     }
 }

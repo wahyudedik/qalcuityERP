@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('content'); ?>
     <div class="container mx-auto px-4 py-8">
@@ -43,7 +43,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php $__empty_1 = true; $__currentLoopData = $flocks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $flock): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <tr>
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     <?php echo e($flock->code); ?></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo e($flock->name); ?></td>
@@ -56,7 +56,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                <?php echo e($flock->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'); ?>">
+                                <?php if($flock->status === 'active'): ?> bg-green-100 text-green-800
+                                <?php else: ?> bg-gray-100 text-gray-800 <?php endif; ?>">
                                         <?php echo e(ucfirst($flock->status)); ?>
 
                                     </span>

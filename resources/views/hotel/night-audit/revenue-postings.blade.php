@@ -1,6 +1,6 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-white">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
             {{ __('Revenue Postings') }}
         </h2>
     </x-slot>
@@ -8,26 +8,26 @@
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             {{-- Filters --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
                 <form method="GET" action="{{ route('hotel.night-audit.revenue-postings') }}"
                     class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Date From</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
                         <input type="date" name="date_from" value="{{ request('date_from') }}"
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Date To</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
                         <input type="date" name="date_to" value="{{ request('date_to') }}"
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Revenue
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Revenue
                             Type</label>
                         <select name="revenue_type"
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                             <option value="">All Types</option>
                             @foreach ($revenueTypes as $type)
                                 <option value="{{ $type }}"
@@ -39,9 +39,9 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select name="status"
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                             <option value="">All Status</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
                             </option>
@@ -61,58 +61,58 @@
 
             {{-- Revenue Postings Table --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-                        <thead class="bg-gray-50 dark:bg-slate-800">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Reference</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Date</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Type</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Description</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Amount</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Auto</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-200 dark:divide-white/10">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($postings as $posting)
                                 <tr>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {{ $posting->posting_reference }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $posting->posting_date->format('d/m/Y') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                             {{ ucfirst(str_replace('_', ' ', $posting->revenue_type)) }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 text-sm text-gray-500">
                                         {{ $posting->description }}
                                     </td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                         Rp {{ number_format($posting->total_amount, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -126,14 +126,14 @@
                                             {{ ucfirst($posting->status) }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $posting->auto_generated ? '✓ Yes' : 'No' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         @if ($posting->canBeVoided())
                                             <button
                                                 onclick="openVoidModal({{ $posting->id }}, '{{ $posting->posting_reference }}')"
-                                                class="text-red-600 hover:text-red-900 dark:text-red-400">
+                                                class="text-red-600 hover:text-red-900">
                                                 Void
                                             </button>
                                         @else
@@ -143,7 +143,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                                         No revenue postings found
                                     </td>
                                 </tr>
@@ -153,7 +153,7 @@
                 </div>
 
                 {{-- Pagination --}}
-                <div class="p-6 border-t border-gray-200 dark:border-white/10">
+                <div class="p-6 border-t border-gray-200">
                     {{ $postings->links() }}
                 </div>
             </div>
@@ -162,27 +162,27 @@
 
     {{-- Void Modal --}}
     <div id="modal-void" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Void Revenue Posting</h3>
-                <p class="text-sm text-gray-500 dark:text-slate-400 mt-1" id="void-posting-ref"></p>
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Void Revenue Posting</h3>
+                <p class="text-sm text-gray-500 mt-1" id="void-posting-ref"></p>
             </div>
 
             <form id="void-form" method="POST">
                 @csrf
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Reason for
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Reason for
                             Voiding</label>
                         <textarea name="reason" rows="3" required
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                            class="w-full rounded-md border-gray-300"
                             placeholder="Enter reason for voiding this posting..."></textarea>
                     </div>
                 </div>
 
-                <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
                     <button type="button" onclick="closeVoidModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md">
+                        class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
                         Cancel
                     </button>
                     <button type="submit"

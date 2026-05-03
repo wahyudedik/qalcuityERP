@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,91 +8,89 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-slate-300 leading-tight">
-                Room Status Map
-            </h2>
-            <a href="<?php echo e(route('hotel.dashboard')); ?>"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
+     <?php $__env->slot('header', null, []); ?> Room Status Map <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('hotel.dashboard')); ?>"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Dashboard
             </a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">Available</span>
+                        <span class="text-sm text-gray-600">Available</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['available']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['available']); ?></p>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">Occupied</span>
+                        <span class="text-sm text-gray-600">Occupied</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['occupied']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['occupied']); ?></p>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">Dirty</span>
+                        <span class="text-sm text-gray-600">Dirty</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['dirty']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['dirty']); ?></p>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">Cleaning</span>
+                        <span class="text-sm text-gray-600">Cleaning</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['cleaning']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['cleaning']); ?></p>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-3 h-3 rounded-full bg-gray-400"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">Clean</span>
+                        <span class="text-sm text-gray-600">Clean</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['clean']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['clean']); ?></p>
                 </div>
 
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
+                    class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-3 h-3 rounded-full bg-gray-800 dark:bg-gray-600"></div>
-                        <span class="text-sm text-gray-600 dark:text-slate-400">OOO</span>
+                        <div class="w-3 h-3 rounded-full bg-gray-800"></div>
+                        <span class="text-sm text-gray-600">OOO</span>
                     </div>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($statusCounts['out_of_order']); ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?php echo e($statusCounts['out_of_order']); ?></p>
                 </div>
             </div>
 
             
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-4 mb-6">
+                class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
                 <div class="flex flex-wrap gap-4">
                     <div class="flex-1 min-w-[200px]">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
                             Filter by Floor
                         </label>
                         <select id="floorFilter"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">All Floors</option>
                             <?php $__currentLoopData = $floors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $floor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($floor); ?>" <?php echo e(request('floor') == $floor ? 'selected' : ''); ?>>
@@ -104,11 +102,11 @@
                     </div>
 
                     <div class="flex-1 min-w-[200px]">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
                             Filter by Status
                         </label>
                         <select id="statusFilter"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">All Status</option>
                             <option value="available" <?php echo e(request('status') == 'available' ? 'selected' : ''); ?>>
                                 Available</option>
@@ -125,7 +123,7 @@
 
                     <div class="flex items-end">
                         <button id="resetFilters"
-                            class="px-4 py-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors">
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
                             Reset
                         </button>
                     </div>
@@ -138,10 +136,10 @@
             ?>
 
             <?php $__currentLoopData = $groupedRooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $floor => $floorRooms): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6"
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6"
                     data-floor="<?php echo e($floor); ?>">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -149,7 +147,7 @@
                             Floor <?php echo e($floor); ?>
 
                         </h3>
-                        <span class="text-sm text-gray-500 dark:text-slate-400"><?php echo e($floorRooms->count()); ?> rooms</span>
+                        <span class="text-sm text-gray-500"><?php echo e($floorRooms->count()); ?> rooms</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
@@ -157,17 +155,17 @@
                             <?php
                                 $statusColors = [
                                     'available' =>
-                                        'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-300',
+                                        'bg-green-50 border-green-500 text-green-700',
                                     'occupied' =>
-                                        'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300',
+                                        'bg-red-50 border-red-500 text-red-700',
                                     'dirty' =>
-                                        'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 text-yellow-700 dark:text-yellow-300',
+                                        'bg-yellow-50 border-yellow-500 text-yellow-700',
                                     'cleaning' =>
-                                        'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-300',
+                                        'bg-blue-50 border-blue-500 text-blue-700',
                                     'clean' =>
-                                        'bg-gray-50 dark:bg-slate-700 border-gray-400 text-gray-700 dark:text-gray-300',
+                                        'bg-gray-50 border-gray-400 text-gray-700',
                                     'out_of_order' =>
-                                        'bg-gray-100 dark:bg-slate-800 border-gray-600 text-gray-800 dark:text-gray-400 opacity-60',
+                                        'bg-gray-100 border-gray-600 text-gray-800 opacity-60',
                                 ];
                                 $colorClass = $statusColors[$room->status] ?? 'bg-gray-50 border-gray-300';
                             ?>
@@ -199,7 +197,7 @@
 
                                 
                                 <div
-                                    class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
+                                    class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
                                     <p class="font-semibold">Room <?php echo e($room->number); ?></p>
                                     <p><?php echo e($room->roomType->name); ?></p>
                                     <p class="capitalize"><?php echo e(ucfirst(str_replace('_', ' ', $room->status))); ?></p>
@@ -210,7 +208,7 @@
                                         </p>
                                     <?php endif; ?>
                                     <div class="absolute top-full left-1/2 transform -translate-x-1/2">
-                                        <div class="w-2 h-2 bg-gray-900 dark:bg-slate-700 rotate-45 -mt-1"></div>
+                                        <div class="w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
                                     </div>
                                 </div>
                             </div>
@@ -221,32 +219,32 @@
 
             
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Legend</h3>
+                class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">Legend</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded bg-green-500"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Available</span>
+                        <span class="text-sm text-gray-700">Available</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded bg-red-500"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Occupied</span>
+                        <span class="text-sm text-gray-700">Occupied</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded bg-yellow-500"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Dirty</span>
+                        <span class="text-sm text-gray-700">Dirty</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded bg-blue-500"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Cleaning</span>
+                        <span class="text-sm text-gray-700">Cleaning</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded bg-gray-400"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Clean</span>
+                        <span class="text-sm text-gray-700">Clean</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 rounded bg-gray-800 dark:bg-gray-600"></div>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Out of Order</span>
+                        <div class="w-4 h-4 rounded bg-gray-800"></div>
+                        <span class="text-sm text-gray-700">Out of Order</span>
                     </div>
                 </div>
             </div>

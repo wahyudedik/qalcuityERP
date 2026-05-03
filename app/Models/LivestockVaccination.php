@@ -11,10 +11,20 @@ class LivestockVaccination extends Model
 {
     use BelongsToTenant;
     protected $fillable = [
-        'livestock_herd_id', 'tenant_id', 'user_id', 'vaccine_name',
-        'scheduled_date', 'administered_date', 'dose_age_days', 'dose_method',
-        'vaccinated_count', 'cost', 'administered_by', 'batch_number',
-        'status', 'notes',
+        'livestock_herd_id',
+        'tenant_id',
+        'user_id',
+        'vaccine_name',
+        'scheduled_date',
+        'administered_date',
+        'dose_age_days',
+        'dose_method',
+        'vaccinated_count',
+        'cost',
+        'administered_by',
+        'batch_number',
+        'status',
+        'notes',
     ];
 
     protected function casts(): array
@@ -26,9 +36,26 @@ class LivestockVaccination extends Model
         ];
     }
 
-    public function herd(): BelongsTo { return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id'); }
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function herd(): BelongsTo
+    {
+        return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id');
+    }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Alias for user relationship - used by HealthController
+     */
+    public function administeredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function isOverdue(): bool
     {

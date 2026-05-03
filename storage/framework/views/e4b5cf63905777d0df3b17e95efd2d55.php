@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
@@ -33,7 +33,7 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 
-<td <?php echo e($attributes->merge(['class' => 'px-4 py-3 border-b border-gray-100 dark:border-slate-700/50 whitespace-nowrap text-' . $align])); ?>>
+<td <?php echo e($attributes->merge(['class' => 'px-4 py-3 border-b border-gray-100 whitespace-nowrap text-' . $align])); ?>>
     <div class="flex items-center justify-end gap-2">
         <?php echo e($slot); ?>
 

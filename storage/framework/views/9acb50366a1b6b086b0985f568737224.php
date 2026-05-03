@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['paginator', 'simple' => false]));
@@ -36,7 +36,7 @@ unset($__defined_vars, $__key, $__value); ?>
             
             <?php if($paginator->onFirstPage()): ?>
                 <span
-                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-white/5 cursor-not-allowed min-h-[44px]"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-400 bg-gray-50 cursor-not-allowed min-h-[44px]"
                     aria-disabled="true">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -45,7 +45,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 </span>
             <?php else: ?>
                 <a href="<?php echo e($paginator->previousPageUrl()); ?>" rel="prev"
-                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-700 dark:text-slate-300 bg-white dark:bg-[#1e293b] hover:bg-gray-50 dark:hover:bg-white/5 transition min-h-[44px]"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50 transition min-h-[44px]"
                     aria-label="Previous page">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -56,15 +56,15 @@ unset($__defined_vars, $__key, $__value); ?>
 
             
             <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-600 dark:text-slate-400">
+                <span class="text-sm text-gray-600">
                     Halaman
                 </span>
                 <span
-                    class="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-sm font-semibold text-blue-600 dark:text-blue-400 min-w-[44px] text-center">
+                    class="px-3 py-2 rounded-lg bg-blue-50 text-sm font-semibold text-blue-600 min-w-[44px] text-center">
                     <?php echo e($paginator->currentPage()); ?>
 
                 </span>
-                <span class="text-sm text-gray-600 dark:text-slate-400">
+                <span class="text-sm text-gray-600">
                     dari <?php echo e($paginator->lastPage()); ?>
 
                 </span>
@@ -73,7 +73,7 @@ unset($__defined_vars, $__key, $__value); ?>
             
             <?php if($paginator->hasMorePages()): ?>
                 <a href="<?php echo e($paginator->nextPageUrl()); ?>" rel="next"
-                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-700 dark:text-slate-300 bg-white dark:bg-[#1e293b] hover:bg-gray-50 dark:hover:bg-white/5 transition min-h-[44px]"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 bg-white hover:bg-gray-50 transition min-h-[44px]"
                     aria-label="Next page">
                     <span>Selanjutnya</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 </a>
             <?php else: ?>
                 <span
-                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-white/5 cursor-not-allowed min-h-[44px]"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-400 bg-gray-50 cursor-not-allowed min-h-[44px]"
                     aria-disabled="true">
                     <span>Selanjutnya</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@ unset($__defined_vars, $__key, $__value); ?>
         </div>
 
         
-        <div class="text-center text-xs text-gray-500 dark:text-slate-400 pb-2">
+        <div class="text-center text-xs text-gray-500 pb-2">
             Menampilkan <?php echo e($paginator->firstItem() ?? 0); ?> - <?php echo e($paginator->lastItem() ?? 0); ?>
 
             dari <?php echo e($paginator->total()); ?> data

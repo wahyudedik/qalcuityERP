@@ -5,10 +5,18 @@ namespace App\Http\Controllers\Livestock;
 use App\Http\Controllers\Controller;
 use App\Models\DairyMilkRecord;
 use App\Models\LivestockHerd;
+use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 
 class DairyController extends Controller
 {
+    protected LivestockIntegrationService $integrationService;
+
+    public function __construct(LivestockIntegrationService $integrationService)
+    {
+        $this->integrationService = $integrationService;
+    }
+
     /**
      * Display milk production records
      */
@@ -76,6 +84,21 @@ class DairyController extends Controller
             $record->fill($validated);
             $record->recorded_by = auth()->id();
             $record->save();
+
+            // Post journal entry for dairy production (integration with Accounting)
+            // Price per liter can be configured in tenant settings or passed via request
+            $pricePerLiter = $request->input('price_per_liter', 0);
+            if ($pricePerLiter > 0) {
+                $result = $this->integrationService->postDairyProduction(
+                    auth()->user()->tenant_id,
+                    auth()->id(),
+                    $record,
+                    (float) $pricePerLiter
+                );
+                if ($result->isFailed()) {
+                    \Illuminate\Support\Facades\Log::warning("Dairy production journal failed: " . $result->reason);
+                }
+            }
 
             return back()->with('success', 'Milk record saved successfully!');
         } catch (\Exception $e) {

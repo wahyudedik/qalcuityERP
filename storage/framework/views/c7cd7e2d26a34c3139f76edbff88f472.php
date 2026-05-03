@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -22,62 +22,62 @@
         
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Room Availability Calendar</h2>
-                <p class="text-sm text-gray-500 dark:text-slate-400">View and manage room occupancy by date</p>
+                <h2 class="text-lg font-semibold text-gray-900">Room Availability Calendar</h2>
+                <p class="text-sm text-gray-500">View and manage room occupancy by date</p>
             </div>
             <div class="flex items-center gap-2">
                 <a href="<?php echo e(route('hotel.rooms.availability', ['month' => $prevMonth->month, 'year' => $prevMonth->year])); ?>"
-                    class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                    class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <span class="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white min-w-[160px] text-center">
+                <span class="px-4 py-2 text-sm font-medium text-gray-900 min-w-[160px] text-center">
                     <?php echo e($currentMonth->format('F Y')); ?>
 
                 </span>
                 <a href="<?php echo e(route('hotel.rooms.availability', ['month' => $nextMonth->month, 'year' => $nextMonth->year])); ?>"
-                    class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                    class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
                 <a href="<?php echo e(route('hotel.rooms.availability')); ?>"
-                    class="ml-2 px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                    class="ml-2 px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                     Today
                 </a>
             </div>
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <div class="flex flex-wrap items-center gap-4">
-                <span class="text-xs font-medium text-gray-500 dark:text-slate-400">Legend:</span>
+                <span class="text-xs font-medium text-gray-500">Legend:</span>
                 <div class="flex flex-wrap items-center gap-3">
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded bg-green-500"></span>
-                        <span class="text-xs text-gray-600 dark:text-slate-400">Available</span>
+                        <span class="text-xs text-gray-600">Available</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded bg-red-500"></span>
-                        <span class="text-xs text-gray-600 dark:text-slate-400">Occupied</span>
+                        <span class="text-xs text-gray-600">Occupied</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded bg-blue-500"></span>
-                        <span class="text-xs text-gray-600 dark:text-slate-400">Reserved</span>
+                        <span class="text-xs text-gray-600">Reserved</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded bg-yellow-500"></span>
-                        <span class="text-xs text-gray-600 dark:text-slate-400">Cleaning</span>
+                        <span class="text-xs text-gray-600">Cleaning</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="w-3 h-3 rounded bg-gray-500"></span>
-                        <span class="text-xs text-gray-600 dark:text-slate-400">Blocked</span>
+                        <span class="text-xs text-gray-600">Blocked</span>
                     </div>
                 </div>
                 <div class="ml-auto">
                     <select x-model="selectedRoomType" @change="filterRoomType()"
-                        class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-1.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Room Types</option>
                         <?php $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($rt->id); ?>"><?php echo e($rt->name); ?></option>
@@ -96,33 +96,33 @@
                 $todayAvailable = $todayStats['overall']['available'] ?? $totalRooms;
                 $todayRate = $todayStats['overall']['occupancy_rate'] ?? 0;
             ?>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Total Rooms</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e($totalRooms); ?></p>
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Total Rooms</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e($totalRooms); ?></p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Available Today</p>
-                <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e($todayAvailable); ?></p>
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Available Today</p>
+                <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($todayAvailable); ?></p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Occupied Today</p>
-                <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"><?php echo e($todayOccupied); ?></p>
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Occupied Today</p>
+                <p class="text-2xl font-bold text-red-600 mt-1"><?php echo e($todayOccupied); ?></p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Today's Occupancy</p>
-                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e($todayRate); ?>%</p>
+            <div class="bg-white rounded-2xl p-4 border border-gray-200">
+                <p class="text-xs text-gray-500">Today's Occupancy</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e($todayRate); ?>%</p>
             </div>
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-xs">
                     
                     <thead>
-                        <tr class="bg-gray-50 dark:bg-white/5">
+                        <tr class="bg-gray-50">
                             <th
-                                class="sticky left-0 z-10 bg-gray-50 dark:bg-[#1e293b] px-3 py-2 text-left font-medium text-gray-500 dark:text-slate-400 min-w-[140px] border-r border-gray-200 dark:border-white/10">
+                                class="sticky left-0 z-10 bg-gray-50 px-3 py-2 text-left font-medium text-gray-500 min-w-[140px] border-r border-gray-200">
                                 Room Type
                             </th>
                             <?php for($d = 1; $d <= $daysInMonth; $d++): ?>
@@ -132,7 +132,7 @@
                                     $isToday = $dateStr === $today;
                                     $isWeekend = $date->isWeekend();
                                 ?>
-                                <th class="px-1 py-2 text-center font-medium <?php echo e($isToday ? 'bg-blue-500 text-white' : ($isWeekend ? 'text-gray-400 dark:text-slate-500' : 'text-gray-500 dark:text-slate-400')); ?> <?php echo e($isToday ? '' : ''); ?>"
+                                <th class="px-1 py-2 text-center font-medium <?php echo e($isToday ? 'bg-blue-500 text-white' : ($isWeekend ? 'text-gray-400' : 'text-gray-500')); ?> <?php echo e($isToday ? '' : ''); ?>"
                                     style="min-width: 36px;">
                                     <div class="text-[10px] uppercase"><?php echo e($date->format('D')); ?></div>
                                     <div class="font-bold"><?php echo e($d); ?></div>
@@ -140,15 +140,15 @@
                             <?php endfor; ?>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         
                         <?php $__empty_1 = true; $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5 room-type-row"
+                            <tr class="hover:bg-gray-50 room-type-row"
                                 data-room-type-id="<?php echo e($rt->id); ?>">
                                 <td
-                                    class="sticky left-0 z-10 bg-white dark:bg-[#1e293b] px-3 py-2 border-r border-gray-200 dark:border-white/10">
-                                    <div class="font-medium text-gray-900 dark:text-white"><?php echo e($rt->name); ?></div>
-                                    <div class="text-gray-400 dark:text-slate-500"><?php echo e($rt->rooms_count); ?> rooms</div>
+                                    class="sticky left-0 z-10 bg-white px-3 py-2 border-r border-gray-200">
+                                    <div class="font-medium text-gray-900"><?php echo e($rt->name); ?></div>
+                                    <div class="text-gray-400"><?php echo e($rt->rooms_count); ?> rooms</div>
                                 </td>
                                 <?php for($d = 1; $d <= $daysInMonth; $d++): ?>
                                     <?php
@@ -163,7 +163,7 @@
                                         $isToday = $dateStr === $today;
                                     ?>
                                     <td
-                                        class="px-0.5 py-1 text-center <?php echo e($isToday ? 'bg-blue-50 dark:bg-blue-500/10' : ''); ?>">
+                                        class="px-0.5 py-1 text-center <?php echo e($isToday ? 'bg-blue-50' : ''); ?>">
                                         <?php
                                             // Determine color based on availability
                                             if ($occupied >= $total) {
@@ -195,7 +195,7 @@
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="<?php echo e($daysInMonth + 1); ?>"
-                                    class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                                    class="px-4 py-12 text-center text-gray-400">
                                     No room types defined. <a href="<?php echo e(route('hotel.room-types.index')); ?>"
                                         class="text-blue-500 hover:underline">Create room types first</a>
                                 </td>
@@ -212,11 +212,11 @@
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div @click.away="showDayDetail = false"
-                class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                    <h3 class="font-semibold text-gray-900 dark:text-white" x-text="dayDetailTitle"></h3>
+                class="bg-white rounded-2xl w-full max-w-md shadow-xl">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-900" x-text="dayDetailTitle"></h3>
                     <button @click="showDayDetail = false"
-                        class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                        class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -226,15 +226,15 @@
                 <div class="p-6">
                     <div class="space-y-3">
                         <template x-for="(rt, index) in dayDetailData" :key="index">
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
                                 <div>
-                                    <p class="font-medium text-gray-900 dark:text-white" x-text="rt.name"></p>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="font-medium text-gray-900" x-text="rt.name"></p>
+                                    <p class="text-xs text-gray-500">
                                         <span x-text="rt.occupied"></span> / <span x-text="rt.total"></span> occupied
                                     </p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold text-gray-900 dark:text-white">
+                                    <p class="font-bold text-gray-900">
                                         <span x-text="rt.available"></span> available
                                     </p>
                                     <p class="text-xs"
@@ -246,7 +246,7 @@
                             </div>
                         </template>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
+                    <div class="mt-4 pt-4 border-t border-gray-100">
                         <a href="#"
                             class="block w-full py-2 text-center text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
                             New Reservation

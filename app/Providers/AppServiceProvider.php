@@ -16,7 +16,6 @@ use App\Observers\ProductStockObserver;
 use App\Observers\SystemSettingObserver; // BUG-SET-001 FIX
 use App\Observers\TenantApiSettingObserver; // BUG-SET-001 FIX
 use App\Services\ChatSessionManager;
-use App\Services\GeminiService;
 use App\Services\GeminiWriteValidator;
 use App\View\Composers\SidebarBadgeComposer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -37,12 +36,13 @@ class AppServiceProvider extends ServiceProvider
             CustomExceptionHandler::class
         );
 
-        // GeminiService TIDAK boleh singleton — state (language, tenantContext) harus fresh per request
-        // Task 6.1: Inject ModelSwitcher (singleton) into GeminiService
-        $this->app->bind(GeminiService::class, function ($app) {
-            return new GeminiService($app->make(\App\Services\AI\ModelSwitcher::class));
+        // GeminiService, ModelSwitcher, AiProviderRouter, dan provider AI lainnya
+        // didaftarkan di AiProviderServiceProvider (bootstrap/providers.php).
+        // ModelSwitcher tetap didaftarkan di sini sebagai fallback agar tidak ada
+        // circular dependency jika AppServiceProvider di-load sebelum AiProviderServiceProvider.
+        $this->app->singleton(\App\Services\AI\ModelSwitcher::class, function ($app) {
+            return new \App\Services\AI\ModelSwitcher($app['cache.store']);
         });
-        $this->app->singleton(\App\Services\AI\ModelSwitcher::class);
         $this->app->singleton(ChatSessionManager::class);
         $this->app->singleton(GeminiWriteValidator::class);
 
@@ -125,6 +125,10 @@ class AppServiceProvider extends ServiceProvider
             // Push Notification (VAPID)
             'vapid_public_key' => 'services.vapid.public_key',
             'vapid_private_key' => 'services.vapid.private_key',
+            'vapid_public_key_dev' => 'services.vapid.development.public_key',
+            'vapid_private_key_dev' => 'services.vapid.development.private_key',
+            'vapid_public_key_prod' => 'services.vapid.production.public_key',
+            'vapid_private_key_prod' => 'services.vapid.production.private_key',
             // Error alerts
             'slack_error_webhook_url' => 'services.slack.error_webhook',
             'error_alert_email' => 'services.error_alert_email.recipients',

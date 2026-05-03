@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Tentang Qalcuity')); ?>
 
         </h2>
@@ -17,11 +17,11 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
                     <h1 class="text-3xl font-bold mb-6">Tentang Qalcuity ERP</h1>
 
-                    <div class="prose dark:prose-invert max-w-none">
+                    <div class="prose max-w-none">
                         <p class="text-lg mb-4">
                             Qalcuity adalah platform ERP berbasis AI yang dirancang khusus untuk bisnis Indonesia.
                             Kami membantu perusahaan mengelola semua aspek bisnis mereka melalui percakapan natural.
@@ -42,7 +42,7 @@
                             <li>Local Support: Tim support berbasis di Indonesia</li>
                         </ul>
 
-                        <div class="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div class="mt-8 p-6 bg-blue-50 rounded-lg">
                             <h3 class="text-xl font-semibold mb-2">Tertarik untuk bergabung?</h3>
                             <p class="mb-4">Lihat lowongan karir kami atau hubungi tim sales.</p>
                             <div class="flex gap-4">
@@ -51,7 +51,7 @@
                                     Lihat Karir
                                 </a>
                                 <a href="https://wa.me/6281654932383" target="_blank"
-                                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                     Hubungi Sales
                                 </a>
                             </div>

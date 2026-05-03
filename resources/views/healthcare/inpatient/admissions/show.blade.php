@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Detail Rawat Inap - {{ $admission->patient?->full_name ?? 'Pasien' }}</x-slot>
 
     {{-- Breadcrumbs --}}
@@ -46,53 +46,53 @@
         {{-- Admission Details --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Basic Info --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Informasi Rawat Inap</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-semibold text-gray-900">Informasi Rawat Inap</h3>
                 </div>
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal Masuk</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                        <p class="text-xs text-gray-500">Tanggal Masuk</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">
                             {{ $admission->admission_date ? \Carbon\Carbon::parse($admission->admission_date)->format('d M Y H:i') : '-' }}
                         </p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Tipe Masuk</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                        <p class="text-xs text-gray-500">Tipe Masuk</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">
                             {{ ucfirst(str_replace('_', ' ', $admission->admission_type ?? '-')) }}
                         </p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Dokter</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white mt-1">
+                        <p class="text-xs text-gray-500">Dokter</p>
+                        <p class="text-sm font-medium text-gray-900 mt-1">
                             {{ $admission->doctor?->name ?? '-' }}
                         </p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Status</p>
+                        <p class="text-xs text-gray-500">Status</p>
                         <p class="mt-1">
                             @if($admission->status === 'active')
-                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Dirawat</span>
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Dirawat</span>
                             @elseif($admission->status === 'discharged')
-                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">Dipulangkan</span>
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">Dipulangkan</span>
                             @elseif($admission->status === 'transferred')
-                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Dipindahkan</span>
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Dipindahkan</span>
                             @else
-                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">{{ ucfirst($admission->status ?? '-') }}</span>
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">{{ ucfirst($admission->status ?? '-') }}</span>
                             @endif
                         </p>
                     </div>
                     <div class="md:col-span-2">
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Diagnosa Masuk</p>
-                        <p class="text-sm text-gray-700 dark:text-slate-300 mt-1">
+                        <p class="text-xs text-gray-500">Diagnosa Masuk</p>
+                        <p class="text-sm text-gray-700 mt-1">
                             {{ $admission->admission_diagnosis ?? '-' }}
                         </p>
                     </div>
                     @if($admission->treatment_plan)
                         <div class="md:col-span-2">
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Rencana Perawatan</p>
-                            <p class="text-sm text-gray-700 dark:text-slate-300 mt-1">{{ $admission->treatment_plan }}</p>
+                            <p class="text-xs text-gray-500">Rencana Perawatan</p>
+                            <p class="text-sm text-gray-700 mt-1">{{ $admission->treatment_plan }}</p>
                         </div>
                     @endif
                 </div>
@@ -100,19 +100,19 @@
 
             {{-- Ward Rounds --}}
             @if($admission->wardRounds && $admission->wardRounds->count() > 0)
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Visite Dokter</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                        <h3 class="text-lg font-semibold text-gray-900">Visite Dokter</h3>
                     </div>
-                    <div class="divide-y divide-gray-100 dark:divide-white/5">
+                    <div class="divide-y divide-gray-100">
                         @foreach($admission->wardRounds->take(5) as $round)
                             <div class="p-4">
                                 <div class="flex items-start justify-between mb-2">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                    <p class="text-sm font-medium text-gray-900">
                                         {{ $round->round_date ? \Carbon\Carbon::parse($round->round_date)->format('d M Y H:i') : '-' }}
                                     </p>
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-slate-400">{{ $round->assessment ?? '-' }}</p>
+                                <p class="text-sm text-gray-600">{{ $round->assessment ?? '-' }}</p>
                             </div>
                         @endforeach
                     </div>
@@ -123,28 +123,28 @@
         {{-- Sidebar --}}
         <div class="space-y-6">
             {{-- Bed Info --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Informasi Kamar</h4>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h4 class="text-sm font-semibold text-gray-900 mb-4">Informasi Kamar</h4>
                 <div class="space-y-3">
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Ruang</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $admission->bed?->ward?->name ?? '-' }}</p>
+                        <p class="text-xs text-gray-500">Ruang</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $admission->bed?->ward?->name ?? '-' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">No. Bed</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $admission->bed?->bed_number ?? '-' }}</p>
+                        <p class="text-xs text-gray-500">No. Bed</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $admission->bed?->bed_number ?? '-' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Kelas</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $admission->bed?->bed_class ?? '-' }}</p>
+                        <p class="text-xs text-gray-500">Kelas</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $admission->bed?->bed_class ?? '-' }}</p>
                     </div>
                 </div>
             </div>
 
             {{-- Actions --}}
             @if(in_array($admission->status, ['active', 'transferred']))
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Aksi</h4>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-4">Aksi</h4>
                     <div class="space-y-2">
                         <form action="{{ route('healthcare.inpatient.admissions.transfer', $admission) }}" method="POST">
                             @csrf
@@ -152,7 +152,7 @@
                             <input type="hidden" name="transfer_reason" value="Transfer request">
                             <button type="button"
                                 onclick="document.getElementById('modal-transfer').classList.remove('hidden')"
-                                class="w-full px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 text-left">
+                                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-left">
                                 Pindah Kamar
                             </button>
                         </form>
@@ -164,11 +164,11 @@
 
     {{-- Discharge Modal --}}
     <div id="modal-discharge" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg">
-            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pulangkan Pasien</h3>
+        <div class="bg-white rounded-2xl w-full max-w-lg">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Pulangkan Pasien</h3>
                 <button onclick="document.getElementById('modal-discharge').classList.add('hidden')"
-                    class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl">
+                    class="p-2 hover:bg-gray-100 rounded-xl">
                     <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -177,20 +177,20 @@
             <form action="{{ route('healthcare.inpatient.admissions.discharge', $admission) }}" method="POST" class="p-6 space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Diagnosa Keluar <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Diagnosa Keluar <span class="text-red-500">*</span></label>
                     <textarea name="discharge_diagnosis" rows="2" required
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Ringkasan Keluar <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ringkasan Keluar <span class="text-red-500">*</span></label>
                     <textarea name="discharge_summary" rows="3" required
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Status Keluar <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Keluar <span class="text-red-500">*</span></label>
                         <select name="discharge_status" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="recovered">Sembuh</option>
                             <option value="improved">Membaik</option>
                             <option value="unchanged">Tidak Berubah</option>
@@ -200,9 +200,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Tipe Keluar <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Keluar <span class="text-red-500">*</span></label>
                         <select name="discharge_type" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="normal">Normal</option>
                             <option value="transfer">Transfer</option>
                             <option value="against_medical_advice">APS</option>
@@ -211,7 +211,7 @@
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="document.getElementById('modal-discharge').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Pulangkan</button>
                 </div>

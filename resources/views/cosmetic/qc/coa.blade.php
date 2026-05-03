@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'COA Certificates')
 
@@ -19,27 +19,27 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total COAs</div>
-                <div class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_coas'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Total COAs</div>
+                <div class="mt-2 text-2xl font-bold text-gray-900">{{ $stats['total_coas'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Approved</div>
-                <div class="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">{{ $stats['approved_coas'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Approved</div>
+                <div class="mt-2 text-2xl font-bold text-green-600">{{ $stats['approved_coas'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Valid</div>
-                <div class="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $stats['valid_coas'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Valid</div>
+                <div class="mt-2 text-2xl font-bold text-blue-600">{{ $stats['valid_coas'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Expired</div>
-                <div class="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{{ $stats['expired_coas'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Expired</div>
+                <div class="mt-2 text-2xl font-bold text-red-600">{{ $stats['expired_coas'] }}</div>
             </div>
         </div>
 
         <!-- COA Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200">
                 <form method="GET" action="{{ route('cosmetic.qc.coa') }}" class="flex gap-4">
                     <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="">All Status</option>
@@ -54,8 +54,8 @@
                 </form>
             </div>
 
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">COA Number</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
@@ -65,7 +65,7 @@
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($coas as $coa)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
@@ -131,7 +131,7 @@
         <!-- Generate COA Modal -->
         <div id="generate-coa-modal"
             class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
                 <h3 class="text-lg font-semibold mb-4">Generate COA Certificate</h3>
                 <form method="POST" action="" id="coa-form">
                     @csrf

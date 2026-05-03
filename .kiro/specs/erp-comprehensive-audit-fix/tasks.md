@@ -1,4 +1,4 @@
-﻿# Tasks — Audit & Perbaikan Komprehensif Qalcuity ERP
+# Tasks — Audit & Perbaikan Komprehensif Qalcuity ERP
 
 ## Fase 1: Database & Backend Core
 
@@ -258,14 +258,14 @@
   - [x] 24.7 Buat `tests/Unit/Audit/JournalBalanceTest.php` — unit test kalkulasi balance jurnal
   - [x] 24.8 Buat `tests/Unit/Audit/StockCalculationTest.php` — unit test kalkulasi stok FIFO dan Average Cost
 
-- [ ] 25. Verifikasi Final dan Dokumentasi
+- [x] 25. Verifikasi Final dan Dokumentasi
   - [x] 25.1 Jalankan semua property-based tests — pastikan semua lulus dengan minimum 100 iterasi
   - [x] 25.2 Jalankan semua feature dan unit tests — pastikan zero failures
   - [x] 25.3 Verifikasi zero PHP errors/warnings di log setelah semua perbaikan diterapkan
   - [x] 25.4 Verifikasi aplikasi berjalan normal di semua modul utama (manual smoke test)
   - [x] 25.5 Verifikasi dark mode dan light mode konsisten di semua halaman utama
   - [x] 25.6 Verifikasi responsivitas di mobile (320px), tablet (768px), dan desktop (1280px+)
-  - [ ] 25.7 Dokumentasikan semua perbaikan yang dilakukan dan rekomendasi pengembangan selanjutnya
+  - [x] 25.7 Dokumentasikan semua perbaikan yang dilakukan dan rekomendasi pengembangan selanjutnya
 
 - [x] 26. Hide Gemini AI Model Name in Error Messages
   - [x] 26.1 Replace "Gagal terhubung ke Gemini AI" with "Gagal terhubung ke AI Assistant" in GeminiService
@@ -310,76 +310,76 @@
   - [x] 27.3 Verifikasi integrasi Fisheries dengan modul Inventory dan Accounting
   - [x] 27.4 Pastikan semua view Fisheries mendukung dark/light mode dan responsif
 
-- [ ] 28. Audit & Perbaikan Modul Livestock
-  - [ ] 28.1 Audit modul Livestock — manajemen ternak, breeding, dairy, poultry, kesehatan hewan
-  - [ ] 28.2 Verifikasi BreedingController, DairyController, PoultryController, HealthController berfungsi
-  - [ ] 28.3 Verifikasi WasteManagementController untuk pengelolaan limbah peternakan
-  - [ ] 28.4 Verifikasi integrasi Livestock dengan modul Inventory dan Accounting
-  - [ ] 28.5 Pastikan semua view Livestock mendukung light mode dan responsif
+- [x] 28. Audit & Perbaikan Modul Livestock
+  - [x] 28.1 Audit modul Livestock — manajemen ternak, breeding, dairy, poultry, kesehatan hewan
+  - [x] 28.2 Verifikasi BreedingController, DairyController, PoultryController, HealthController berfungsi
+  - [x] 28.3 Verifikasi WasteManagementController untuk pengelolaan limbah peternakan
+  - [x] 28.4 Verifikasi integrasi Livestock dengan modul Inventory dan Accounting
+  - [x] 28.5 Pastikan semua view Livestock mendukung light mode dan responsif
 
-- [ ] 29. Audit & Perbaikan Modul Tour & Travel
-  - [ ] 29.1 Audit modul Tour & Travel — paket wisata, booking, manajemen tamu, laporan
-  - [ ] 29.2 Verifikasi TourBookingController, TourPackageController, TourTravelAnalyticsController
-  - [ ] 29.3 Verifikasi integrasi Tour & Travel dengan modul Accounting dan CRM
-  - [ ] 29.4 Pastikan semua view Tour & Travel mendukung light mode dan responsif
+- [x] 29. Audit & Perbaikan Modul Tour & Travel
+  - [x] 29.1 Audit modul Tour & Travel — paket wisata, booking, manajemen tamu, laporan
+  - [x] 29.2 Verifikasi TourBookingController, TourPackageController, TourTravelAnalyticsController
+  - [x] 29.3 Verifikasi integrasi Tour & Travel dengan modul Accounting dan CRM
+  - [x] 29.4 Pastikan semua view Tour & Travel mendukung light mode dan responsif
 
-- [ ] 30. Audit & Perbaikan Modul Printing
-  - [ ] 30.1 Audit modul Printing — manajemen job cetak, estimasi biaya, tracking order
-  - [ ] 30.2 Verifikasi PrintJobController dan PrintController berfungsi tanpa error
-  - [ ] 30.3 Verifikasi integrasi Printing dengan modul Sales dan Accounting
-  - [ ] 30.4 Pastikan semua view Printing mendukung dark/light mode dan responsif
+- [x] 30. Audit & Perbaikan Modul Printing
+  - [x] 30.1 Audit modul Printing — manajemen job cetak, estimasi biaya, tracking order
+  - [x] 30.2 Verifikasi PrintJobController dan PrintController berfungsi tanpa error
+  - [x] 30.3 Verifikasi integrasi Printing dengan modul Sales dan Accounting
+  - [x] 30.4 Pastikan semua view Printing mendukung dark/light mode dan responsif
 
 ## Fase 9: Fitur Platform Lanjutan
 
-- [ ] 31. Audit & Perbaikan Modul CRM
-  - [ ] 31.1 Verifikasi CrmController — manajemen lead, pipeline, kontak, aktivitas
-  - [ ] 31.2 Verifikasi CrmAiController dan CrmAiService — rekomendasi AI untuk sales pipeline
-  - [ ] 31.3 Verifikasi LeadConversionService — konversi lead ke customer dan sales order
-  - [ ] 31.4 Verifikasi integrasi CRM dengan modul Sales dan Accounting
-  - [ ] 31.5 Pastikan semua view CRM mendukung dark/light mode dan responsif
+- [x] 31. Audit & Perbaikan Modul CRM
+  - [x] 31.1 Verifikasi CrmController — manajemen lead, pipeline, kontak, aktivitas
+  - [x] 31.2 Verifikasi CrmAiController dan CrmAiService — rekomendasi AI untuk sales pipeline
+  - [x] 31.3 Verifikasi LeadConversionService — konversi lead ke customer dan sales order
+  - [x] 31.4 Verifikasi integrasi CRM dengan modul Sales dan Accounting
+  - [x] 31.5 Pastikan semua view CRM mendukung dark/light mode dan responsif
 
-- [ ] 32. Audit & Perbaikan Modul Fleet Management
-  - [ ] 32.1 Verifikasi FleetController — manajemen kendaraan, jadwal servis, tracking
-  - [ ] 32.2 Verifikasi integrasi Fleet dengan modul Asset dan Accounting
-  - [ ] 32.3 Pastikan semua view Fleet mendukung dark/light mode dan responsif
+- [x] 32. Audit & Perbaikan Modul Fleet Management
+  - [x] 32.1 Verifikasi FleetController — manajemen kendaraan, jadwal servis, tracking
+  - [x] 32.2 Verifikasi integrasi Fleet dengan modul Asset dan Accounting
+  - [x] 32.3 Pastikan semua view Fleet mendukung dark/light mode dan responsif
 
-- [ ] 33. Audit & Perbaikan Modul Telemedicine
-  - [ ] 33.1 Verifikasi TelemedicineController dan TelemedicineService — konsultasi online, video call
-  - [ ] 33.2 Verifikasi TelemedicineReminderService — notifikasi jadwal konsultasi
-  - [ ] 33.3 Verifikasi TelemedicineFeedbackService — rating dan ulasan dokter
-  - [ ] 33.4 Verifikasi TelemedicineSettingsController — konfigurasi layanan telemedicine
-  - [ ] 33.5 Pastikan semua view Telemedicine mendukung dark/light mode dan responsif
+- [x] 33. Audit & Perbaikan Modul Telemedicine
+  - [x] 33.1 Verifikasi TelemedicineController dan TelemedicineService — konsultasi online, video call
+  - [x] 33.2 Verifikasi TelemedicineReminderService — notifikasi jadwal konsultasi
+  - [x] 33.3 Verifikasi TelemedicineFeedbackService — rating dan ulasan dokter
+  - [x] 33.4 Verifikasi TelemedicineSettingsController — konfigurasi layanan telemedicine
+  - [x] 33.5 Pastikan semua view Telemedicine mendukung dark/light mode dan responsif
 
-- [ ] 34. Audit & Perbaikan Modul Security & CCTV
-  - [ ] 34.1 Verifikasi SecurityController dan CctvController — integrasi CCTV, access log
-  - [ ] 34.2 Verifikasi CctvIntegrationService berfungsi tanpa error
-  - [ ] 34.3 Pastikan semua view Security mendukung dark/light mode dan responsif
+- [x] 34. Audit & Perbaikan Modul Security & CCTV
+  - [x] 34.1 Verifikasi SecurityController dan CctvController — integrasi CCTV, access log
+  - [x] 34.2 Verifikasi CctvIntegrationService berfungsi tanpa error
+  - [x] 34.3 Pastikan semua view Security mendukung dark/light mode dan responsif
 
-- [ ] 35. Audit & Perbaikan Automation & Workflow Engine
-  - [ ] 35.1 Verifikasi WorkflowController dan WorkflowEngine — pembuatan dan eksekusi workflow otomatis
-  - [ ] 35.2 Verifikasi trigger workflow berfungsi untuk semua event yang dikonfigurasi
-  - [ ] 35.3 Verifikasi kondisi dan aksi workflow (kirim notifikasi, update status, buat dokumen)
-  - [ ] 35.4 Pastikan semua view Automation mendukung dark/light mode dan responsif
+- [x] 35. Audit & Perbaikan Automation & Workflow Engine
+  - [x] 35.1 Verifikasi WorkflowController dan WorkflowEngine — pembuatan dan eksekusi workflow otomatis
+  - [x] 35.2 Verifikasi trigger workflow berfungsi untuk semua event yang dikonfigurasi
+  - [x] 35.3 Verifikasi kondisi dan aksi workflow (kirim notifikasi, update status, buat dokumen)
+  - [x] 35.4 Pastikan semua view Automation mendukung dark/light mode dan responsif
 
-- [ ] 36. Audit & Perbaikan Customer Portal
-  - [ ] 36.1 Verifikasi CustomerPortalController — portal self-service untuk pelanggan
-  - [ ] 36.2 Verifikasi pelanggan dapat melihat invoice, status pesanan, dan riwayat transaksi
-  - [ ] 36.3 Verifikasi pelanggan dapat melakukan pembayaran melalui portal
-  - [ ] 36.4 Pastikan semua view Customer Portal mendukung dark/light mode dan responsif
+- [x] 36. Audit & Perbaikan Customer Portal
+  - [x] 36.1 Verifikasi CustomerPortalController — portal self-service untuk pelanggan
+  - [x] 36.2 Verifikasi pelanggan dapat melihat invoice, status pesanan, dan riwayat transaksi
+  - [x] 36.3 Verifikasi pelanggan dapat melakukan pembayaran melalui portal
+  - [x] 36.4 Pastikan semua view Customer Portal mendukung dark/light mode dan responsif
 
-- [ ] 37. Audit & Perbaikan Modul Helpdesk
-  - [ ] 37.1 Verifikasi HelpdeskController — tiket support, kategori, prioritas, assignment
-  - [ ] 37.2 Verifikasi alur tiket: buat → assign → proses → resolve → close
-  - [ ] 37.3 Verifikasi notifikasi helpdesk — tiket baru, update status, tiket selesai
-  - [ ] 37.4 Pastikan semua view Helpdesk mendukung dark/light mode dan responsif
+- [x] 37. Audit & Perbaikan Modul Helpdesk
+  - [x] 37.1 Verifikasi HelpdeskController — tiket support, kategori, prioritas, assignment
+  - [x] 37.2 Verifikasi alur tiket: buat → assign → proses → resolve → close
+  - [x] 37.3 Verifikasi notifikasi helpdesk — tiket baru, update status, tiket selesai
+  - [x] 37.4 Pastikan semua view Helpdesk mendukung dark/light mode dan responsif
 
-- [ ] 38. Audit & Perbaikan Modul Document Management
-  - [ ] 38.1 Verifikasi DocumentController — upload, versioning, approval, expiry tracking
-  - [ ] 38.2 Verifikasi DocumentVersioningService — riwayat versi dokumen tersimpan dengan benar
-  - [ ] 38.3 Verifikasi DocumentApprovalService — alur approval dokumen berfungsi
-  - [ ] 38.4 Verifikasi DocumentOcrService — OCR untuk ekstraksi teks dari dokumen
-  - [ ] 38.5 Verifikasi DocumentSignatureService — tanda tangan digital berfungsi
-  - [ ] 38.6 Pastikan semua view Document Management mendukung dark/light mode dan responsif
+- [x] 38. Audit & Perbaikan Modul Document Management
+  - [x] 38.1 Verifikasi DocumentController — upload, versioning, approval, expiry tracking
+  - [x] 38.2 Verifikasi DocumentVersioningService — riwayat versi dokumen tersimpan dengan benar
+  - [x] 38.3 Verifikasi DocumentApprovalService — alur approval dokumen berfungsi
+  - [x] 38.4 Verifikasi DocumentOcrService — OCR untuk ekstraksi teks dari dokumen
+  - [x] 38.5 Verifikasi DocumentSignatureService — tanda tangan digital berfungsi
+  - [x] 38.6 Pastikan semua view Document Management mendukung dark/light mode dan responsif
 
 - [x] 39. Audit & Perbaikan Modul Multi-Company & Konsolidasi
   - [x] 39.1 Verifikasi MultiCompanyController — manajemen entitas bisnis dalam satu platform

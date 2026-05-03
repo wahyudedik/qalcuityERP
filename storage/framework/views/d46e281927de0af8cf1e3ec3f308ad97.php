@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Batch Production Records'); ?>
 
@@ -6,7 +6,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-6">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Batch Production Records</h1>
                     <p class="mt-1 text-sm text-gray-500">Manage manufacturing batches and quality control</p>
@@ -43,7 +43,7 @@
 
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="GET" action="<?php echo e(route('cosmetic.batches.index')); ?>" class="flex gap-4">
+            <form method="GET" action="<?php echo e(route('cosmetic.batches.index')); ?>" class="flex flex-col sm:flex-row gap-4">
                 <div class="flex-1">
                     <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                         placeholder="Search by batch number or formula..."
@@ -81,126 +81,128 @@
 
         <!-- Batches Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Formula
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yield
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Production Date</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <?php $__empty_1 = true; $__currentLoopData = $batches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $batch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900"><?php echo e($batch->batch_number); ?></div>
-                                <?php if($batch->producer): ?>
-                                    <div class="text-xs text-gray-500">By: <?php echo e($batch->producer->name); ?></div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900"><?php echo e($batch->formula->formula_name); ?></div>
-                                <div class="text-xs text-gray-500"><?php echo e($batch->formula->formula_code); ?></div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 py-1 text-xs font-medium rounded-full
-                            <?php if($batch->status == 'draft'): ?> bg-gray-100 text-gray-800
-                            <?php elseif($batch->status == 'in_progress'): ?> bg-blue-100 text-blue-800
-                            <?php elseif($batch->status == 'qc_pending'): ?> bg-yellow-100 text-yellow-800
-                            <?php elseif($batch->status == 'released'): ?> bg-green-100 text-green-800
-                            <?php elseif($batch->status == 'rejected'): ?> bg-red-100 text-red-800
-                            <?php else: ?> bg-orange-100 text-orange-800 <?php endif; ?>">
-                                    <?php echo e($batch->status_label); ?>
-
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <?php if($batch->actual_quantity): ?>
-                                    <div class="text-sm text-gray-900"><?php echo e(number_format($batch->actual_quantity, 2)); ?>
-
-                                    </div>
-                                    <div class="text-xs text-gray-500">Planned:
-                                        <?php echo e(number_format($batch->planned_quantity, 2)); ?></div>
-                                <?php else: ?>
-                                    <div class="text-sm text-gray-500"><?php echo e(number_format($batch->planned_quantity, 2)); ?>
-
-                                    </div>
-                                    <div class="text-xs text-gray-400">Planned</div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <?php if($batch->yield_percentage): ?>
-                                    <div
-                                        class="text-sm font-medium
-                                <?php if($batch->yield_percentage >= 95): ?> text-green-600
-                                <?php elseif($batch->yield_percentage >= 90): ?> text-yellow-600
-                                <?php else: ?> text-red-600 <?php endif; ?>">
-                                        <?php echo e(number_format($batch->yield_percentage, 1)); ?>%
-                                    </div>
-                                <?php else: ?>
-                                    <div class="text-sm text-gray-400">-</div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <?php echo e($batch->production_date->format('d M Y')); ?>
-
-                                <?php if($batch->expiry_date): ?>
-                                    <div
-                                        class="text-xs <?php echo e($batch->isExpired() ? 'text-red-600 font-medium' : 'text-gray-400'); ?>">
-                                        Exp: <?php echo e($batch->expiry_date->format('d M Y')); ?>
-
-                                        <?php if($batch->isExpired()): ?>
-                                            ⚠️ Expired
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end gap-2">
-                                    <a href="<?php echo e(route('cosmetic.batches.show', $batch)); ?>"
-                                        class="text-blue-600 hover:text-blue-900">View</a>
-                                    <form method="POST" action="<?php echo e(route('cosmetic.batches.destroy', $batch)); ?>"
-                                        class="inline"
-                                        onsubmit="return confirm('Are you sure you want to delete this batch?')">
-                                        <?php echo csrf_field(); ?>
-                                        <?php echo method_field('DELETE'); ?>
-                                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
-                                <div class="text-gray-400">
-                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                    </svg>
-                                    <p class="mt-2 text-sm">No batch records found</p>
-                                    <a href="<?php echo e(route('cosmetic.batches.create')); ?>"
-                                        class="mt-2 inline-block text-blue-600 hover:text-blue-900">
-                                        Create your first batch →
-                                    </a>
-                                </div>
-                            </td>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Formula
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yield
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Production Date</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
+                            </th>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <?php $__empty_1 = true; $__currentLoopData = $batches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $batch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900"><?php echo e($batch->batch_number); ?></div>
+                                    <?php if($batch->producer): ?>
+                                        <div class="text-xs text-gray-500">By: <?php echo e($batch->producer->name); ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900"><?php echo e($batch->formula->formula_name); ?></div>
+                                    <div class="text-xs text-gray-500"><?php echo e($batch->formula->formula_code); ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                        class="px-2 py-1 text-xs font-medium rounded-full
+                                <?php if($batch->status == 'draft'): ?> bg-gray-100 text-gray-800
+                                <?php elseif($batch->status == 'in_progress'): ?> bg-blue-100 text-blue-800
+                                <?php elseif($batch->status == 'qc_pending'): ?> bg-yellow-100 text-yellow-800
+                                <?php elseif($batch->status == 'released'): ?> bg-green-100 text-green-800
+                                <?php elseif($batch->status == 'rejected'): ?> bg-red-100 text-red-800
+                                <?php else: ?> bg-orange-100 text-orange-800 <?php endif; ?>">
+                                        <?php echo e($batch->status_label); ?>
+
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <?php if($batch->actual_quantity): ?>
+                                        <div class="text-sm text-gray-900"><?php echo e(number_format($batch->actual_quantity, 2)); ?>
+
+                                        </div>
+                                        <div class="text-xs text-gray-500">Planned:
+                                            <?php echo e(number_format($batch->planned_quantity, 2)); ?></div>
+                                    <?php else: ?>
+                                        <div class="text-sm text-gray-500"><?php echo e(number_format($batch->planned_quantity, 2)); ?>
+
+                                        </div>
+                                        <div class="text-xs text-gray-400">Planned</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <?php if($batch->yield_percentage): ?>
+                                        <div
+                                            class="text-sm font-medium
+                                    <?php if($batch->yield_percentage >= 95): ?> text-green-600
+                                    <?php elseif($batch->yield_percentage >= 90): ?> text-yellow-600
+                                    <?php else: ?> text-red-600 <?php endif; ?>">
+                                            <?php echo e(number_format($batch->yield_percentage, 1)); ?>%
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="text-sm text-gray-400">-</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <?php echo e($batch->production_date->format('d M Y')); ?>
+
+                                    <?php if($batch->expiry_date): ?>
+                                        <div
+                                            class="text-xs <?php echo e($batch->isExpired() ? 'text-red-600 font-medium' : 'text-gray-400'); ?>">
+                                            Exp: <?php echo e($batch->expiry_date->format('d M Y')); ?>
+
+                                            <?php if($batch->isExpired()): ?>
+                                                ⚠️ Expired
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="<?php echo e(route('cosmetic.batches.show', $batch)); ?>"
+                                            class="text-blue-600 hover:text-blue-900">View</a>
+                                        <form method="POST" action="<?php echo e(route('cosmetic.batches.destroy', $batch)); ?>"
+                                            class="inline"
+                                            onsubmit="return confirm('Are you sure you want to delete this batch?')">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="text-gray-400">
+                                        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                        </svg>
+                                        <p class="mt-2 text-sm">No batch records found</p>
+                                        <a href="<?php echo e(route('cosmetic.batches.create')); ?>"
+                                            class="mt-2 inline-block text-blue-600 hover:text-blue-900">
+                                            Create your first batch →
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Pagination -->

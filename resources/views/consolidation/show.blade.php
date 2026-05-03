@@ -1,14 +1,12 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $group->name }}
-            </h2>
-            <a href="{{ route('consolidation.index') }}" class="text-gray-600 hover:text-gray-900">
+    <x-slot name="header">{{ $group->name }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('consolidation.index') }}" class="text-gray-600 hover:text-gray-900">
                 ← Kembali
             </a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">

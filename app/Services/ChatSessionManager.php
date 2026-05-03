@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AiUseCase;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
@@ -9,6 +10,14 @@ use App\Services\AiMemoryService;
 use App\Services\GeminiService;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * ChatSessionManager — Manages chat sessions and message history.
+ *
+ * Use Cases:
+ * - All interactive chat requests use AiUseCase::CHATBOT
+ *
+ * Requirements: 8.6
+ */
 class ChatSessionManager
 {
     // Batas history yang dikirim ke Gemini (hemat token)
@@ -96,11 +105,11 @@ class ChatSessionManager
 
     /**
      * TASK-020: Summarize old messages to reduce context window size.
-     * 
+     *
      * When conversation exceeds SUMMARIZATION_THRESHOLD, older messages
      * are summarized into a single context message to preserve meaning
      * while reducing token usage.
-     * 
+     *
      * @param ChatSession $session
      * @return array Modified history with summary
      */
@@ -180,7 +189,7 @@ class ChatSessionManager
 
     /**
      * TASK-020: Use Gemini to summarize a collection of messages.
-     * 
+     *
      * @param \Illuminate\Support\Collection $messages
      * @return string|null Summary text
      */
@@ -209,11 +218,10 @@ class ChatSessionManager
                 . "Percakapan:\n{$conversationText}\n\n"
                 . "Ringkasan:";
 
-            $response = $this->gemini->chat($summaryPrompt, []);
+            $response = $this->gemini->chat($summaryPrompt, [], [], AiUseCase::CHATBOT->value);
             $summary = trim($response['text'] ?? '');
 
             return $summary ?: null;
-
         } catch (\Throwable $e) {
             Log::warning('Failed to summarize conversation', [
                 'error' => $e->getMessage(),

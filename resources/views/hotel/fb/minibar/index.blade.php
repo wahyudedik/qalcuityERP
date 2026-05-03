@@ -1,6 +1,6 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-white">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
             {{ __('Mini-bar Management') }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             {{-- Low Stock Alert --}}
             @if (count($lowStockRooms) > 0)
-                <div class="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-400 p-4 mb-6">
+                <div class="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
@@ -19,7 +19,7 @@
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <p class="text-sm text-orange-700 dark:text-orange-300">
+                            <p class="text-sm text-orange-700">
                                 <strong>{{ count($lowStockRooms) }}</strong> rooms have low minibar stock that needs
                                 attention.
                             </p>
@@ -30,59 +30,59 @@
 
             {{-- Recent Transactions --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
-                <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Consumption</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Consumption</h3>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-                        <thead class="bg-gray-50 dark:bg-slate-800">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Date</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Room</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Guest</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Item</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Qty</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Charge</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-200 dark:divide-white/10">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($recentTransactions as $transaction)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->consumption_date->format('d/m/Y H:i') }}
                                     </td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         Room {{ $transaction->room_number }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->reservation?->guest?->full_name ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->menuItem->name }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $transaction->quantity_consumed }}
                                     </td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                         Rp {{ number_format($transaction->total_charge, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -95,7 +95,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                         No transactions yet
                                     </td>
                                 </tr>
@@ -122,40 +122,40 @@
 
     {{-- Restock Modal --}}
     <div id="modal-restock" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Restock Minibar</h3>
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Restock Minibar</h3>
             </div>
 
             <form action="{{ route('hotel.fb.minibar.restock') }}" method="POST">
                 @csrf
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Room
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room
                             Number</label>
                         <input type="number" name="room_number" required
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Item</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Item</label>
                         <select name="menu_item_id" required
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                             <option value="">Select Item</option>
                             <!-- Options loaded dynamically -->
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Quantity</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                         <input type="number" name="quantity" min="1" required
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
+                            class="w-full rounded-md border-gray-300">
                     </div>
                 </div>
 
-                <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
                     <button type="button" onclick="closeRestockModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md">Cancel</button>
+                        class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md">Restock</button>
                 </div>

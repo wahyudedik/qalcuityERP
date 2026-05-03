@@ -1,4 +1,4 @@
-<!-- Payment Selection Modal -->
+﻿<!-- Payment Selection Modal -->
 <div x-data="paymentSelection()" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
     aria-modal="true">
     <!-- Backdrop -->
@@ -10,7 +10,7 @@
 
         <!-- Modal Panel -->
         <div
-            class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
 
             <!-- Header -->
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,7 +12,7 @@
 
      <?php $__env->slot('pageHeader', null, []); ?> 
         <a href="<?php echo e(route('hotel.reservations.index')); ?>"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -40,17 +40,17 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
             <a href="<?php echo e(route('hotel.reservations.calendar', ['month' => $prevMonth->month, 'year' => $prevMonth->year])); ?>"
-                class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 class="text-xl font-bold text-gray-900">
                 <?php echo e($currentMonth->format('F Y')); ?>
 
             </h2>
             <a href="<?php echo e(route('hotel.reservations.calendar', ['month' => $nextMonth->month, 'year' => $nextMonth->year])); ?>"
-                class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -61,35 +61,35 @@
         <div class="flex flex-wrap items-center gap-4 text-xs">
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-green-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Confirmed</span>
+                <span class="text-gray-600">Confirmed</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-blue-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Checked In</span>
+                <span class="text-gray-600">Checked In</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-yellow-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Pending</span>
+                <span class="text-gray-600">Pending</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-gray-400"></span>
-                <span class="text-gray-600 dark:text-slate-400">Checked Out</span>
+                <span class="text-gray-600">Checked Out</span>
             </div>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         
         <div
-            class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
+            class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 border-b border-gray-200">
             <div
-                class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase sticky left-0 bg-gray-50 dark:bg-white/5">
+                class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50">
                 Room</div>
             <?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php $date = $currentMonth->copy()->day($day); ?>
                 <div
-                    class="px-1 py-3 text-center text-xs <?php echo e($date->isWeekend() ? 'text-red-400' : 'text-gray-500 dark:text-slate-400'); ?> font-medium">
+                    class="px-1 py-3 text-center text-xs <?php echo e($date->isWeekend() ? 'text-red-400' : 'text-gray-500'); ?> font-medium">
                     <div><?php echo e($date->format('D')); ?></div>
                     <div class="text-sm <?php echo e($date->isToday() ? 'text-blue-600 font-bold' : ''); ?>"><?php echo e($day); ?>
 
@@ -99,18 +99,18 @@
         </div>
 
         
-        <div x-data="{ expandedTypes: {} }" class="divide-y divide-gray-100 dark:divide-white/5">
+        <div x-data="{ expandedTypes: {} }" class="divide-y divide-gray-100">
             <?php $__empty_1 = true; $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roomType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 
                 <div @click="expandedTypes['<?php echo e($roomType->id); ?>'] = !expandedTypes['<?php echo e($roomType->id); ?>']"
-                    class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10">
-                    <div class="px-4 py-3 flex items-center gap-2 sticky left-0 bg-gray-50 dark:bg-white/5">
+                    class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 cursor-pointer hover:bg-gray-100">
+                    <div class="px-4 py-3 flex items-center gap-2 sticky left-0 bg-gray-50">
                         <svg class="w-4 h-4 text-gray-400 transition-transform"
                             :class="{ 'rotate-90': expandedTypes['<?php echo e($roomType->id); ?>'] }" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
-                        <span class="font-medium text-gray-900 dark:text-white text-sm"><?php echo e($roomType->name); ?></span>
+                        <span class="font-medium text-gray-900 text-sm"><?php echo e($roomType->name); ?></span>
                         <span class="text-xs text-gray-400">(<?php echo e($roomType->rooms->count()); ?> rooms)</span>
                     </div>
                     <?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -120,7 +120,7 @@
 
                 
                 <template x-if="expandedTypes['<?php echo e($roomType->id); ?>']">
-                    <div class="divide-y divide-gray-50 dark:divide-white/5">
+                    <div class="divide-y divide-gray-50">
                         <?php $currentRoomType = $roomType; ?>
                         <?php $__currentLoopData = $roomType->rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php
@@ -131,9 +131,9 @@
                                 });
                             ?>
                             <div
-                                class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] hover:bg-gray-50 dark:hover:bg-white/5">
-                                <div class="px-4 py-2 flex items-center gap-2 sticky left-0 bg-white dark:bg-[#1e293b]">
-                                    <span class="text-sm text-gray-700 dark:text-slate-300"><?php echo e($room->number); ?></span>
+                                class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] hover:bg-gray-50">
+                                <div class="px-4 py-2 flex items-center gap-2 sticky left-0 bg-white">
+                                    <span class="text-sm text-gray-700"><?php echo e($room->number); ?></span>
                                     <?php if($room->floor): ?>
                                         <span class="text-xs text-gray-400">Floor <?php echo e($room->floor); ?></span>
                                     <?php endif; ?>
@@ -186,7 +186,7 @@
             
             <div x-show="!expandedTypes['<?php echo e($roomType->id); ?>']"
                 class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] h-10">
-                <div class="px-4 py-2 sticky left-0 bg-white dark:bg-[#1e293b] flex items-center">
+                <div class="px-4 py-2 sticky left-0 bg-white flex items-center">
                     <span class="text-xs text-gray-400">Click to expand rooms</span>
                 </div>
                 <?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -218,7 +218,7 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-            <div class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+            <div class="px-4 py-12 text-center text-gray-400">
                 No room types configured. <a href="<?php echo e(route('hotel.room-types.index')); ?>"
                     class="text-blue-500 hover:underline">Configure room types</a>
             </div>
@@ -228,18 +228,18 @@
 
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Total Reservations This Month</p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($reservations->count()); ?></p>
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Total Reservations This Month</p>
+        <p class="text-2xl font-bold text-gray-900"><?php echo e($reservations->count()); ?></p>
     </div>
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Currently Checked In</p>
-        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Currently Checked In</p>
+        <p class="text-2xl font-bold text-blue-600">
             <?php echo e($reservations->where('status', 'checked_in')->count()); ?></p>
     </div>
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Arrivals Today</p>
-        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Arrivals Today</p>
+        <p class="text-2xl font-bold text-green-600">
             <?php echo e($reservations->filter(fn($r) => \Carbon\Carbon::parse($r->check_in_date)->isToday())->count()); ?>
 
         </p>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 
 <head>
@@ -24,14 +24,14 @@
     </style>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center p-6">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
     <div class="w-full max-w-sm">
 
         
         <div class="no-print flex items-center justify-between mb-4">
             <a href="<?php echo e(url()->previous()); ?>"
-                class="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -49,17 +49,17 @@
 
         
         <div
-            class="print-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+            class="print-card bg-white rounded-2xl shadow-lg border border-gray-200 p-6 text-center">
 
             
-            <h1 class="text-base font-bold text-gray-900 dark:text-white mb-1 leading-tight">
+            <h1 class="text-base font-bold text-gray-900 mb-1 leading-tight">
                 <?php echo e($product->name); ?>
 
             </h1>
 
             
             <?php if($product->sku): ?>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                <p class="text-xs text-gray-500 mb-4">
                     SKU: <?php echo e($product->sku); ?>
 
                 </p>
@@ -72,21 +72,21 @@
             </div>
 
             
-            <p class="mt-3 text-xs font-mono tracking-widest text-gray-600 dark:text-gray-300">
+            <p class="mt-3 text-xs font-mono tracking-widest text-gray-600">
                 <?php echo e($barcodeValue); ?>
 
             </p>
 
             
             <?php if(!empty($product->price_sell)): ?>
-                <p class="mt-3 text-xl font-bold text-gray-900 dark:text-white">
+                <p class="mt-3 text-xl font-bold text-gray-900">
                     Rp <?php echo e(number_format($product->price_sell, 0, ',', '.')); ?>
 
                 </p>
             <?php endif; ?>
 
             
-            <div class="mt-3 flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+            <div class="mt-3 flex items-center justify-center gap-3 text-xs text-gray-400">
                 <?php if(!empty($product->category)): ?>
                     <span><?php echo e($product->category); ?></span>
                 <?php endif; ?>
@@ -98,7 +98,7 @@
         </div>
 
         
-        <p class="no-print text-center text-xs text-gray-400 dark:text-gray-600 mt-4">
+        <p class="no-print text-center text-xs text-gray-400 mt-4">
             Use Ctrl+P / Cmd+P to print, or click the Print button above.
         </p>
 

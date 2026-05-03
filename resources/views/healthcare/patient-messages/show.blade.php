@@ -1,12 +1,12 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Message Details') }}</h2>
-            <a href="{{ route('healthcare.patient-messages.inbox') }}"
+    <x-slot name="header">{{ __('Message Details') }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('healthcare.patient-messages.inbox') }}"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"><i
                     class="fas fa-arrow-left mr-2"></i>Back to Inbox</a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

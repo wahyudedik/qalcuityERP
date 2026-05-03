@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Check-in / Check-out Dashboard')
 
@@ -6,8 +6,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Check-in / Check-out Dashboard</h1>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <h1 class="text-3xl font-bold text-gray-900">Check-in / Check-out Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-600">
                 Kelola check-in dan check-out tamu hari ini
             </p>
         </div>
@@ -69,10 +69,10 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Check-ins Today -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-white/10">
-                <div class="p-6 border-b border-gray-200 dark:border-white/10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -80,7 +80,7 @@
                             Check-in Hari Ini
                         </h2>
                         <span
-                            class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
+                            class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                             {{ $checkIns->count() }}
                         </span>
                     </div>
@@ -96,32 +96,32 @@
                                     $roomAssigned = $reservation->room_id !== null;
                                 @endphp
                                 <div
-                                    class="border border-gray-200 dark:border-white/10 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div class="flex items-start justify-between mb-3">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2 mb-1">
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">
+                                                <h3 class="font-semibold text-gray-900">
                                                     {{ $reservation->guest?->name ?? '-' }}
                                                 </h3>
                                                 @if ($hasPreArrival)
                                                     <span
-                                                        class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">
+                                                        class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
                                                         ✓ Pre-Arrival Complete
                                                     </span>
                                                 @else
                                                     <span
-                                                        class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded text-xs font-medium">
+                                                        class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
                                                         ⚠ Pre-Arrival Pending
                                                     </span>
                                                 @endif
                                             </div>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            <p class="text-sm text-gray-500 mt-1">
                                                 {{ $reservation->roomType?->name ?? '-' }} •
                                                 @if ($roomAssigned)
-                                                    <span class="text-green-600 dark:text-green-400 font-medium">Room
+                                                    <span class="text-green-600 font-medium">Room
                                                         {{ $reservation->room?->number ?? 'TBA' }}</span>
                                                 @else
-                                                    <span class="text-amber-600 dark:text-amber-400">Room: Not
+                                                    <span class="text-amber-600">Room: Not
                                                         Assigned</span>
                                                 @endif
                                             </p>
@@ -129,12 +129,12 @@
                                         <div class="flex flex-col gap-1 items-end">
                                             @if ($reservation->status === 'confirmed')
                                                 <span
-                                                    class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
+                                                    class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
                                                     Confirmed
                                                 </span>
                                             @elseif($reservation->status === 'pending')
                                                 <span
-                                                    class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">
+                                                    class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
                                                     Pending
                                                 </span>
                                             @endif
@@ -143,20 +143,20 @@
 
                                     <div class="grid grid-cols-3 gap-3 text-sm mb-3">
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Check-in:</span>
-                                            <span class="ml-1 text-gray-900 dark:text-white font-medium">
+                                            <span class="text-gray-500">Check-in:</span>
+                                            <span class="ml-1 text-gray-900 font-medium">
                                                 {{ $reservation->check_in_date->format('d M Y') }}
                                             </span>
                                         </div>
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Nights:</span>
-                                            <span class="ml-1 text-gray-900 dark:text-white font-medium">
+                                            <span class="text-gray-500">Nights:</span>
+                                            <span class="ml-1 text-gray-900 font-medium">
                                                 {{ $reservation->nights }}
                                             </span>
                                         </div>
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Total:</span>
-                                            <span class="ml-1 text-blue-600 dark:text-blue-400 font-bold">
+                                            <span class="text-gray-500">Total:</span>
+                                            <span class="ml-1 text-blue-600 font-bold">
                                                 Rp {{ number_format($reservation->grand_total, 0, ',', '.') }}
                                             </span>
                                         </div>
@@ -186,13 +186,13 @@
 
                                         @if (!$hasPreArrival)
                                             <a href="{{ route('hotel.checkin.pre-arrival', $reservation) }}"
-                                                class="px-4 py-2 border border-purple-300 dark:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-sm font-medium rounded-lg transition-colors">
+                                                class="px-4 py-2 border border-purple-300 hover:bg-purple-50 text-purple-700 text-sm font-medium rounded-lg transition-colors">
                                                 Pre-Arrival
                                             </a>
                                         @endif
 
                                         <a href="{{ route('hotel.reservations.show', $reservation) }}"
-                                            class="px-4 py-2 border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+                                            class="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                                             View
                                         </a>
                                     </div>
@@ -206,17 +206,17 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada check-in hari ini</p>
+                            <p class="mt-2 text-sm text-gray-500">Tidak ada check-in hari ini</p>
                         </div>
                     @endif
                 </div>
             </div>
 
             <!-- Check-outs Today -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-white/10">
-                <div class="p-6 border-b border-gray-200 dark:border-white/10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -225,7 +225,7 @@
                             Check-out Hari Ini
                         </h2>
                         <span
-                            class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm font-medium">
+                            class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
                             {{ $checkOuts->count() }}
                         </span>
                     </div>
@@ -236,33 +236,33 @@
                         <div class="space-y-4">
                             @foreach ($checkOuts as $reservation)
                                 <div
-                                    class="border border-gray-200 dark:border-white/10 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div class="flex items-start justify-between mb-3">
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900 dark:text-white">
+                                            <h3 class="font-semibold text-gray-900">
                                                 {{ $reservation->guest?->name ?? '-' }}
                                             </h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            <p class="text-sm text-gray-500 mt-1">
                                                 {{ $reservation->roomType?->name ?? '-' }} • Room
                                                 {{ $reservation->room?->number ?? '-' }}
                                             </p>
                                         </div>
                                         <span
-                                            class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">
+                                            class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
                                             Checked In
                                         </span>
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-3 text-sm mb-3">
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Check-out:</span>
-                                            <span class="ml-1 text-gray-900 dark:text-white font-medium">
+                                            <span class="text-gray-500">Check-out:</span>
+                                            <span class="ml-1 text-gray-900 font-medium">
                                                 {{ $reservation->check_out_date->format('d M Y') }}
                                             </span>
                                         </div>
                                         <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Stayed:</span>
-                                            <span class="ml-1 text-gray-900 dark:text-white font-medium">
+                                            <span class="text-gray-500">Stayed:</span>
+                                            <span class="ml-1 text-gray-900 font-medium">
                                                 {{ now()->diffInDays($reservation->check_in_date) }} days
                                             </span>
                                         </div>
@@ -274,7 +274,7 @@
                                             Process Check-out
                                         </a>
                                         <a href="{{ route('hotel.reservations.show', $reservation) }}"
-                                            class="px-4 py-2 border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors">
+                                            class="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                                             View
                                         </a>
                                     </div>
@@ -288,7 +288,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada check-out hari ini</p>
+                            <p class="mt-2 text-sm text-gray-500">Tidak ada check-out hari ini</p>
                         </div>
                     @endif
                 </div>
@@ -299,10 +299,10 @@
         @if ($earlyCheckIns->count() > 0 || $lateCheckOuts->count() > 0)
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
                 @if ($earlyCheckIns->count() > 0)
-                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                    <div class="bg-amber-50 rounded-xl border border-amber-200">
                         <div class="p-6">
                             <h3
-                                class="text-lg font-semibold text-amber-900 dark:text-amber-400 mb-4 flex items-center gap-2">
+                                class="text-lg font-semibold text-amber-900 mb-4 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -311,12 +311,12 @@
                             </h3>
                             <div class="space-y-3">
                                 @foreach ($earlyCheckIns as $reservation)
-                                    <div class="bg-white dark:bg-slate-800 rounded-lg p-3">
+                                    <div class="bg-white rounded-lg p-3">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <p class="font-medium text-gray-900 dark:text-white">
+                                                <p class="font-medium text-gray-900">
                                                     {{ $reservation->guest?->name ?? '-' }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                <p class="text-xs text-gray-500">
                                                     Scheduled: {{ $reservation->check_in_date->format('d M Y') }}
                                                 </p>
                                             </div>
@@ -333,9 +333,9 @@
                 @endif
 
                 @if ($lateCheckOuts->count() > 0)
-                    <div class="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                    <div class="bg-red-50 rounded-xl border border-red-200">
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold text-red-900 dark:text-red-400 mb-4 flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-red-900 mb-4 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -344,12 +344,12 @@
                             </h3>
                             <div class="space-y-3">
                                 @foreach ($lateCheckOuts as $reservation)
-                                    <div class="bg-white dark:bg-slate-800 rounded-lg p-3">
+                                    <div class="bg-white rounded-lg p-3">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <p class="font-medium text-gray-900 dark:text-white">
+                                                <p class="font-medium text-gray-900">
                                                     {{ $reservation->guest?->name ?? '-' }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                <p class="text-xs text-gray-500">
                                                     Due: {{ $reservation->check_out_date->format('d M Y') }}
                                                 </p>
                                             </div>

@@ -190,5 +190,55 @@ class TourBooking extends Model
             'paid_amount' => $newPaidAmount,
             'payment_status' => $newPaidAmount >= $this->total_amount ? 'paid' : 'partial',
         ]);
+
+        // Create journal entry for the payment if accounting integration is available
+        $this->createPaymentJournalEntry($amount);
+    }
+
+    /**
+     * Create a journal entry for a tour booking payment.
+     * Debits Cash/Bank, Credits Tour Revenue.
+     */
+    protected function createPaymentJournalEntry(float $amount): void
+    {
+        try {
+            $journalService = app(\App\Services\JournalService::class);
+
+            $journalService->createJournalEntry([
+                'tenant_id' => $this->tenant_id,
+                'date' => now()->toDateString(),
+                'description' => "Pembayaran booking tour #{$this->booking_number}",
+                'reference_type' => 'tour_booking',
+                'reference_id' => $this->id,
+                'source' => 'tour_travel',
+                'lines' => [
+                    [
+                        'description' => "Pembayaran tour - {$this->customer_name}",
+                        'debit' => $amount,
+                        'credit' => 0,
+                    ],
+                    [
+                        'description' => "Pendapatan tour - {$this->tourPackage?->name}",
+                        'debit' => 0,
+                        'credit' => $amount,
+                    ],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // Log but don't fail the payment if journal creation fails
+            \Illuminate\Support\Facades\Log::warning('Tour booking journal entry creation failed', [
+                'booking_id' => $this->id,
+                'amount' => $amount,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Get the CRM lead associated with this booking's customer (if converted from a lead).
+     */
+    public function crmLead()
+    {
+        return $this->hasOne(\App\Models\CrmLead::class, 'converted_to_customer_id', 'customer_id');
     }
 }

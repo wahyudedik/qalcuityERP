@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,26 +8,21 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <?php echo e(__('Telemedicine Settings')); ?>
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Pengaturan Telemedicine')); ?> <?php $__env->endSlot(); ?>
 
-            </h2>
-            <div class="flex gap-2">
-                <button type="button" onclick="resetToDefault()"
-                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                    <i class="fas fa-undo mr-2"></i>Reset to Default
-                </button>
-                <a href="<?php echo e(route('healthcare.telemedicine.index')); ?>"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                    <i class="fas fa-arrow-left mr-2"></i>Back
-                </a>
-            </div>
-        </div>
-     <?php $__env->endSlot(); ?>
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <button type="button" onclick="resetToDefault()"
+            class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+            <i class="fas fa-undo mr-2"></i>Reset Default
+        </button>
+        <a href="<?php echo e(route('healthcare.telemedicine.index')); ?>"
+            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+            <i class="fas fa-arrow-left mr-2"></i>Kembali
+        </a>
+    </div>
 
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <?php if(session('success')): ?>
                 <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
@@ -40,18 +35,21 @@
                 <?php echo csrf_field(); ?>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-server text-blue-600 mr-2"></i>Jitsi Meet Configuration
+                        <i class="fas fa-server text-blue-600 mr-2"></i>Konfigurasi Jitsi Meet
                     </h3>
                     <p class="text-sm text-gray-600 mb-4">
-                        Configure your Jitsi Meet server. Leave as default to use the free public server (meet.jit.si).
+                        Konfigurasi server Jitsi Meet Anda. Biarkan default untuk menggunakan server publik gratis
+                        (meet.jit.si).
                     </p>
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jitsi Server URL *</label>
-                            <div class="flex gap-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">URL Server
+                                Jitsi *</label>
+                            <div class="flex flex-col sm:flex-row gap-2">
                                 <input type="url" name="jitsi_server_url" id="jitsi_server_url"
                                     value="<?php echo e(old('jitsi_server_url', $settings->jitsi_server_url)); ?>"
                                     placeholder="https://meet.jit.si"
@@ -59,49 +57,52 @@
                                     required />
                                 <button type="button" onclick="testConnection()"
                                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 whitespace-nowrap">
-                                    <i class="fas fa-plug mr-2"></i>Test Connection
+                                    <i class="fas fa-plug mr-2"></i>Test Koneksi
                                 </button>
                             </div>
                             <p class="mt-1 text-xs text-gray-500">
-                                Default: https://meet.jit.si (free). For self-hosted: https://your-jitsi-domain.com
+                                Default: https://meet.jit.si (gratis). Untuk self-hosted: https://your-jitsi-domain.com
                             </p>
                             <div id="connection-test-result" class="mt-2 hidden"></div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Jitsi App ID
-                                    (optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Jitsi App
+                                    ID (opsional)</label>
                                 <input type="text" name="jitsi_app_id"
                                     value="<?php echo e(old('jitsi_app_id', $settings->jitsi_app_id)); ?>"
-                                    placeholder="Leave empty for public server"
+                                    placeholder="Kosongkan untuk server publik"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <p class="mt-1 text-xs text-gray-500">For self-hosted Jitsi with authentication</p>
+                                <p class="mt-1 text-xs text-gray-500">Untuk Jitsi self-hosted dengan
+                                    autentikasi</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Jitsi Secret
-                                    (optional)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Jitsi
+                                    Secret (opsional)</label>
                                 <input type="password" name="jitsi_secret"
                                     value="<?php echo e(old('jitsi_secret', $settings->jitsi_secret)); ?>"
                                     placeholder="JWT secret key"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <p class="mt-1 text-xs text-gray-500">JWT secret for token-based authentication</p>
+                                <p class="mt-1 text-xs text-gray-500">JWT secret untuk autentikasi
+                                    berbasis token</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-toggle-on text-green-600 mr-2"></i>Features
+                        <i class="fas fa-toggle-on text-green-600 mr-2"></i>Fitur
                     </h3>
 
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Enable Recording</p>
-                                <p class="text-sm text-gray-600">Allow consultation recording</p>
+                                <p class="font-medium text-gray-900">Aktifkan Rekaman</p>
+                                <p class="text-sm text-gray-600">Izinkan perekaman konsultasi</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_recording" value="1"
@@ -116,8 +117,8 @@
 
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Virtual Waiting Room</p>
-                                <p class="text-sm text-gray-600">Patients wait before being admitted</p>
+                                <p class="font-medium text-gray-900">Ruang Tunggu Virtual</p>
+                                <p class="text-sm text-gray-600">Pasien menunggu sebelum diterima</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_waiting_room" value="1"
@@ -133,7 +134,8 @@
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
                                 <p class="font-medium text-gray-900">Chat</p>
-                                <p class="text-sm text-gray-600">Enable in-call text chat</p>
+                                <p class="text-sm text-gray-600">Aktifkan chat teks dalam panggilan
+                                </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_chat" value="1"
@@ -148,8 +150,8 @@
 
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Screen Sharing</p>
-                                <p class="text-sm text-gray-600">Allow participants to share screen</p>
+                                <p class="font-medium text-gray-900">Berbagi Layar</p>
+                                <p class="text-sm text-gray-600">Izinkan peserta berbagi layar</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_screen_share" value="1"
@@ -165,16 +167,18 @@
                 </div>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-bell text-yellow-600 mr-2"></i>Appointment Reminders
+                        <i class="fas fa-bell text-yellow-600 mr-2"></i>Pengingat Jadwal
                     </h3>
 
                     <div class="space-y-4">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Enable Reminders</p>
-                                <p class="text-sm text-gray-600">Send email reminders before consultations</p>
+                                <p class="font-medium text-gray-900">Aktifkan Pengingat</p>
+                                <p class="text-sm text-gray-600">Kirim pengingat email sebelum
+                                    konsultasi</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="reminder_enabled" value="1"
@@ -189,17 +193,18 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Reminder Time (minutes
-                                    before)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Waktu
+                                    Pengingat (menit sebelum)</label>
                                 <input type="number" name="reminder_minutes_before"
                                     value="<?php echo e(old('reminder_minutes_before', $settings->reminder_minutes_before)); ?>"
                                     min="5" max="1440"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                                <p class="mt-1 text-xs text-gray-500">Default: 30 minutes</p>
+                                <p class="mt-1 text-xs text-gray-500">Default: 30 menit</p>
                             </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div>
-                                    <p class="font-medium text-gray-900">Email Reminders</p>
+                                    <p class="font-medium text-gray-900">Pengingat Email</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="send_email_reminder" value="1"
@@ -216,16 +221,18 @@
                 </div>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-star text-purple-600 mr-2"></i>Feedback & Ratings
+                        <i class="fas fa-star text-purple-600 mr-2"></i>Feedback & Rating
                     </h3>
 
                     <div class="space-y-3">
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Enable Feedback</p>
-                                <p class="text-sm text-gray-600">Allow patients to submit feedback</p>
+                                <p class="font-medium text-gray-900">Aktifkan Feedback</p>
+                                <p class="text-sm text-gray-600">Izinkan pasien mengirim feedback
+                                </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="enable_feedback" value="1"
@@ -240,8 +247,9 @@
 
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div>
-                                <p class="font-medium text-gray-900">Require Feedback</p>
-                                <p class="text-sm text-gray-600">Mandatory feedback after consultation</p>
+                                <p class="font-medium text-gray-900">Wajibkan Feedback</p>
+                                <p class="text-sm text-gray-600">Feedback wajib setelah konsultasi
+                                </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="require_feedback" value="1"
@@ -257,41 +265,45 @@
                 </div>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-clock text-red-600 mr-2"></i>Consultation Limits
+                        <i class="fas fa-clock text-red-600 mr-2"></i>Batas Konsultasi
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Timeout (minutes)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Timeout
+                                (menit)</label>
                             <input type="number" name="consultation_timeout_minutes"
                                 value="<?php echo e(old('consultation_timeout_minutes', $settings->consultation_timeout_minutes)); ?>"
                                 min="15" max="240"
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                            <p class="mt-1 text-xs text-gray-500">Default: 60 minutes</p>
+                            <p class="mt-1 text-xs text-gray-500">Default: 60 menit</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Max Participants</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Maks
+                                Peserta</label>
                             <input type="number" name="max_participants"
                                 value="<?php echo e(old('max_participants', $settings->max_participants)); ?>" min="2"
                                 max="50"
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" />
-                            <p class="mt-1 text-xs text-gray-500">Default: 10 participants</p>
+                            <p class="mt-1 text-xs text-gray-500">Default: 10 peserta</p>
                         </div>
                     </div>
                 </div>
 
                 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border border-gray-200">
                     <div class="flex items-center justify-end gap-3">
                         <a href="<?php echo e(route('healthcare.telemedicine.index')); ?>"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                            Cancel
+                            Batal
                         </a>
                         <button type="submit"
                             class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
-                            <i class="fas fa-save mr-2"></i>Save Settings
+                            <i class="fas fa-save mr-2"></i>Simpan Pengaturan
                         </button>
                     </div>
                 </div>
@@ -306,12 +318,12 @@
                 const resultDiv = document.getElementById('connection-test-result');
 
                 if (!url) {
-                    alert('Please enter a Jitsi server URL first');
+                    alert('Masukkan URL server Jitsi terlebih dahulu');
                     return;
                 }
 
                 resultDiv.innerHTML =
-                    '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Testing connection...</p>';
+                    '<p class="text-sm text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Menguji koneksi...</p>';
                 resultDiv.classList.remove('hidden');
 
                 fetch('<?php echo e(route('healthcare.telemedicine.settings.test-connection')); ?>', {
@@ -336,12 +348,12 @@
                     })
                     .catch(error => {
                         resultDiv.innerHTML =
-                            `<p class="text-sm text-red-600"><i class="fas fa-times-circle mr-2"></i>Connection failed</p>`;
+                            `<p class="text-sm text-red-600"><i class="fas fa-times-circle mr-2"></i>Koneksi gagal</p>`;
                     });
             }
 
             function resetToDefault() {
-                if (confirm('Are you sure you want to reset all settings to default?')) {
+                if (confirm('Apakah Anda yakin ingin mereset semua pengaturan ke default?')) {
                     fetch('<?php echo e(route('healthcare.telemedicine.settings.reset')); ?>', {
                             method: 'POST',
                             headers: {

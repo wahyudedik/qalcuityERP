@@ -28,11 +28,18 @@ class TelemedicineController extends Controller
         $this->feedbackService = $feedbackService;
     }
     /**
-     * Display telemedicine dashboard.
+     * Display telemedicine dashboard / consultation list.
      */
     public function index()
     {
         $tenantId = Auth::user()->tenant_id;
+
+        $consultations = Teleconsultation::with(['patient', 'doctor'])
+            ->whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
+            ->latest('scheduled_time')
+            ->paginate(20);
 
         $statistics = [
             'today_consultations' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
@@ -45,24 +52,43 @@ class TelemedicineController extends Controller
             })
                 ->where('status', 'scheduled')
                 ->count(),
+            'in_progress' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+                $q->where('tenant_id', $tenantId);
+            })
+                ->where('status', 'in_progress')
+                ->count(),
             'completed' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
                 $q->where('tenant_id', $tenantId);
             })
                 ->where('status', 'completed')
                 ->count(),
-            'cancelled' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
+            'total' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
                 $q->where('tenant_id', $tenantId);
             })
-                ->where('status', 'cancelled')
                 ->count(),
-            'total_patients' => Teleconsultation::whereHas('patient', function ($q) use ($tenantId) {
-                $q->where('tenant_id', $tenantId);
-            })
-                ->distinct('patient_id')
-                ->count('patient_id'),
         ];
 
-        return view('healthcare.telemedicine.index', compact('statistics'));
+        return view('healthcare.telemedicine.index', compact('consultations', 'statistics'));
+    }
+
+    /**
+     * Show form to create/book a new consultation.
+     */
+    public function create()
+    {
+        $tenantId = Auth::user()->tenant_id;
+
+        $patients = \App\Models\Patient::where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->orderBy('full_name')
+            ->get();
+
+        $doctors = \App\Models\Doctor::where('tenant_id', $tenantId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('healthcare.telemedicine.create', compact('patients', 'doctors'));
     }
 
     /**
@@ -164,10 +190,9 @@ class TelemedicineController extends Controller
      */
     public function showConsultation($id)
     {
-        // Will load Teleconsultation with relations
-        $consultation = [];
+        $telemedicine = Teleconsultation::with(['patient', 'doctor', 'feedback', 'recordings'])->findOrFail($id);
 
-        return view('healthcare.telemedicine.consultation-show', compact('consultation'));
+        return view('healthcare.telemedicine.show', compact('telemedicine'));
     }
 
     /**
@@ -584,4 +609,3 @@ class TelemedicineController extends Controller
         return response()->json($feedback);
     }
 }
-

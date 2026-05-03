@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -26,31 +26,31 @@
                 ->where('status', 'completed')
                 ->sum('discrepancy_count');
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Opname</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e(number_format($totalOpnames)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Opname</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e(number_format($totalOpnames)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Berlangsung</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e($inProgressOpnames); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Berlangsung</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e($inProgressOpnames); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Selesai</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e($completedOpnames); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Selesai</p>
+            <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($completedOpnames); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Discrepancy</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"><?php echo e(number_format($totalDiscrepancies)); ?>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Discrepancy</p>
+            <p class="text-2xl font-bold text-red-600 mt-1"><?php echo e(number_format($totalDiscrepancies)); ?>
 
             </p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Opname ID</th>
                         <th class="px-4 py-3 text-left hidden md:table-cell">Lokasi</th>
@@ -62,59 +62,59 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $opnames ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $opname): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400"><?php echo e($opname->opname_number ?? '-'); ?></span>
+                                    class="font-mono text-sm font-bold text-blue-600"><?php echo e($opname->opname_number ?? '-'); ?></span>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
-                                <p class="text-gray-900 dark:text-white"><?php echo e($opname->location ?? '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-gray-900"><?php echo e($opname->location ?? '-'); ?></p>
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($opname->category ?? 'All Categories'); ?></p>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 <?php echo e($opname->conductedBy ? $opname->conductedBy->name : '-'); ?></td>
                             <td class="px-4 py-3 hidden sm:table-cell">
-                                <p class="text-gray-900 dark:text-white">
+                                <p class="text-gray-900">
                                     <?php echo e($opname->opname_date ? \Carbon\Carbon::parse($opname->opname_date)->format('d M Y') : '-'); ?>
 
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($opname->opname_date ? \Carbon\Carbon::parse($opname->opname_date)->format('H:i') : '-'); ?>
 
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span
-                                    class="font-medium text-gray-900 dark:text-white"><?php echo e($opname->items_checked ?? 0); ?></span>
+                                    class="font-medium text-gray-900"><?php echo e($opname->items_checked ?? 0); ?></span>
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
                                 <?php if($opname->discrepancy_count > 0): ?>
                                     <span
-                                        class="font-bold text-red-600 dark:text-red-400"><?php echo e($opname->discrepancy_count); ?></span>
+                                        class="font-bold text-red-600"><?php echo e($opname->discrepancy_count); ?></span>
                                 <?php else: ?>
-                                    <span class="text-green-600 dark:text-green-400">0</span>
+                                    <span class="text-green-600">0</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <?php if($opname->status === 'draft'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">Draft</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">Draft</span>
                                 <?php elseif($opname->status === 'in_progress'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">In
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">In
                                         Progress</span>
                                 <?php elseif($opname->status === 'completed'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Completed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Completed</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="<?php echo e(route('healthcare.inventory.stock-opname.show', $opname)); ?>"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -126,7 +126,7 @@
                                     </a>
                                     <?php if($opname->status === 'draft' || $opname->status === 'in_progress'): ?>
                                         <a href="<?php echo e(route('healthcare.inventory.stock-opname.count', $opname)); ?>"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                             title="Hitung Stok">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -141,7 +141,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada stock opname</p>
                             </td>
                         </tr>
@@ -151,7 +151,7 @@
         </div>
 
         <?php if(isset($opnames) && $opnames->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 <?php echo e($opnames->links()); ?>
 
             </div>

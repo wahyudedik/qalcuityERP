@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -18,13 +18,13 @@
             <!-- Header -->
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white"><?php echo e(__('Generate Vouchers')); ?></h1>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1"><?php echo e(__('Create new voucher codes for customers')); ?>
+                    <h1 class="text-3xl font-bold text-gray-900"><?php echo e(__('Generate Vouchers')); ?></h1>
+                    <p class="text-gray-600 mt-1"><?php echo e(__('Create new voucher codes for customers')); ?>
 
                     </p>
                 </div>
                 <a href="<?php echo e(route('telecom.vouchers.index')); ?>"
-                    class="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
                     <?php echo e(__('Back to List')); ?>
 
                 </a>
@@ -32,7 +32,7 @@
 
             <?php if($errors->any()): ?>
                 <div
-                    class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
+                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <li><?php echo e($error); ?></li>
@@ -42,17 +42,17 @@
             <?php endif; ?>
 
             <!-- Generate Form -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <form action="<?php echo e(route('telecom.vouchers.store')); ?>" method="POST">
                     <?php echo csrf_field(); ?>
 
                     <!-- Package Selection -->
                     <div class="mb-6">
-                        <label for="package_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="package_id" class="block text-sm font-medium text-gray-700 mb-2">
                             <?php echo e(__('Internet Package')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="package_id" id="package_id" required
-                            class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value=""><?php echo e(__('Select Package...')); ?></option>
                             <?php $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($package->id); ?>"
@@ -74,7 +74,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -83,20 +83,20 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Quantity -->
                     <div class="mb-6">
-                        <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
                             <?php echo e(__('Quantity')); ?> <span class="text-red-500">*</span>
                         </label>
                         <input type="number" name="quantity" id="quantity" min="1" max="1000"
                             value="<?php echo e(old('quantity', 10)); ?>" required
-                            class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500">
                             <?php echo e(__('Max 1000 vouchers per batch')); ?></p>
                         <?php $__errorArgs = ['quantity'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -107,24 +107,24 @@ unset($__errorArgs, $__bag); ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="code_length"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                class="block text-sm font-medium text-gray-700 mb-2">
                                 <?php echo e(__('Code Length')); ?>
 
                             </label>
                             <input type="number" name="code_length" id="code_length" min="6" max="16"
                                 value="<?php echo e(old('code_length', 8)); ?>"
-                                class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><?php echo e(__('6-16 characters')); ?></p>
+                                class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500"><?php echo e(__('6-16 characters')); ?></p>
                         </div>
 
                         <div>
                             <label for="code_pattern"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                class="block text-sm font-medium text-gray-700 mb-2">
                                 <?php echo e(__('Code Pattern')); ?>
 
                             </label>
                             <select name="code_pattern" id="code_pattern"
-                                class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="alphanumeric"
                                     <?php echo e(old('code_pattern') === 'alphanumeric' ? 'selected' : ''); ?>>
                                     <?php echo e(__('Alphanumeric (A-Z, 0-9)')); ?>
@@ -147,67 +147,67 @@ unset($__errorArgs, $__bag); ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="validity_hours"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                class="block text-sm font-medium text-gray-700 mb-2">
                                 <?php echo e(__('Validity Period (Hours)')); ?>
 
                             </label>
                             <input type="number" name="validity_hours" id="validity_hours" min="1"
                                 value="<?php echo e(old('validity_hours', 24)); ?>"
-                                class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><?php echo e(__('Default: 24 hours')); ?></p>
+                                class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500"><?php echo e(__('Default: 24 hours')); ?></p>
                         </div>
 
                         <div>
                             <label for="max_usage"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                class="block text-sm font-medium text-gray-700 mb-2">
                                 <?php echo e(__('Max Usage Count')); ?>
 
                             </label>
                             <input type="number" name="max_usage" id="max_usage" min="1"
                                 value="<?php echo e(old('max_usage', 1)); ?>"
-                                class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">
                                 <?php echo e(__('How many times can be used')); ?></p>
                         </div>
                     </div>
 
                     <!-- Sale Price -->
                     <div class="mb-6">
-                        <label for="sale_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="sale_price" class="block text-sm font-medium text-gray-700 mb-2">
                             <?php echo e(__('Sale Price (Optional)')); ?>
 
                         </label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2 text-gray-500 dark:text-gray-400">Rp</span>
+                            <span class="absolute left-3 top-2 text-gray-500">Rp</span>
                             <input type="number" name="sale_price" id="sale_price" min="0" step="1000"
                                 value="<?php echo e(old('sale_price')); ?>"
-                                class="w-full pl-12 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                class="w-full pl-12 border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <p class="mt-1 text-xs text-gray-500">
                             <?php echo e(__('Leave empty to use package price')); ?></p>
                     </div>
 
                     <!-- Batch Number -->
                     <div class="mb-6">
                         <label for="batch_number"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            class="block text-sm font-medium text-gray-700 mb-2">
                             <?php echo e(__('Batch Number (Optional)')); ?>
 
                         </label>
                         <input type="text" name="batch_number" id="batch_number"
                             value="<?php echo e(old('batch_number', 'BATCH-' . now()->format('Ymd'))); ?>"
-                            class="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            class="w-full border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <p class="mt-1 text-xs text-gray-500">
                             <?php echo e(__('For grouping vouchers together')); ?></p>
                     </div>
 
                     <!-- Preview -->
                     <div
-                        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                        <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2"><?php echo e(__('Preview:')); ?>
+                        class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <h3 class="text-sm font-semibold text-blue-900 mb-2"><?php echo e(__('Preview:')); ?>
 
                         </h3>
-                        <ul class="text-xs text-blue-800 dark:text-blue-400 space-y-1">
+                        <ul class="text-xs text-blue-800 space-y-1">
                             <li>• <?php echo e(__('Package')); ?>: <span id="preview_package">-</span></li>
                             <li>• <?php echo e(__('Quantity')); ?>: <span id="preview_quantity">10</span> <?php echo e(__('vouchers')); ?>
 
@@ -222,12 +222,12 @@ unset($__errorArgs, $__bag); ?>
                     <!-- Submit Buttons -->
                     <div class="flex gap-3">
                         <button type="submit"
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold">
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
                             <i class="fas fa-ticket-alt mr-2"></i> <?php echo e(__('Generate Vouchers')); ?>
 
                         </button>
                         <a href="<?php echo e(route('telecom.vouchers.index')); ?>"
-                            class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-semibold text-center">
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold text-center">
                             <?php echo e(__('Cancel')); ?>
 
                         </a>

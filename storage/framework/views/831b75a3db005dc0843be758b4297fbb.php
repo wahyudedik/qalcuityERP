@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -13,48 +13,48 @@
     
     <div class="flex items-center gap-3 mb-6">
         <form method="GET" class="flex items-center gap-2">
-            <label class="text-sm text-gray-500 dark:text-slate-400">Proyeksi:</label>
+            <label class="text-sm text-gray-500">Proyeksi:</label>
             <select name="months" onchange="this.form.submit()"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <?php $__currentLoopData = [3 => '3 Bulan', 6 => '6 Bulan', 12 => '12 Bulan']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($v); ?>" <?php if($months == $v): echo 'selected'; endif; ?>><?php echo e($l); ?></option>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
         </form>
-        <p class="text-xs text-gray-400 dark:text-slate-500">Data historis 6 bulan terakhir + proyeksi
+        <p class="text-xs text-gray-400">Data historis 6 bulan terakhir + proyeksi
             <?php echo e($months); ?> bulan ke depan</p>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Proyeksi Revenue</h2>
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Proyeksi Revenue</h2>
         <canvas id="revenueChart" height="100"></canvas>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Proyeksi Cash Flow</h2>
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Proyeksi Cash Flow</h2>
         <canvas id="cashFlowChart" height="100"></canvas>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-4">🏦 Piutang & Collection</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">🏦 Piutang & Collection</h3>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Total Piutang</p>
-                    <p class="text-lg font-bold text-gray-900 dark:text-white">Rp
+                    <p class="text-xs text-gray-500">Total Piutang</p>
+                    <p class="text-lg font-bold text-gray-900">Rp
                         <?php echo e(number_format($receivables['aging']->total ?? 0, 0, ',', '.')); ?></p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Collection Rate (3bln)</p>
+                    <p class="text-xs text-gray-500">Collection Rate (3bln)</p>
                     <p
                         class="text-lg font-bold <?php echo e(($receivables['collection_rate'] ?? 0) >= 80 ? 'text-green-500' : 'text-amber-500'); ?>">
                         <?php echo e($receivables['collection_rate']); ?>%</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Est. Tertagih</p>
+                    <p class="text-xs text-gray-500">Est. Tertagih</p>
                     <p class="text-lg font-bold text-blue-500">Rp
                         <?php echo e(number_format($receivables['estimated_collection'], 0, ',', '.')); ?></p>
                 </div>
@@ -63,11 +63,11 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📦 Demand Forecast (Top 10)</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">📦 Demand Forecast (Top 10)</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="text-xs text-gray-500 dark:text-slate-400">
+                    <thead class="text-xs text-gray-500">
                         <tr>
                             <th class="text-left py-2">Produk</th>
                             <th class="text-right py-2">Avg/bln</th>
@@ -76,15 +76,15 @@
                             <th class="text-center py-2">Tren</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         <?php $__currentLoopData = $demand; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tr>
-                                <td class="py-2 text-gray-900 dark:text-white"><?php echo e(Str::limit($d['product_name'], 20)); ?>
+                                <td class="py-2 text-gray-900"><?php echo e(Str::limit($d['product_name'], 20)); ?>
 
                                 </td>
-                                <td class="py-2 text-right text-gray-700 dark:text-slate-300">
+                                <td class="py-2 text-right text-gray-700">
                                     <?php echo e(number_format($d['monthly_avg'])); ?></td>
-                                <td class="py-2 text-right text-gray-700 dark:text-slate-300">
+                                <td class="py-2 text-right text-gray-700">
                                     <?php echo e(number_format($d['current_stock'])); ?></td>
                                 <td
                                     class="py-2 text-right font-medium <?php echo e(($d['months_of_stock'] ?? 0) < 1 ? 'text-red-500' : (($d['months_of_stock'] ?? 0) < 2 ? 'text-amber-500' : 'text-green-500')); ?>">

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -15,14 +15,14 @@
         
         <?php if(session('import_result')): ?>
         <?php $r = session('import_result'); ?>
-        <div class="rounded-2xl border p-5 <?php echo e(count($r['errors'] ?? []) > 0 ? 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-700' : 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700'); ?>">
-            <p class="font-semibold text-sm <?php echo e(count($r['errors'] ?? []) > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'); ?>">
+        <div class="rounded-2xl border p-5 <?php echo e(count($r['errors'] ?? []) > 0 ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'); ?>">
+            <p class="font-semibold text-sm <?php echo e(count($r['errors'] ?? []) > 0 ? 'text-amber-700' : 'text-green-700'); ?>">
                 Import selesai: <?php echo e($r['created']); ?> dibuat<?php echo e(($r['updated'] ?? 0) > 0 ? ", {$r['updated']} diperbarui" : ''); ?>, <?php echo e($r['skipped']); ?> dilewati.
             </p>
             <?php if(count($r['errors'] ?? []) > 0): ?>
             <ul class="mt-2 space-y-1 max-h-32 overflow-y-auto">
                 <?php $__currentLoopData = $r['errors']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $err): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <li class="text-xs text-amber-600 dark:text-amber-400">• <?php echo e($err); ?></li>
+                <li class="text-xs text-amber-600">• <?php echo e($err); ?></li>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
             <?php endif; ?>
@@ -30,17 +30,17 @@
         <?php endif; ?>
 
         <?php if(session('error')): ?>
-        <div class="rounded-2xl border p-4 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700">
-            <p class="text-sm text-red-700 dark:text-red-400"><?php echo e(session('error')); ?></p>
+        <div class="rounded-2xl border p-4 bg-red-50 border-red-200">
+            <p class="text-sm text-red-700"><?php echo e(session('error')); ?></p>
         </div>
         <?php endif; ?>
 
         
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-5 flex gap-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex gap-4">
             <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="text-sm text-blue-700 dark:text-blue-300">
+            <div class="text-sm text-blue-700">
                 <p class="font-semibold mb-1">Cara import:</p>
-                <ol class="list-decimal list-inside space-y-0.5 text-blue-600 dark:text-blue-400">
+                <ol class="list-decimal list-inside space-y-0.5 text-blue-600">
                     <li>Download template CSV/Excel sesuai jenis data</li>
                     <li>Isi data di spreadsheet, simpan sebagai CSV atau XLSX</li>
                     <li>Pilih mode: <span class="font-medium">Lewati</span> (skip duplikat) atau <span class="font-medium">Perbarui</span> (update data yang sudah ada)</li>
@@ -50,8 +50,8 @@
         </div>
 
         
-        <div class="bg-white dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Export Master Data (CSV)</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h2 class="text-sm font-semibold text-gray-700 mb-3">Export Master Data (CSV)</h2>
             <div class="flex flex-wrap gap-2">
                 <?php $__currentLoopData = [
                     ['route' => 'import.export.products',   'label' => 'Produk',    'icon' => '📦'],
@@ -62,7 +62,7 @@
                     ['route' => 'import.export.coa',        'label' => 'Akun (CoA)','icon' => '📊'],
                 ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $exp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <a href="<?php echo e(route($exp['route'])); ?>"
-                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
                     <span><?php echo e($exp['icon']); ?></span> <?php echo e($exp['label']); ?>
 
                     <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -131,28 +131,28 @@
         ];
 
         $colorMap = [
-            'blue'   => ['bg' => 'bg-blue-50 dark:bg-blue-900/20',     'icon' => 'text-blue-500',   'btn' => 'bg-blue-600 hover:bg-blue-700'],
-            'green'  => ['bg' => 'bg-green-50 dark:bg-green-900/20',    'icon' => 'text-green-500',  'btn' => 'bg-green-600 hover:bg-green-700'],
-            'amber'  => ['bg' => 'bg-amber-50 dark:bg-amber-900/20',    'icon' => 'text-amber-500',  'btn' => 'bg-amber-600 hover:bg-amber-700'],
-            'purple' => ['bg' => 'bg-purple-50 dark:bg-purple-900/20',  'icon' => 'text-purple-500', 'btn' => 'bg-purple-600 hover:bg-purple-700'],
-            'teal'   => ['bg' => 'bg-teal-50 dark:bg-teal-900/20',      'icon' => 'text-teal-500',   'btn' => 'bg-teal-600 hover:bg-teal-700'],
-            'rose'   => ['bg' => 'bg-rose-50 dark:bg-rose-900/20',      'icon' => 'text-rose-500',   'btn' => 'bg-rose-600 hover:bg-rose-700'],
+            'blue'   => ['bg' => 'bg-blue-50',     'icon' => 'text-blue-500',   'btn' => 'bg-blue-600 hover:bg-blue-700'],
+            'green'  => ['bg' => 'bg-green-50',    'icon' => 'text-green-500',  'btn' => 'bg-green-600 hover:bg-green-700'],
+            'amber'  => ['bg' => 'bg-amber-50',    'icon' => 'text-amber-500',  'btn' => 'bg-amber-600 hover:bg-amber-700'],
+            'purple' => ['bg' => 'bg-purple-50',  'icon' => 'text-purple-500', 'btn' => 'bg-purple-600 hover:bg-purple-700'],
+            'teal'   => ['bg' => 'bg-teal-50',      'icon' => 'text-teal-500',   'btn' => 'bg-teal-600 hover:bg-teal-700'],
+            'rose'   => ['bg' => 'bg-rose-50',      'icon' => 'text-rose-500',   'btn' => 'bg-rose-600 hover:bg-rose-700'],
         ];
         ?>
 
         <?php $__currentLoopData = $importTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php $c = $colorMap[$type['color']]; ?>
-        <div class="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
-            <div class="flex items-center gap-4 px-6 py-4 border-b border-gray-100 dark:border-white/10">
+        <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+            <div class="flex items-center gap-4 px-6 py-4 border-b border-gray-100">
                 <div class="w-10 h-10 rounded-xl <?php echo e($c['bg']); ?> flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 <?php echo e($c['icon']); ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="<?php echo e($type['icon']); ?>"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-gray-900 dark:text-white">Import <?php echo e($type['label']); ?></p>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 truncate">Kolom: <span class="font-mono"><?php echo e($type['cols']); ?></span> <span class="text-gray-300">(*wajib)</span></p>
+                    <p class="font-semibold text-gray-900">Import <?php echo e($type['label']); ?></p>
+                    <p class="text-xs text-gray-400 mt-0.5 truncate">Kolom: <span class="font-mono"><?php echo e($type['cols']); ?></span> <span class="text-gray-300">(*wajib)</span></p>
                 </div>
                 <a href="<?php echo e(route('import.template', $type['key'])); ?>"
-                   class="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white border border-gray-200 dark:border-white/10 px-3 py-1.5 rounded-lg transition">
+                   class="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Template
                 </a>
@@ -161,13 +161,13 @@
                 <?php echo csrf_field(); ?>
                 <div class="flex flex-col sm:flex-row gap-3 items-end">
                     <div class="flex-1 w-full">
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">File CSV atau Excel</label>
+                        <label class="block text-xs text-gray-500 mb-1.5">File CSV atau Excel</label>
                         <input type="file" name="file" accept="<?php echo e($type['accept']); ?>" required
-                            class="w-full text-sm text-gray-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 dark:file:bg-white/10 file:text-gray-700 dark:file:text-white hover:file:bg-gray-200 dark:hover:file:bg-white/20 file:cursor-pointer cursor-pointer">
+                            class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer cursor-pointer">
                     </div>
                     <div class="flex items-center gap-3 shrink-0">
-                        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-500 dark:text-slate-400">
-                            <select name="mode" class="text-xs rounded-lg border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-slate-300 py-2 px-2 focus:ring-blue-500">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-500">
+                            <select name="mode" class="text-xs rounded-lg border-gray-200 bg-gray-50 text-gray-700 py-2 px-2 focus:ring-blue-500">
                                 <option value="skip">Lewati duplikat</option>
                                 <option value="update">Perbarui duplikat</option>
                             </select>

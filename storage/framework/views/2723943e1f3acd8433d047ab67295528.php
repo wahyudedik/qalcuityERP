@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Upgrade Diperlukan')); ?>
 
         </h2>
@@ -18,7 +18,7 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-8 sm:p-12 text-center">
                     
                     <div class="flex justify-center mb-6">
@@ -30,21 +30,21 @@
                     </div>
 
                     
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">
                         Modul <?php echo e($moduleName ?? 'Ini'); ?> Memerlukan Upgrade
                     </h1>
 
                     
-                    <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-                        Modul <strong class="text-gray-900 dark:text-white"><?php echo e($moduleName ?? 'ini'); ?></strong> tidak termasuk dalam paket langganan Anda saat ini.
+                    <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                        Modul <strong class="text-gray-900"><?php echo e($moduleName ?? 'ini'); ?></strong> tidak termasuk dalam paket langganan Anda saat ini.
                         Upgrade ke paket yang lebih tinggi untuk mengakses fitur ini dan meningkatkan produktivitas bisnis Anda.
                     </p>
 
                     
                     <?php if(auth()->user()->tenant): ?>
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-8">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Paket Saat Ini:</span>
-                            <span class="text-sm font-semibold text-gray-900 dark:text-white uppercase">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg mb-8">
+                            <span class="text-sm text-gray-600">Paket Saat Ini:</span>
+                            <span class="text-sm font-semibold text-gray-900 uppercase">
                                 <?php echo e(auth()->user()->tenant->plan ?? 'Trial'); ?>
 
                             </span>
@@ -53,12 +53,12 @@
 
                     
                     <?php if(isset($moduleDescription)): ?>
-                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-8 text-left">
-                            <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 text-left">
+                            <h3 class="text-lg font-semibold text-blue-900 mb-2">
                                 Tentang Modul <?php echo e($moduleName); ?>
 
                             </h3>
-                            <p class="text-blue-800 dark:text-blue-200">
+                            <p class="text-blue-800">
                                 <?php echo e($moduleDescription); ?>
 
                             </p>
@@ -76,7 +76,7 @@
                         </a>
 
                         <a href="<?php echo e(route('dashboard')); ?>" 
-                           class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition-all duration-200">
+                           class="inline-flex items-center px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
@@ -85,10 +85,10 @@
                     </div>
 
                     
-                    <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                    <div class="mt-12 pt-8 border-t border-gray-200">
+                        <p class="text-sm text-gray-600">
                             Butuh bantuan memilih paket yang tepat?
-                            <a href="mailto:support@qalcuity.com" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                            <a href="mailto:support@qalcuity.com" class="text-blue-600 hover:underline font-medium">
                                 Hubungi Tim Kami
                             </a>
                         </p>
@@ -98,25 +98,25 @@
 
             
             <?php if(isset($availablePlans) && count($availablePlans) > 0): ?>
-                <div class="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-8">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+                <div class="mt-8 bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
                         Paket yang Menyertakan Modul Ini
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <?php $__currentLoopData = $availablePlans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 uppercase">
+                            <div class="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                                <h3 class="text-xl font-bold text-gray-900 mb-2 uppercase">
                                     <?php echo e($plan['name']); ?>
 
                                 </h3>
-                                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+                                <p class="text-3xl font-bold text-blue-600 mb-4">
                                     <?php echo e($plan['price']); ?>
 
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-normal">/bulan</span>
+                                    <span class="text-sm text-gray-600 font-normal">/bulan</span>
                                 </p>
                                 <ul class="space-y-2 mb-6">
                                     <?php $__currentLoopData = $plan['features']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $feature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <li class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <li class="flex items-start gap-2 text-sm text-gray-700">
                                             <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>

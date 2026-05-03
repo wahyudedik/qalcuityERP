@@ -1,11 +1,11 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Notifikasi — Qalcuity ERP</x-slot>
     <x-slot name="header">Notifikasi</x-slot>
     <x-slot name="pageHeader">
         <form method="POST" action="{{ route('notifications.read-all') }}">
             @csrf
             <button type="submit"
-                class="text-sm text-blue-400 hover:text-blue-300 font-medium px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                class="text-sm text-blue-400 hover:text-blue-300 font-medium px-3 py-2 rounded-xl hover:bg-gray-50 transition">
                 Tandai semua dibaca
             </button>
         </form>
@@ -46,7 +46,7 @@
     <div class="max-w-2xl space-y-4">
 
         {{-- Module Tab Bar --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-1.5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-1.5">
             <div class="flex flex-wrap gap-1">
                 @foreach ($tabs as $key => $tab)
                     @php
@@ -57,7 +57,7 @@
                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all
                                {{ $isActive
                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
-                                   : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                         <span>{{ $tab['icon'] }}</span>
                         <span>{{ $tab['label'] }}</span>
                         @if ($count > 0)
@@ -73,7 +73,7 @@
         </div>
 
         {{-- Notifications List --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             @forelse($notifications as $notif)
                 @php
                     $mod = $notif->module ?? 'system';
@@ -84,7 +84,7 @@
                     $badgeIcon = $tabs[$mod]['icon'] ?? '🔔';
                 @endphp
                 <div
-                    class="flex items-start gap-4 px-6 py-4 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition {{ $notif->isRead() ? 'opacity-50' : '' }}">
+                    class="flex items-start gap-4 px-6 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition {{ $notif->isRead() ? 'opacity-50' : '' }}">
                     <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center {{ $iconBg }}">
                         <svg class="w-4 h-4 {{ $iconTxt }}" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -95,7 +95,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2 flex-wrap">
                             <div class="flex items-center gap-2 flex-wrap min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $notif->title }}</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ $notif->title }}</p>
                                 @if ($activeModule === 'all')
                                     <span
                                         class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium border {{ $badgeCls }} shrink-0">
@@ -113,14 +113,14 @@
                                 </form>
                             @endif
                         </div>
-                        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $notif->body }}
+                        <p class="text-sm text-gray-500 mt-0.5 leading-relaxed">{{ $notif->body }}
                         </p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
+                        <p class="text-xs text-gray-400 mt-1.5">
                             {{ $notif->created_at->diffForHumans() }}</p>
                     </div>
                 </div>
             @empty
-                <div class="flex flex-col items-center py-16 text-gray-400 dark:text-slate-500">
+                <div class="flex flex-col items-center py-16 text-gray-400">
                     <svg class="w-12 h-12 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

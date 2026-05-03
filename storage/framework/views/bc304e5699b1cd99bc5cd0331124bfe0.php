@@ -1,6 +1,6 @@
-<div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 h-full">
+﻿<div class="bg-white rounded-2xl border border-gray-200 p-5 h-full">
     <div class="flex items-center justify-between mb-4">
-        <p class="text-sm font-semibold text-gray-900 dark:text-white">Penjualan 7 Hari Terakhir</p>
+        <p class="text-sm font-semibold text-gray-900">Penjualan 7 Hari Terakhir</p>
         <a href="<?php echo e(route('reports.index')); ?>" class="text-xs text-blue-400 hover:underline">Lihat laporan →</a>
     </div>
     <div style="height:200px;position:relative">

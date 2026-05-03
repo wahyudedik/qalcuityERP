@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -37,14 +37,14 @@
         <?php endif; ?>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h2 class="font-semibold text-white mb-4">Channel Marketplace</h2>
 
             <?php if($channels->isNotEmpty()): ?>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <?php $__currentLoopData = $channels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div x-data="{ editing: false }"
-                            class="border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] rounded-2xl p-4 space-y-3">
+                            class="border border-gray-200 bg-gray-50 rounded-2xl p-4 space-y-3">
 
                             
                             <div class="flex items-center gap-3">
@@ -56,16 +56,16 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="font-medium text-white text-sm"><?php echo e($ch->shop_name); ?></p>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400 capitalize"><?php echo e($ch->platform); ?>
+                                    <p class="text-xs text-gray-500 capitalize"><?php echo e($ch->platform); ?>
 
                                     </p>
                                     <?php if($ch->last_sync_at): ?>
-                                        <p class="text-xs text-gray-400 dark:text-slate-500">Sync:
+                                        <p class="text-xs text-gray-400">Sync:
                                             <?php echo e($ch->last_sync_at->diffForHumans()); ?></p>
                                     <?php endif; ?>
                                 </div>
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs <?php echo e($ch->is_active ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500 dark:text-slate-400'); ?>">
+                                    class="px-2 py-0.5 rounded-full text-xs <?php echo e($ch->is_active ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'); ?>">
                                     <?php echo e($ch->is_active ? 'Aktif' : 'Nonaktif'); ?>
 
                                 </span>
@@ -155,44 +155,44 @@
             <?php endif; ?>
 
             
-            <details class="border border-gray-200 dark:border-white/10 rounded-xl">
+            <details class="border border-gray-200 rounded-xl">
                 <summary
-                    class="px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl">
+                    class="px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl">
                     + Tambah Channel Marketplace
                 </summary>
                 <form method="POST" action="<?php echo e(route('ecommerce.channels.store')); ?>" class="px-4 pb-4 pt-2 space-y-3">
                     <?php echo csrf_field(); ?>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Platform</label>
+                            <label class="block text-xs text-gray-500 mb-1.5">Platform</label>
                             <select name="platform"
-                                class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                                 <option value="shopee">Shopee</option>
                                 <option value="tokopedia">Tokopedia</option>
                                 <option value="lazada">Lazada</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Nama Toko</label>
+                            <label class="block text-xs text-gray-500 mb-1.5">Nama Toko</label>
                             <input type="text" name="shop_name" required placeholder="Nama toko Anda"
-                                class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">API Key / Partner
+                            <label class="block text-xs text-gray-500 mb-1.5">API Key / Partner
                                 ID</label>
                             <input type="text" name="api_key" required
-                                class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">API Secret</label>
+                            <label class="block text-xs text-gray-500 mb-1.5">API Secret</label>
                             <input type="text" name="api_secret" required
-                                class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="is_active" value="1" checked
-                            class="w-4 h-4 rounded border-white/20 bg-gray-50 dark:bg-[#0f172a] text-blue-500">
-                        <span class="text-sm text-gray-700 dark:text-slate-300">Aktifkan channel</span>
+                            class="w-4 h-4 rounded border-white/20 bg-gray-50 text-blue-500">
+                        <span class="text-sm text-gray-700">Aktifkan channel</span>
                     </label>
                     <button type="submit"
                         class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">
@@ -204,13 +204,13 @@
 
         
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="font-semibold text-white">Order dari Marketplace</h2>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-6 py-3 text-left">Platform</th>
                             <th class="px-6 py-3 text-left">No. Order</th>
@@ -220,9 +220,9 @@
                             <th class="px-6 py-3 text-left hidden sm:table-cell">Tanggal</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         <?php $__empty_1 = true; $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-3">
                                     <span
                                         class="px-2 py-0.5 rounded-full text-xs font-medium
@@ -231,7 +231,7 @@
 
                                     </span>
                                 </td>
-                                <td class="px-6 py-3 font-mono text-xs text-gray-500 dark:text-slate-400">
+                                <td class="px-6 py-3 font-mono text-xs text-gray-500">
                                     <?php echo e($order->external_order_id); ?></td>
                                 <td class="px-6 py-3 text-white"><?php echo e($order->customer_name); ?></td>
                                 <td class="px-6 py-3 text-right font-medium text-white">Rp
@@ -240,19 +240,19 @@
                                     <span
                                         class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400"><?php echo e($order->status); ?></span>
                                 </td>
-                                <td class="px-6 py-3 text-gray-400 dark:text-slate-500 hidden sm:table-cell">
+                                <td class="px-6 py-3 text-gray-400 hidden sm:table-cell">
                                     <?php echo e($order->ordered_at?->format('d M Y')); ?></td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-gray-400 dark:text-slate-500">
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-400">
                                     Belum ada order. Tambahkan channel dan lakukan sync.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-            <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10"><?php echo e($orders->links()); ?></div>
+            <div class="px-6 py-4 border-t border-gray-200"><?php echo e($orders->links()); ?></div>
         </div>
     </div>
  <?php echo $__env->renderComponent(); ?>

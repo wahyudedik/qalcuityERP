@@ -9,7 +9,6 @@
     <script src='{{ rtrim($jitsiServerUrl, '/') }}/external_api.js'></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {

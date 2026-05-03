@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'variant' => 'primary', // primary, secondary, danger, success, warning, info, ghost
     'size' => 'md', // sm, md, lg
     'loading' => false,
@@ -21,16 +21,16 @@
     
     // Variant classes dengan state hover, active, disabled
     $variantClasses = [
-        'primary' => 'bg-blue-600 text-white border-transparent hover:bg-blue-700 active:bg-blue-800 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700',
-        'secondary' => 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 active:bg-gray-100 dark:active:bg-slate-500 focus:ring-gray-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed',
-        'danger' => 'bg-red-600 text-white border-transparent hover:bg-red-700 active:bg-red-800 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed dark:bg-red-600 dark:hover:bg-red-700',
-        'success' => 'bg-green-600 text-white border-transparent hover:bg-green-700 active:bg-green-800 focus:ring-green-500 disabled:bg-green-400 disabled:cursor-not-allowed dark:bg-green-600 dark:hover:bg-green-700',
-        'warning' => 'bg-amber-500 text-white border-transparent hover:bg-amber-600 active:bg-amber-700 focus:ring-amber-500 disabled:bg-amber-300 disabled:cursor-not-allowed dark:bg-amber-500 dark:hover:bg-amber-600',
-        'info' => 'bg-cyan-600 text-white border-transparent hover:bg-cyan-700 active:bg-cyan-800 focus:ring-cyan-500 disabled:bg-cyan-400 disabled:cursor-not-allowed dark:bg-cyan-600 dark:hover:bg-cyan-700',
-        'ghost' => 'bg-transparent text-gray-700 dark:text-gray-300 border-transparent hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 focus:ring-gray-500 disabled:text-gray-400 disabled:cursor-not-allowed',
+        'primary' => 'bg-blue-600 text-white border-transparent hover:bg-blue-700 active:bg-blue-800 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed',
+        'secondary' => 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus:ring-gray-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed',
+        'danger' => 'bg-red-600 text-white border-transparent hover:bg-red-700 active:bg-red-800 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-not-allowed',
+        'success' => 'bg-green-600 text-white border-transparent hover:bg-green-700 active:bg-green-800 focus:ring-green-500 disabled:bg-green-400 disabled:cursor-not-allowed',
+        'warning' => 'bg-amber-500 text-white border-transparent hover:bg-amber-600 active:bg-amber-700 focus:ring-amber-500 disabled:bg-amber-300 disabled:cursor-not-allowed',
+        'info' => 'bg-cyan-600 text-white border-transparent hover:bg-cyan-700 active:bg-cyan-800 focus:ring-cyan-500 disabled:bg-cyan-400 disabled:cursor-not-allowed',
+        'ghost' => 'bg-transparent text-gray-700 border-transparent hover:bg-gray-100 active:bg-gray-200 focus:ring-gray-500 disabled:text-gray-400 disabled:cursor-not-allowed',
     ];
     
-    $baseClasses = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900';
+    $baseClasses = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
     
     $classes = $baseClasses . ' ' . ($sizeClasses[$size] ?? $sizeClasses['md']) . ' ' . ($variantClasses[$variant] ?? $variantClasses['primary']);
 @endphp

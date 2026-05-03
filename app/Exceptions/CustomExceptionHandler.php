@@ -5,6 +5,9 @@ namespace App\Exceptions;
 use App\Models\ErrorLog;
 use App\Services\ErrorAlertingService;
 use App\Services\ErrorContextEnricher;
+use App\Exceptions\AllModelsUnavailableException;
+use App\Exceptions\AllProvidersUnavailableException;
+use App\Exceptions\InsufficientPlanException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -45,6 +48,18 @@ class CustomExceptionHandler extends ExceptionHandler
     public function render($request, Throwable $e)
     {
         // Handle specific exception types with custom responses
+        if ($e instanceof AllModelsUnavailableException) {
+            return $this->handleAllModelsUnavailable($request, $e);
+        }
+
+        if ($e instanceof AllProvidersUnavailableException) {
+            return $this->handleAllProvidersUnavailable($request, $e);
+        }
+
+        if ($e instanceof InsufficientPlanException) {
+            return $this->handleInsufficientPlan($request, $e);
+        }
+
         if ($e instanceof ModelNotFoundException) {
             return $this->handleModelNotFound($request, $e);
         }
@@ -165,6 +180,61 @@ class CustomExceptionHandler extends ExceptionHandler
 
         // Default to error level
         return 'error';
+    }
+
+    /**
+     * Handle AllModelsUnavailableException — all Gemini fallback models are unavailable.
+     * Requirements: 9.1
+     */
+    protected function handleAllModelsUnavailable(Request $request, AllModelsUnavailableException $e)
+    {
+        Log::warning('All AI models unavailable', [
+            'url' => $request->fullUrl(),
+            'tenant_id' => auth()->check() ? auth()->user()->tenant_id : null,
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Layanan AI sedang tidak tersedia. Silakan coba beberapa saat lagi.',
+        ], 503);
+    }
+
+    /**
+     * Handle AllProvidersUnavailableException — all AI providers in the fallback chain are unavailable.
+     * Requirements: 9.1, 9.2
+     */
+    protected function handleAllProvidersUnavailable(Request $request, AllProvidersUnavailableException $e)
+    {
+        Log::warning('All AI providers unavailable', [
+            'url' => $request->fullUrl(),
+            'tenant_id' => auth()->check() ? auth()->user()->tenant_id : null,
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Layanan AI sedang tidak tersedia. Silakan coba beberapa saat lagi.',
+        ], 503);
+    }
+
+    /**
+     * Handle InsufficientPlanException — tenant plan does not meet the minimum required plan.
+     * Requirements: 3.4, 3.5, 11.1, 11.2
+     */
+    protected function handleInsufficientPlan(Request $request, InsufficientPlanException $e)
+    {
+        $message = "Fitur ini memerlukan plan {$e->requiredPlan}. Upgrade plan Anda untuk mengakses {$e->useCase}.";
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message'       => $message,
+                'required_plan' => $e->requiredPlan,
+                'current_plan'  => $e->currentPlan,
+                'use_case'      => $e->useCase,
+            ], 403);
+        }
+
+        return redirect()->route('subscription.index')
+            ->with('error', $message);
     }
 
     /**

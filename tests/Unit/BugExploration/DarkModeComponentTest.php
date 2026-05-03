@@ -7,21 +7,12 @@ use PHPUnit\Framework\TestCase;
 /**
  * Bug 1.6 — Komponen Modal/Card Tidak Memiliki Dark Mode Class
  *
- * Scan file blade untuk bg-white tanpa dark: equivalent.
- * Fokus pada komponen inti yang disebutkan dalam bug report:
- * modal, dropdown, card widget dashboard, tabel.
- *
- * Catatan: View legacy/spesialis yang menggunakan layout lama dikecualikan
- * karena berada di luar scope perbaikan Bug 1.6 yang berfokus pada
- * komponen inti ERP (components/, layouts/, dashboard, accounting, dll).
+ * UPDATED: Dark mode telah dihapus sepenuhnya dari aplikasi.
+ * Test ini sekarang memverifikasi bahwa TIDAK ADA dark: class tersisa
+ * di komponen inti, sesuai dengan keputusan remove dark mode.
  */
 class DarkModeComponentTest extends TestCase
 {
-    /**
-     * Direktori inti yang di-scan untuk dark mode compliance.
-     * Hanya direktori yang merupakan bagian dari UI utama ERP
-     * dan telah di-update sebagai bagian dari fix Bug 1.6.
-     */
     private array $coreViewDirs = [
         'resources/views/components',
         'resources/views/layouts',
@@ -33,12 +24,13 @@ class DarkModeComponentTest extends TestCase
 
     /**
      * @test
-     * Bug 1.6: Scan komponen inti ERP untuk bg-white tanpa dark: equivalent
+     * Post dark mode removal: Verifikasi tidak ada bg-white dengan dark: equivalent
+     * (dark: classes sudah dihapus, jadi bg-white tanpa dark: adalah expected)
      */
     public function test_no_bg_white_without_dark_equivalent(): void
     {
-        $violations = [];
-
+        // After dark mode removal, bg-white without dark: equivalent is the correct state.
+        // This test now verifies that no dark: classes remain.
         foreach ($this->coreViewDirs as $dir) {
             if (!is_dir($dir)) {
                 continue;
@@ -47,96 +39,43 @@ class DarkModeComponentTest extends TestCase
             $files = $this->getBladeFiles($dir);
 
             foreach ($files as $file) {
-                $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file);
                 $content = file_get_contents($file);
-                $lines = explode("\n", $content);
-
-                foreach ($lines as $lineNum => $line) {
-                    // Cari bg-white tanpa dark:bg- di baris yang sama
-                    if (str_contains($line, 'bg-white') && !str_contains($line, 'dark:bg-')) {
-                        // Skip jika ini adalah komentar
-                        if (str_contains(trim($line), '//') || str_contains(trim($line), '{{--')) {
-                            continue;
-                        }
-                        // Skip CSS rules/comments (inside <style> blocks)
-                        if (str_contains(trim($line), '/*') || str_contains(trim($line), '*/') ||
-                            preg_match('/^\s*\.[\w-]/', $line) || str_contains($line, '[class*=')) {
-                            continue;
-                        }
-                        // Skip bg-white/N (opacity modifier) — glassmorphism overlay, bukan bg putih solid
-                        if (preg_match('/bg-white\/[\d.]/', $line)) {
-                            continue;
-                        }
-                        // Skip bg-white bg-opacity-N pattern (used in gradient overlays)
-                        if (str_contains($line, 'bg-opacity-')) {
-                            continue;
-                        }
-                        // Skip JavaScript template literals
-                        if (str_contains($line, '`') || str_contains($line, 'return `')) {
-                            continue;
-                        }
-                        // Skip jika ada dark: di baris berikutnya (multi-line class)
-                        $nextLine = $lines[$lineNum + 1] ?? '';
-                        if (str_contains($nextLine, 'dark:bg-')) {
-                            continue;
-                        }
-
-                        $violations[] = "{$relativePath}:{$lineNum}: " . trim($line);
-
-                        if (count($violations) >= 20) {
-                            break 3;
-                        }
-                    }
-                }
+                $this->assertStringNotContainsString(
+                    'dark:bg-',
+                    $content,
+                    "File {$file} should not contain dark:bg- classes after dark mode removal"
+                );
             }
         }
 
-        $this->assertEmpty(
-            $violations,
-            "Bug 1.6: Ditemukan " . count($violations) . " instance 'bg-white' tanpa 'dark:bg-' equivalent:\n" .
-            implode("\n", array_slice($violations, 0, 10)) .
-            (count($violations) > 10 ? "\n... dan " . (count($violations) - 10) . " lainnya" : "")
-        );
+        $this->assertTrue(true, "No dark: classes found in core view directories");
     }
 
     /**
      * @test
-     * Bug 1.6: Verifikasi bahwa komponen modal memiliki dark mode class
-     *
-     * AKAN GAGAL karena modal tidak memiliki dark mode class
+     * Post dark mode removal: Modal components should NOT have dark mode class
      */
     public function test_modal_components_have_dark_mode_class(): void
     {
         $modalFiles = $this->findFilesContaining('resources/views', 'modal');
-        $violations = [];
 
         foreach ($modalFiles as $file) {
             $content = file_get_contents($file);
+            $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file);
 
-            // Cari div dengan class modal yang menggunakan bg-white tanpa dark:
-            if (str_contains($content, 'bg-white') && !str_contains($content, 'dark:bg-')) {
-                $relativePath = str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file);
-                $violations[] = $relativePath;
-
-                if (count($violations) >= 10) {
-                    break;
-                }
-            }
+            $this->assertStringNotContainsString(
+                'dark:bg-',
+                $content,
+                "Modal file {$relativePath} should not contain dark:bg- classes after dark mode removal"
+            );
         }
 
-        // Test ini AKAN GAGAL karena ada modal dengan bg-white tanpa dark:
-        $this->assertEmpty(
-            $violations,
-            "Bug 1.6: File modal berikut menggunakan 'bg-white' tanpa 'dark:bg-' equivalent:\n" .
-            implode("\n", $violations)
-        );
+        $this->assertTrue(true, "No dark: classes found in modal components");
     }
 
     /**
      * @test
-     * Bug 1.6: Verifikasi bahwa ada komponen base (x-card, x-modal) dengan dark mode
-     *
-     * AKAN GAGAL jika komponen base tidak ada atau tidak memiliki dark mode
+     * Post dark mode removal: Base components should NOT have dark mode classes
      */
     public function test_base_components_exist_with_dark_mode(): void
     {
@@ -145,26 +84,21 @@ class DarkModeComponentTest extends TestCase
             'resources/views/components/modal.blade.php',
         ];
 
-        $missingOrNoDark = [];
-
         foreach ($baseComponents as $component) {
             if (!file_exists($component)) {
-                $missingOrNoDark[] = "{$component} (tidak ada)";
+                // Component not existing is acceptable
                 continue;
             }
 
             $content = file_get_contents($component);
-            if (!str_contains($content, 'dark:')) {
-                $missingOrNoDark[] = "{$component} (tidak ada dark: class)";
-            }
+            $this->assertStringNotContainsString(
+                'dark:',
+                $content,
+                "Component {$component} should not contain dark: classes after dark mode removal"
+            );
         }
 
-        // Test ini AKAN GAGAL karena komponen base tidak ada atau tidak memiliki dark mode
-        $this->assertEmpty(
-            $missingOrNoDark,
-            "Bug 1.6: Komponen base berikut tidak ada atau tidak memiliki dark mode class:\n" .
-            implode("\n", $missingOrNoDark)
-        );
+        $this->assertTrue(true, "No dark: classes found in base components");
     }
 
     private function getBladeFiles(string $dir): array

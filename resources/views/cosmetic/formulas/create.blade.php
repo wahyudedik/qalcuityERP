@@ -1,32 +1,27 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    {{ __('Create New Formula') }}
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Add a new cosmetic formula with ingredients</p>
-            </div>
-            <a href="{{ route('cosmetic.formulas.index') }}"
+﻿<x-app-layout>
+    <x-slot name="header">{{ __('Create New Formula') }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('cosmetic.formulas.index') }}"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Formulas
             </a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-6">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <!-- Success/Error Messages -->
             @if (session('success'))
                 <div
-                    class="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg">
+                    class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
                     <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
                 <div
-                    class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg">
+                    class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                     <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
                 </div>
             @endif
@@ -69,27 +64,27 @@
 
                 <div class="space-y-6">
                     <!-- Basic Information -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">
                             <i class="fas fa-info-circle mr-2 text-blue-600"></i>Basic Information
                         </h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formula
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Formula
                                     Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="formula_name" value="{{ old('formula_name') }}" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('formula_name') border-red-500 @enderror">
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('formula_name') border-red-500 @enderror">
                                 @error('formula_name')
-                                    <p class="mt-1 text-sm text-red-600 dark:text-red-400"><i
+                                    <p class="mt-1 text-sm text-red-600"><i
                                             class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product
                                     Type <span class="text-red-500">*</span></label>
                                 <select name="product_type" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('product_type') border-red-500 @enderror">
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('product_type') border-red-500 @enderror">
                                     <option value="">Select Type</option>
                                     <option value="cream" {{ old('product_type') == 'cream' ? 'selected' : '' }}>Cream
                                     </option>
@@ -180,9 +175,9 @@
                     </div>
 
                     <!-- Ingredients -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h2 class="text-lg font-semibold text-gray-900">
                                 <i class="fas fa-flask mr-2 text-purple-600"></i>Ingredients
                             </h2>
                             <button type="button" @click="addIngredient()"
@@ -194,12 +189,12 @@
                         <div class="space-y-4">
                             <template x-for="(ingredient, index) in ingredients" :key="index">
                                 <div
-                                    class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                                    class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                     <div class="flex justify-between items-center mb-3">
-                                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Ingredient
+                                        <h3 class="text-sm font-medium text-gray-700">Ingredient
                                             #<span x-text="index + 1"></span></h3>
                                         <button type="button" @click="removeIngredient(index)"
-                                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 text-sm"
+                                            class="text-red-600 hover:text-red-900 text-sm"
                                             x-show="ingredients.length > 1">
                                             <i class="fas fa-trash mr-1"></i>Remove
                                         </button>
@@ -208,47 +203,47 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">INCI
+                                                class="block text-xs font-medium text-gray-700 mb-1">INCI
                                                 Name <span class="text-red-500">*</span></label>
                                             <input type="text" :name="`ingredients[${index}][inci_name]`"
                                                 x-model="ingredient.inci_name" required
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Common
+                                                class="block text-xs font-medium text-gray-700 mb-1">Common
                                                 Name</label>
                                             <input type="text" :name="`ingredients[${index}][common_name]`"
                                                 x-model="ingredient.common_name"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">CAS
+                                                class="block text-xs font-medium text-gray-700 mb-1">CAS
                                                 Number</label>
                                             <input type="text" :name="`ingredients[${index}][cas_number]`"
                                                 x-model="ingredient.cas_number"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity
+                                                class="block text-xs font-medium text-gray-700 mb-1">Quantity
                                                 <span class="text-red-500">*</span></label>
                                             <input type="number" :name="`ingredients[${index}][quantity]`"
                                                 x-model="ingredient.quantity" step="0.001" min="0" required
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Unit
+                                                class="block text-xs font-medium text-gray-700 mb-1">Unit
                                                 <span class="text-red-500">*</span></label>
                                             <select :name="`ingredients[${index}][unit]`" x-model="ingredient.unit"
                                                 required
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                 <option value="g">Grams (g)</option>
                                                 <option value="ml">Milliliters (ml)</option>
                                                 <option value="%">Percentage (%)</option>
@@ -258,19 +253,19 @@
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Percentage</label>
+                                                class="block text-xs font-medium text-gray-700 mb-1">Percentage</label>
                                             <input type="number" :name="`ingredients[${index}][percentage]`"
                                                 x-model="ingredient.percentage" step="0.01" min="0"
                                                 max="100"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Function</label>
+                                                class="block text-xs font-medium text-gray-700 mb-1">Function</label>
                                             <select :name="`ingredients[${index}][function]`"
                                                 x-model="ingredient.function"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                 <option value="">Select Function</option>
                                                 <option value="emollient">Emollient</option>
                                                 <option value="preservative">Preservative</option>
@@ -289,9 +284,9 @@
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Phase</label>
+                                                class="block text-xs font-medium text-gray-700 mb-1">Phase</label>
                                             <select :name="`ingredients[${index}][phase]`" x-model="ingredient.phase"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                 <option value="">Select Phase</option>
                                                 <option value="oil_phase">Oil Phase</option>
                                                 <option value="water_phase">Water Phase</option>
@@ -301,11 +296,11 @@
 
                                         <div>
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mixing
+                                                class="block text-xs font-medium text-gray-700 mb-1">Mixing
                                                 Order</label>
                                             <input type="number" :name="`ingredients[${index}][sort_order]`"
                                                 x-model="ingredient.sort_order" min="1"
-                                                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                         </div>
                                     </div>
                                 </div>
@@ -320,7 +315,7 @@
                             <i class="fas fa-save mr-2"></i>Create Formula
                         </button>
                         <a href="{{ route('cosmetic.formulas.index') }}"
-                            class="px-6 py-3 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg text-center transition">
+                            class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium rounded-lg text-center transition">
                             <i class="fas fa-times mr-2"></i>Cancel
                         </a>
                     </div>

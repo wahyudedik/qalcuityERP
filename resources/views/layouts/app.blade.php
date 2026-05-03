@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full dark" id="html-root">
+<html lang="id" class="h-full" id="html-root">
 
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,39 +22,13 @@
         <meta name="vapid-public-key" content="{{ config('services.vapid.public_key') }}">
     @endif
     <script>
-        // TASK 5.1: FOUC prevention — runs BEFORE first render, handles all 3 theme modes (light/dark/system)
-        // MUST be placed before the vite directive to prevent flash of unstyled content
         (function() {
             try {
-                var theme = localStorage.getItem('theme') || 'system';
-                var htmlRoot = document.documentElement;
-                
-                // Determine if should be dark
-                var shouldBeDark = false;
-                if (theme === 'dark') {
-                    shouldBeDark = true;
-                } else if (theme === 'system') {
-                    // Check system preference
-                    shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (!localStorage.getItem('_theme_cleaned')) {
+                    localStorage.removeItem('theme');
+                    localStorage.setItem('_theme_cleaned', '1');
                 }
-                // theme === 'light' → shouldBeDark remains false
-                
-                // Apply dark class immediately
-                if (shouldBeDark) {
-                    htmlRoot.classList.add('dark');
-                } else {
-                    htmlRoot.classList.remove('dark');
-                }
-                
-                // Update meta theme-color for mobile browsers
-                var metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                if (metaThemeColor) {
-                    metaThemeColor.content = shouldBeDark ? '#0f172a' : '#ffffff';
-                }
-            } catch (e) {
-                // Fallback to dark mode if error occurs
-                document.documentElement.classList.add('dark');
-            }
+            } catch (e) {}
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js', 'resources/js/conflict-resolution.js', 'resources/js/topbar-offline-indicator.js'])
@@ -79,7 +53,7 @@
             transition: transform 0.26s cubic-bezier(.16, 1, .3, 1), opacity 0.2s;
             opacity: 0;
             pointer-events: none;
-            background: rgba(10, 18, 38, 0.99);
+            background: #0a1226;
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
         }
@@ -241,6 +215,14 @@
             line-height: 1.4;
         }
 
+        .panel-icon {
+            font-size: 15px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
         .panel-link:hover {
             background: rgba(255, 255, 255, 0.06);
             color: #cbd5e1;
@@ -385,43 +367,43 @@
             }
         }
 
-        /* Light mode overrides */
-        html:not(.dark) #sidebar-rail {
+        /* Sidebar rail visual override (dark rail is by design, not dark mode) */
+        #sidebar-rail {
             background: linear-gradient(180deg, #1e293b 0%, #1a2744 100%);
         }
 
-        html:not(.dark) #sidebar-panel {
-            background: rgba(248, 250, 252, 0.98);
+        #sidebar-panel {
+            background: #f8fafc;
             border-color: #e2e8f0;
             box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
         }
 
-        html:not(.dark) .panel-link {
+        .panel-link {
             color: #64748b;
         }
 
-        html:not(.dark) .panel-link:hover {
+        .panel-link:hover {
             background: #f1f5f9;
             color: #1e293b;
         }
 
-        html:not(.dark) .panel-link.active {
+        .panel-link.active {
             background: rgba(var(--group-rgb, 59, 130, 246), 0.08);
             color: var(--group-color, #2563eb);
         }
 
-        html:not(.dark) .panel-section {
+        .panel-section {
             color: #64748b;
             border-top-color: #e2e8f0;
         }
 
-        html:not(.dark) #panel-search {
+        #panel-search {
             background: #f1f5f9;
             border-color: #e2e8f0;
             color: #1e293b;
         }
 
-        html:not(.dark) #panel-search::placeholder {
+        #panel-search::placeholder {
             color: #94a3b8;
         }
 
@@ -437,8 +419,7 @@
     </style>
 </head>
 
-<body
-    class="h-full font-[Inter,sans-serif] antialiased bg-[#f8f8f8] dark:bg-[#0f172a] text-gray-900 dark:text-gray-100">
+<body class="h-full font-[Inter,sans-serif] antialiased bg-[#f8f8f8] text-gray-900">
     <div class="flex h-full">
 
         {{-- ── ICON RAIL (always visible on desktop, slide-in on mobile) ── --}}
@@ -460,7 +441,8 @@
                 // BUG-1.1 & BUG-1.4 FIX: resolveActiveGroup() — array-priority approach.
                 // Each route pattern belongs to exactly ONE group. The first matching group wins.
                 // This prevents double-active when a route could match multiple patterns.
-                function resolveActiveGroup(): string {
+                function resolveActiveGroup(): string
+                {
                     $groupMap = [
                         // 1. Super Admin (checked first — most specific)
                         'superadmin' => ['super-admin*'],
@@ -500,14 +482,7 @@
                             'loyalty*',
                         ],
                         // 5. Inventori
-                        'inventory' => [
-                            'inventory*',
-                            'wms*',
-                            'purchasing*',
-                            'landed-cost*',
-                            'consignment*',
-                            'iot*',
-                        ],
+                        'inventory' => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
                         // 6. SDM & Operasional
                         'operations' => [
                             'hrm*',
@@ -717,11 +692,11 @@
             {{-- Topbar --}}
             <header
                 class="sticky top-0 z-20 h-14 border-b flex items-center px-4 sm:px-6 gap-4
-                       bg-[#f0f0f0] dark:bg-[#0f172a] border-gray-200 dark:border-white/10">
+                       bg-[#f0f0f0] border-gray-200">
 
                 {{-- Mobile menu --}}
                 <button onclick="toggleMobileSidebar()"
-                    class="lg:hidden p-2 rounded-lg hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400">
+                    class="lg:hidden p-2 rounded-lg hover:bg-[#e4e4e4] text-gray-500">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 12h16M4 18h16" />
@@ -735,15 +710,14 @@
                     <span class="text-xs text-slate-600 hidden sm:block whitespace-nowrap">/</span>
                     @if (isset($header))
                         @if (is_string($header) && !str_contains($header, '<'))
-                            <h1
-                                class="text-base font-semibold text-gray-900 dark:text-white truncate whitespace-nowrap">
+                            <h1 class="text-base font-semibold text-gray-900 truncate whitespace-nowrap">
                                 {{ $header }}</h1>
                         @else
                             <div class="flex items-center gap-2 whitespace-nowrap">{!! $header !!}</div>
                         @endif
                     @elseif(View::hasSection('header'))
                         <div class="flex items-center gap-2 whitespace-nowrap">
-                            <h1 class="text-base font-semibold text-gray-900 dark:text-white truncate">
+                            <h1 class="text-base font-semibold text-gray-900 truncate">
                                 @yield('header')
                             </h1>
                         </div>
@@ -756,7 +730,7 @@
 
                     {{-- Legacy offline indicator (hidden, kept for backward compat) --}}
                     <div id="offline-indicator"
-                        class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium"
+                        class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs font-medium"
                         data-pending="0">
                         <span class="relative flex h-2 w-2">
                             <span
@@ -768,21 +742,6 @@
                             class="hidden ml-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold">0</span>
                     </div>
 
-                    {{-- Theme toggle --}}
-                    <button id="theme-toggle" title="Ganti tema"
-                        class="p-2 rounded-xl transition hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-slate-400">
-                        <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                    </button>
-
                     {{-- Notification bell --}}
                     @php
                         // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
@@ -792,26 +751,25 @@
                     @endphp
                     <div class="relative" id="notif-wrapper">
                         <button onclick="toggleNotif()"
-                            class="relative p-2 rounded-xl hover:bg-[#e4e4e4] dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition">
+                            class="relative p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                             @if ($unreadCount > 0)
                                 <span
-                                    class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#0f172a]"></span>
+                                    class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
                             @endif
                         </button>
                         <div id="notif-dropdown"
                             class="hidden absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50
-                               bg-white dark:bg-[#1e293b] border-gray-200 dark:border-white/10">
-                            <div
-                                class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10">
-                                <span class="font-semibold text-sm text-gray-900 dark:text-white">Notifikasi</span>
+                               bg-white border-gray-200">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                                <span class="font-semibold text-sm text-gray-900">Notifikasi</span>
                                 <a href="{{ route('notifications.index') }}"
-                                    class="text-xs text-blue-500 dark:text-blue-400 hover:underline">Lihat semua</a>
+                                    class="text-xs text-blue-500 hover:underline">Lihat semua</a>
                             </div>
-                            <div class="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
+                            <div class="max-h-72 overflow-y-auto divide-y divide-gray-100">
                                 @php
                                     $topbarNotifs = $notifTenantId
                                         ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)
@@ -827,8 +785,8 @@
                                 @endphp
                                 @forelse($topbarNotifs as $notif)
                                     <div
-                                        class="px-4 py-3 hover:bg-[#f0f0f0] dark:hover:bg-white/5 {{ $notif->isRead() ? 'opacity-60' : '' }}">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                        class="px-4 py-3 hover:bg-[#f0f0f0] {{ $notif->isRead() ? 'opacity-60' : '' }}">
+                                        <p class="text-sm font-medium text-gray-900">
                                             {{ $notif->title }}</p>
                                         <p class="text-xs text-slate-400 mt-0.5">{{ Str::limit($notif->body, 80) }}
                                         </p>
@@ -841,10 +799,9 @@
                                 @endforelse
                             </div>
                             {{-- Push notification opt-in --}}
-                            <div
-                                class="px-4 py-2.5 border-t border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+                            <div class="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
                                 <button id="btn-enable-push" onclick="enablePushNotifications()"
-                                    class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition">
+                                    class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition">
                                     🔔 Aktifkan Notifikasi Push
                                 </button>
                             </div>
@@ -854,23 +811,24 @@
             </header>
 
             {{-- Page Content --}}
-            <main class="flex-1 p-4 sm:p-6 bg-[#f8f8f8] dark:bg-[#0f172a]">
+            <main class="flex-1 p-4 sm:p-6 bg-[#f8f8f8]">
                 {{-- BUG-1.11 FIX: Page header section — action buttons live here, not in topbar --}}
                 @isset($pageHeader)
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-                    <div class="min-w-0">
-                        @isset($pageTitle)
-                            <h1 class="text-xl font-semibold text-gray-900 dark:text-white truncate">{{ $pageTitle }}</h1>
-                        @endisset
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                        <div class="min-w-0">
+                            @isset($pageTitle)
+                                <h1 class="text-xl font-semibold text-gray-900 truncate">{{ $pageTitle }}
+                                </h1>
+                            @endisset
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            {{ $pageHeader }}
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 shrink-0">
-                        {{ $pageHeader }}
-                    </div>
-                </div>
                 @endisset
                 @if (session('success'))
                     <div
-                        class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm px-4 py-3 rounded-xl">
+                        class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-600 text-sm px-4 py-3 rounded-xl">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 13l4 4L19 7" />
@@ -880,7 +838,7 @@
                 @endif
                 @if (session('warning'))
                     <div
-                        class="mb-4 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-xl">
+                        class="mb-4 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm px-4 py-3 rounded-xl">
                         <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -891,7 +849,7 @@
                 @endif
                 @if (session('error'))
                     <div
-                        class="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl">
+                        class="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-600 text-sm px-4 py-3 rounded-xl">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -1334,8 +1292,7 @@
                                     href: '{{ route('wms.putaway-rules') }}',
                                     active: {{ request()->routeIs('wms.putaway-rules*') ? 'true' : 'false' }}
                                 },
-                            @endif
-                            {
+                            @endif {
                                 section: 'IoT Devices'
                             }, {
                                 label: 'ESP32 / Arduino / RPi',
@@ -1641,107 +1598,110 @@
                                     active: {{ request()->routeIs('timesheets*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if (($navTenant?->isModuleEnabled('hrm') ?? true) || ($navTenant?->isModuleEnabled('payroll') ?? true) || ($navTenant?->isModuleEnabled('reimbursement') ?? true))
-                            {
-                                section: 'SDM & Karyawan'
-                            },
-                            @endif
-                        @if ($user?->isAdmin() || $user?->isManager())
-                            @if (($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm'))
+                            @if (
+                                ($navTenant?->isModuleEnabled('hrm') ?? true) ||
+                                    ($navTenant?->isModuleEnabled('payroll') ?? true) ||
+                                    ($navTenant?->isModuleEnabled('reimbursement') ?? true))
                                 {
-                                    section: 'Manajemen SDM'
-                                }, {
-                                    label: 'Rekrutmen',
-                                    href: '{{ route('hrm.recruitment.index') }}',
-                                    active: {{ request()->routeIs('hrm.recruitment*', 'hrm.onboarding*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'SDM & Karyawan',
-                                    href: '{{ route('hrm.index') }}',
-                                    active: {{ request()->routeIs('hrm.index', 'hrm.store', 'hrm.update', 'hrm.destroy', 'hrm.attendance*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Manajemen Cuti',
-                                    href: '{{ route('hrm.leave') }}',
-                                    active: {{ request()->routeIs('hrm.leave*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Penilaian Kinerja',
-                                    href: '{{ route('hrm.performance') }}',
-                                    active: {{ request()->routeIs('hrm.performance*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Struktur Organisasi',
-                                    href: '{{ route('hrm.orgchart') }}',
-                                    active: {{ request()->routeIs('hrm.orgchart') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Jadwal Shift',
-                                    href: '{{ route('hrm.shifts.index') }}',
-                                    active: {{ request()->routeIs('hrm.shifts*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Lembur',
-                                    href: '{{ route('hrm.overtime.index') }}',
-                                    active: {{ request()->routeIs('hrm.overtime*') ? 'true' : 'false' }},
-                                    badge: {{ $sidebarBadges['overtime'] ?? 0 ?: 'null' }}
-                                }, {
-                                    label: 'Pelatihan & Sertifikasi',
-                                    href: '{{ route('hrm.training.index') }}',
-                                    active: {{ request()->routeIs('hrm.training*') ? 'true' : 'false' }},
-                                    badge: {{ $sidebarBadges['certifications'] ?? 0 ?: 'null' }},
-                                    badgeClass: 'badge-red'
-                                }, {
-                                    label: 'Surat Peringatan',
-                                    href: '{{ route('hrm.disciplinary.index') }}',
-                                    active: {{ request()->routeIs('hrm.disciplinary*') ? 'true' : 'false' }},
-                                    badge: {{ $sidebarBadges['disciplinary'] ?? 0 ?: 'null' }}
+                                    section: 'SDM & Karyawan'
                                 },
                             @endif
-                            @if (($navTenant?->isModuleEnabled('payroll') ?? true) && $canView('payroll'))
+                            @if ($user?->isAdmin() || $user?->isManager())
+                                @if (($navTenant?->isModuleEnabled('hrm') ?? true) && $canView('hrm'))
+                                    {
+                                        section: 'Manajemen SDM'
+                                    }, {
+                                        label: 'Rekrutmen',
+                                        href: '{{ route('hrm.recruitment.index') }}',
+                                        active: {{ request()->routeIs('hrm.recruitment*', 'hrm.onboarding*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'SDM & Karyawan',
+                                        href: '{{ route('hrm.index') }}',
+                                        active: {{ request()->routeIs('hrm.index', 'hrm.store', 'hrm.update', 'hrm.destroy', 'hrm.attendance*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Manajemen Cuti',
+                                        href: '{{ route('hrm.leave') }}',
+                                        active: {{ request()->routeIs('hrm.leave*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Penilaian Kinerja',
+                                        href: '{{ route('hrm.performance') }}',
+                                        active: {{ request()->routeIs('hrm.performance*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Struktur Organisasi',
+                                        href: '{{ route('hrm.orgchart') }}',
+                                        active: {{ request()->routeIs('hrm.orgchart') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Jadwal Shift',
+                                        href: '{{ route('hrm.shifts.index') }}',
+                                        active: {{ request()->routeIs('hrm.shifts*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Lembur',
+                                        href: '{{ route('hrm.overtime.index') }}',
+                                        active: {{ request()->routeIs('hrm.overtime*') ? 'true' : 'false' }},
+                                        badge: {{ $sidebarBadges['overtime'] ?? 0 ?: 'null' }}
+                                    }, {
+                                        label: 'Pelatihan & Sertifikasi',
+                                        href: '{{ route('hrm.training.index') }}',
+                                        active: {{ request()->routeIs('hrm.training*') ? 'true' : 'false' }},
+                                        badge: {{ $sidebarBadges['certifications'] ?? 0 ?: 'null' }},
+                                        badgeClass: 'badge-red'
+                                    }, {
+                                        label: 'Surat Peringatan',
+                                        href: '{{ route('hrm.disciplinary.index') }}',
+                                        active: {{ request()->routeIs('hrm.disciplinary*') ? 'true' : 'false' }},
+                                        badge: {{ $sidebarBadges['disciplinary'] ?? 0 ?: 'null' }}
+                                    },
+                                @endif
+                                @if (($navTenant?->isModuleEnabled('payroll') ?? true) && $canView('payroll'))
+                                    {
+                                        section: 'Penggajian'
+                                    }, {
+                                        label: 'Penggajian',
+                                        href: '{{ route('payroll.index') }}',
+                                        active: {{ request()->routeIs('payroll.index', 'payroll.process', 'payroll.run*') ? 'true' : 'false' }}
+                                    }, {
+                                        label: 'Komponen Gaji',
+                                        href: '{{ route('payroll.components.index') }}',
+                                        active: {{ request()->routeIs('payroll.components*') ? 'true' : 'false' }}
+                                    },
+                                @endif
+                                @if (($navTenant?->isModuleEnabled('reimbursement') ?? true) && $canView('reimbursement'))
+                                    {
+                                        section: 'Reimbursement'
+                                    }, {
+                                        label: 'Kelola Reimbursement',
+                                        href: '{{ route('reimbursement.index') }}',
+                                        active: {{ request()->routeIs('reimbursement.index', 'reimbursement.store', 'reimbursement.approve', 'reimbursement.reject', 'reimbursement.pay', 'reimbursement.destroy') ? 'true' : 'false' }}
+                                    },
+                                @endif
+                            @endif
+                            @if (!$user?->isSuperAdmin() && !$user?->isAffiliate())
                                 {
-                                    section: 'Penggajian'
+                                    section: 'Self-Service'
                                 }, {
-                                    label: 'Penggajian',
-                                    href: '{{ route('payroll.index') }}',
-                                    active: {{ request()->routeIs('payroll.index', 'payroll.process', 'payroll.run*') ? 'true' : 'false' }}
+                                    label: 'Portal Karyawan',
+                                    href: '{{ route('self-service.dashboard') }}',
+                                    active: {{ request()->routeIs('self-service.dashboard', 'self-service.profile*') ? 'true' : 'false' }}
                                 }, {
-                                    label: 'Komponen Gaji',
-                                    href: '{{ route('payroll.components.index') }}',
-                                    active: {{ request()->routeIs('payroll.components*') ? 'true' : 'false' }}
+                                    label: 'Slip Gaji',
+                                    href: '{{ route('payroll.slip.index') }}',
+                                    active: {{ request()->routeIs('payroll.slip*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Cuti Saya',
+                                    href: '{{ route('self-service.leave.index') }}',
+                                    active: {{ request()->routeIs('self-service.leave*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Absensi Saya',
+                                    href: '{{ route('self-service.attendance.index') }}',
+                                    active: {{ request()->routeIs('self-service.attendance*') ? 'true' : 'false' }}
+                                }, {
+                                    label: 'Reimbursement Saya',
+                                    href: '{{ route('reimbursement.my') }}',
+                                    active: {{ request()->routeIs('reimbursement.my*') ? 'true' : 'false' }}
                                 },
                             @endif
-                            @if (($navTenant?->isModuleEnabled('reimbursement') ?? true) && $canView('reimbursement'))
-                                {
-                                    section: 'Reimbursement'
-                                }, {
-                                    label: 'Kelola Reimbursement',
-                                    href: '{{ route('reimbursement.index') }}',
-                                    active: {{ request()->routeIs('reimbursement.index', 'reimbursement.store', 'reimbursement.approve', 'reimbursement.reject', 'reimbursement.pay', 'reimbursement.destroy') ? 'true' : 'false' }}
-                                },
-                            @endif
-                        @endif
-                        @if (!$user?->isSuperAdmin() && !$user?->isAffiliate())
-                            {
-                                section: 'Self-Service'
-                            }, {
-                                label: 'Portal Karyawan',
-                                href: '{{ route('self-service.dashboard') }}',
-                                active: {{ request()->routeIs('self-service.dashboard', 'self-service.profile*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Slip Gaji',
-                                href: '{{ route('payroll.slip.index') }}',
-                                active: {{ request()->routeIs('payroll.slip*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Cuti Saya',
-                                href: '{{ route('self-service.leave.index') }}',
-                                active: {{ request()->routeIs('self-service.leave*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Absensi Saya',
-                                href: '{{ route('self-service.attendance.index') }}',
-                                active: {{ request()->routeIs('self-service.attendance*') ? 'true' : 'false' }}
-                            }, {
-                                label: 'Reimbursement Saya',
-                                href: '{{ route('reimbursement.my') }}',
-                                active: {{ request()->routeIs('reimbursement.my*') ? 'true' : 'false' }}
-                            },
-                        @endif
-                    ]
-                },
+                        ]
+                    },
                 @endif
                 @if (!$user?->isKasir() && !$user?->isGudang())
                     finance: {
@@ -2067,6 +2027,253 @@
             renderPanelItems(group.items);
         }
 
+        // Icon map — maps menu labels to emoji icons for quick visual identification
+        const MENU_ICONS = {
+            // Dashboard & Overview
+            'Dashboard': '📊',
+            'KPI Dashboard': '📈',
+            'Laporan': '📋',
+            'AI Forecasting': '🔮',
+            'Proyeksi Arus Kas': '💹',
+            'Deteksi Anomali': '🔍',
+            'Input Cerdas (AI)': '🤖',
+            'Simulasi Keuangan': '🧮',
+            'AI Chat': '💬',
+            'Analytics': '📊',
+            // Contacts
+            'Data Customer': '👥',
+            'Data Supplier': '🏭',
+            'Supplier Scorecard': '⭐',
+            'Supplier Performance': '📊',
+            'Strategic Sourcing': '🎯',
+            // Products & Warehouse
+            'Data Produk': '📦',
+            'Data Gudang': '🏢',
+            'Daftar Harga': '💰',
+            'Kategori Produk': '🏷️',
+            'Variants Manager': '🔀',
+            // Sales & CRM
+            'Sales Order': '🛒',
+            'Penawaran (Quotation)': '📝',
+            'Invoice': '🧾',
+            'Surat Jalan': '🚚',
+            'Uang Muka (DP)': '💵',
+            'Retur Penjualan': '↩️',
+            'CRM & Pipeline': '📈',
+            'Komisi Sales': '💸',
+            'Rule Komisi': '⚙️',
+            'Helpdesk': '🎧',
+            'Knowledge Base': '📚',
+            'Subscription Billing': '🔄',
+            'Plan Langganan': '📋',
+            'Program Loyalitas': '🎁',
+            'Kasir (POS)': '🖥️',
+            'E-Commerce': '🛍️',
+            // Inventory & Purchasing
+            'Inventori': '📦',
+            'Transfer Stok': '🔄',
+            'Pembelian': '🛍️',
+            'Purchase Requisition': '📋',
+            'RFQ': '📨',
+            'Goods Receipt': '📥',
+            '3-Way Matching': '✅',
+            'Retur Pembelian': '↩️',
+            'Landed Cost': '🚢',
+            'Konsinyasi': '🤝',
+            'Partner Konsinyasi': '👤',
+            'Bulk Payment': '💳',
+            // WMS
+            'Zone & Bin': '📍',
+            'Picking List': '📋',
+            'Stock Opname': '🔢',
+            'Putaway Rules': '📐',
+            'ESP32 / Arduino / RPi': '🔌',
+            // Manufacturing & Production
+            'Production Dashboard': '🏭',
+            'Gantt Chart': '📊',
+            'Produksi / WO': '⚙️',
+            'QC Inspections': '🔬',
+            'QC Laboratory': '🧪',
+            'Test Templates': '📝',
+            'BOM Multi-Level': '🧩',
+            'Mix Design Beton': '🧱',
+            'Work Center': '🏗️',
+            'MRP Planning': '📅',
+            'MRP Accuracy': '🎯',
+            'Predictive MRP (AI)': '🤖',
+            'Printing Jobs': '🖨️',
+            'Batch Production': '🏭',
+            // Finance & Accounting
+            'Jurnal': '📒',
+            'Bagan Akun (COA)': '📑',
+            'Neraca Saldo': '📊',
+            'Buku Besar': '📖',
+            'Neraca (Balance Sheet)': '⚖️',
+            'Laba Rugi (P&L)': '📊',
+            'Arus Kas': '💧',
+            'Rekonsiliasi Bank': '🏦',
+            'Rekening Bank': '🏦',
+            'Anggaran': '💼',
+            'Kunci Periode & Backup': '🔒',
+            'Pusat Biaya': '🎯',
+            'Pajak': '🏛️',
+            'Pengeluaran': '💸',
+            'Piutang (AR)': '📥',
+            'Hutang (AP)': '📤',
+            'Amortisasi / Deferral': '📉',
+            'Penghapusan Piutang': '✂️',
+            'Periode Akuntansi': '📅',
+            'Pengaturan Akuntansi': '⚙️',
+            'Aset': '🏠',
+            'Konsolidasi': '🔗',
+            'Grup Perusahaan': '🏢',
+            // HRM & Payroll
+            'SDM & Karyawan': '👤',
+            'Data Karyawan': '👤',
+            'Absensi': '⏰',
+            'Absensi Saya': '⏰',
+            'Jadwal Shift': '📅',
+            'Lembur': '⏱️',
+            'Manajemen Cuti': '🏖️',
+            'Cuti Saya': '🏖️',
+            'Penilaian Kinerja': '⭐',
+            'Rekrutmen': '📢',
+            'Pelatihan & Sertifikasi': '🎓',
+            'Timesheet': '⏱️',
+            'Penggajian': '💰',
+            'Komponen Gaji': '📊',
+            'Slip Gaji': '🧾',
+            'Struktur Organisasi': '🏛️',
+            'Portal Karyawan': '👤',
+            'Surat Peringatan': '⚠️',
+            'Kelola Reimbursement': '💳',
+            'Reimbursement Saya': '💳',
+            'Kontrak': '📄',
+            'Template Kontrak': '📑',
+            // Documents
+            'Dokumen': '📄',
+            'Template Dokumen': '📑',
+            'Tanda Tangan Digital': '✍️',
+            'Import CSV': '📥',
+            'Audit Trail': '📜',
+            // Settings & Admin
+            'Pengaturan': '⚙️',
+            'Kelola Pengguna': '👥',
+            'Izin Akses': '🔐',
+            'Langganan': '💳',
+            'Notifikasi': '🔔',
+            'Persetujuan': '✅',
+            'Approval Workflow': '✅',
+            'Automation Builder': '🤖',
+            'Custom Fields': '🔧',
+            'Batasan Bisnis': '📏',
+            'Integrasi': '🔗',
+            'Integrasi API': '🌐',
+            'API & Webhook': '🌐',
+            'Bot WA/Telegram': '💬',
+            'Memori AI': '🧠',
+            'Pengaturan Modul': '📦',
+            'Profil Perusahaan': '🏢',
+            'Pengingat': '⏰',
+            // Super Admin
+            'Semua Tenant': '🏢',
+            'Kelola Paket': '📦',
+            'Monitoring': '📡',
+            'Popup Iklan': '📢',
+            'Kelola Affiliate': '🤝',
+            'Komisi': '💸',
+            'Payout': '💳',
+            'Fraud Monitor': '🚨',
+            'Pengaturan Platform': '⚙️',
+            // Profile
+            'Profil Saya': '👤',
+            'Keluar': '🚪',
+            'Logout': '🚪',
+            // Hotel
+            'Dashboard Hotel': '🏨',
+            'Kamar': '🛏️',
+            'Tipe Kamar': '🏷️',
+            'Ketersediaan Kamar': '📅',
+            'Reservasi': '📅',
+            'Tamu': '👤',
+            'Check-in / Check-out': '🔑',
+            'Housekeeping': '🧹',
+            'Tarif Kamar': '💰',
+            'Pengaturan Hotel': '⚙️',
+            'Reservations': '📅',
+            'Guests': '👥',
+            'Room Map': '🗺️',
+            'Group Bookings': '👥',
+            'Bookings': '📅',
+            // Healthcare
+            'EMR Dashboard': '🏥',
+            'Pasien': '🩺',
+            'Rawat Inap': '🛏️',
+            'Laboratorium': '🔬',
+            'Radiologi': '📡',
+            'Farmasi': '💊',
+            'Operasi': '🏥',
+            'Telemedicine': '📱',
+            'Antrian': '🎫',
+            // Agriculture & Farming
+            'Manajemen Lahan': '🌾',
+            'Siklus Tanam': '🌱',
+            'Pencatatan Panen': '🌽',
+            'Analisis Biaya Lahan': '📊',
+            'Populasi Ternak': '🐄',
+            'Health & Vaccination': '💉',
+            'Breeding': '🧬',
+            'Dairy Management': '🥛',
+            'Poultry Management': '🐔',
+            // Fisheries
+            'Dashboard Perikanan': '🐟',
+            'Fishing Operations': '🎣',
+            'Aquaculture': '🐠',
+            'Cold Chain': '❄️',
+            'Species & Grading': '📊',
+            'Export Documentation': '📄',
+            'Waste Management': '♻️',
+            // Telecom
+            'Internet Packages': '📡',
+            'Customer Subscriptions': '📋',
+            'Network Devices': '🔌',
+            'Voucher Management': '🎫',
+            // Tour & Travel
+            'Tour Packages': '✈️',
+            'Tour Bookings': '📅',
+            'Tour Analytics': '📊',
+            // Shipping & Fleet
+            'Pengiriman': '🚚',
+            'Fleet Kendaraan': '🚛',
+            'Driver': '👨‍✈️',
+            'Trip / Penugasan': '🗺️',
+            'Log BBM': '⛽',
+            'Maintenance': '🔧',
+            // Cosmetic
+            'Cosmetic Formulas': '🧪',
+            'BPOM Registrations': '📋',
+            'Channel Distribution': '🚛',
+            'Cosmetic Analytics': '📊',
+            'Packaging & Labels': '🏷️',
+            'Expiry & Recalls': '⚠️',
+            'Distribution Channels': '🚛',
+            // Construction & Projects
+            'Manajemen Proyek': '📐',
+            'Project Billing': '💰',
+        };
+
+        function getMenuIcon(label) {
+            if (MENU_ICONS[label]) return MENU_ICONS[label];
+            // Fallback: try partial match for dynamic labels
+            const lower = label.toLowerCase();
+            if (lower.includes('dashboard')) return '📊';
+            if (lower.includes('laporan') || lower.includes('report')) return '📋';
+            if (lower.includes('pengaturan') || lower.includes('setting')) return '⚙️';
+            if (lower.includes('data ')) return '📁';
+            if (lower.includes('manajemen') || lower.includes('kelola')) return '📂';
+            return '👤'; // Default: person icon (works for profile name etc.)
+        }
+
         function renderPanelItems(items) {
             const nav = document.getElementById('panel-nav');
             nav.innerHTML = '';
@@ -2081,12 +2288,10 @@
                 }
                 const a = document.createElement('a');
                 a.href = item.href === '#logout' ? '#' : item.href;
-                // BUG-1.3 FIX: Ensure active class is applied on every render, not just initial load.
-                // item.active is a PHP-rendered boolean baked into NAV_GROUPS at page render time.
                 a.className = 'panel-link' + (item.active ? ' active' : '');
                 if (item.danger) a.style.color = '#f87171';
-                let inner = '';
-                // Hanya tampilkan meta (role label) jika ada, jangan tampilkan icon
+                const icon = getMenuIcon(item.label);
+                let inner = `<span class="panel-icon">${icon}</span>`;
                 if (item.meta) inner +=
                     `<span style="display:block;font-size:10px;color:#64748b;margin-bottom:1px">${item.meta}</span>`;
                 inner += `<span>${item.label}</span>`;
@@ -2109,7 +2314,10 @@
             });
             // Scroll active item into view so it's visible when panel opens
             if (activeEl) {
-                requestAnimationFrame(() => activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+                requestAnimationFrame(() => activeEl.scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth'
+                }));
             }
         }
 
@@ -2128,7 +2336,10 @@
             currentGroup = groupKey;
             buildPanel(groupKey);
             document.getElementById('sidebar-panel').classList.add('panel-open');
-            document.getElementById('panel-backdrop').classList.remove('hidden');
+            // Only show backdrop on mobile — on desktop the content shifts via padding
+            if (window.innerWidth < 1024) {
+                document.getElementById('panel-backdrop').classList.remove('hidden');
+            }
             document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('rail-active'));
             const btn = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
             if (btn) btn.classList.add('rail-active');
@@ -2239,12 +2450,6 @@
             closePanel();
         }
 
-        // Theme toggle
-        document.getElementById('theme-toggle')?.addEventListener('click', () => {
-            const isDark = document.getElementById('html-root').classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-
         // PWA + Push Notifications
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
@@ -2313,103 +2518,6 @@
                 }
             }
         };
-
-        // ── IDLE SCREEN LOCK ─────────────────────────────────────────────────
-        // Blur overlay muncul hanya setelah user tidak aktif selama IDLE_MINUTES.
-        // Tidak muncul saat page load / navigasi biasa.
-        // Klik atau tekan tombol apapun untuk unlock.
-        (function() {
-            const IDLE_MINUTES = {{ config('security.session.idle_timeout_minutes', 15) }};
-            const IDLE_MS      = IDLE_MINUTES * 60 * 1000;
-            const STORAGE_KEY  = 'qalcuity_last_activity';
-
-            let idleTimer = null;
-            let locked    = false;
-
-            // Overlay element — dibuat sekali, disembunyikan by default
-            const overlay = document.createElement('div');
-            overlay.id = 'idle-lock-overlay';
-            overlay.style.cssText = [
-                'position:fixed', 'inset:0', 'z-index:99999',
-                'display:none',
-                'align-items:center', 'justify-content:center',
-                'flex-direction:column', 'gap:16px',
-                'background:rgba(8,15,30,0.75)',
-                'backdrop-filter:blur(12px)',
-                '-webkit-backdrop-filter:blur(12px)',
-                'transition:opacity 0.3s',
-                'cursor:pointer',
-            ].join(';');
-            overlay.innerHTML = `
-                <div style="text-align:center;color:#e2e8f0;user-select:none;pointer-events:none">
-                    <div style="font-size:40px;margin-bottom:12px">🔒</div>
-                    <div style="font-size:16px;font-weight:600;margin-bottom:6px">Sesi Tidak Aktif</div>
-                    <div style="font-size:13px;color:#94a3b8">Klik atau tekan tombol apapun untuk melanjutkan</div>
-                    <div id="idle-lock-time" style="font-size:11px;color:#64748b;margin-top:8px"></div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-
-            function showLock() {
-                if (locked) return;
-                locked = true;
-                overlay.style.display = 'flex';
-                // Tampilkan waktu terkunci
-                const lockedAt = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                const el = document.getElementById('idle-lock-time');
-                if (el) el.textContent = 'Terkunci sejak ' + lockedAt;
-            }
-
-            function hideLock() {
-                if (!locked) return;
-                locked = false;
-                overlay.style.display = 'none';
-                resetTimer();
-            }
-
-            function resetTimer() {
-                clearTimeout(idleTimer);
-                // Simpan timestamp aktivitas terakhir ke localStorage
-                // agar tab lain juga ikut reset
-                localStorage.setItem(STORAGE_KEY, Date.now());
-                idleTimer = setTimeout(showLock, IDLE_MS);
-            }
-
-            // Unlock saat overlay diklik atau tombol ditekan
-            overlay.addEventListener('click', hideLock);
-            overlay.addEventListener('keydown', hideLock);
-            document.addEventListener('keydown', function(e) {
-                if (locked) hideLock();
-            });
-
-            // Event yang dianggap sebagai aktivitas user
-            const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
-            activityEvents.forEach(evt => {
-                document.addEventListener(evt, function() {
-                    if (!locked) resetTimer();
-                }, { passive: true });
-            });
-
-            // Sinkronisasi antar tab: jika tab lain aktif, reset timer di tab ini juga
-            window.addEventListener('storage', function(e) {
-                if (e.key === STORAGE_KEY && !locked) {
-                    resetTimer();
-                }
-            });
-
-            // Mulai timer saat halaman pertama kali dimuat
-            // Cek apakah ada aktivitas baru-baru ini dari tab lain
-            const lastActivity = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
-            const elapsed = Date.now() - lastActivity;
-            if (lastActivity > 0 && elapsed >= IDLE_MS) {
-                // Sudah idle sebelum page load — langsung lock
-                showLock();
-            } else {
-                // Mulai timer normal
-                resetTimer();
-            }
-        })();
-        // ─────────────────────────────────────────────────────────────────────
     </script>
 
     {{-- Hidden logout form --}}
@@ -2434,25 +2542,22 @@
             x-transition:leave-end="opacity-0 translate-y-4 scale-95" class="fixed inset-0 z-10 overflow-y-auto"
             @help-show-topic.window="$nextTick(() => loadTopic($event.detail?.topic))">
             <div class="flex min-h-full items-center justify-center p-4">
-                <div
-                    class="relative w-full max-w-2xl rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-2xl">
+                <div class="relative w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-2xl">
                     {{-- Header --}}
-                    <div
-                        class="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-6 py-4">
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <div
-                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                                <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 id="help-title" class="text-lg font-semibold text-gray-900 dark:text-white">Bantuan
+                            <h3 id="help-title" class="text-lg font-semibold text-gray-900">Bantuan
                             </h3>
                         </div>
                         <button type="button" @click="show = false"
-                            class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
@@ -2462,22 +2567,22 @@
 
                     {{-- Content --}}
                     <div class="px-6 py-5">
-                        <div id="help-content" class="prose prose-sm dark:prose-invert max-w-none">
-                            <p class="text-gray-600 dark:text-gray-400">Pilih topik bantuan untuk melihat panduan
+                        <div id="help-content" class="prose prose-sm max-w-none">
+                            <p class="text-gray-600">Pilih topik bantuan untuk melihat panduan
                                 lengkap.</p>
                         </div>
 
                         {{-- Tips Section --}}
                         <div id="help-tips" class="mt-6 hidden">
-                            <h4 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">💡 Tips:</h4>
-                            <ul id="help-tips-list" class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900">💡 Tips:</h4>
+                            <ul id="help-tips-list" class="space-y-2 text-sm text-gray-700">
                                 <!-- Tips will be inserted here -->
                             </ul>
                         </div>
 
                         {{-- Video Section --}}
                         <div id="help-video" class="mt-6 hidden">
-                            <h4 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">🎥 Video Tutorial:
+                            <h4 class="mb-3 text-sm font-semibold text-gray-900">🎥 Video Tutorial:
                             </h4>
                             <div class="aspect-video rounded-xl bg-gray-900 flex items-center justify-center">
                                 <p class="text-gray-400 text-sm">Video akan tersedia segera</p>
@@ -2487,7 +2592,7 @@
                         {{-- Documentation Link --}}
                         <div id="help-docs" class="mt-6 hidden">
                             <a id="help-docs-link" href="#" target="_blank"
-                                class="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                class="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2498,10 +2603,9 @@
                     </div>
 
                     {{-- Footer --}}
-                    <div
-                        class="border-t border-gray-200 dark:border-white/10 px-6 py-4 flex items-center justify-between">
+                    <div class="border-t border-gray-200 px-6 py-4 flex items-center justify-between">
                         <button type="button" onclick="window.helpSystem?.openSearch()"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            class="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                             🔍 Cari topik lain
                         </button>
                         <button type="button" @click="show = false"

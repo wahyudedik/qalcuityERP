@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\PrintJob;
-use App\Models\Customer;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PrintJobService

@@ -78,28 +78,20 @@ class Workflow extends Model
         ]);
 
         try {
-            // Execute all actions in order
-            foreach ($this->actions as $action) {
+            // Execute all active actions in order
+            foreach ($this->actions()->where('is_active', true)->orderBy('order')->get() as $action) {
                 $result = $action->execute($context);
 
                 if (!$result['success']) {
-                    throw new \Exception("Action failed: " . $result['error']);
+                    throw new \Exception("Action failed: " . ($result['error'] ?? 'Unknown error'));
                 }
             }
 
-            $log->update([
-                'status' => 'success',
-                'completed_at' => now(),
-            ]);
+            $log->complete('success');
 
             return true;
-
         } catch (\Exception $e) {
-            $log->update([
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-                'completed_at' => now(),
-            ]);
+            $log->complete('failed', $e->getMessage());
 
             return false;
         }

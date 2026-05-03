@@ -1,12 +1,12 @@
-<form id="send-verification" method="post" action="<?php echo e(route('verification.send')); ?>"><?php echo csrf_field(); ?></form>
+﻿<form id="send-verification" method="post" action="<?php echo e(route('verification.send')); ?>"><?php echo csrf_field(); ?></form>
 
 <form method="post" action="<?php echo e(route('profile.update')); ?>" class="space-y-4">
     <?php echo csrf_field(); ?> <?php echo method_field('patch'); ?>
 
     <div>
-        <label for="name" class="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1.5">Nama</label>
+        <label for="name" class="block text-sm font-medium text-gray-500 mb-1.5">Nama</label>
         <input id="name" name="name" type="text" value="<?php echo e(old('name', $user->name)); ?>" required autofocus autocomplete="name"
-            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                    <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -26,9 +26,9 @@ unset($__errorArgs, $__bag); ?>
     </div>
 
     <div>
-        <label for="email" class="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1.5">Email</label>
+        <label for="email" class="block text-sm font-medium text-gray-500 mb-1.5">Email</label>
         <input id="email" name="email" type="email" value="<?php echo e(old('email', $user->email)); ?>" required autocomplete="username"
-            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                    <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -18,7 +18,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Pilih Akun</label>
                     <select name="account_id" required
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                         <option value="">-- Pilih Akun --</option>
                         <?php $__currentLoopData = $accounts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $acc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($acc->id); ?>" <?php echo e(request('account_id') == $acc->id ? 'selected' : ''); ?>>
@@ -31,12 +31,12 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Dari Tanggal</label>
                     <input type="date" name="from" value="<?php echo e($from); ?>"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="to" value="<?php echo e($to); ?>"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="flex items-end gap-2">
                     <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg transition">

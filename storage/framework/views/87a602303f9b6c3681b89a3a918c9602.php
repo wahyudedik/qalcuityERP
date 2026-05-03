@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -38,10 +38,10 @@ foreach ($attributes->all() as $__key => $__value) {
 
 unset($__defined_vars, $__key, $__value); ?>
 
-<div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+<div class="bg-white rounded-2xl border border-gray-200 mb-4">
     <?php if($title): ?>
-        <div class="px-4 py-3 border-b border-gray-200 dark:border-white/10">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white"><?php echo e($title); ?></h3>
+        <div class="px-4 py-3 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900"><?php echo e($title); ?></h3>
         </div>
     <?php endif; ?>
 
@@ -57,7 +57,7 @@ unset($__defined_vars, $__key, $__value); ?>
         
         <?php if(isset($actions)): ?>
             <div
-                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
                 <?php echo e($actions); ?>
 
             </div>

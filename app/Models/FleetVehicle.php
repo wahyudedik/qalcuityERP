@@ -12,10 +12,22 @@ class FleetVehicle extends Model
 {
     use BelongsToTenant;
     protected $fillable = [
-        'tenant_id', 'plate_number', 'name', 'type', 'brand', 'model',
-        'year', 'color', 'vin', 'asset_id', 'status',
-        'registration_expiry', 'insurance_expiry', 'odometer',
-        'is_active', 'notes',
+        'tenant_id',
+        'plate_number',
+        'name',
+        'type',
+        'brand',
+        'model',
+        'year',
+        'color',
+        'vin',
+        'asset_id',
+        'status',
+        'registration_expiry',
+        'insurance_expiry',
+        'odometer',
+        'is_active',
+        'notes',
     ];
 
     protected function casts(): array
@@ -28,12 +40,30 @@ class FleetVehicle extends Model
         ];
     }
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function asset(): BelongsTo { return $this->belongsTo(Asset::class); }
-    public function trips(): HasMany { return $this->hasMany(FleetTrip::class, 'vehicle_id'); }
-    public function fuelLogs(): HasMany { return $this->hasMany(FleetFuelLog::class, 'vehicle_id'); }
-    public function maintenances(): HasMany { return $this->hasMany(FleetMaintenance::class, 'vehicle_id'); }
-    public function drivers(): HasMany { return $this->hasMany(FleetTrip::class, 'vehicle_id'); }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(Asset::class);
+    }
+    public function trips(): HasMany
+    {
+        return $this->hasMany(FleetTrip::class, 'vehicle_id');
+    }
+    public function fuelLogs(): HasMany
+    {
+        return $this->hasMany(FleetFuelLog::class, 'vehicle_id');
+    }
+    public function maintenances(): HasMany
+    {
+        return $this->hasMany(FleetMaintenance::class, 'vehicle_id');
+    }
+    public function activeDrivers()
+    {
+        return FleetDriver::whereIn('id', $this->trips()->whereNotNull('driver_id')->pluck('driver_id'))->get();
+    }
 
     public function isExpiringSoon(string $field, int $days = 30): bool
     {

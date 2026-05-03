@@ -1,4 +1,4 @@
-{{-- 
+﻿{{-- 
     Healthcare Toolbar Component
     Usage: <x-healthcare.toolbar> with slots for filters and actions
 --}}
@@ -9,10 +9,10 @@
     'defaultCollapsed' => false, // Start collapsed or not
 ])
 
-<div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+<div class="bg-white rounded-2xl border border-gray-200 mb-4">
     @if ($title)
-        <div class="px-4 py-3 border-b border-gray-200 dark:border-white/10">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $title }}</h3>
+        <div class="px-4 py-3 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">{{ $title }}</h3>
         </div>
     @endif
 
@@ -27,7 +27,7 @@
         {{-- Actions Slot (buttons) --}}
         @if (isset($actions))
             <div
-                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-200">
                 {{ $actions }}
             </div>
         @endif

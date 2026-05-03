@@ -5,10 +5,18 @@ namespace App\Http\Controllers\Livestock;
 use App\Http\Controllers\Controller;
 use App\Models\WasteManagementLog;
 use App\Models\LivestockHerd;
+use App\Services\LivestockIntegrationService;
 use Illuminate\Http\Request;
 
 class WasteManagementController extends Controller
 {
+    protected LivestockIntegrationService $integrationService;
+
+    public function __construct(LivestockIntegrationService $integrationService)
+    {
+        $this->integrationService = $integrationService;
+    }
+
     /**
      * Display waste management logs
      */
@@ -72,6 +80,18 @@ class WasteManagementController extends Controller
             $log->fill($validated);
             $log->recorded_by = auth()->id();
             $log->save();
+
+            // Post journal entry for waste revenue (integration with Accounting)
+            if (($validated['revenue_amount'] ?? 0) > 0 && $validated['disposal_method'] === 'sale') {
+                $result = $this->integrationService->postWasteRevenue(
+                    auth()->user()->tenant_id,
+                    auth()->id(),
+                    $log
+                );
+                if ($result->isFailed()) {
+                    \Illuminate\Support\Facades\Log::warning("Livestock waste revenue journal failed: " . $result->reason);
+                }
+            }
 
             return back()->with('success', 'Waste log recorded successfully!');
         } catch (\Exception $e) {
@@ -154,10 +174,11 @@ class WasteManagementController extends Controller
         ]);
 
         try {
-            $batch = \App\Models\CompostingBatch::findOrFail($id);
+            $batch = \App\Models\CompostingBatch::where('tenant_id', auth()->user()->tenant_id)
+                ->findOrFail($id);
             $batch->fill($validated);
 
-            if ($validated['status'] === 'completed' && !$batch->actual_end_date) {
+            if (isset($validated['status']) && $validated['status'] === 'completed' && !$batch->actual_end_date) {
                 $batch->actual_end_date = now();
             }
 

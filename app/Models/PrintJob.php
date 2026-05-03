@@ -13,6 +13,37 @@ class PrintJob extends Model
     use BelongsToTenant;
     use HasFactory, SoftDeletes;
 
+    // Status constants for printing module workflow
+    const STATUS_QUEUED = 'queued';
+    const STATUS_PREPRESS = 'prepress';
+    const STATUS_PLATEMAKING = 'platemaking';
+    const STATUS_ON_PRESS = 'on_press';
+    const STATUS_FINISHING = 'finishing';
+    const STATUS_QUALITY_CHECK = 'quality_check';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    // Status constants for POS print queue
+    const STATUS_PENDING = 'pending';
+    const STATUS_PROCESSING = 'processing';
+    const STATUS_FAILED = 'failed';
+
+    const STATUSES = [
+        self::STATUS_QUEUED,
+        self::STATUS_PREPRESS,
+        self::STATUS_PLATEMAKING,
+        self::STATUS_ON_PRESS,
+        self::STATUS_FINISHING,
+        self::STATUS_QUALITY_CHECK,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+        self::STATUS_PENDING,
+        self::STATUS_PROCESSING,
+        self::STATUS_FAILED,
+    ];
+
+    const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+
     protected $fillable = [
         'tenant_id',
         'job_number',
@@ -43,24 +74,40 @@ class PrintJob extends Model
         'completed_at',
         'assigned_operator',
         'special_instructions',
-        'notes'
+        'notes',
+        // POS print queue fields
+        'job_type',
+        'reference_id',
+        'reference_number',
+        'printer_type',
+        'printer_destination',
+        'print_data',
+        'error_message',
+        'retry_count',
+        'processed_at',
     ];
 
     protected $casts = [
         'specifications' => 'array',
+        'print_data' => 'array',
         'proof_approved' => 'boolean',
         'proof_approved_at' => 'datetime',
         'due_date' => 'date',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'processed_at' => 'datetime',
         'estimated_cost' => 'decimal:2',
         'actual_cost' => 'decimal:2',
         'quoted_price' => 'decimal:2',
         'paper_size_width' => 'decimal:2',
         'paper_size_height' => 'decimal:2',
+        'retry_count' => 'integer',
     ];
 
+    // ==========================================
     // Relationships
+    // ==========================================
+
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
@@ -111,7 +158,10 @@ class PrintJob extends Model
         return $this->hasMany(WebToPrintOrder::class);
     }
 
+    // ==========================================
     // Accessors
+    // ==========================================
+
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
@@ -123,6 +173,9 @@ class PrintJob extends Model
             'quality_check' => 'yellow',
             'completed' => 'green',
             'cancelled' => 'red',
+            'pending' => 'yellow',
+            'processing' => 'blue',
+            'failed' => 'red',
             default => 'gray'
         };
     }
@@ -145,10 +198,13 @@ class PrintJob extends Model
         return $currentIndex !== false ? ($currentIndex / (count($stages) - 1)) * 100 : 0;
     }
 
+    // ==========================================
     // Scopes
+    // ==========================================
+
     public function scopeActive($query)
     {
-        return $query->whereNotIn('status', ['completed', 'cancelled']);
+        return $query->whereNotIn('status', ['completed', 'cancelled', 'failed']);
     }
 
     public function scopeOverdue($query)
@@ -160,5 +216,73 @@ class PrintJob extends Model
     public function scopeByPriority($query, $priority)
     {
         return $query->where('priority', $priority);
+    }
+
+    // ==========================================
+    // POS Print Queue Methods
+    // ==========================================
+
+    /**
+     * Mark job as processing
+     */
+    public function markAsProcessing(): void
+    {
+        $this->update([
+            'status' => self::STATUS_PROCESSING,
+            'processed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Mark job as completed
+     */
+    public function markAsCompleted(): void
+    {
+        $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Mark job as failed
+     */
+    public function markAsFailed(string $errorMessage = null): void
+    {
+        $this->update([
+            'status' => self::STATUS_FAILED,
+            'error_message' => $errorMessage,
+        ]);
+    }
+
+    /**
+     * Check if job can be retried
+     */
+    public function canRetry(): bool
+    {
+        $maxRetries = config('pos_printer.queue.retry_attempts', 3);
+        return $this->retry_count < $maxRetries && in_array($this->status, ['failed', 'pending']);
+    }
+
+    /**
+     * Retry the job
+     */
+    public function retry(): void
+    {
+        $this->update([
+            'status' => self::STATUS_PENDING,
+            'retry_count' => ($this->retry_count ?? 0) + 1,
+            'error_message' => null,
+        ]);
+    }
+
+    /**
+     * Cancel the job
+     */
+    public function cancel(): void
+    {
+        $this->update([
+            'status' => self::STATUS_CANCELLED,
+        ]);
     }
 }

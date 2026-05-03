@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Laporan — Qalcuity ERP</x-slot>
     <x-slot name="header">Export Laporan</x-slot>
 
     <div class="max-w-4xl space-y-4">
-        <p class="text-sm text-gray-500 dark:text-slate-400">Download laporan dalam format Excel (.xlsx) atau PDF. Gunakan AI Chat untuk analisis mendalam.</p>
+        <p class="text-sm text-gray-500">Download laporan dalam format Excel (.xlsx) atau PDF. Gunakan AI Chat untuk analisis mendalam.</p>
 
         @php
         $reports = [
@@ -59,7 +59,7 @@
         @endphp
 
         @foreach($reports as $r)
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl {{ $r['bg'] }} flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 {{ $r['ic'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,36 +67,36 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white">{{ $r['label'] }}</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $r['desc'] }}</p>
+                    <p class="font-semibold text-gray-900">{{ $r['label'] }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ $r['desc'] }}</p>
                 </div>
             </div>
 
             <div class="flex flex-wrap items-end gap-3" id="form-{{ $r['key'] }}">
                 @if($r['date'])
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Dari Tanggal</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Dari Tanggal</label>
                     <input type="date" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Sampai Tanggal</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="end_date" value="{{ now()->format('Y-m-d') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 @endif
 
                 <div class="flex gap-2 ml-auto">
                     @if($r['excel'])
                     <button onclick="exportReport('{{ $r['key'] }}', 'excel')"
-                        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-gray-900 dark:text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm">
+                        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-gray-900 text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         Excel
                     </button>
                     @endif
                     @if($r['pdf'])
                     <button onclick="exportReport('{{ $r['key'] }}', 'pdf')"
-                        class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-gray-900 dark:text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm">
+                        class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-gray-900 text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         PDF
                     </button>
@@ -108,25 +108,25 @@
 
         {{-- ── Laporan Keuangan Formal (GL) ── --}}
         <div class="pt-2 pb-1">
-            <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Laporan Keuangan Formal (dari GL)</p>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Laporan Keuangan Formal (dari GL)</p>
         </div>
 
         {{-- Balance Sheet --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl bg-cyan-50 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white">Neraca (Balance Sheet)</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Posisi aset, kewajiban, dan ekuitas per tanggal tertentu dari GL</p>
+                    <p class="font-semibold text-gray-900">Neraca (Balance Sheet)</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Posisi aset, kewajiban, dan ekuitas per tanggal tertentu dari GL</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-end gap-3" id="form-balance-sheet">
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Per Tanggal</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Per Tanggal</label>
                     <input type="date" name="as_of" value="{{ now()->format('Y-m-d') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 <div class="flex gap-2 ml-auto">
                     <button onclick="exportBalanceSheet('excel')"
@@ -144,26 +144,26 @@
         </div>
 
         {{-- Cash Flow --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white">Laporan Arus Kas (Cash Flow)</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Arus kas operasi, investasi, dan pendanaan — metode tidak langsung</p>
+                    <p class="font-semibold text-gray-900">Laporan Arus Kas (Cash Flow)</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Arus kas operasi, investasi, dan pendanaan — metode tidak langsung</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-end gap-3" id="form-cash-flow">
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Dari Tanggal</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Dari Tanggal</label>
                     <input type="date" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Sampai Tanggal</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="end_date" value="{{ now()->format('Y-m-d') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 <div class="flex gap-2 ml-auto">
                     <button onclick="exportCashFlow('excel')"
@@ -181,21 +181,21 @@
         </div>
 
         {{-- Budget vs Actual --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white">Budget vs Aktual</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Perbandingan anggaran vs realisasi per departemen dan kategori</p>
+                    <p class="font-semibold text-gray-900">Budget vs Aktual</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Perbandingan anggaran vs realisasi per departemen dan kategori</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-end gap-3" id="form-budget">
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Periode (Bulan)</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Periode (Bulan)</label>
                     <input type="month" name="period" value="{{ now()->format('Y-m') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 </div>
                 <div class="flex gap-2 ml-auto">
                     <button onclick="exportBudget('excel')"
@@ -213,21 +213,21 @@
         </div>
 
         {{-- Payroll Export --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl bg-cyan-50 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white">Laporan Penggajian</p>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Detail gaji per karyawan: pokok, tunjangan, potongan, dan gaji bersih</p>
+                    <p class="font-semibold text-gray-900">Laporan Penggajian</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Detail gaji per karyawan: pokok, tunjangan, potongan, dan gaji bersih</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-end gap-3" id="form-payroll">
                 <div class="w-full sm:w-auto">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Periode</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1.5">Periode</label>
                     <input type="month" name="period" value="{{ now()->format('Y-m') }}"
-                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full sm:w-auto px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button onclick="exportPayroll()"
                     class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition shadow-sm ml-auto">
@@ -238,15 +238,15 @@
         </div>
 
         {{-- AR Aging Export --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <div class="w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
-                        <p class="font-semibold text-gray-900 dark:text-white">Aging Piutang (AR Aging)</p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Analisis umur piutang per customer: current, 1-30, 31-60, 61-90, >90 hari</p>
+                        <p class="font-semibold text-gray-900">Aging Piutang (AR Aging)</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Analisis umur piutang per customer: current, 1-30, 31-60, 61-90, >90 hari</p>
                     </div>
                 </div>
                 <a href="{{ route('reports.aging.excel') }}"
@@ -260,14 +260,14 @@
         {{-- AI Analysis Tip --}}
         <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-5 text-white">
             <div class="flex items-start gap-3">
-                <div class="w-9 h-9 rounded-xl bg-[#f8f8f8] dark:bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <svg class="w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-9 h-9 rounded-xl bg-[#f8f8f8] flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                     </svg>
                 </div>
                 <div>
                     <p class="font-semibold text-sm mb-1">Analisis Lebih Dalam dengan AI</p>
-                    <p class="text-xs text-blue-100 leading-relaxed">Gunakan <strong class="text-gray-900 dark:text-white">AI Chat</strong> untuk analisis mendalam: tren penjualan, laba rugi detail, valuasi inventori, dan laporan karyawan. Cukup ketik perintah seperti <em>"laporan laba rugi bulan ini"</em> atau <em>"produk terlaris minggu ini"</em>.</p>
+                    <p class="text-xs text-blue-100 leading-relaxed">Gunakan <strong class="text-gray-900">AI Chat</strong> untuk analisis mendalam: tren penjualan, laba rugi detail, valuasi inventori, dan laporan karyawan. Cukup ketik perintah seperti <em>"laporan laba rugi bulan ini"</em> atau <em>"produk terlaris minggu ini"</em>.</p>
                 </div>
             </div>
         </div>

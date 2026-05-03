@@ -1,15 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Geofencing Zone Management') }}
-            </h2>
-            <a href="{{ route('telecom.geofencing.create') }}"
+    <x-slot name="header">{{ __('Geofencing Zone Management') }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('telecom.geofencing.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                 <i class="fas fa-plus mr-2"></i>Create Zone
             </a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

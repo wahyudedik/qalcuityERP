@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['messages']));
@@ -29,7 +29,7 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 <?php if($messages): ?>
-    <ul <?php echo e($attributes->merge(['class' => 'text-sm text-red-600 dark:text-red-400 space-y-1 mt-1'])); ?>>
+    <ul <?php echo e($attributes->merge(['class' => 'text-sm text-red-600 space-y-1 mt-1'])); ?>>
         <?php $__currentLoopData = (array) $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <li class="flex items-center gap-1">
                 <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">

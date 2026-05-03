@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-white">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
             <?php echo e(__('Audit Batch')); ?> - <?php echo e($batch->batch_number); ?>
 
         </h2>
@@ -18,19 +18,19 @@
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Batch Number</p>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white"><?php echo e($batch->batch_number); ?></p>
+                        <p class="text-xs text-gray-500">Batch Number</p>
+                        <p class="text-lg font-semibold text-gray-900"><?php echo e($batch->batch_number); ?></p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Audit Date</p>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500">Audit Date</p>
+                        <p class="text-lg font-semibold text-gray-900">
                             <?php echo e($batch->audit_date->format('d/m/Y')); ?></p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Status</p>
+                        <p class="text-xs text-gray-500">Status</p>
                         <span
                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                             <?php echo e($batch->status === 'completed'
@@ -43,8 +43,8 @@
                         </span>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Started At</p>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500">Started At</p>
+                        <p class="text-lg font-semibold text-gray-900">
                             <?php echo e($batch->started_at?->format('H:i') ?? '-'); ?></p>
                     </div>
                 </div>
@@ -52,18 +52,18 @@
 
             
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
-                <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Processing Steps</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Processing Steps</h3>
                 </div>
 
                 <div class="p-6 space-y-4">
                     
-                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
                             <div
-                                class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none"
+                                class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-blue-600" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
@@ -71,8 +71,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">Post Room Charges</h4>
-                                <p class="text-sm text-gray-500 dark:text-slate-400">Automatically post room charges for
+                                <h4 class="font-semibold text-gray-900">Post Room Charges</h4>
+                                <p class="text-sm text-gray-500">Automatically post room charges for
                                     all occupied rooms</p>
                             </div>
                         </div>
@@ -86,16 +86,16 @@
                                 </button>
                             </form>
                         <?php else: ?>
-                            <span class="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
                         <?php endif; ?>
                     </div>
 
                     
-                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
                             <div
-                                class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none"
+                                class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-purple-600" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
@@ -103,8 +103,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">Post F&B Revenue</h4>
-                                <p class="text-sm text-gray-500 dark:text-slate-400">Post restaurant and room service
+                                <h4 class="font-semibold text-gray-900">Post F&B Revenue</h4>
+                                <p class="text-sm text-gray-500">Post restaurant and room service
                                     revenue</p>
                             </div>
                         </div>
@@ -117,24 +117,24 @@
                                 </button>
                             </form>
                         <?php else: ?>
-                            <span class="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
                         <?php endif; ?>
                     </div>
 
                     
-                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
                             <div
-                                class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none"
+                                class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-orange-600" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">Post Minibar Charges</h4>
-                                <p class="text-sm text-gray-500 dark:text-slate-400">Post minibar consumption charges
+                                <h4 class="font-semibold text-gray-900">Post Minibar Charges</h4>
+                                <p class="text-sm text-gray-500">Post minibar consumption charges
                                 </p>
                             </div>
                         </div>
@@ -147,16 +147,16 @@
                                 </button>
                             </form>
                         <?php else: ?>
-                            <span class="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
                         <?php endif; ?>
                     </div>
 
                     
-                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
                             <div
-                                class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none"
+                                class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                                <svg class="w-5 h-5 text-green-600" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
@@ -164,9 +164,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">Calculate Occupancy Statistics
+                                <h4 class="font-semibold text-gray-900">Calculate Occupancy Statistics
                                 </h4>
-                                <p class="text-sm text-gray-500 dark:text-slate-400">Calculate occupancy rate and
+                                <p class="text-sm text-gray-500">Calculate occupancy rate and
                                     statistics</p>
                             </div>
                         </div>
@@ -180,7 +180,7 @@
                                 </button>
                             </form>
                         <?php else: ?>
-                            <span class="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
+                            <span class="text-green-600 text-sm font-medium">✓ Completed</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -189,50 +189,50 @@
             
             <?php if($batch->total_revenue > 0 || $batch->occupied_rooms > 0): ?>
                 <div
-                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Summary</h3>
+                    class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Batch Summary</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Total Rooms</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e($batch->total_rooms); ?></p>
+                            <p class="text-xs text-gray-500">Total Rooms</p>
+                            <p class="text-2xl font-bold text-gray-900"><?php echo e($batch->total_rooms); ?></p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Occupied Rooms</p>
-                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400"><?php echo e($batch->occupied_rooms); ?>
+                            <p class="text-xs text-gray-500">Occupied Rooms</p>
+                            <p class="text-2xl font-bold text-blue-600"><?php echo e($batch->occupied_rooms); ?>
 
                             </p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Occupancy Rate</p>
-                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                            <p class="text-xs text-gray-500">Occupancy Rate</p>
+                            <p class="text-2xl font-bold text-green-600">
                                 <?php echo e(number_format($batch->occupancy_rate, 1)); ?>%</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">ADR</p>
-                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">Rp
+                            <p class="text-xs text-gray-500">ADR</p>
+                            <p class="text-2xl font-bold text-purple-600">Rp
                                 <?php echo e(number_format($batch->adr, 0, ',', '.')); ?></p>
                         </div>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+                    <div class="mt-4 pt-4 border-t border-gray-200">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Room Revenue</p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white">Rp
+                                <p class="text-xs text-gray-500">Room Revenue</p>
+                                <p class="text-lg font-semibold text-gray-900">Rp
                                     <?php echo e(number_format($batch->total_room_revenue, 0, ',', '.')); ?></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">F&B Revenue</p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white">Rp
+                                <p class="text-xs text-gray-500">F&B Revenue</p>
+                                <p class="text-lg font-semibold text-gray-900">Rp
                                     <?php echo e(number_format($batch->total_fb_revenue, 0, ',', '.')); ?></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Other Revenue</p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white">Rp
+                                <p class="text-xs text-gray-500">Other Revenue</p>
+                                <p class="text-lg font-semibold text-gray-900">Rp
                                     <?php echo e(number_format($batch->total_other_revenue, 0, ',', '.')); ?></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Total Revenue</p>
-                                <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">Rp
+                                <p class="text-xs text-gray-500">Total Revenue</p>
+                                <p class="text-lg font-bold text-indigo-600">Rp
                                     <?php echo e(number_format($batch->total_revenue, 0, ',', '.')); ?></p>
                             </div>
                         </div>
@@ -257,46 +257,46 @@
             
             <?php if($batch->auditLogs->count() > 0): ?>
                 <div
-                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mt-6">
-                    <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Audit Log</h3>
+                    class="bg-white rounded-2xl border border-gray-200 overflow-hidden mt-6">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Audit Log</h3>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-                            <thead class="bg-gray-50 dark:bg-slate-800">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Time</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Operation</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Description</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Status</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         By</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-200 dark:divide-white/10">
+                            <tbody class="bg-white divide-y divide-gray-200">
                                 <?php $__currentLoopData = $batch->auditLogs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr>
                                         <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <?php echo e($log->performed_at->format('H:i:s')); ?>
 
                                         </td>
                                         <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             <?php echo e(str_replace('_', ' ', $log->operation)); ?>
 
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-slate-400">
+                                        <td class="px-6 py-4 text-sm text-gray-500">
                                             <?php echo e($log->description); ?>
 
                                         </td>
@@ -313,7 +313,7 @@
                                             </span>
                                         </td>
                                         <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <?php echo e($log->performedBy->name ?? 'System'); ?>
 
                                         </td>

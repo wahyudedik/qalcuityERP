@@ -1,4 +1,4 @@
-
+﻿
 <div x-data="offlineSyncPanel()" x-init="init()" x-show="show" x-cloak
     class="mb-4 rounded-xl border overflow-hidden transition-all duration-300"
     :class="online ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/10 border-amber-500/20'">
@@ -13,7 +13,7 @@
                     :class="online ? 'bg-green-500' : 'bg-amber-500'"></span>
             </span>
             <span class="text-sm font-medium"
-                :class="online ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'">
+                :class="online ? 'text-green-700' : 'text-amber-700'">
                 <template x-if="!online">
                     <span>Offline — <span x-text="count"></span> perubahan menunggu sinkronisasi</span>
                 </template>
@@ -58,7 +58,7 @@
     </div>
 </div>
 
-<?php if (! $__env->hasRenderedOnce('ea1da058-cfbf-400e-94cb-2b303d815ffd')): $__env->markAsRenderedOnce('ea1da058-cfbf-400e-94cb-2b303d815ffd'); ?>
+<?php if (! $__env->hasRenderedOnce('af845d33-2556-4af6-bb77-46e552799a87')): $__env->markAsRenderedOnce('af845d33-2556-4af6-bb77-46e552799a87'); ?>
     <?php $__env->startPush('scripts'); ?>
         <script>
             function offlineSyncPanel() {

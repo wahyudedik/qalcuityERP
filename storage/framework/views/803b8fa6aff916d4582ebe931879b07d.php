@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,12 +12,12 @@
 
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
         <form method="GET" class="flex gap-2 flex-wrap">
-            <select name="type" onchange="this.form.submit()" class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="type" onchange="this.form.submit()" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Tipe</option>
                 <option value="receivable" <?php echo e(request('type') === 'receivable' ? 'selected' : ''); ?>>Piutang</option>
                 <option value="payable" <?php echo e(request('type') === 'payable' ? 'selected' : ''); ?>>Hutang</option>
             </select>
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="status" onchange="this.form.submit()" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Status</option>
                 <option value="pending" <?php echo e(request('status') === 'pending' ? 'selected' : ''); ?>>Pending</option>
                 <option value="approved" <?php echo e(request('status') === 'approved' ? 'selected' : ''); ?>>Disetujui</option>
@@ -32,13 +32,13 @@
     </div>
 
     <?php if(session('success')): ?>
-    <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400"><?php echo e(session('success')); ?></div>
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700"><?php echo e(session('success')); ?></div>
     <?php endif; ?>
 
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Nomor</th>
                         <th class="px-4 py-3 text-left hidden sm:table-cell">Tipe</th>
@@ -49,22 +49,22 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $writeoffs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <p class="font-medium text-gray-900 dark:text-white"><?php echo e($wo->number); ?></p>
-                            <p class="text-xs text-gray-400 dark:text-slate-500"><?php echo e($wo->created_at->format('d M Y')); ?></p>
+                            <p class="font-medium text-gray-900"><?php echo e($wo->number); ?></p>
+                            <p class="text-xs text-gray-400"><?php echo e($wo->created_at->format('d M Y')); ?></p>
                         </td>
                         <td class="px-4 py-3 hidden sm:table-cell">
-                            <span class="px-2 py-0.5 rounded-full text-xs font-medium <?php echo e($wo->type === 'receivable' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'); ?>">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium <?php echo e($wo->type === 'receivable' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'); ?>">
                                 <?php echo e($wo->typeLabel()); ?>
 
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-gray-700 dark:text-slate-300"><?php echo e($wo->reference_number); ?></td>
-                        <td class="px-4 py-3 text-right font-semibold text-red-600 dark:text-red-400">Rp <?php echo e(number_format($wo->writeoff_amount,0,',','.')); ?></td>
-                        <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400 max-w-xs truncate"><?php echo e($wo->reason); ?></td>
+                        <td class="px-4 py-3 text-gray-700"><?php echo e($wo->reference_number); ?></td>
+                        <td class="px-4 py-3 text-right font-semibold text-red-600">Rp <?php echo e(number_format($wo->writeoff_amount,0,',','.')); ?></td>
+                        <td class="px-4 py-3 hidden md:table-cell text-gray-500 max-w-xs truncate"><?php echo e($wo->reason); ?></td>
                         <td class="px-4 py-3 text-center">
                             <span class="px-2 py-0.5 rounded-full text-xs font-medium <?php echo e($wo->statusColor()); ?>"><?php echo e(ucfirst($wo->status)); ?></span>
                         </td>
@@ -84,37 +84,37 @@
                                 </form>
                                 <?php endif; ?>
                                 <?php if($wo->journalEntry): ?>
-                                <a href="<?php echo e(route('journals.show', $wo->journalEntry)); ?>" class="px-2 py-1 text-xs border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5">Jurnal</a>
+                                <a href="<?php echo e(route('journals.show', $wo->journalEntry)); ?>" class="px-2 py-1 text-xs border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50">Jurnal</a>
                                 <?php endif; ?>
                             </div>
                         </td>
                     </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada data write-off.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400">Belum ada data write-off.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
         <?php if($writeoffs->hasPages()): ?>
-        <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($writeoffs->links()); ?></div>
+        <div class="px-4 py-3 border-t border-gray-100"><?php echo e($writeoffs->links()); ?></div>
         <?php endif; ?>
     </div>
 
     
     <div id="modal-reject" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Tolak Write-off</h3>
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Tolak Write-off</h3>
                 <button onclick="document.getElementById('modal-reject').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-reject" method="POST" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Alasan Penolakan *</label>
-                    <textarea name="reason" required rows="3" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Alasan Penolakan *</label>
+                    <textarea name="reason" required rows="3" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('modal-reject').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                    <button type="button" onclick="document.getElementById('modal-reject').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Tolak</button>
                 </div>
             </form>

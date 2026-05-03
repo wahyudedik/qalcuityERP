@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Manajemen Shift & Jadwal Kerja</x-slot>
 
     @php
@@ -13,9 +13,9 @@
         <div class="lg:w-64 shrink-0 space-y-4">
 
             {{-- Shift legend / palette --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">Template Shift</p>
+                    <p class="text-sm font-semibold text-gray-900">Template Shift</p>
                     <button onclick="document.getElementById('modal-add-shift').classList.remove('hidden')"
                         class="text-xs px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">+ Baru</button>
                 </div>
@@ -28,11 +28,11 @@
                          data-shift-color="{{ $shift->color }}"
                          data-shift-time="{{ $shift->timeLabel() }}"
                          ondragstart="onPaletteDragStart(event)"
-                         class="shift-palette-item flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100 dark:border-white/10 cursor-grab active:cursor-grabbing hover:bg-gray-50 dark:hover:bg-white/5 group select-none">
+                         class="shift-palette-item flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100 cursor-grab active:cursor-grabbing hover:bg-gray-50 group select-none">
                         <div class="w-3 h-3 rounded-full shrink-0" style="background:{{ $shift->color }}"></div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm text-gray-900 dark:text-white truncate">{{ $shift->name }}</p>
-                            <p class="text-xs text-gray-400 dark:text-slate-500">{{ $shift->timeLabel() }}</p>
+                            <p class="text-sm text-gray-900 truncate">{{ $shift->name }}</p>
+                            <p class="text-xs text-gray-400">{{ $shift->timeLabel() }}</p>
                         </div>
                         <button onclick="openEditShift({{ $shift->id }}, {{ json_encode($shift->only(['name','color','start_time','end_time','break_minutes','crosses_midnight','description'])) }})"
                             class="opacity-0 group-hover:opacity-100 p-1 rounded text-gray-400 hover:text-white transition shrink-0">
@@ -40,19 +40,19 @@
                         </button>
                     </div>
                     @empty
-                    <p class="text-xs text-gray-400 dark:text-slate-500">Belum ada shift.</p>
+                    <p class="text-xs text-gray-400">Belum ada shift.</p>
                     @endforelse
                 </div>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-3 text-center">↑ Drag ke sel jadwal</p>
+                <p class="text-xs text-gray-400 mt-3 text-center">↑ Drag ke sel jadwal</p>
             </div>
 
             {{-- AI Conflict Detection --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <div class="flex items-center gap-2 mb-3">
-                    <div class="w-6 h-6 rounded-lg bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center shrink-0">
-                        <svg class="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                    <div class="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                     </div>
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">AI Conflict Detection</p>
+                    <p class="text-sm font-semibold text-gray-900">AI Conflict Detection</p>
                 </div>
                 <button onclick="runConflictDetection()" id="conflict-btn"
                     class="w-full py-2 text-sm bg-orange-600 text-white rounded-xl hover:bg-orange-700 flex items-center justify-center gap-1.5 disabled:opacity-50">
@@ -67,7 +67,7 @@
                 @csrf
                 <input type="hidden" name="week_start" value="{{ $weekStart->format('Y-m-d') }}">
                 <button type="submit" onclick="return confirm('Salin jadwal minggu ini ke minggu depan?')"
-                    class="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 text-center">
+                    class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-center">
                     📋 Salin ke Minggu Depan
                 </button>
             </form>
@@ -79,11 +79,11 @@
             {{-- Week nav --}}
             <div class="flex items-center justify-between">
                 <a href="{{ route('hrm.shifts.index', ['week' => $prevWeek]) }}"
-                   class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5">
+                   class="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </a>
                 <div class="text-center">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                    <p class="text-sm font-semibold text-gray-900">
                         {{ $weekStart->format('d M') }} – {{ $weekEnd->format('d M Y') }}
                     </p>
                     @if($weekStart->isCurrentWeek())
@@ -91,19 +91,19 @@
                     @endif
                 </div>
                 <a href="{{ route('hrm.shifts.index', ['week' => $nextWeek]) }}"
-                   class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5">
+                   class="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
 
             {{-- AI Conflict Results Panel --}}
-            <div id="conflict-panel" class="hidden bg-white dark:bg-[#1e293b] rounded-2xl border border-orange-200 dark:border-orange-500/30 p-4">
+            <div id="conflict-panel" class="hidden bg-white rounded-2xl border border-orange-200 p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">Hasil Analisis Konflik Jadwal</p>
-                    <button onclick="document.getElementById('conflict-panel').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white text-xs">✕ Tutup</button>
+                    <p class="text-sm font-semibold text-gray-900">Hasil Analisis Konflik Jadwal</p>
+                    <button onclick="document.getElementById('conflict-panel').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-xs">✕ Tutup</button>
                 </div>
                 <div id="conflict-loading" class="hidden py-4 text-center">
-                    <div class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+                    <div class="inline-flex items-center gap-2 text-sm text-gray-500">
                         <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                         Menganalisis jadwal...
                     </div>
@@ -112,29 +112,29 @@
             </div>
 
             {{-- Scheduler table --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse" id="scheduler-table">
                         <thead>
-                            <tr class="bg-gray-50 dark:bg-white/5">
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase w-40 border-b border-gray-100 dark:border-white/10 sticky left-0 bg-gray-50 dark:bg-[#1e293b] z-10">Karyawan</th>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase w-40 border-b border-gray-100 sticky left-0 bg-gray-50 z-10">Karyawan</th>
                                 @foreach($weekDays as $i => $day)
-                                <th class="px-2 py-3 text-center text-xs font-semibold border-b border-gray-100 dark:border-white/10 min-w-[90px]
-                                    {{ $day->isToday() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400' }}">
+                                <th class="px-2 py-3 text-center text-xs font-semibold border-b border-gray-100 min-w-[90px]
+                                    {{ $day->isToday() ? 'text-blue-600' : 'text-gray-500' }}">
                                     <p>{{ $days[$i] }}</p>
-                                    <p class="text-base font-bold {{ $day->isToday() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white' }}">
+                                    <p class="text-base font-bold {{ $day->isToday() ? 'text-blue-600' : 'text-gray-900' }}">
                                         {{ $day->format('d') }}
                                     </p>
                                 </th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($employees as $emp)
-                            <tr class="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] group" data-emp-id="{{ $emp->id }}">
-                                <td class="px-4 py-2 border-r border-gray-100 dark:border-white/10 sticky left-0 bg-white dark:bg-[#1e293b] group-hover:bg-gray-50/50 dark:group-hover:bg-white/[0.02] z-10">
-                                    <p class="font-medium text-gray-900 dark:text-white text-xs truncate max-w-[140px]">{{ $emp->name }}</p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500 truncate">{{ $emp->department ?? $emp->position ?? '-' }}</p>
+                            <tr class="hover:bg-gray-50/50 group" data-emp-id="{{ $emp->id }}">
+                                <td class="px-4 py-2 border-r border-gray-100 sticky left-0 bg-white group-hover:bg-gray-50/50 z-10">
+                                    <p class="font-medium text-gray-900 text-xs truncate max-w-[140px]">{{ $emp->name }}</p>
+                                    <p class="text-xs text-gray-400 truncate">{{ $emp->department ?? $emp->position ?? '-' }}</p>
                                 </td>
                                 @foreach($weekDays as $day)
                                 @php
@@ -142,7 +142,7 @@
                                     $schedule = $schedules[$emp->id][$dateStr] ?? null;
                                     $isWeekend = $day->isWeekend();
                                 @endphp
-                                <td class="px-1 py-1 text-center {{ $isWeekend ? 'bg-gray-50/50 dark:bg-white/[0.02]' : '' }}"
+                                <td class="px-1 py-1 text-center {{ $isWeekend ? 'bg-gray-50/50' : '' }}"
                                     data-emp="{{ $emp->id }}" data-date="{{ $dateStr }}"
                                     ondragover="onDragOver(event)"
                                     ondragleave="onDragLeave(event)"
@@ -153,7 +153,7 @@
                                         ondragstart="onCellDragStart(event, {{ $emp->id }}, '{{ $dateStr }}', {{ $schedule?->work_shift_id ?? 'null' }})"
                                         data-emp="{{ $emp->id }}" data-date="{{ $dateStr }}"
                                         class="shift-cell w-full min-h-[52px] rounded-lg text-xs transition flex flex-col items-center justify-center gap-0.5 px-1 relative
-                                            {{ $schedule ? 'cursor-grab active:cursor-grabbing' : ($isWeekend ? 'cursor-default' : 'hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer') }}"
+                                            {{ $schedule ? 'cursor-grab active:cursor-grabbing' : ($isWeekend ? 'cursor-default' : 'hover:bg-gray-100 cursor-pointer') }}"
                                         @if($schedule)
                                         style="background-color: {{ $schedule->shift->color }}22; border: 1px solid {{ $schedule->shift->color }}55; color: {{ $schedule->shift->color }}"
                                         @endif
@@ -162,7 +162,7 @@
                                         <span class="font-semibold leading-tight">{{ $schedule->shift->name }}</span>
                                         <span class="opacity-75 leading-tight text-[10px]">{{ $schedule->shift->timeLabel() }}</span>
                                         @else
-                                        <span class="text-lg leading-none text-gray-300 dark:text-slate-700">{{ $isWeekend ? '—' : '+' }}</span>
+                                        <span class="text-lg leading-none text-gray-300">{{ $isWeekend ? '—' : '+' }}</span>
                                         @endif
                                     </button>
                                 </td>
@@ -170,7 +170,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada karyawan aktif.</td>
+                                <td colspan="8" class="px-4 py-12 text-center text-gray-400">Belum ada karyawan aktif.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -183,27 +183,27 @@
 
     {{-- ── Modal: Pilih Shift ───────────────────────────────────── --}}
     <div id="modal-shift-picker" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-sm shadow-2xl">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-sm shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-white text-sm">Pilih Shift</p>
-                    <p id="picker-label" class="text-xs text-gray-400 dark:text-slate-500 mt-0.5"></p>
+                    <p class="font-semibold text-gray-900 text-sm">Pilih Shift</p>
+                    <p id="picker-label" class="text-xs text-gray-400 mt-0.5"></p>
                 </div>
-                <button onclick="document.getElementById('modal-shift-picker').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                <button onclick="document.getElementById('modal-shift-picker').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div class="p-4 space-y-2">
                 @forelse($shifts as $shift)
                 <button onclick="assignShift(pickerEmpId, pickerDate, {{ $shift->id }})"
                     data-shift-id="{{ $shift->id }}"
-                    class="picker-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-left transition">
+                    class="picker-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 hover:bg-gray-50 text-left transition">
                     <div class="w-4 h-4 rounded-full shrink-0" style="background:{{ $shift->color }}"></div>
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $shift->name }}</p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">{{ $shift->timeLabel() }} · {{ round($shift->workMinutes()/60,1) }} jam</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $shift->name }}</p>
+                        <p class="text-xs text-gray-400">{{ $shift->timeLabel() }} · {{ round($shift->workMinutes()/60,1) }} jam</p>
                     </div>
                 </button>
                 @empty
-                <p class="text-sm text-gray-400 dark:text-slate-500 text-center py-4">Belum ada shift.</p>
+                <p class="text-sm text-gray-400 text-center py-4">Belum ada shift.</p>
                 @endforelse
             </div>
             <div class="px-4 pb-4">
@@ -217,52 +217,52 @@
 
     {{-- ── Modal: Tambah Shift ──────────────────────────────────── --}}
     <div id="modal-add-shift" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md shadow-2xl">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
-                <p class="font-semibold text-gray-900 dark:text-white text-sm">Tambah Template Shift</p>
-                <button onclick="document.getElementById('modal-add-shift').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-md shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <p class="font-semibold text-gray-900 text-sm">Tambah Template Shift</p>
+                <button onclick="document.getElementById('modal-add-shift').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('hrm.shifts.shift.store') }}" class="p-5 space-y-4">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Shift</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Shift</label>
                         <input type="text" name="name" required placeholder="cth: Shift Pagi"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Mulai</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Mulai</label>
                         <input type="time" name="start_time" required value="08:00"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Selesai</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Selesai</label>
                         <input type="time" name="end_time" required value="17:00"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Istirahat (menit)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Istirahat (menit)</label>
                         <input type="number" name="break_minutes" value="60" min="0" max="480"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Warna</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Warna</label>
                         <input type="color" name="color" value="#3b82f6"
-                            class="w-full h-10 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] cursor-pointer">
+                            class="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer">
                     </div>
                     <div class="col-span-2 flex items-center gap-2">
                         <input type="checkbox" name="crosses_midnight" id="add-crosses-midnight" value="1" class="rounded">
-                        <label for="add-crosses-midnight" class="text-sm text-gray-600 dark:text-slate-400">Melewati tengah malam</label>
+                        <label for="add-crosses-midnight" class="text-sm text-gray-600">Melewati tengah malam</label>
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Deskripsi (opsional)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi (opsional)</label>
                         <input type="text" name="description" placeholder="Keterangan tambahan..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="document.getElementById('modal-add-shift').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
             </form>
@@ -271,47 +271,47 @@
 
     {{-- ── Modal: Edit Shift ────────────────────────────────────── --}}
     <div id="modal-edit-shift" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md shadow-2xl">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
-                <p class="font-semibold text-gray-900 dark:text-white text-sm">Edit Shift</p>
-                <button onclick="document.getElementById('modal-edit-shift').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-md shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <p class="font-semibold text-gray-900 text-sm">Edit Shift</p>
+                <button onclick="document.getElementById('modal-edit-shift').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-edit-shift" method="POST" class="p-5 space-y-4">
                 @csrf @method('PUT')
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Shift</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Shift</label>
                         <input type="text" name="name" id="edit-name" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Mulai</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Mulai</label>
                         <input type="time" name="start_time" id="edit-start"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Selesai</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Selesai</label>
                         <input type="time" name="end_time" id="edit-end"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Istirahat (menit)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Istirahat (menit)</label>
                         <input type="number" name="break_minutes" id="edit-break" min="0" max="480"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Warna</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Warna</label>
                         <input type="color" name="color" id="edit-color"
-                            class="w-full h-10 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] cursor-pointer">
+                            class="w-full h-10 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer">
                     </div>
                     <div class="col-span-2 flex items-center gap-2">
                         <input type="checkbox" name="crosses_midnight" id="edit-crosses-midnight" value="1" class="rounded">
-                        <label for="edit-crosses-midnight" class="text-sm text-gray-600 dark:text-slate-400">Melewati tengah malam</label>
+                        <label for="edit-crosses-midnight" class="text-sm text-gray-600">Melewati tengah malam</label>
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Deskripsi (opsional)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi (opsional)</label>
                         <input type="text" name="description" id="edit-description"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
                 <div class="flex justify-between items-center pt-2">
@@ -319,7 +319,7 @@
                         class="px-4 py-2 text-sm border border-red-500/30 text-red-400 rounded-xl hover:bg-red-500/10">Nonaktifkan</button>
                     <div class="flex gap-2">
                         <button type="button" onclick="document.getElementById('modal-edit-shift').classList.add('hidden')"
-                            class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                            class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                         <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                     </div>
                 </div>
@@ -472,16 +472,16 @@ function runConflictDetection() {
         btn.disabled = false;
         if (data.conflicts && data.conflicts.length > 0) {
             content.innerHTML = data.conflicts.map(c => `
-                <div class="flex items-start gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20">
+                <div class="flex items-start gap-2 p-2 rounded-lg bg-orange-50 border border-orange-200">
                     <span class="text-orange-500 mt-0.5">⚠</span>
-                    <p class="text-xs text-orange-700 dark:text-orange-300">${c}</p>
+                    <p class="text-xs text-orange-700">${c}</p>
                 </div>`).join('');
         } else {
-            content.innerHTML = '<p class="text-xs text-green-600 dark:text-green-400 text-center py-2">✓ Tidak ada konflik jadwal ditemukan.</p>';
+            content.innerHTML = '<p class="text-xs text-green-600 text-center py-2">✓ Tidak ada konflik jadwal ditemukan.</p>';
         }
         if (data.summary) {
             document.getElementById('conflict-summary').innerHTML =
-                `<p class="text-xs text-gray-500 dark:text-slate-400">${data.summary}</p>`;
+                `<p class="text-xs text-gray-500">${data.summary}</p>`;
             document.getElementById('conflict-summary').classList.remove('hidden');
         }
     })

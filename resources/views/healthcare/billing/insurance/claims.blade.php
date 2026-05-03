@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Klaim Asuransi</x-slot>
 
     @php $tid = auth()->user()->tenant_id; @endphp
@@ -18,37 +18,37 @@
                 ->where('status', 'rejected')
                 ->count();
         @endphp
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Klaim</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($totalClaims) }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Klaim</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($totalClaims) }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Pending</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $pendingClaims }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Pending</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">{{ $pendingClaims }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Submitted</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $submittedClaims }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Submitted</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1">{{ $submittedClaims }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Disetujui</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $approvedClaims }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Disetujui</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">{{ $approvedClaims }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Ditolak</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ $rejectedClaims }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Ditolak</p>
+            <p class="text-2xl font-bold text-red-600 mt-1">{{ $rejectedClaims }}</p>
         </div>
     </div>
 
     {{-- Filters --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
             <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Cari pasien / No. klaim..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="pending" @selected(request('status') === 'pending')>Pending</option>
                     <option value="submitted" @selected(request('status') === 'submitted')>Submitted</option>
@@ -57,7 +57,7 @@
                     <option value="paid" @selected(request('status') === 'paid')>Paid</option>
                 </select>
                 <select name="insurance"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Asuransi</option>
                     <option value="bpjs" @selected(request('insurance') === 'bpjs')>BPJS</option>
                     <option value="manulife" @selected(request('insurance') === 'manulife')>Manulife</option>
@@ -71,10 +71,10 @@
     </div>
 
     {{-- Claims Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">No. Klaim</th>
                         <th class="px-4 py-3 text-left">Pasien</th>
@@ -85,53 +85,53 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($claims ?? [] as $claim)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">{{ $claim->claim_number ?? '-' }}</span>
+                                    class="font-mono text-sm font-bold text-blue-600">{{ $claim->claim_number ?? '-' }}</span>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">
+                                <p class="font-medium text-gray-900">
                                     {{ $claim->patient ? $claim->patient->full_name : '-' }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     {{ $claim->patient ? $claim->patient->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
-                                <p class="text-gray-900 dark:text-white">{{ $claim->insurance_provider ?? '-' }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">{{ $claim->policy_number ?? '-' }}
+                                <p class="text-gray-900">{{ $claim->insurance_provider ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">{{ $claim->policy_number ?? '-' }}
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-right hidden sm:table-cell">
-                                <span class="font-semibold text-gray-900 dark:text-white">Rp
+                                <span class="font-semibold text-gray-900">Rp
                                     {{ number_format($claim->claim_amount, 0, ',', '.') }}</span>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 {{ $claim->submitted_at ? \Carbon\Carbon::parse($claim->submitted_at)->format('d M Y') : '-' }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if ($claim->status === 'pending')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Pending</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">Pending</span>
                                 @elseif($claim->status === 'submitted')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Submitted</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Submitted</span>
                                 @elseif($claim->status === 'approved')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Approved</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Approved</span>
                                 @elseif($claim->status === 'rejected')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Rejected</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Rejected</span>
                                 @elseif($claim->status === 'paid')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">Paid</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700">Paid</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.billing.insurance.claims.show', $claim) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -143,7 +143,7 @@
                                     </a>
                                     @if ($claim->status === 'pending')
                                         <button onclick="submitClaim({{ $claim->id }})"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                             title="Submit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -157,7 +157,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada klaim asuransi</p>
                             </td>
                         </tr>
@@ -167,7 +167,7 @@
         </div>
 
         @if (isset($claims) && $claims->hasPages())
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $claims->links() }}
             </div>
         @endif

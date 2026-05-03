@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Tambah Perangkat Fingerprint'); ?>
 
@@ -6,29 +6,29 @@
     <div class="container mx-auto px-4 py-6">
         <div class="mb-6">
             <a href="<?php echo e(route('hrm.fingerprint.devices.index')); ?>"
-                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2 mb-4">
+                class="text-blue-600 hover:text-blue-800 flex items-center gap-2 mb-4">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Kembali ke Daftar Perangkat
             </a>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Tambah Perangkat Fingerprint</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Konfigurasi perangkat fingerprint baru untuk absensi
+            <h1 class="text-2xl font-bold text-gray-800">Tambah Perangkat Fingerprint</h1>
+            <p class="text-sm text-gray-600 mt-1">Konfigurasi perangkat fingerprint baru untuk absensi
                 karyawan</p>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-6">
             <form action="<?php echo e(route('hrm.fingerprint.devices.store')); ?>" method="POST">
                 <?php echo csrf_field(); ?>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Nama Perangkat -->
                     <div class="md:col-span-2">
-                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
                             Nama Perangkat <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="name" id="name" value="<?php echo e(old('name')); ?>" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Contoh: Fingerprint Lobby Utama">
                         <?php $__errorArgs = ['name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -44,11 +44,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Device ID -->
                     <div>
-                        <label for="device_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="device_id" class="block text-sm font-medium text-gray-700 mb-2">
                             Device ID <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="device_id" id="device_id" value="<?php echo e(old('device_id')); ?>" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Contoh: FP001">
                         <?php $__errorArgs = ['device_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -60,16 +60,16 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">ID unik untuk identifikasi perangkat</p>
+                        <p class="mt-1 text-xs text-gray-500">ID unik untuk identifikasi perangkat</p>
                     </div>
 
                     <!-- Vendor -->
                     <div>
-                        <label for="vendor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="vendor" class="block text-sm font-medium text-gray-700 mb-2">
                             Vendor <span class="text-red-500">*</span>
                         </label>
                         <select name="vendor" id="vendor" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900">
                             <option value="">Pilih Vendor</option>
                             <option value="zkteco" <?php echo e(old('vendor') == 'zkteco' ? 'selected' : ''); ?>>ZKTeco</option>
                             <option value="suprema" <?php echo e(old('vendor') == 'suprema' ? 'selected' : ''); ?>>Suprema</option>
@@ -90,11 +90,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Model -->
                     <div>
-                        <label for="model" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="model" class="block text-sm font-medium text-gray-700 mb-2">
                             Model Perangkat
                         </label>
                         <input type="text" name="model" id="model" value="<?php echo e(old('model')); ?>"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Contoh: F18, uFace 800">
                         <?php $__errorArgs = ['model'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -110,11 +110,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Protocol -->
                     <div>
-                        <label for="protocol" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="protocol" class="block text-sm font-medium text-gray-700 mb-2">
                             Protokol <span class="text-red-500">*</span>
                         </label>
                         <select name="protocol" id="protocol" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900">
                             <option value="tcp" <?php echo e(old('protocol') == 'tcp' ? 'selected' : ''); ?>>TCP/IP</option>
                             <option value="udp" <?php echo e(old('protocol') == 'udp' ? 'selected' : ''); ?>>UDP</option>
                             <option value="http" <?php echo e(old('protocol') == 'http' ? 'selected' : ''); ?>>HTTP</option>
@@ -134,11 +134,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- IP Address -->
                     <div>
-                        <label for="ip_address" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="ip_address" class="block text-sm font-medium text-gray-700 mb-2">
                             IP Address
                         </label>
                         <input type="text" name="ip_address" id="ip_address" value="<?php echo e(old('ip_address')); ?>"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Contoh: 192.168.1.100">
                         <?php $__errorArgs = ['ip_address'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -154,12 +154,12 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Port -->
                     <div>
-                        <label for="port" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="port" class="block text-sm font-medium text-gray-700 mb-2">
                             Port
                         </label>
                         <input type="number" name="port" id="port" value="<?php echo e(old('port', 4370)); ?>" min="1"
                             max="65535"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="4370">
                         <?php $__errorArgs = ['port'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -171,16 +171,16 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Default: 4370 untuk ZKTeco</p>
+                        <p class="mt-1 text-xs text-gray-500">Default: 4370 untuk ZKTeco</p>
                     </div>
 
                     <!-- API Key -->
                     <div>
-                        <label for="api_key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="api_key" class="block text-sm font-medium text-gray-700 mb-2">
                             API Key (Opsional)
                         </label>
                         <input type="text" name="api_key" id="api_key" value="<?php echo e(old('api_key')); ?>"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="API Key jika diperlukan">
                         <?php $__errorArgs = ['api_key'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -196,11 +196,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Secret Key -->
                     <div>
-                        <label for="secret_key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="secret_key" class="block text-sm font-medium text-gray-700 mb-2">
                             Secret Key (Opsional)
                         </label>
                         <input type="text" name="secret_key" id="secret_key" value="<?php echo e(old('secret_key')); ?>"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Secret key untuk autentikasi">
                         <?php $__errorArgs = ['secret_key'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -216,11 +216,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Notes -->
                     <div class="md:col-span-2">
-                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
                             Catatan
                         </label>
                         <textarea name="notes" id="notes" rows="3"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                             placeholder="Catatan tambahan tentang perangkat..."><?php echo e(old('notes')); ?></textarea>
                         <?php $__errorArgs = ['notes'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -241,7 +241,7 @@ unset($__errorArgs, $__bag); ?>
                                 <?php echo e(old('is_active', true) ? 'checked' : ''); ?>
 
                                 class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Aktifkan perangkat</span>
+                            <span class="ml-2 text-sm text-gray-700">Aktifkan perangkat</span>
                         </label>
                     </div>
                 </div>
@@ -251,7 +251,7 @@ unset($__errorArgs, $__bag); ?>
                         Simpan Perangkat
                     </button>
                     <a href="<?php echo e(route('hrm.fingerprint.devices.index')); ?>"
-                        class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-6 py-2 rounded-lg">
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg">
                         Batal
                     </a>
                 </div>

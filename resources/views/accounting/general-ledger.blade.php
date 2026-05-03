@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Buku Besar (General Ledger)</x-slot>
 
     <div class="space-y-5">
@@ -9,7 +9,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Pilih Akun</label>
                     <select name="account_id" required
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                         <option value="">-- Pilih Akun --</option>
                         @foreach($accounts as $acc)
                             <option value="{{ $acc->id }}" {{ request('account_id') == $acc->id ? 'selected' : '' }}>
@@ -21,12 +21,12 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Dari Tanggal</label>
                     <input type="date" name="from" value="{{ $from }}"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Sampai Tanggal</label>
                     <input type="date" name="to" value="{{ $to }}"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white dark:text-white focus:outline-none focus:border-indigo-500">
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div class="flex items-end gap-2">
                     <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg transition">

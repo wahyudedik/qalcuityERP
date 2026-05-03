@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Agriculture Dashboard'); ?>
 
@@ -63,7 +63,7 @@
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Active Crops -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+            <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
                         <span class="text-2xl">🌾</span>
@@ -78,7 +78,7 @@
             </div>
 
             <!-- Upcoming Irrigations -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+            <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
                         <span class="text-2xl">💧</span>
@@ -93,7 +93,7 @@
             </div>
 
             <!-- Market Prices Tracked -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+            <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
                         <span class="text-2xl">💰</span>
@@ -108,7 +108,7 @@
             </div>
 
             <!-- Weather Status -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+            <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
                         <span class="text-2xl">🌤️</span>
@@ -134,7 +134,7 @@
         </div>
 
         <!-- Active Crops List -->
-        <div class="bg-white dark:bg-slate-800 shadow rounded-lg mb-8">
+        <div class="bg-white shadow rounded-lg mb-8">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900">Active Crop Cycles</h2>
             </div>
@@ -178,7 +178,7 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="#" class="bg-white dark:bg-slate-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">📸</span>
                     <div>
@@ -188,7 +188,7 @@
                 </div>
             </a>
 
-            <a href="#" class="bg-white dark:bg-slate-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">💧</span>
                     <div>
@@ -198,7 +198,7 @@
                 </div>
             </a>
 
-            <a href="#" class="bg-white dark:bg-slate-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <a href="#" class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center">
                     <span class="text-3xl mr-4">💰</span>
                     <div>

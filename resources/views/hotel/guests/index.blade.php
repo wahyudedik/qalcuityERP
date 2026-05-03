@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Guests</x-slot>
 
     <x-slot name="pageHeader">
@@ -12,25 +12,25 @@
     </x-slot>
 
     {{-- Search Bar --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search by name, email, or phone..."
-                class="flex-1 min-w-[250px] px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-1 min-w-[250px] px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Search</button>
             @if (request('search'))
                 <a href="{{ route('hotel.guests.index') }}"
-                    class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Clear</a>
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Clear</a>
             @endif
         </form>
     </div>
 
     {{-- Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Name</th>
                         <th class="px-4 py-3 text-left hidden md:table-cell">Email</th>
@@ -42,42 +42,42 @@
                         <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($guests as $guest)
                         @php
                             $vipColor = match ($guest->vip_level) {
                                 'platinum'
-                                    => 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400',
-                                'gold' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-                                'silver' => 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400',
-                                default => 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400',
+                                    => 'bg-purple-100 text-purple-700',
+                                'gold' => 'bg-yellow-100 text-yellow-700',
+                                'silver' => 'bg-slate-100 text-slate-600',
+                                default => 'bg-gray-100 text-gray-500',
                             };
                         @endphp
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-600 dark:text-blue-400">
+                                        class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
                                         {{ substr($guest->name ?? '?', 0, 1) }}
                                     </div>
                                     <div>
                                         <a href="{{ route('hotel.guests.show', $guest) }}"
-                                            class="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+                                            class="font-medium text-gray-900 hover:text-blue-600">
                                             {{ $guest->name }}
                                         </a>
-                                        <p class="text-xs text-gray-500 dark:text-slate-400">{{ $guest->guest_code }}
+                                        <p class="text-xs text-gray-500">{{ $guest->guest_code }}
                                         </p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 hidden md:table-cell text-gray-600 dark:text-slate-400">
+                            <td class="px-4 py-3 hidden md:table-cell text-gray-600">
                                 {{ $guest->email ?? '—' }}</td>
-                            <td class="px-4 py-3 hidden sm:table-cell text-gray-600 dark:text-slate-400">
+                            <td class="px-4 py-3 hidden sm:table-cell text-gray-600">
                                 {{ $guest->phone ?? '—' }}</td>
                             <td class="px-4 py-3 hidden lg:table-cell">
-                                <p class="text-gray-600 dark:text-slate-400">
+                                <p class="text-gray-600">
                                     {{ $guest->id_type ? strtoupper($guest->id_type) : '—' }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-500">{{ $guest->id_number ?? '' }}</p>
+                                <p class="text-xs text-gray-500">{{ $guest->id_number ?? '' }}</p>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $vipColor }}">
@@ -86,15 +86,15 @@
                             </td>
                             <td class="px-4 py-3 text-center hidden md:table-cell">
                                 <span
-                                    class="font-medium text-gray-900 dark:text-white">{{ $guest->total_stays ?? 0 }}</span>
+                                    class="font-medium text-gray-900">{{ $guest->total_stays ?? 0 }}</span>
                             </td>
-                            <td class="px-4 py-3 hidden lg:table-cell text-gray-600 dark:text-slate-400">
+                            <td class="px-4 py-3 hidden lg:table-cell text-gray-600">
                                 {{ $guest->last_stay_date ? \Carbon\Carbon::parse($guest->last_stay_date)->format('d M Y') : '—' }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="{{ route('hotel.guests.show', $guest) }}"
-                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50"
                                         title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +105,7 @@
                                     </a>
                                     <button
                                         onclick="openEditGuest({{ $guest->id }}, @json($guest->name), @json($guest->email ?? ''), @json($guest->phone ?? ''), @json($guest->id_type ?? ''), @json($guest->id_number ?? ''), @json($guest->address ?? ''), @json($guest->city ?? ''), @json($guest->country ?? ''), @json($guest->nationality ?? ''), @json($guest->date_of_birth ?? ''), @json($guest->vip_level ?? 'regular'), @json($guest->notes ?? ''))"
-                                        class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                         title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,7 +116,7 @@
                                         onsubmit="return confirm('Delete this guest?')">
                                         @csrf @method('DELETE')
                                         <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Delete">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -130,7 +130,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                            <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                                 No guests found. <button
                                     onclick="document.getElementById('modal-add-guest').classList.remove('hidden')"
                                     class="text-blue-500 hover:underline">Add your first guest</button>
@@ -141,42 +141,42 @@
             </table>
         </div>
         @if ($guests->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $guests->links() }}</div>
+            <div class="px-4 py-3 border-t border-gray-100">{{ $guests->links() }}</div>
         @endif
     </div>
 
     {{-- Add Guest Modal --}}
     <div id="modal-add-guest" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Add New Guest</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Add New Guest</h3>
                 <button onclick="document.getElementById('modal-add-guest').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('hotel.guests.store') }}" class="p-6 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Full Name
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Full Name
                             *</label>
                         <input type="text" name="name" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Email</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
                         <input type="email" name="email"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Phone</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
                         <input type="tel" name="phone"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">ID Type</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">ID Type</label>
                         <select name="id_type"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select...</option>
                             <option value="ktp">KTP</option>
                             <option value="passport">Passport</option>
@@ -186,48 +186,48 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">ID
+                        <label class="block text-xs font-medium text-gray-600 mb-1">ID
                             Number</label>
                         <input type="text" name="id_number"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Date of
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Date of
                             Birth</label>
                         <input type="date" name="date_of_birth"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label
-                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nationality</label>
+                            class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
                         <input type="text" name="nationality" placeholder="e.g. Indonesian"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Address</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Address</label>
                         <textarea name="address" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">City</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">City</label>
                         <input type="text" name="city"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Country</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
                         <input type="text" name="country" placeholder="e.g. Indonesia"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Notes</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                         <textarea name="notes" rows="2" placeholder="Special preferences, notes for future stays..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button"
                         onclick="document.getElementById('modal-add-guest').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Cancel</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Add
                         Guest</button>
@@ -238,36 +238,36 @@
 
     {{-- Edit Guest Modal --}}
     <div id="modal-edit-guest" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Edit Guest</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Edit Guest</h3>
                 <button onclick="document.getElementById('modal-edit-guest').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-edit-guest" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Full Name
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Full Name
                             *</label>
                         <input type="text" id="edit-name" name="name" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Email</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
                         <input type="email" id="edit-email" name="email"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Phone</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
                         <input type="tel" id="edit-phone" name="phone"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">ID Type</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">ID Type</label>
                         <select id="edit-id-type" name="id_type"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select...</option>
                             <option value="ktp">KTP</option>
                             <option value="passport">Passport</option>
@@ -277,43 +277,43 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">ID
+                        <label class="block text-xs font-medium text-gray-600 mb-1">ID
                             Number</label>
                         <input type="text" id="edit-id-number" name="id_number"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Date of
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Date of
                             Birth</label>
                         <input type="date" id="edit-dob" name="date_of_birth"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label
-                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nationality</label>
+                            class="block text-xs font-medium text-gray-600 mb-1">Nationality</label>
                         <input type="text" id="edit-nationality" name="nationality"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Address</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Address</label>
                         <textarea id="edit-address" name="address" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">City</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">City</label>
                         <input type="text" id="edit-city" name="city"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Country</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
                         <input type="text" id="edit-country" name="country"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">VIP
+                        <label class="block text-xs font-medium text-gray-600 mb-1">VIP
                             Level</label>
                         <select id="edit-vip" name="vip_level"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="regular">Regular</option>
                             <option value="silver">Silver</option>
                             <option value="gold">Gold</option>
@@ -321,15 +321,15 @@
                         </select>
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Notes</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                         <textarea id="edit-notes" name="notes" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button"
                         onclick="document.getElementById('modal-edit-guest').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Cancel</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Update
                         Guest</button>

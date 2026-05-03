@@ -242,4 +242,12 @@ class LivestockHerd extends Model
         $count = self::where('tenant_id', $tenantId)->count() + 1;
         return $prefix . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Scope for active herds
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
 }

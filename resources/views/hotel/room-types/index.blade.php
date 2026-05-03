@@ -1,12 +1,12 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Room Types</x-slot>
 
     <div x-data="roomTypeManager()" class="space-y-6">
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Room Types</h2>
-                <p class="text-sm text-gray-500 dark:text-slate-400">Define room categories and pricing</p>
+                <h2 class="text-lg font-semibold text-gray-900">Room Types</h2>
+                <p class="text-sm text-gray-500">Define room categories and pricing</p>
             </div>
             <button @click="openAddModal"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -18,10 +18,10 @@
         </div>
 
         {{-- Room Types Table --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left">Room Type</th>
                             <th class="px-4 py-3 text-left hidden sm:table-cell">Code</th>
@@ -33,63 +33,63 @@
                             <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         @forelse ($roomTypes as $rt)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 dark:text-white">{{ $rt->name }}</p>
+                                    <p class="font-medium text-gray-900">{{ $rt->name }}</p>
                                     @if ($rt->description)
-                                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                                        <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">
                                             {{ Str::limit($rt->description, 50) }}</p>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 hidden sm:table-cell">
                                     <span
-                                        class="px-2 py-0.5 text-xs font-mono bg-gray-100 dark:bg-white/10 rounded text-gray-600 dark:text-slate-400">
+                                        class="px-2 py-0.5 text-xs font-mono bg-gray-100 rounded text-gray-600">
                                         {{ $rt->code }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                                <td class="px-4 py-3 text-right font-medium text-gray-900">
                                     Rp {{ number_format($rt->base_rate, 0, ',', '.') }}
                                 </td>
                                 <td
-                                    class="px-4 py-3 text-center hidden md:table-cell text-gray-600 dark:text-slate-300">
+                                    class="px-4 py-3 text-center hidden md:table-cell text-gray-600">
                                     <span class="text-sm">{{ $rt->base_occupancy ?? 1 }}</span>
                                     @if ($rt->max_occupancy && $rt->max_occupancy > $rt->base_occupancy)
-                                        <span class="text-gray-400 dark:text-slate-500">-
+                                        <span class="text-gray-400">-
                                             {{ $rt->max_occupancy }}</span>
                                     @endif
-                                    <span class="text-xs text-gray-400 dark:text-slate-500 ml-1">guests</span>
+                                    <span class="text-xs text-gray-400 ml-1">guests</span>
                                 </td>
                                 <td class="px-4 py-3 hidden lg:table-cell">
                                     <div class="flex flex-wrap gap-1">
                                         @foreach ($rt->amenities ?? [] as $amenity)
                                             <span
-                                                class="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full">
+                                                class="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
                                                 {{ $amenity }}
                                             </span>
                                         @endforeach
                                         @if (empty($rt->amenities) || count($rt->amenities) === 0)
-                                            <span class="text-xs text-gray-400 dark:text-slate-500">-</span>
+                                            <span class="text-xs text-gray-400">-</span>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span
-                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 text-sm font-medium text-gray-700 dark:text-slate-300">
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm font-medium text-gray-700">
                                         {{ $rt->rooms_count }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span
-                                        class="px-2 py-0.5 rounded-full text-xs {{ $rt->is_active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' }}">
+                                        class="px-2 py-0.5 rounded-full text-xs {{ $rt->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                                         {{ $rt->is_active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center gap-1">
                                         <button @click="openEditModal({{ $rt->id }})"
-                                            class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                            class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                             title="Edit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -101,7 +101,7 @@
                                             class="inline" onsubmit="return confirm('Delete this room type?')">
                                             @csrf @method('DELETE')
                                             <button type="submit"
-                                                class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                                 title="Delete">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -116,7 +116,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                                <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                                     No room types defined yet. <button @click="openAddModal"
                                         class="text-blue-500 hover:underline">Create the first one</button>
                                 </td>
@@ -133,16 +133,16 @@
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div @click.away="showModal = false"
-                class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto"
+                class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto"
                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100">
 
                 {{-- Modal Header --}}
                 <div
-                    class="sticky top-0 bg-white dark:bg-[#1e293b] flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                    <h3 class="font-semibold text-gray-900 dark:text-white"
+                    class="sticky top-0 bg-white flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-900"
                         x-text="isEdit ? 'Edit Room Type' : 'Add Room Type'"></h3>
-                    <button @click="showModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -161,58 +161,58 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Name
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Name
                                 *</label>
                             <input type="text" name="name" x-model="form.name" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g. Deluxe Suite">
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Code
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Code
                                 *</label>
                             <input type="text" name="code" x-model="form.code" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="e.g. DLX">
                         </div>
 
                         <div class="sm:col-span-2">
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Description</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Description</label>
                             <textarea name="description" x-model="form.description" rows="2"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                                 placeholder="Brief description..."></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Base
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Base
                                 Occupancy</label>
                             <input type="number" name="base_occupancy" x-model="form.base_occupancy" min="1"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Max
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Max
                                 Occupancy</label>
                             <input type="number" name="max_occupancy" x-model="form.max_occupancy" min="1"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
 
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Base Rate
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Base Rate
                                 (IDR) *</label>
                             <input type="number" name="base_rate" x-model="form.base_rate" min="0"
                                 step="1000" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
 
                         <div class="sm:col-span-2">
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Amenities</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Amenities</label>
                             <div class="flex flex-wrap gap-2 mb-2">
                                 <template x-for="(amenity, index) in form.amenities" :key="index">
                                     <span
-                                        class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full">
+                                        class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
                                         <span x-text="amenity"></span>
                                         <button type="button" @click="form.amenities.splice(index, 1)"
                                             class="hover:text-red-500">
@@ -227,10 +227,10 @@
                             </div>
                             <div class="flex gap-2">
                                 <input type="text" x-model="newAmenity" @keyup.enter="addAmenity"
-                                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                                     placeholder="Add amenity...">
                                 <button type="button" @click="addAmenity"
-                                    class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                                    class="px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                                     Add
                                 </button>
                             </div>
@@ -242,15 +242,15 @@
 
                         <div class="sm:col-span-2 flex items-center gap-2" x-show="isEdit">
                             <input type="checkbox" name="is_active" id="rt_is_active" value="1"
-                                x-model="form.is_active" class="rounded border-gray-300 dark:border-white/20">
-                            <label for="rt_is_active" class="text-sm text-gray-700 dark:text-slate-300">Room type is
+                                x-model="form.is_active" class="rounded border-gray-300">
+                            <label for="rt_is_active" class="text-sm text-gray-700">Room type is
                                 active</label>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-2">
                         <button type="button" @click="showModal = false"
-                            class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                            class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                             Cancel
                         </button>
                         <button type="submit"

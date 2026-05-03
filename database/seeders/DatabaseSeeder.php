@@ -25,6 +25,11 @@ class DatabaseSeeder extends Seeder
             SampleDataTemplateSeeder::class,
         ]);
 
+        // 3. AI Use Case Routing Rules (default global rules)
+        $this->call([
+            AiUseCaseRouteSeeder::class,
+        ]);
+
         // 2. Complete Demo Data (all modules included)
         // $this->call([
         //     TenantDemoSeeder::class,

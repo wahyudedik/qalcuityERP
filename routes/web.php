@@ -436,11 +436,37 @@ Route::middleware('auth')->group(function () {
         Route::put('/settings', [SuperAdminSystemSettingsController::class, 'update'])->name('settings.update');
         Route::post('/settings/test-mail', [SuperAdminSystemSettingsController::class, 'testMail'])->name('settings.test-mail');
         Route::post('/settings/test-gemini-api-key', [SuperAdminSystemSettingsController::class, 'testGeminiApiKey'])->name('settings.test-gemini-api-key');
-        Route::post('/settings/regenerate-vapid', [SuperAdminSystemSettingsController::class, 'regenerateVapid'])->name('settings.regenerate-vapid');
+        Route::post('/settings/regenerate-vapid/{environment}', [SuperAdminSystemSettingsController::class, 'regenerateVapid'])
+            ->whereIn('environment', ['development', 'production'])
+            ->name('settings.regenerate-vapid');
+
+        // AI Provider Settings (Requirements 4.1–4.9)
+        Route::post('/settings/ai-provider', [SuperAdminSystemSettingsController::class, 'saveAiProviderSettings'])->name('settings.ai-provider.save');
+        Route::get('/settings/ai-provider/status', [SuperAdminSystemSettingsController::class, 'getAiProviderStatus'])->name('settings.ai-provider.status');
+        Route::post('/ai-provider/test-connection', [SuperAdminSystemSettingsController::class, 'testAiProviderConnection'])->name('ai-provider.test-connection');
 
         // AI Model Monitoring
         Route::get('/ai-model', [AiModelController::class, 'index'])->name('ai-model.index');
         Route::post('/ai-model/reset', [AiModelController::class, 'reset'])->name('ai-model.reset');
+
+        // AI Routing Management (Requirements 4.1–4.8, 11.5, 11.6)
+        Route::prefix('ai')->name('ai.')->group(function () {
+            // Routing Rules CRUD
+            Route::get('/routing', [\App\Http\Controllers\SuperAdmin\AiRoutingController::class, 'index'])->name('routing.index');
+            Route::get('/routing/{route}/edit', [\App\Http\Controllers\SuperAdmin\AiRoutingController::class, 'edit'])->name('routing.edit');
+            Route::put('/routing/{route}', [\App\Http\Controllers\SuperAdmin\AiRoutingController::class, 'update'])->name('routing.update');
+            Route::post('/routing', [\App\Http\Controllers\SuperAdmin\AiRoutingController::class, 'store'])->name('routing.store');
+            Route::post('/routing/reset', [\App\Http\Controllers\SuperAdmin\AiRoutingController::class, 'resetToDefault'])->name('routing.reset');
+
+            // Monitoring Dashboard (Requirements 10.1, 10.2, 10.5, 10.8)
+            Route::get('/monitor', [\App\Http\Controllers\SuperAdmin\AiRoutingMonitorController::class, 'index'])->name('monitor.index');
+            Route::get('/routing-stats', [\App\Http\Controllers\SuperAdmin\AiRoutingMonitorController::class, 'stats'])->name('routing-stats');
+
+            // Cost Reporting (Requirements 6.7, 6.9, 10.4)
+            Route::get('/cost-report', [\App\Http\Controllers\SuperAdmin\AiCostReportController::class, 'report'])->name('cost-report');
+            Route::get('/cost', [\App\Http\Controllers\SuperAdmin\AiCostReportController::class, 'index'])->name('cost.index');
+            Route::get('/cost/top-use-cases', [\App\Http\Controllers\SuperAdmin\AiCostReportController::class, 'topUseCases'])->name('cost.top-use-cases');
+        });
     });
 
     // Subscription info (tenant only)
@@ -658,6 +684,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'index'])->name('index');
         Route::put('/', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'update'])->name('update');
         Route::post('/test-fonnte', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'testFonnte'])->name('test-fonnte');
+    });
+
+    // Tenant AI Provider Settings (Requirements 5.1–5.8)
+    Route::prefix('settings/ai-provider')->name('settings.ai-provider.')->middleware('role:admin')->group(function () {
+        Route::post('/', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'saveAiProviderSettings'])->name('save');
+        Route::get('/status', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'getAiProviderStatus'])->name('status');
+        Route::post('/test-connection', [\App\Http\Controllers\TenantIntegrationSettingsController::class, 'testAiProviderConnection'])->name('test-connection');
+    });
+
+    // Tenant AI Routing Settings (Requirements 5.1–5.8, Task 13)
+    Route::prefix('settings/ai-routing')->name('settings.ai-routing.')->middleware('role:admin')->group(function () {
+        Route::get('/', [\App\Http\Controllers\TenantAiRoutingController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\TenantAiRoutingController::class, 'store'])->name('store');
+        Route::delete('/{route}', [\App\Http\Controllers\TenantAiRoutingController::class, 'destroy'])->name('destroy');
     });
 
     // Tax Management (admin only)
@@ -1039,22 +1079,22 @@ Route::prefix('printing')->name('printing.')->middleware(['auth', 'tenant.isolat
     Route::get('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'index'])->name('dashboard');
     Route::get('/create', [\App\Http\Controllers\Printing\PrintJobController::class, 'create'])->name('create');
     Route::post('/', [\App\Http\Controllers\Printing\PrintJobController::class, 'store'])->name('store');
-    Route::get('/{id}', [\App\Http\Controllers\Printing\PrintJobController::class, 'show'])->name('show');
 
+    // Static routes MUST be defined before wildcard {id} routes
+    Route::get('/estimates', [\App\Http\Controllers\Printing\PrintJobController::class, 'estimates'])->name('estimates');
+    Route::post('/estimate', [\App\Http\Controllers\Printing\PrintJobController::class, 'generateEstimate'])->name('estimate.create');
+    Route::get('/web-orders', [\App\Http\Controllers\Printing\PrintJobController::class, 'webOrders'])->name('web-orders');
+
+    Route::post('/press-runs/{runId}/production', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateProduction'])->name('update-production');
+
+    // Wildcard {id} routes after static routes
+    Route::get('/{id}', [\App\Http\Controllers\Printing\PrintJobController::class, 'show'])->name('show');
     Route::post('/{id}/status', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateStatus'])->name('status');
     Route::post('/{id}/assign', [\App\Http\Controllers\Printing\PrintJobController::class, 'assignOperator'])->name('assign');
     Route::post('/{id}/approve-proof', [\App\Http\Controllers\Printing\PrintJobController::class, 'approveProof'])->name('approve-proof');
-
     Route::get('/{id}/press-run', [\App\Http\Controllers\Printing\PrintJobController::class, 'trackPressRun'])->name('press-tracking');
     Route::post('/{id}/start-press', [\App\Http\Controllers\Printing\PrintJobController::class, 'startPressRun'])->name('start-press');
-    Route::post('/press-runs/{runId}/production', [\App\Http\Controllers\Printing\PrintJobController::class, 'updateProduction'])->name('update-production');
-
     Route::get('/{id}/finishing', [\App\Http\Controllers\Printing\PrintJobController::class, 'finishingView'])->name('finishing');
-
-    Route::get('/estimates', [\App\Http\Controllers\Printing\PrintJobController::class, 'estimates'])->name('estimates');
-    Route::post('/estimate', [\App\Http\Controllers\Printing\PrintJobController::class, 'generateEstimate'])->name('estimate.create');
-
-    Route::get('/web-orders', [\App\Http\Controllers\Printing\PrintJobController::class, 'webOrders'])->name('web-orders');
 });
 
 // Tour & Travel Module
@@ -1112,6 +1152,7 @@ Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middlewa
     Route::prefix('breeding')->name('breeding.')->group(function () {
         Route::get('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'index'])->name('records');
         Route::post('/records', [\App\Http\Controllers\Livestock\BreedingController::class, 'store'])->name('records.store');
+        Route::patch('/records/{id}/status', [\App\Http\Controllers\Livestock\BreedingController::class, 'updateStatus'])->name('records.status');
         Route::get('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'pedigrees'])->name('pedigrees');
         Route::post('/pedigrees', [\App\Http\Controllers\Livestock\BreedingController::class, 'storePedigree'])->name('pedigrees.store');
     });
@@ -1130,6 +1171,7 @@ Route::prefix('livestock-enhancement')->name('livestock-enhancement.')->middlewa
         Route::post('/logs', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'store'])->name('logs.store');
         Route::get('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'composting'])->name('composting');
         Route::post('/composting', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'storeBatch'])->name('composting.store');
+        Route::put('/composting/{id}', [\App\Http\Controllers\Livestock\WasteManagementController::class, 'updateBatch'])->name('composting.update');
     });
 });
 
@@ -1446,7 +1488,7 @@ Route::prefix('iot')->name('iot.')->middleware(['role:admin,manager', 'tenant.is
 });
 
 // CRM (admin + manager only)
-Route::prefix('crm')->name('crm.')->middleware(['role:admin,manager', 'tenant.isolation'])->group(function () {
+Route::prefix('crm')->name('crm.')->middleware(['role:admin,manager', 'tenant.isolation', 'check.module.plan:crm'])->group(function () {
     Route::get('/', [CrmController::class, 'index'])->name('index');
     Route::get('/kanban', [CrmController::class, 'kanban'])->name('kanban');
     Route::post('/', [CrmController::class, 'store'])->name('store');
@@ -3470,7 +3512,11 @@ Route::prefix('portal')->name('customer-portal.')->middleware(['auth', 'tenant.i
         Route::get('/', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'invoices'])->name('index');
         Route::get('/{invoice}', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'showInvoice'])->name('show');
         Route::get('/{invoice}/download', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'downloadInvoice'])->name('download');
+        Route::post('/{invoice}/pay', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'payInvoice'])->name('pay');
     });
+
+    // Transactions
+    Route::get('/transactions', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'transactions'])->name('transactions.index');
 
     // Profile
     Route::post('/profile', [\App\Http\Controllers\Customer\CustomerPortalController::class, 'updateProfile'])->name('profile.update');

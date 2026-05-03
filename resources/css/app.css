@@ -14,8 +14,6 @@
 
 /* ═══════════════════════════════════════════════
    CSS Variables for third-party widget theming
-   These allow inline-styled widgets to respond to dark mode
-   without relying on Tailwind dark: prefix
 ═══════════════════════════════════════════════ */
 :root {
     --widget-bg: #ffffff;
@@ -25,24 +23,15 @@
     --widget-border: #e2e8f0;
 }
 
-.dark {
-    --widget-bg: #1e293b;
-    --widget-bg-secondary: #0f172a;
-    --widget-text: #f1f5f9;
-    --widget-text-muted: #94a3b8;
-    --widget-border: rgba(255, 255, 255, 0.08);
-}
-
 /* ═══════════════════════════════════════════════
-   BUG-1.10 FIX: Dark mode styles for form elements
-   Applies dark background/text to all inputs, selects, textareas
-   that don't already have explicit dark: classes.
+   Base styles for form elements
+   Applies background/text to all inputs, selects, textareas.
 ═══════════════════════════════════════════════ */
 @layer base {
 
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
     select,
     textarea {
-        @apply bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-slate-600 focus:ring-blue-500 dark:focus:ring-blue-400 placeholder:text-gray-400 dark:placeholder:text-slate-500;
+        @apply bg-white text-gray-900 border-gray-300 focus:ring-blue-500 placeholder:text-gray-400;
     }
 }

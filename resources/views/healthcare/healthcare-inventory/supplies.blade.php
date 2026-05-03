@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Manajemen Supplies Medis</x-slot>
 
     @php $tid = auth()->user()->tenant_id; @endphp
@@ -19,37 +19,37 @@
                 ->get()
                 ->sum(fn($item) => $item->current_stock * $item->unit_cost);
         @endphp
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Supplies</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($totalSupplies) }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Supplies</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($totalSupplies) }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Stok Menipis</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ $lowStockSupplies }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Stok Menipis</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">{{ $lowStockSupplies }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Habis</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ $outOfStock }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Habis</p>
+            <p class="text-2xl font-bold text-red-600 mt-1">{{ $outOfStock }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Critical Items</p>
-            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">{{ $criticalItems }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Critical Items</p>
+            <p class="text-2xl font-bold text-orange-600 mt-1">{{ $criticalItems }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Nilai Inventori</p>
-            <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">Rp
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Nilai Inventori</p>
+            <p class="text-lg font-bold text-blue-600 mt-1">Rp
                 {{ number_format($totalValue, 0, ',', '.') }}</p>
         </div>
     </div>
 
     {{-- Filters --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="p-4">
             <form method="GET" class="flex flex-col lg:flex-row gap-3">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari supply / SKU..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="category"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Kategori</option>
                     <option value="surgical" @selected(request('category') === 'surgical')>Surgical</option>
                     <option value="diagnostic" @selected(request('category') === 'diagnostic')>Diagnostic</option>
@@ -58,7 +58,7 @@
                     <option value="equipment" @selected(request('category') === 'equipment')>Equipment</option>
                 </select>
                 <select name="stock_status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="available" @selected(request('stock_status') === 'available')>Available</option>
                     <option value="low" @selected(request('stock_status') === 'low')>Low Stock</option>
@@ -72,10 +72,10 @@
     </div>
 
     {{-- Supplies Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">SKU</th>
                         <th class="px-4 py-3 text-left">Nama Supply</th>
@@ -88,33 +88,33 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($supplies ?? [] as $supply)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-xs text-gray-600 dark:text-slate-300">{{ $supply->sku ?? '-' }}</span>
+                                    class="font-mono text-xs text-gray-600">{{ $supply->sku ?? '-' }}</span>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">{{ $supply->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">{{ $supply->supplier ?? '-' }}</p>
+                                <p class="font-medium text-gray-900">{{ $supply->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $supply->supplier ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">
                                     {{ ucfirst($supply->category ?? '-') }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="font-bold text-gray-900 dark:text-white">{{ $supply->current_stock }}</span>
-                                <span class="text-xs text-gray-500 dark:text-slate-400">{{ $supply->unit }}</span>
+                                    class="font-bold text-gray-900">{{ $supply->current_stock }}</span>
+                                <span class="text-xs text-gray-500">{{ $supply->unit }}</span>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
-                                <span class="text-gray-600 dark:text-slate-300">{{ $supply->reorder_level }}</span>
+                                <span class="text-gray-600">{{ $supply->reorder_level }}</span>
                             </td>
                             <td class="px-4 py-3 text-right hidden lg:table-cell">
-                                <span class="text-gray-900 dark:text-white">Rp
+                                <span class="text-gray-900">Rp
                                     {{ number_format($supply->unit_cost, 0, ',', '.') }}</span>
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
@@ -131,22 +131,22 @@
                             <td class="px-4 py-3 text-center">
                                 @if ($supply->current_stock == 0)
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Out</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Out</span>
                                 @elseif($supply->is_critical && $supply->current_stock <= $supply->reorder_level)
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Critical</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700">Critical</span>
                                 @elseif($supply->current_stock <= $supply->reorder_level)
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Low</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">Low</span>
                                 @else
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Available</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Available</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.inventory.supplies.show', $supply) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -157,7 +157,7 @@
                                         </svg>
                                     </a>
                                     <a href="{{ route('healthcare.inventory.supplies.edit', $supply) }}"
-                                        class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                        class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                         title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -171,7 +171,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada data supplies</p>
                             </td>
                         </tr>
@@ -181,7 +181,7 @@
         </div>
 
         @if (isset($supplies) && $supplies->hasPages())
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $supplies->links() }}
             </div>
         @endif

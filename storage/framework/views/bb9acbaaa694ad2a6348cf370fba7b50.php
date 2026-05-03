@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Report Expired')); ?>
 
         </h2>
@@ -17,34 +17,34 @@
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow text-center">
+            <div class="bg-white rounded-xl p-8 shadow text-center">
                 <div class="text-6xl mb-4">⏰</div>
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">
                     Report Has Expired
                 </h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                <p class="text-gray-600 mb-6">
                     The report "<strong><?php echo e($sharedReport->name); ?></strong>" is no longer available.
                 </p>
 
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6 text-left">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                    <p class="text-sm text-gray-600 mb-2">
                         <span class="font-semibold">Expired on:</span>
                         <?php echo e($sharedReport->expires_at->format('d M Y H:i')); ?>
 
                     </p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p class="text-sm text-gray-600 mb-2">
                         <span class="font-semibold">Shared by:</span>
                         <?php echo e($sharedReport->creator->name ?? 'Unknown'); ?>
 
                     </p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                    <p class="text-sm text-gray-600">
                         <span class="font-semibold">Total views:</span>
                         <?php echo e($sharedReport->access_count); ?>
 
                     </p>
                 </div>
 
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                <p class="text-sm text-gray-500 mb-6">
                     Please contact the person who shared this report if you need access.
                 </p>
 

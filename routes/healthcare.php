@@ -307,6 +307,7 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
     */
     Route::prefix('telemedicine')->name('telemedicine.')->group(function () {
         Route::get('/', [TelemedicineController::class, 'index'])->name('index');
+        Route::get('/create', [TelemedicineController::class, 'create'])->name('create');
         Route::post('/book', [TelemedicineController::class, 'book'])->name('book');
         Route::get('/consultations', [TelemedicineController::class, 'consultations'])->name('consultations');
         Route::get('/consultations/{id}', [TelemedicineController::class, 'showConsultation'])->name('consultations.show');
@@ -548,7 +549,6 @@ Route::middleware(['auth', 'verified'])->prefix('healthcare')->name('healthcare.
 
     Route::resource('patient-satisfaction', PatientSatisfactionController::class);
     Route::get('/patient-satisfaction/statistics', [PatientSatisfactionController::class, 'statistics'])->name('patient-satisfaction.statistics');
-
 });
 
 /*

@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -32,13 +32,13 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <div>
     <?php if($label): ?>
-        <label for="<?php echo e($name); ?>" class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">
+        <label for="<?php echo e($name); ?>" class="block text-xs font-medium text-gray-500 mb-1">
             <?php echo e($label); ?>
 
         </label>
     <?php endif; ?>
     <input type="<?php echo e($type); ?>" name="<?php echo e($name); ?>" id="<?php echo e($name); ?>" value="<?php echo e(old($name, $value)); ?>"
         placeholder="<?php echo e($placeholder); ?>" <?php if($required): ?> required <?php endif; ?>
-        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
 </div>
 <?php /**PATH E:\PROJEKU\qalcuityERP\resources\views\components\healthcare\filter-input.blade.php ENDPATH**/ ?>

@@ -1,6 +1,6 @@
 /**
  * ModuleLoader - Advanced Lazy Loading for ERP Modules
- * 
+ *
  * TASK-013: Implements dynamic module loading with:
  * - On-demand module loading
  * - Preloading strategies
@@ -8,7 +8,7 @@
  * - Error handling & retry logic
  * - Performance monitoring
  * - Bundle size tracking
- * 
+ *
  * @version 2.0.0
  * @author QalcuityERP Team
  */
@@ -26,7 +26,6 @@ class ModuleLoader {
         // Module definitions with import functions
         this.modules = {
             // Core modules (load immediately)
-            theme: () => import('./theme-manager.js'),
             shortcuts: () => import('./keyboard-shortcuts.js'),
             search: () => import('./quick-search.js'),
             accessibility: () => import('./accessibility.js'),
@@ -64,7 +63,6 @@ class ModuleLoader {
 
         // Module priorities (1 = highest)
         this.priorities = {
-            theme: 1,
             shortcuts: 1,
             search: 1,
             accessibility: 1,
@@ -84,7 +82,7 @@ class ModuleLoader {
 
     /**
      * Load a module dynamically
-     * 
+     *
      * @param {string} moduleName - Name of module to load
      * @param {Object} options - Loading options
      * @returns {Promise} Module exports
@@ -223,7 +221,7 @@ class ModuleLoader {
 
     /**
      * Preload modules in background
-     * 
+     *
      * @param {Array<string>} moduleNames - Modules to preload
      * @param {Object} options - Preload options
      */

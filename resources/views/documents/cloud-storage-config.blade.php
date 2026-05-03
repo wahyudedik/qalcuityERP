@@ -1,6 +1,6 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Cloud Storage Configuration') }}
         </h2>
     </x-slot>
@@ -8,13 +8,13 @@
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <!-- Storage Configurations -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Storage Providers</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Storage Providers</h3>
 
                     @forelse($configs as $config)
                         <div
-                            class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 @if ($config['is_default']) bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 @endif">
+                            class="border border-gray-200 rounded-lg p-4 mb-4 @if ($config['is_default']) bg-blue-50 border-blue-300 @endif">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center space-x-3">
                                     @if ($config['provider'] === 's3')
@@ -33,19 +33,19 @@
                                         </svg>
                                     @endif
                                     <div>
-                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                        <h4 class="text-lg font-semibold text-gray-900">
                                             {{ strtoupper($config['provider']) }}
                                             @if ($config['is_default'])
                                                 <span
                                                     class="ml-2 px-2 py-0.5 text-xs bg-blue-600 text-white rounded">Default</span>
                                             @endif
                                         </h4>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $config['bucket_name'] }}
+                                        <p class="text-sm text-gray-500">{{ $config['bucket_name'] }}
                                             - {{ $config['region'] }}</p>
                                     </div>
                                 </div>
                                 <span
-                                    class="px-2 py-1 text-xs font-semibold rounded-full {{ $config['is_active'] ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200' }}">
+                                    class="px-2 py-1 text-xs font-semibold rounded-full {{ $config['is_active'] ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
                                     {{ $config['is_active'] ? 'Active' : 'Inactive' }}
                                 </span>
                             </div>
@@ -60,24 +60,24 @@
                         </div>
                     @empty
                         <div class="text-center py-8">
-                            <p class="text-gray-500 dark:text-gray-400">No cloud storage configured</p>
+                            <p class="text-gray-500">No cloud storage configured</p>
                         </div>
                     @endforelse
                 </div>
             </div>
 
             <!-- Add New Configuration -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New Storage Provider</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Storage Provider</h3>
                     <form method="POST" action="{{ route('documents.cloud-storage.store') }}" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provider
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Provider
                                     *</label>
                                 <select name="provider" required
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Select Provider</option>
                                     <option value="s3">Amazon S3</option>
                                     <option value="gcs">Google Cloud Storage</option>
@@ -86,47 +86,47 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bucket/Container
+                                    class="block text-sm font-medium text-gray-700 mb-1">Bucket/Container
                                     Name *</label>
                                 <input type="text" name="bucket_name" required
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                             <div>
                                 <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
+                                    class="block text-sm font-medium text-gray-700 mb-1">Region</label>
                                 <input type="text" name="region"
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     placeholder="e.g., us-east-1">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Endpoint
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Endpoint
                                     (Optional)</label>
                                 <input type="url" name="endpoint"
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Access
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Access
                                     Key *</label>
                                 <input type="text" name="access_key" required
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Secret
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Secret
                                     Key *</label>
                                 <input type="password" name="secret_key" required
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                         </div>
                         <div class="space-y-2">
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="is_active" value="1" checked
                                     class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
+                                <span class="ml-2 text-sm text-gray-700">Active</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="is_default" value="1"
                                     class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Set as default
+                                <span class="ml-2 text-sm text-gray-700">Set as default
                                     storage</span>
                             </label>
                         </div>

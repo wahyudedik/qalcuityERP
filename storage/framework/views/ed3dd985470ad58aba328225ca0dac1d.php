@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -19,7 +19,7 @@
             New Reservation
         </a>
         <a href="<?php echo e(route('hotel.reservations.calendar')); ?>"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -38,36 +38,36 @@
 
     
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Reservations</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e(number_format($totalCount)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Reservations</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e(number_format($totalCount)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Confirmed</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e(number_format($confirmedCount)); ?>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Confirmed</p>
+            <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e(number_format($confirmedCount)); ?>
 
             </p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Checked In</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e(number_format($checkedInCount)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Checked In</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e(number_format($checkedInCount)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Pending</p>
-            <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1"><?php echo e(number_format($pendingCount)); ?>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Pending</p>
+            <p class="text-2xl font-bold text-yellow-600 mt-1"><?php echo e(number_format($pendingCount)); ?>
 
             </p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 p-4">
             <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                 placeholder="Search guest name or reservation #..."
-                class="flex-1 min-w-[200px] px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-1 min-w-[200px] px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <select name="status"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">All Statuses</option>
                 <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($s); ?>" <?php if(request('status') === $s): echo 'selected'; endif; ?>>
@@ -75,7 +75,7 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
             <select name="source"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">All Sources</option>
                 <?php $__currentLoopData = $sources; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $src): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($src); ?>" <?php if(request('source') === $src): echo 'selected'; endif; ?>>
@@ -84,25 +84,25 @@
             </select>
             <div class="flex items-center gap-2">
                 <input type="date" name="date_from" value="<?php echo e(request('date_from')); ?>" placeholder="Check-in from"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <span class="text-gray-400 text-sm">—</span>
                 <input type="date" name="date_to" value="<?php echo e(request('date_to')); ?>" placeholder="Check-out to"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <button type="submit"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Filter</button>
             <?php if(request()->anyFilled(['search', 'status', 'source', 'date_from', 'date_to'])): ?>
                 <a href="<?php echo e(route('hotel.reservations.index')); ?>"
-                    class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Clear</a>
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Clear</a>
             <?php endif; ?>
         </form>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Reservation #</th>
                         <th class="px-4 py-3 text-left">Guest</th>
@@ -117,20 +117,20 @@
                         <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $reservations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rsv): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
                             $nights = \Carbon\Carbon::parse($rsv->check_in_date)->diffInDays(
                                 \Carbon\Carbon::parse($rsv->check_out_date),
                             );
                             $statusColor = match ($rsv->status) {
-                                'pending' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-                                'confirmed' => 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-                                'checked_in' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-                                'checked_out' => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
-                                'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                                'no_show' => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
-                                default => 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-slate-500',
+                                'pending' => 'bg-yellow-100 text-yellow-700',
+                                'confirmed' => 'bg-green-100 text-green-700',
+                                'checked_in' => 'bg-blue-100 text-blue-700',
+                                'checked_out' => 'bg-gray-100 text-gray-600',
+                                'cancelled' => 'bg-red-100 text-red-700',
+                                'no_show' => 'bg-orange-100 text-orange-700',
+                                default => 'bg-gray-100 text-gray-500',
                             };
                             $sourceLabel = match ($rsv->source) {
                                 'direct' => 'Direct',
@@ -142,42 +142,42 @@
                                 default => ucfirst($rsv->source ?? 'Direct'),
                             };
                         ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <a href="<?php echo e(route('hotel.reservations.show', $rsv)); ?>"
-                                    class="font-mono text-blue-600 dark:text-blue-400 hover:underline text-xs">
+                                    class="font-mono text-blue-600 hover:underline text-xs">
                                     <?php echo e($rsv->reservation_number); ?>
 
                                 </a>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white"><?php echo e($rsv->guest?->name ?? '—'); ?>
+                                <p class="font-medium text-gray-900"><?php echo e($rsv->guest?->name ?? '—'); ?>
 
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($rsv->guest?->phone ?? ''); ?>
+                                <p class="text-xs text-gray-500"><?php echo e($rsv->guest?->phone ?? ''); ?>
 
                                 </p>
                             </td>
-                            <td class="px-4 py-3 hidden md:table-cell text-gray-700 dark:text-slate-300">
+                            <td class="px-4 py-3 hidden md:table-cell text-gray-700">
                                 <?php echo e($rsv->roomType?->name ?? '—'); ?></td>
-                            <td class="px-4 py-3 hidden lg:table-cell text-gray-700 dark:text-slate-300">
+                            <td class="px-4 py-3 hidden lg:table-cell text-gray-700">
                                 <?php echo e($rsv->room?->number ?? '—'); ?></td>
                             <td
-                                class="px-4 py-3 hidden sm:table-cell text-gray-600 dark:text-slate-400 whitespace-nowrap">
+                                class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
                                 <?php echo e(\Carbon\Carbon::parse($rsv->check_in_date)->format('d M Y')); ?></td>
                             <td
-                                class="px-4 py-3 hidden sm:table-cell text-gray-600 dark:text-slate-400 whitespace-nowrap">
+                                class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
                                 <?php echo e(\Carbon\Carbon::parse($rsv->check_out_date)->format('d M Y')); ?></td>
-                            <td class="px-4 py-3 text-center hidden lg:table-cell text-gray-700 dark:text-slate-300">
+                            <td class="px-4 py-3 text-center hidden lg:table-cell text-gray-700">
                                 <?php echo e($nights); ?></td>
                             <td
-                                class="px-4 py-3 text-right hidden md:table-cell font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                class="px-4 py-3 text-right hidden md:table-cell font-medium text-gray-900 whitespace-nowrap">
                                 Rp <?php echo e(number_format($rsv->grand_total ?? 0, 0, ',', '.')); ?>
 
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400"><?php echo e($sourceLabel); ?></span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700"><?php echo e($sourceLabel); ?></span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium <?php echo e($statusColor); ?>">
@@ -188,7 +188,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="<?php echo e(route('hotel.reservations.show', $rsv)); ?>"
-                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50"
                                         title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -199,7 +199,7 @@
                                         </svg>
                                     </a>
                                     <a href="<?php echo e(route('hotel.reservations.edit', $rsv)); ?>"
-                                        class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                         title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -212,7 +212,7 @@
                                             action="<?php echo e(route('hotel.reservations.confirm', $rsv)); ?>">
                                             <?php echo csrf_field(); ?>
                                             <button type="submit"
-                                                class="p-1.5 rounded-lg text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10"
+                                                class="p-1.5 rounded-lg text-green-500 hover:bg-green-50"
                                                 title="Confirm">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -227,7 +227,7 @@
                                         <form method="POST" action="<?php echo e(route('hotel.checkin.process', $rsv)); ?>">
                                             <?php echo csrf_field(); ?>
                                             <button type="submit"
-                                                class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                                                class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50"
                                                 title="Check In">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -242,7 +242,7 @@
                                         <form method="POST" action="<?php echo e(route('hotel.checkout.process', $rsv)); ?>">
                                             <?php echo csrf_field(); ?>
                                             <button type="submit"
-                                                class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10"
+                                                class="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50"
                                                 title="Check Out">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -256,7 +256,7 @@
                                     <?php if(!in_array($rsv->status, ['cancelled', 'checked_out'])): ?>
                                         <button
                                             onclick="openCancelModal(<?php echo e($rsv->id); ?>, '<?php echo e($rsv->reservation_number); ?>')"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Cancel">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -270,7 +270,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="11" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                            <td colspan="11" class="px-4 py-12 text-center text-gray-400">
                                 No reservations found. <a href="<?php echo e(route('hotel.reservations.create')); ?>"
                                     class="text-blue-500 hover:underline">Create one now.</a>
                             </td>
@@ -280,30 +280,30 @@
             </table>
         </div>
         <?php if($reservations->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($reservations->links()); ?></div>
+            <div class="px-4 py-3 border-t border-gray-100"><?php echo e($reservations->links()); ?></div>
         <?php endif; ?>
     </div>
 
     
     <div id="modal-cancel" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Cancel Reservation</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Cancel Reservation</h3>
                 <button onclick="document.getElementById('modal-cancel').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-cancel" method="POST" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
-                <p id="cancel-rsv-label" class="text-sm text-gray-600 dark:text-slate-400"></p>
+                <p id="cancel-rsv-label" class="text-sm text-gray-600"></p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Cancellation
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Cancellation
                         Reason</label>
                     <textarea name="cancel_reason" rows="3" placeholder="Optional reason..."
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('modal-cancel').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Back</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Back</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Cancel
                         Reservation</button>

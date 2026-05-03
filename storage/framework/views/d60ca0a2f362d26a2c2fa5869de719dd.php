@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -14,9 +14,9 @@
 
         
         <div
-            class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-            <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-slate-400">
-                <span><strong class="text-gray-900 dark:text-white"><?php echo e(number_format($totalLogs)); ?></strong> total
+            class="flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-gray-200 p-4">
+            <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                <span><strong class="text-gray-900"><?php echo e(number_format($totalLogs)); ?></strong> total
                     log</span>
                 <?php if($oldestLog): ?>
                     <span>Sejak <?php echo e($oldestLog->format('d M Y')); ?></span>
@@ -27,7 +27,7 @@
             <div class="flex items-center gap-2">
                 <div class="flex items-center gap-1">
                     <a href="<?php echo e(route('audit.export', array_merge(request()->only(['date_from', 'date_to', 'module']), ['format' => 'csv']))); ?>"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -35,7 +35,7 @@
                         CSV
                     </a>
                     <a href="<?php echo e(route('audit.export', array_merge(request()->only(['date_from', 'date_to', 'module']), ['format' => 'xlsx']))); ?>"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-green-300 dark:border-green-500/40 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 transition">
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-green-300 text-green-600 hover:bg-green-50 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -45,7 +45,7 @@
                 </div>
                 <?php if(in_array(auth()->user()->role, ['admin', 'manager', 'super_admin'])): ?>
                     <button onclick="openComplianceModal()"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition">
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-indigo-300 text-indigo-600 hover:bg-indigo-50 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -57,23 +57,23 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <div class="flex flex-wrap items-center gap-2 mb-3">
-                <span class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase">Quick Filter:</span>
+                <span class="text-xs font-semibold text-gray-500 uppercase">Quick Filter:</span>
                 <a href="<?php echo e(route('audit.index')); ?>"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(!request()->hasAny(['is_ai', 'action', 'user_id', 'module']) ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-white/15'); ?>">
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(!request()->hasAny(['is_ai', 'action', 'user_id', 'module']) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'); ?>">
                     Semua
                 </a>
                 <a href="<?php echo e(request()->fullUrlWithQuery(['is_ai' => '1', 'page' => null])); ?>"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('is_ai') === '1' ? 'bg-purple-600 text-white' : 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 hover:bg-purple-200'); ?>">
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('is_ai') === '1' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'); ?>">
                     🤖 AI (<?php echo e($aiCount); ?> hari ini)
                 </a>
                 <a href="<?php echo e(request()->fullUrlWithQuery(['is_ai' => '0', 'page' => null])); ?>"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('is_ai') === '0' ? 'bg-gray-600 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-white/15'); ?>">
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('is_ai') === '0' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'); ?>">
                     👤 Manual
                 </a>
                 <a href="<?php echo e(request()->fullUrlWithQuery(['action' => 'rollback', 'page' => null])); ?>"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('action') === 'rollback' ? 'bg-amber-600 text-white' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-200'); ?>">
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition <?php echo e(request('action') === 'rollback' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'); ?>">
                     ↩ Rollback
                 </a>
             </div>
@@ -82,9 +82,9 @@
                     <input type="hidden" name="is_ai" value="<?php echo e(request('is_ai')); ?>">
                 <?php endif; ?>
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari deskripsi..."
-                    class="flex-1 min-w-[150px] px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 min-w-[150px] px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="user_id"
-                    class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white">
+                    class="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900">
                     <option value="">Semua User</option>
                     <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($u->id); ?>" <?php if(request('user_id') == $u->id): echo 'selected'; endif; ?>><?php echo e($u->name); ?>
@@ -94,37 +94,37 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
                 <select name="module"
-                    class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white">
+                    class="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900">
                     <option value="">Semua Modul</option>
                     <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($m); ?>" <?php if(request('module') === $m): echo 'selected'; endif; ?>><?php echo e($m); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
                 <select name="action"
-                    class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white">
+                    class="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900">
                     <option value="">Semua Aksi</option>
                     <?php $__currentLoopData = $actions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $a): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($a); ?>" <?php if(request('action') === $a): echo 'selected'; endif; ?>><?php echo e($a); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
                 <input type="date" name="date_from" value="<?php echo e(request('date_from')); ?>"
-                    class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white">
+                    class="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900">
                 <input type="date" name="date_to" value="<?php echo e(request('date_to')); ?>"
-                    class="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white">
+                    class="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900">
                 <button type="submit"
                     class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm hover:bg-blue-700">Filter</button>
                 <?php if(request()->hasAny(['search', 'user_id', 'module', 'action', 'date_from', 'date_to', 'is_ai'])): ?>
                     <a href="<?php echo e(route('audit.index')); ?>"
-                        class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Reset</a>
+                        class="px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50">Reset</a>
                 <?php endif; ?>
             </form>
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left">Waktu</th>
                             <th class="px-4 py-3 text-left">User</th>
@@ -134,24 +134,24 @@
                             <th class="px-4 py-3 text-center">Detail</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         <?php $__empty_1 = true; $__currentLoopData = $logs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5 <?php echo e($log->is_ai_action ? 'bg-purple-50/30 dark:bg-purple-900/5' : ''); ?> <?php echo e($log->rolled_back_at ? 'opacity-60' : ''); ?>"
+                            <tr class="hover:bg-gray-50 <?php echo e($log->is_ai_action ? 'bg-purple-50/30' : ''); ?> <?php echo e($log->rolled_back_at ? 'opacity-60' : ''); ?>"
                                 id="row-<?php echo e($log->id); ?>">
-                                <td class="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                                <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
                                     <?php echo e($log->created_at->format('d/m/Y')); ?><br>
                                     <span
-                                        class="text-gray-400 dark:text-slate-500"><?php echo e($log->created_at->format('H:i:s')); ?></span>
+                                        class="text-gray-400"><?php echo e($log->created_at->format('H:i:s')); ?></span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-1.5">
                                         <span
-                                            class="w-5 h-5 rounded-full <?php echo e($log->is_ai_action ? 'bg-purple-100 dark:bg-purple-900/40' : 'bg-gray-100 dark:bg-white/10'); ?> flex items-center justify-center text-xs">
+                                            class="w-5 h-5 rounded-full <?php echo e($log->is_ai_action ? 'bg-purple-100' : 'bg-gray-100'); ?> flex items-center justify-center text-xs">
                                             <?php echo e($log->is_ai_action ? '🤖' : '👤'); ?>
 
                                         </span>
                                         <span
-                                            class="text-xs font-medium text-gray-900 dark:text-white"><?php echo e($log->user?->name ?? 'System'); ?></span>
+                                            class="text-xs font-medium text-gray-900"><?php echo e($log->user?->name ?? 'System'); ?></span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
@@ -171,21 +171,21 @@
                                         </span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-4 py-3 hidden sm:table-cell text-xs text-gray-500 dark:text-slate-400">
+                                <td class="px-4 py-3 hidden sm:table-cell text-xs text-gray-500">
                                     <?php echo e($log->model_type ? class_basename($log->model_type) : '—'); ?>
 
                                     <?php if($log->model_id): ?>
                                         <span class="text-gray-400">#<?php echo e($log->model_id); ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-4 py-3 text-xs text-gray-700 dark:text-slate-300 max-w-xs">
+                                <td class="px-4 py-3 text-xs text-gray-700 max-w-xs">
                                     <span class="line-clamp-2"><?php echo e($log->description); ?></span>
                                 </td>
                                 <td class="px-4 py-3 text-center whitespace-nowrap">
                                     <button onclick="openDetail(<?php echo e($log->id); ?>)"
                                         class="text-xs text-blue-500 hover:text-blue-400 hover:underline">Detail</button>
                                     <?php if($log->old_values || $log->new_values): ?>
-                                        <span class="text-gray-300 dark:text-slate-600 mx-0.5">·</span>
+                                        <span class="text-gray-300 mx-0.5">·</span>
                                         <button onclick="openDiff(<?php echo e($log->id); ?>)"
                                             class="text-xs text-emerald-500 hover:text-emerald-400 hover:underline">Diff</button>
                                     <?php endif; ?>
@@ -193,14 +193,14 @@
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
-                                <td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                                <td colspan="6" class="px-4 py-12 text-center text-gray-400">
                                     Tidak ada log aktivitas.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($logs->links()); ?></div>
+            <div class="px-4 py-3 border-t border-gray-100"><?php echo e($logs->links()); ?></div>
         </div>
     </div>
 
@@ -208,16 +208,16 @@
     <div id="modal-detail"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-3xl shadow-xl max-h-[90vh] flex flex-col">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-3xl shadow-xl max-h-[90vh] flex flex-col">
             
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 shrink-0">
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
                 <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm" id="detail-title">Detail Audit Log
+                    <h3 class="font-semibold text-gray-900 text-sm" id="detail-title">Detail Audit Log
                     </h3>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5" id="detail-subtitle"></p>
+                    <p class="text-xs text-gray-400 mt-0.5" id="detail-subtitle"></p>
                 </div>
-                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -226,13 +226,13 @@
             </div>
 
             
-            <div class="flex border-b border-gray-100 dark:border-white/10 px-6 shrink-0">
+            <div class="flex border-b border-gray-100 px-6 shrink-0">
                 <button onclick="showTab('diff')" id="tab-diff"
                     class="detail-tab px-4 py-2.5 text-xs font-medium border-b-2 border-blue-500 text-blue-500 -mb-px">Perubahan</button>
                 <button onclick="showTab('meta')" id="tab-meta"
-                    class="detail-tab px-4 py-2.5 text-xs font-medium border-b-2 border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white -mb-px">Metadata</button>
+                    class="detail-tab px-4 py-2.5 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px">Metadata</button>
                 <button onclick="showTab('timeline')" id="tab-timeline"
-                    class="detail-tab px-4 py-2.5 text-xs font-medium border-b-2 border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white -mb-px">Timeline</button>
+                    class="detail-tab px-4 py-2.5 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px">Timeline</button>
             </div>
 
             
@@ -248,9 +248,9 @@
             </div>
 
             
-            <div class="flex items-center justify-between px-6 py-3 border-t border-gray-100 dark:border-white/10 shrink-0"
+            <div class="flex items-center justify-between px-6 py-3 border-t border-gray-100 shrink-0"
                 id="detail-footer" style="display:none">
-                <div id="rollback-status" class="text-xs text-gray-400 dark:text-slate-500"></div>
+                <div id="rollback-status" class="text-xs text-gray-400"></div>
                 <button onclick="performRollback()" id="btn-rollback" style="display:none"
                     class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,15 +267,15 @@
     <div id="modal-compliance"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Compliance Report (SOX)</h3>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Export audit trail untuk keperluan
+                    <h3 class="font-semibold text-gray-900 text-sm">Compliance Report (SOX)</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Export audit trail untuk keperluan
                         kepatuhan / auditor eksternal</p>
                 </div>
                 <button onclick="closeComplianceModal()"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -286,24 +286,24 @@
                 class="p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Dari
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Dari
                             Tanggal</label>
                         <input type="date" name="date_from" id="compliance-date-from" required
                             value="<?php echo e(request('date_from', now()->startOfMonth()->format('Y-m-d'))); ?>"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Sampai
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Sampai
                             Tanggal</label>
                         <input type="date" name="date_to" id="compliance-date-to" required
                             value="<?php echo e(request('date_to', now()->format('Y-m-d'))); ?>"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
                 <div
-                    class="bg-indigo-50 dark:bg-indigo-500/10 rounded-xl p-3 text-xs text-indigo-700 dark:text-indigo-300 space-y-1">
+                    class="bg-indigo-50 rounded-xl p-3 text-xs text-indigo-700 space-y-1">
                     <p class="font-semibold">Format laporan mencakup:</p>
-                    <ul class="list-disc list-inside space-y-0.5 text-indigo-600 dark:text-indigo-400">
+                    <ul class="list-disc list-inside space-y-0.5 text-indigo-600">
                         <li>Semua event dengan timestamp ISO 8601</li>
                         <li>Nama user, role, dan IP address</li>
                         <li>Field yang berubah + nilai before/after (JSON)</li>
@@ -314,7 +314,7 @@
                 </div>
                 <div class="flex items-center justify-end gap-3 pt-1">
                     <button type="button" onclick="closeComplianceModal()"
-                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">
                         Batal
                     </button>
                     <button type="submit"
@@ -334,8 +334,8 @@
     <div id="modal-conflict"
         class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-amber-300 dark:border-amber-500/40 w-full max-w-lg shadow-xl">
-            <div class="px-6 py-4 border-b border-amber-100 dark:border-amber-500/20 flex items-start gap-3">
+            class="bg-white rounded-2xl border border-amber-300 w-full max-w-lg shadow-xl">
+            <div class="px-6 py-4 border-b border-amber-100 flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -343,8 +343,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-amber-700 dark:text-amber-300 text-sm">Konflik Terdeteksi</h3>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Field berikut telah diubah setelah log
+                    <h3 class="font-semibold text-amber-700 text-sm">Konflik Terdeteksi</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Field berikut telah diubah setelah log
                         ini
                         dicatat. Rollback akan menimpa perubahan terbaru.</p>
                 </div>
@@ -353,7 +353,7 @@
                 <div id="conflict-table" class="overflow-x-auto mb-5"></div>
                 <div class="flex items-center justify-end gap-3">
                     <button onclick="closeConflictModal()"
-                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        class="px-4 py-2 rounded-xl text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">
                         Batal
                     </button>
                     <button onclick="forceRollback()"
@@ -412,11 +412,11 @@
         function showTab(tab) {
             document.querySelectorAll('.detail-tab').forEach(t => {
                 t.classList.remove('border-blue-500', 'text-blue-500');
-                t.classList.add('border-transparent', 'text-gray-500', 'dark:text-slate-400');
+                t.classList.add('border-transparent', 'text-gray-500');
             });
             const active = document.getElementById('tab-' + tab);
             active.classList.add('border-blue-500', 'text-blue-500');
-            active.classList.remove('border-transparent', 'text-gray-500', 'dark:text-slate-400');
+            active.classList.remove('border-transparent', 'text-gray-500');
 
             const body = document.getElementById('detail-body');
             if (tab === 'diff') body.innerHTML = renderDiffTab(currentLogData);
@@ -562,7 +562,7 @@
         function showConflictModal(conflicts) {
             let html = `<table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-white/5">
+                    <tr class="text-gray-500 bg-gray-50">
                         <th class="text-left py-2 px-3 font-semibold rounded-tl-lg">Field</th>
                         <th class="text-left py-2 px-3 font-semibold">Dicatat (saat perubahan)</th>
                         <th class="text-left py-2 px-3 font-semibold rounded-tr-lg">Nilai Saat Ini</th>
@@ -571,8 +571,8 @@
                 <tbody>`;
 
             for (const [field, vals] of Object.entries(conflicts)) {
-                html += `<tr class="border-b border-gray-50 dark:border-white/5">
-                    <td class="py-2 px-3 font-medium text-gray-700 dark:text-slate-300">${field}</td>
+                html += `<tr class="border-b border-gray-50">
+                    <td class="py-2 px-3 font-medium text-gray-700">${field}</td>
                     <td class="py-2 px-3 text-red-500 line-through break-all">${vals.recorded_at_time_of_change ?? '—'}</td>
                     <td class="py-2 px-3 text-amber-500 font-medium break-all">${vals.current_value ?? '—'}</td>
                 </tr>`;
@@ -642,12 +642,12 @@
             let html = `<div class="overflow-x-auto">
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="text-gray-500 dark:text-slate-400">
-                        <th class="text-left py-2.5 px-3 bg-gray-50 dark:bg-white/5 rounded-tl-lg font-semibold w-1/4">Field</th>
-                        <th class="text-left py-2.5 px-3 bg-red-50 dark:bg-red-500/5 font-semibold w-[37.5%]">
+                    <tr class="text-gray-500">
+                        <th class="text-left py-2.5 px-3 bg-gray-50 rounded-tl-lg font-semibold w-1/4">Field</th>
+                        <th class="text-left py-2.5 px-3 bg-red-50 font-semibold w-[37.5%]">
                             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-400"></span>Sebelum</span>
                         </th>
-                        <th class="text-left py-2.5 px-3 bg-green-50 dark:bg-green-500/5 rounded-tr-lg font-semibold w-[37.5%]">
+                        <th class="text-left py-2.5 px-3 bg-green-50 rounded-tr-lg font-semibold w-[37.5%]">
                             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-400"></span>Sesudah</span>
                         </th>
                     </tr>
@@ -662,23 +662,23 @@
                 const isRemoved = ov !== '' && nv === '';
 
                 let rowBg = '';
-                let oldClass = 'text-gray-500 dark:text-slate-400';
-                let newClass = 'text-gray-500 dark:text-slate-400';
+                let oldClass = 'text-gray-500';
+                let newClass = 'text-gray-500';
 
                 if (changed) {
-                    rowBg = 'bg-amber-50/50 dark:bg-amber-500/5';
-                    oldClass = isRemoved ? 'text-red-500 bg-red-50 dark:bg-red-500/10 line-through rounded px-1' : (isNew ?
-                        'text-gray-300 dark:text-slate-600' :
-                        'text-red-500 bg-red-50 dark:bg-red-500/10 line-through rounded px-1');
-                    newClass = isNew ? 'text-green-600 bg-green-50 dark:bg-green-500/10 font-medium rounded px-1' : (
-                        isRemoved ? 'text-gray-300 dark:text-slate-600' :
-                        'text-green-600 bg-green-50 dark:bg-green-500/10 font-medium rounded px-1');
+                    rowBg = 'bg-amber-50/50';
+                    oldClass = isRemoved ? 'text-red-500 bg-red-50 line-through rounded px-1' : (isNew ?
+                        'text-gray-300' :
+                        'text-red-500 bg-red-50 line-through rounded px-1');
+                    newClass = isNew ? 'text-green-600 bg-green-50 font-medium rounded px-1' : (
+                        isRemoved ? 'text-gray-300' :
+                        'text-green-600 bg-green-50 font-medium rounded px-1');
                 }
 
-                html += `<tr class="${rowBg} border-b border-gray-50 dark:border-white/5">
-                <td class="py-2 px-3 font-medium text-gray-700 dark:text-slate-300 whitespace-nowrap align-top">${key} ${changed ? '<span class="text-amber-400 ml-1">●</span>' : ''}</td>
-                <td class="py-2 px-3 align-top"><span class="${oldClass} break-all">${ov || '<span class="text-gray-300 dark:text-slate-600 italic">kosong</span>'}</span></td>
-                <td class="py-2 px-3 align-top"><span class="${newClass} break-all">${nv || '<span class="text-gray-300 dark:text-slate-600 italic">kosong</span>'}</span></td>
+                html += `<tr class="${rowBg} border-b border-gray-50">
+                <td class="py-2 px-3 font-medium text-gray-700 whitespace-nowrap align-top">${key} ${changed ? '<span class="text-amber-400 ml-1">●</span>' : ''}</td>
+                <td class="py-2 px-3 align-top"><span class="${oldClass} break-all">${ov || '<span class="text-gray-300 italic">kosong</span>'}</span></td>
+                <td class="py-2 px-3 align-top"><span class="${newClass} break-all">${nv || '<span class="text-gray-300 italic">kosong</span>'}</span></td>
             </tr>`;
             }
 
@@ -686,7 +686,7 @@
 
             const changedCount = allKeys.filter(k => formatVal(oldV[k]) !== formatVal(newV[k])).length;
             html = `<div class="flex items-center gap-2 mb-3">
-            <span class="text-xs text-gray-400 dark:text-slate-500">${changedCount} field berubah dari ${allKeys.length} total</span>
+            <span class="text-xs text-gray-400">${changedCount} field berubah dari ${allKeys.length} total</span>
         </div>` + html;
 
             return html;
@@ -709,9 +709,9 @@
 
             let html = '<div class="space-y-2">';
             for (const [label, value] of rows) {
-                html += `<div class="flex items-start gap-3 py-2 border-b border-gray-50 dark:border-white/5">
-                <span class="text-xs font-medium text-gray-500 dark:text-slate-400 w-28 shrink-0">${label}</span>
-                <span class="text-xs text-gray-900 dark:text-white break-all">${value ?? '—'}</span>
+                html += `<div class="flex items-start gap-3 py-2 border-b border-gray-50">
+                <span class="text-xs font-medium text-gray-500 w-28 shrink-0">${label}</span>
+                <span class="text-xs text-gray-900 break-all">${value ?? '—'}</span>
             </div>`;
             }
             html += '</div>';
@@ -723,22 +723,22 @@
                 return '<p class="text-sm text-gray-400 text-center py-8">Tidak ada timeline untuk entry ini.</p>';
 
             let html = '<div class="relative pl-6">';
-            html += '<div class="absolute left-2 top-0 bottom-0 w-px bg-gray-200 dark:bg-white/10"></div>';
+            html += '<div class="absolute left-2 top-0 bottom-0 w-px bg-gray-200"></div>';
 
             for (const t of data.timeline) {
                 const active = t.is_current;
                 const dotClass = active ? 'bg-blue-500 ring-2 ring-blue-500/30' : (t.has_diff ? 'bg-emerald-500' :
-                    'bg-gray-300 dark:bg-slate-600');
+                    'bg-gray-300');
 
                 html += `<div class="relative flex items-start gap-3 pb-4 ${active ? '' : 'opacity-70'}">
                 <div class="absolute left-[-16px] top-1 w-2.5 h-2.5 rounded-full ${dotClass}"></div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-medium text-gray-900 dark:text-white">${t.action}</span>
+                        <span class="text-xs font-medium text-gray-900">${t.action}</span>
                         ${active ? '<span class="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full">current</span>' : ''}
                         ${t.has_diff ? `<button onclick="openDetail(${t.id})" class="text-xs text-blue-400 hover:underline">lihat</button>` : ''}
                     </div>
-                    <p class="text-xs text-gray-400 dark:text-slate-500">${t.user_name} · ${t.created_at}</p>
+                    <p class="text-xs text-gray-400">${t.user_name} · ${t.created_at}</p>
                 </div>
             </div>`;
             }
@@ -749,9 +749,9 @@
 
         function renderSection(title, data) {
             if (!data || Object.keys(data).length === 0) return '';
-            let html = `<p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-2">${title}</p>`;
+            let html = `<p class="text-xs font-semibold text-gray-500 uppercase mb-2">${title}</p>`;
             html +=
-                '<div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3 mb-4 font-mono text-xs text-gray-700 dark:text-slate-300 overflow-auto max-h-48">';
+                '<div class="bg-gray-50 rounded-xl p-3 mb-4 font-mono text-xs text-gray-700 overflow-auto max-h-48">';
             html += '<pre>' + JSON.stringify(data, null, 2) + '</pre></div>';
             return html;
         }

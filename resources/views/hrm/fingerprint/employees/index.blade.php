@@ -1,40 +1,40 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Status Fingerprint Karyawan')
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Status Fingerprint Karyawan</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Kelola registrasi fingerprint untuk semua karyawan</p>
+            <h1 class="text-2xl font-bold text-gray-800">Status Fingerprint Karyawan</h1>
+            <p class="text-sm text-gray-600 mt-1">Kelola registrasi fingerprint untuk semua karyawan</p>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Karyawan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Jabatan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Departemen</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Status Fingerprint</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Aksi
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-gray-200">
                     @forelse($employees as $employee)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $employee->name }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $employee->employee_id }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $employee->name }}</div>
+                                <div class="text-sm text-gray-500">{{ $employee->employee_id }}</div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $employee->position ?? '-' }}
+                            <td class="px-6 py-4 text-sm text-gray-900">{{ $employee->position ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $employee->department ?? '-' }}
+                            <td class="px-6 py-4 text-sm text-gray-900">{{ $employee->department ?? '-' }}
                             </td>
                             <td class="px-6 py-4">
                                 @if ($employee->fingerprint_registered)
@@ -51,14 +51,14 @@
                             </td>
                             <td class="px-6 py-4 text-right text-sm font-medium">
                                 <a href="{{ route('hrm.fingerprint.employees.register', $employee) }}"
-                                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400">
+                                    class="text-blue-600 hover:text-blue-900">
                                     {{ $employee->fingerprint_registered ? 'Kelola' : 'Daftarkan' }}
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                 Tidak ada data karyawan
                             </td>
                         </tr>

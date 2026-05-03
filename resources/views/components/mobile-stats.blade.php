@@ -1,4 +1,4 @@
-@props([
+﻿@props([
     'stats' => [],
     'columns' => 2, // 2, 3, or 4
     'showIcons' => true,
@@ -91,34 +91,34 @@
 
     $colorClasses = [
         'blue' => [
-            'bg' => 'bg-blue-50 dark:bg-blue-900/20',
-            'icon' => 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-            'value' => 'text-blue-600 dark:text-blue-400',
+            'bg' => 'bg-blue-50',
+            'icon' => 'bg-blue-100 text-blue-600',
+            'value' => 'text-blue-600',
         ],
         'green' => [
-            'bg' => 'bg-green-50 dark:bg-green-900/20',
-            'icon' => 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400',
-            'value' => 'text-green-600 dark:text-green-400',
+            'bg' => 'bg-green-50',
+            'icon' => 'bg-green-100 text-green-600',
+            'value' => 'text-green-600',
         ],
         'amber' => [
-            'bg' => 'bg-amber-50 dark:bg-amber-900/20',
-            'icon' => 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
-            'value' => 'text-amber-600 dark:text-amber-400',
+            'bg' => 'bg-amber-50',
+            'icon' => 'bg-amber-100 text-amber-600',
+            'value' => 'text-amber-600',
         ],
         'red' => [
-            'bg' => 'bg-red-50 dark:bg-red-900/20',
-            'icon' => 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400',
-            'value' => 'text-red-600 dark:text-red-400',
+            'bg' => 'bg-red-50',
+            'icon' => 'bg-red-100 text-red-600',
+            'value' => 'text-red-600',
         ],
         'purple' => [
-            'bg' => 'bg-purple-50 dark:bg-purple-900/20',
-            'icon' => 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400',
-            'value' => 'text-purple-600 dark:text-purple-400',
+            'bg' => 'bg-purple-50',
+            'icon' => 'bg-purple-100 text-purple-600',
+            'value' => 'text-purple-600',
         ],
         'gray' => [
-            'bg' => 'bg-gray-50 dark:bg-white/5',
-            'icon' => 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-400',
-            'value' => 'text-gray-900 dark:text-white',
+            'bg' => 'bg-gray-50',
+            'icon' => 'bg-gray-100 text-gray-600',
+            'value' => 'text-gray-900',
         ],
     ];
 @endphp
@@ -133,7 +133,7 @@
         @endphp
 
         <div
-            class="rounded-2xl border border-gray-200 dark:border-white/10 {{ $currentSize['card'] }} {{ $colors['bg'] }} transition-all duration-200 hover:shadow-md">
+            class="rounded-2xl border border-gray-200 {{ $currentSize['card'] }} {{ $colors['bg'] }} transition-all duration-200 hover:shadow-md">
             <div class="flex items-start justify-between mb-2">
                 @if ($showIcons)
                     <div
@@ -149,7 +149,7 @@
                         $trendUp = $stat['trendUp'] ?? true;
                     @endphp
                     <div
-                        class="flex items-center gap-1 {{ $currentSize['trend'] }} {{ $trendUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-medium">
+                        class="flex items-center gap-1 {{ $currentSize['trend'] }} {{ $trendUp ? 'text-green-600' : 'text-red-600' }} font-medium">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             @if ($trendUp)
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -167,7 +167,7 @@
             <p class="{{ $currentSize['value'] }} font-bold {{ $colors['value'] }} mb-1">
                 {{ $stat['value'] }}
             </p>
-            <p class="{{ $currentSize['label'] }} text-gray-500 dark:text-slate-400">
+            <p class="{{ $currentSize['label'] }} text-gray-500">
                 {{ $stat['label'] }}
             </p>
         </div>

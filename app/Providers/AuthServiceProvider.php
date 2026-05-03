@@ -7,8 +7,10 @@ use App\Models\Emr;
 use App\Models\Diagnosis;
 use App\Models\Prescription;
 use App\Models\LabResult;
+use App\Models\Workflow;
 use App\Policies\MedicalRecordPolicy;
 use App\Policies\PatientDataPolicy;
+use App\Policies\WorkflowPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -19,14 +21,17 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-            // Patient Data Policy
+        // Patient Data Policy
         Patient::class => PatientDataPolicy::class,
 
-            // Medical Record Policy (applies to multiple models)
+        // Medical Record Policy (applies to multiple models)
         Emr::class => MedicalRecordPolicy::class,
         Diagnosis::class => MedicalRecordPolicy::class,
         Prescription::class => MedicalRecordPolicy::class,
         LabResult::class => MedicalRecordPolicy::class,
+
+        // Workflow Policy
+        Workflow::class => WorkflowPolicy::class,
     ];
 
     /**

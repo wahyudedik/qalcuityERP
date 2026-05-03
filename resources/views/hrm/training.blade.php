@@ -1,33 +1,33 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Pelatihan & Sertifikasi</x-slot>
 
     {{-- Summary --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Program Aktif</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $summary['total_programs'] }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Program Aktif</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $summary['total_programs'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Sesi Tahun Ini</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Sesi Tahun Ini</p>
             <p class="text-2xl font-bold text-blue-500 mt-1">{{ $summary['sessions_this_year'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Sertifikat Akan Expired</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Sertifikat Akan Expired</p>
             <p class="text-2xl font-bold text-amber-500 mt-1">{{ $summary['certs_expiring'] }}</p>
-            <p class="text-xs text-gray-400 dark:text-slate-500">dalam 90 hari</p>
+            <p class="text-xs text-gray-400">dalam 90 hari</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Sertifikat Expired</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Sertifikat Expired</p>
             <p class="text-2xl font-bold text-red-500 mt-1">{{ $summary['certs_expired'] }}</p>
         </div>
     </div>
 
     {{-- Tabs --}}
-    <div class="flex gap-1 mb-5 bg-gray-100 dark:bg-white/5 rounded-xl p-1 w-fit">
+    <div class="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1 w-fit">
         @foreach(['sessions'=>'Sesi Pelatihan','certifications'=>'Sertifikasi','programs'=>'Program','matrix'=>'Skill Matrix'] as $t=>$label)
         <a href="{{ request()->fullUrlWithQuery(['tab'=>$t]) }}"
             class="px-4 py-2 text-sm rounded-lg font-medium transition
-                {{ $tab===$t ? 'bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white' }}">
+                {{ $tab===$t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
             {{ $label }}
             @if($t==='certifications' && $summary['certs_expiring'] > 0)
             <span class="ml-1 text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">{{ $summary['certs_expiring'] }}</span>
@@ -42,14 +42,14 @@
 
         {{-- Form tambah sesi --}}
         <div class="lg:w-72 shrink-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Jadwalkan Sesi</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-900 mb-4 text-sm">Jadwalkan Sesi</h3>
                 <form method="POST" action="{{ route('hrm.training.sessions.store') }}" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Program *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Program *</label>
                         <select name="training_program_id" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih program...</option>
                             @foreach($programs as $p)
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -58,30 +58,30 @@
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Mulai *</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Mulai *</label>
                             <input type="date" name="start_date" required value="{{ today()->format('Y-m-d') }}"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Selesai *</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Selesai *</label>
                             <input type="date" name="end_date" required value="{{ today()->format('Y-m-d') }}"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Lokasi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi</label>
                         <input type="text" name="location" placeholder="Ruang meeting / online..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Trainer / Fasilitator</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Trainer / Fasilitator</label>
                         <input type="text" name="trainer" placeholder="Nama trainer..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Maks. Peserta (0 = unlimited)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Maks. Peserta (0 = unlimited)</label>
                         <input type="number" name="max_participants" value="0" min="0"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <button type="submit" class="w-full py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Jadwalkan</button>
                 </form>
@@ -90,10 +90,10 @@
 
         {{-- Daftar sesi --}}
         <div class="flex-1 min-w-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Program</th>
                                 <th class="px-4 py-3 text-left hidden sm:table-cell">Tanggal</th>
@@ -103,28 +103,28 @@
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($sessions as $s)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 dark:text-white">{{ $s->program->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500">{{ $s->program->category ?? '' }} {{ $s->location ? '· '.$s->location : '' }}</p>
+                                    <p class="font-medium text-gray-900">{{ $s->program->name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-400">{{ $s->program->category ?? '' }} {{ $s->location ? '· '.$s->location : '' }}</p>
                                 </td>
-                                <td class="px-4 py-3 hidden sm:table-cell text-gray-600 dark:text-slate-300 text-xs whitespace-nowrap">
+                                <td class="px-4 py-3 hidden sm:table-cell text-gray-600 text-xs whitespace-nowrap">
                                     {{ $s->start_date->format('d M Y') }}
                                     @if(!$s->start_date->eq($s->end_date))
                                     <br>s/d {{ $s->end_date->format('d M Y') }}
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400 text-xs">{{ $s->trainer ?? '—' }}</td>
+                                <td class="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">{{ $s->trainer ?? '—' }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $s->participants_count }}</span>
+                                    <span class="text-sm font-medium text-gray-900">{{ $s->participants_count }}</span>
                                     @if($s->max_participants > 0)
-                                    <span class="text-xs text-gray-400 dark:text-slate-500">/{{ $s->max_participants }}</span>
+                                    <span class="text-xs text-gray-400">/{{ $s->max_participants }}</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    @php $sc = ['scheduled'=>'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400','ongoing'=>'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400','completed'=>'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400','cancelled'=>'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400'][$s->status] ?? ''; @endphp
+                                    @php $sc = ['scheduled'=>'bg-blue-100 text-blue-700','ongoing'=>'bg-amber-100 text-amber-700','completed'=>'bg-green-100 text-green-700','cancelled'=>'bg-gray-100 text-gray-500'][$s->status] ?? ''; @endphp
                                     <span class="px-2 py-0.5 rounded-full text-xs {{ $sc }}">{{ ucfirst($s->status) }}</span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
@@ -140,13 +140,13 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada sesi pelatihan.</td></tr>
+                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400">Belum ada sesi pelatihan.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if($sessions->hasPages())
-                <div class="px-4 py-3 border-t border-gray-100 dark:border-white/10">{{ $sessions->links() }}</div>
+                <div class="px-4 py-3 border-t border-gray-100">{{ $sessions->links() }}</div>
                 @endif
             </div>
         </div>
@@ -159,14 +159,14 @@
 
         {{-- Form tambah sertifikat --}}
         <div class="lg:w-72 shrink-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Tambah Sertifikat</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-900 mb-4 text-sm">Tambah Sertifikat</h3>
                 <form method="POST" action="{{ route('hrm.training.certifications.store') }}" enctype="multipart/form-data" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Karyawan *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Karyawan *</label>
                         <select name="employee_id" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih karyawan...</option>
                             @foreach($employees as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->name }}</option>
@@ -174,36 +174,36 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Sertifikat *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Sertifikat *</label>
                         <input type="text" name="name" required placeholder="cth: ISO 9001 Lead Auditor"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Lembaga Penerbit</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Lembaga Penerbit</label>
                         <input type="text" name="issuer" placeholder="cth: BSN, TÜV, dll"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">No. Sertifikat</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">No. Sertifikat</label>
                         <input type="text" name="certificate_number" placeholder="Nomor sertifikat..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tgl Terbit *</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tgl Terbit *</label>
                             <input type="date" name="issued_date" required value="{{ today()->format('Y-m-d') }}"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tgl Expired</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tgl Expired</label>
                             <input type="date" name="expiry_date"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Upload Scan (PDF/Gambar)</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Upload Scan (PDF/Gambar)</label>
                         <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png"
-                            class="w-full text-xs text-gray-600 dark:text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                            class="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-700">
                     </div>
                     <button type="submit" class="w-full py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </form>
@@ -219,16 +219,16 @@
                     class="px-3 py-1.5 text-xs rounded-lg border transition
                         {{ ($request->cert_filter ?? 'all') === $f
                             ? 'bg-blue-600 text-white border-blue-600'
-                            : 'border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5' }}">
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
                     {{ $fl }}
                 </a>
                 @endforeach
             </div>
 
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Karyawan</th>
                                 <th class="px-4 py-3 text-left">Sertifikat</th>
@@ -238,22 +238,22 @@
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($certifications as $cert)
                             @php $days = $cert->daysUntilExpiry(); @endphp
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5 {{ $days !== null && $days <= 30 ? 'bg-red-50/30 dark:bg-red-500/5' : '' }}">
+                            <tr class="hover:bg-gray-50 {{ $days !== null && $days <= 30 ? 'bg-red-50/30' : '' }}">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 dark:text-white text-xs">{{ $cert->employee->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500">{{ $cert->employee->department ?? $cert->employee->position ?? '' }}</p>
+                                    <p class="font-medium text-gray-900 text-xs">{{ $cert->employee->name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-400">{{ $cert->employee->department ?? $cert->employee->position ?? '' }}</p>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 dark:text-white text-xs">{{ $cert->name }}</p>
+                                    <p class="font-medium text-gray-900 text-xs">{{ $cert->name }}</p>
                                     @if($cert->certificate_number)
-                                    <p class="text-xs text-gray-400 dark:text-slate-500">{{ $cert->certificate_number }}</p>
+                                    <p class="text-xs text-gray-400">{{ $cert->certificate_number }}</p>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 hidden sm:table-cell text-gray-500 dark:text-slate-400 text-xs">{{ $cert->issuer ?? '—' }}</td>
-                                <td class="px-4 py-3 hidden md:table-cell text-center text-xs text-gray-500 dark:text-slate-400">{{ $cert->issued_date->format('d M Y') }}</td>
+                                <td class="px-4 py-3 hidden sm:table-cell text-gray-500 text-xs">{{ $cert->issuer ?? '—' }}</td>
+                                <td class="px-4 py-3 hidden md:table-cell text-center text-xs text-gray-500">{{ $cert->issued_date->format('d M Y') }}</td>
                                 <td class="px-4 py-3 text-center">
                                     @if($cert->expiry_date)
                                     <div>
@@ -261,20 +261,20 @@
                                             {{ $cert->expiry_date->format('d M Y') }}
                                         </span>
                                         @if($days !== null && $days >= 0)
-                                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{{ $days }}h lagi</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $days }}h lagi</p>
                                         @elseif($days !== null && $days < 0)
                                         <p class="text-xs text-red-400 mt-0.5">Expired {{ abs($days) }}h lalu</p>
                                         @endif
                                     </div>
                                     @else
-                                    <span class="text-xs text-gray-400 dark:text-slate-500">Tidak expired</span>
+                                    <span class="text-xs text-gray-400">Tidak expired</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center gap-1">
                                         @if($cert->file_path)
                                         <a href="{{ Storage::url($cert->file_path) }}" target="_blank"
-                                            class="px-2.5 py-1 text-xs bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20">📄</a>
+                                            class="px-2.5 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200">📄</a>
                                         @endif
                                         <form method="POST" action="{{ route('hrm.training.certifications.destroy', $cert) }}">
                                             @csrf @method('DELETE')
@@ -285,13 +285,13 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Tidak ada sertifikat ditemukan.</td></tr>
+                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400">Tidak ada sertifikat ditemukan.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if($certifications->hasPages())
-                <div class="px-4 py-3 border-t border-gray-100 dark:border-white/10">{{ $certifications->links() }}</div>
+                <div class="px-4 py-3 border-t border-gray-100">{{ $certifications->links() }}</div>
                 @endif
             </div>
         </div>
@@ -302,51 +302,51 @@
     @if($tab === 'programs')
     <div class="flex flex-col lg:flex-row gap-5">
         <div class="lg:w-72 shrink-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Tambah Program</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-900 mb-4 text-sm">Tambah Program</h3>
                 <form method="POST" action="{{ route('hrm.training.programs.store') }}" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Program *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Program *</label>
                         <input type="text" name="name" required placeholder="cth: K3 Dasar"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                         <input type="text" name="category" placeholder="cth: ISO, K3, Soft Skill..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Provider / Vendor</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Provider / Vendor</label>
                         <input type="text" name="provider" placeholder="Nama lembaga..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Durasi (jam) *</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Durasi (jam) *</label>
                             <input type="number" name="duration_hours" required value="8" min="1"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Biaya (Rp)</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Biaya (Rp)</label>
                             <input type="number" name="cost" value="0" min="0"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Deskripsi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                         <textarea name="description" rows="2" placeholder="Tujuan dan materi pelatihan..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </div>
                     <button type="submit" class="w-full py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Tambah Program</button>
                 </form>
             </div>
         </div>
         <div class="flex-1 min-w-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Program</th>
                                 <th class="px-4 py-3 text-left hidden sm:table-cell">Kategori</th>
@@ -356,25 +356,25 @@
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($programs as $p)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 dark:text-white">{{ $p->name }}</p>
+                                    <p class="font-medium text-gray-900">{{ $p->name }}</p>
                                     @if($p->description)
-                                    <p class="text-xs text-gray-400 dark:text-slate-500 truncate max-w-[200px]">{{ $p->description }}</p>
+                                    <p class="text-xs text-gray-400 truncate max-w-[200px]">{{ $p->description }}</p>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 hidden sm:table-cell">
                                     @if($p->category)
-                                    <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">{{ $p->category }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">{{ $p->category }}</span>
                                     @else
-                                    <span class="text-gray-400 dark:text-slate-500">—</span>
+                                    <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400 text-xs">{{ $p->provider ?? '—' }}</td>
-                                <td class="px-4 py-3 hidden sm:table-cell text-center text-gray-600 dark:text-slate-300 text-xs">{{ $p->duration_hours }}j</td>
-                                <td class="px-4 py-3 hidden md:table-cell text-right text-gray-600 dark:text-slate-300 text-xs">
+                                <td class="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">{{ $p->provider ?? '—' }}</td>
+                                <td class="px-4 py-3 hidden sm:table-cell text-center text-gray-600 text-xs">{{ $p->duration_hours }}j</td>
+                                <td class="px-4 py-3 hidden md:table-cell text-right text-gray-600 text-xs">
                                     {{ $p->cost > 0 ? 'Rp '.number_format($p->cost,0,',','.') : 'Gratis' }}
                                 </td>
                                 <td class="px-4 py-3 text-center">
@@ -386,7 +386,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum ada program pelatihan.</td></tr>
+                            <tr><td colspan="6" class="px-4 py-12 text-center text-gray-400">Belum ada program pelatihan.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -398,56 +398,56 @@
 
     {{-- ══ TAB: SKILL MATRIX ═══════════════════════════════════════ --}}
     @if($tab === 'matrix')
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         @if(empty($matrix['categories']))
-        <div class="p-12 text-center text-gray-400 dark:text-slate-500">
+        <div class="p-12 text-center text-gray-400">
             <p class="text-sm">Belum ada data skill matrix.</p>
             <p class="text-xs mt-1">Data akan muncul setelah peserta pelatihan ditandai "Lulus" (passed).</p>
         </div>
         @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
-                        <th class="px-4 py-3 text-left sticky left-0 bg-gray-50 dark:bg-[#1e293b] z-10">Departemen</th>
+                        <th class="px-4 py-3 text-left sticky left-0 bg-gray-50 z-10">Departemen</th>
                         @foreach($matrix['categories'] as $cat)
                         <th class="px-4 py-3 text-center whitespace-nowrap">{{ $cat }}</th>
                         @endforeach
                         <th class="px-4 py-3 text-center">Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @foreach($matrix['data'] as $dept => $cats)
                     @php $rowTotal = array_sum($cats); @endphp
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-[#1e293b]">{{ $dept }}</td>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">{{ $dept }}</td>
                         @foreach($matrix['categories'] as $cat)
                         @php $count = $cats[$cat] ?? 0; @endphp
                         <td class="px-4 py-3 text-center">
                             @if($count > 0)
                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
-                                {{ $count >= 5 ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
-                                   ($count >= 2 ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' :
-                                   'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400') }}">
+                                {{ $count >= 5 ? 'bg-green-100 text-green-700' :
+                                   ($count >= 2 ? 'bg-blue-100 text-blue-700' :
+                                   'bg-amber-100 text-amber-700') }}">
                                 {{ $count }}
                             </span>
                             @else
-                            <span class="text-gray-200 dark:text-slate-700">—</span>
+                            <span class="text-gray-200">—</span>
                             @endif
                         </td>
                         @endforeach
-                        <td class="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">{{ $rowTotal }}</td>
+                        <td class="px-4 py-3 text-center font-semibold text-gray-900">{{ $rowTotal }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        <div class="px-4 py-3 border-t border-gray-100 dark:border-white/10 flex items-center gap-4 text-xs text-gray-400 dark:text-slate-500">
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-400">
             <span>Angka = jumlah karyawan yang lulus pelatihan kategori tersebut</span>
             <div class="flex items-center gap-3 ml-auto">
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-200 dark:bg-amber-500/30 inline-block"></span> 1</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-200 dark:bg-blue-500/30 inline-block"></span> 2–4</span>
-                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-200 dark:bg-green-500/30 inline-block"></span> 5+</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-200 inline-block"></span> 1</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-200 inline-block"></span> 2–4</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-200 inline-block"></span> 5+</span>
             </div>
         </div>
         @endif

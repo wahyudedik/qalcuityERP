@@ -45,6 +45,11 @@ class Asset extends Model
 
     protected $casts = ['purchase_date' => 'date', 'purchase_price' => 'float', 'current_value' => 'float', 'salvage_value' => 'float'];
 
+    public function fleetVehicle()
+    {
+        return $this->hasOne(FleetVehicle::class);
+    }
+
     public function maintenances()
     {
         return $this->hasMany(AssetMaintenance::class);

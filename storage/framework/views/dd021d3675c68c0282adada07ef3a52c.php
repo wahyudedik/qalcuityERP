@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,64 +8,56 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    <?php echo e(__('Cosmetic Formulas')); ?>
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Cosmetic Formulas')); ?> <?php $__env->endSlot(); ?>
 
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage your product formulas and ingredients</p>
-            </div>
-            <div class="flex gap-2">
-                <a href="<?php echo e(route('cosmetic.formulas.builder')); ?>"
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('cosmetic.formulas.builder')); ?>"
                     class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition">
                     <i class="fas fa-flask mr-2"></i>Formula Builder
                 </a>
-                <a href="<?php echo e(route('cosmetic.formulas.create')); ?>"
+        <a href="<?php echo e(route('cosmetic.formulas.create')); ?>"
                     class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
                     <i class="fas fa-plus mr-2"></i>Create Formula
                 </a>
-            </div>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Formulas</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-white"><?php echo e($stats['total_formulas']); ?>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm font-medium text-gray-500">Total Formulas</div>
+                    <div class="mt-2 text-3xl font-bold text-gray-900"><?php echo e($stats['total_formulas']); ?>
 
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-400">In Testing</div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm font-medium text-gray-500">In Testing</div>
                     <div class="mt-2 text-3xl font-bold text-yellow-600"><?php echo e($stats['in_testing']); ?></div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Approved</div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm font-medium text-gray-500">Approved</div>
                     <div class="mt-2 text-3xl font-bold text-green-600"><?php echo e($stats['approved']); ?></div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-400">In Production</div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="text-sm font-medium text-gray-500">In Production</div>
                     <div class="mt-2 text-3xl font-bold text-blue-600"><?php echo e($stats['in_production']); ?></div>
                 </div>
             </div>
 
             <!-- Filters -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <form method="GET" action="<?php echo e(route('cosmetic.formulas.index')); ?>"
                     class="flex flex-col sm:flex-row gap-4">
                     <div class="flex-1">
                         <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                             placeholder="Search by code, name, or brand..."
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
                     <select name="status"
-                        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">All Status</option>
                         <option value="draft" <?php echo e(request('status') == 'draft' ? 'selected' : ''); ?>>Draft</option>
                         <option value="testing" <?php echo e(request('status') == 'testing' ? 'selected' : ''); ?>>In Testing
@@ -81,7 +73,7 @@
                     </select>
                     <?php if($productTypes->count() > 0): ?>
                         <select name="product_type"
-                            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option value="">All Types</option>
                             <?php $__currentLoopData = $productTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($type); ?>"
@@ -98,55 +90,55 @@
             </div>
 
             <!-- Formulas Table -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Formula
                                 </th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Type</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Ingredients</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Cost</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Created
                                 </th>
                                 <th
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <?php $__empty_1 = true; $__currentLoopData = $formulas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $formula): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                        <div class="text-sm font-medium text-gray-900">
                                             <?php echo e($formula->formula_code); ?></div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        <div class="text-sm text-gray-500">
                                             <?php echo e($formula->formula_name); ?></div>
                                         <?php if($formula->brand): ?>
-                                            <div class="text-xs text-gray-400 dark:text-gray-500"><?php echo e($formula->brand); ?>
+                                            <div class="text-xs text-gray-400"><?php echo e($formula->brand); ?>
 
                                             </div>
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            class="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full">
+                                            class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
                                             <?php echo e(ucfirst($formula->product_type)); ?>
 
                                         </span>
@@ -154,38 +146,38 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
                                             class="px-2 py-1 text-xs font-medium rounded-full
-                            <?php if($formula->status == 'draft'): ?> bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
-                            <?php elseif($formula->status == 'testing'): ?> bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400
-                            <?php elseif($formula->status == 'approved'): ?> bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400
-                            <?php elseif($formula->status == 'production'): ?> bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400
-                            <?php else: ?> bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 <?php endif; ?>">
+                            <?php if($formula->status == 'draft'): ?> bg-gray-100 text-gray-800
+                            <?php elseif($formula->status == 'testing'): ?> bg-yellow-100 text-yellow-800
+                            <?php elseif($formula->status == 'approved'): ?> bg-green-100 text-green-800
+                            <?php elseif($formula->status == 'production'): ?> bg-blue-100 text-blue-800
+                            <?php else: ?> bg-red-100 text-red-800 <?php endif; ?>">
                                             <?php echo e($formula->status_label); ?>
 
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         <?php echo e($formula->ingredients->count()); ?> items
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-white">Rp
+                                        <div class="text-sm text-gray-900">Rp
                                             <?php echo e(number_format($formula->total_cost, 0, ',', '.')); ?></div>
                                         <?php if($formula->cost_per_unit): ?>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">Rp
+                                            <div class="text-xs text-gray-500">Rp
                                                 <?php echo e(number_format($formula->cost_per_unit, 0, ',', '.')); ?>/unit</div>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <?php echo e($formula->created_at->format('d M Y')); ?>
 
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
                                             <a href="<?php echo e(route('cosmetic.formulas.show', $formula)); ?>"
-                                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                                class="text-blue-600 hover:text-blue-900">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="<?php echo e(route('cosmetic.formulas.edit', $formula)); ?>"
-                                                class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                                class="text-green-600 hover:text-green-900">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form method="POST"
@@ -195,7 +187,7 @@
                                                 <?php echo csrf_field(); ?>
                                                 <?php echo method_field('DELETE'); ?>
                                                 <button type="submit"
-                                                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                                    class="text-red-600 hover:text-red-900">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -205,11 +197,11 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="7" class="px-6 py-12 text-center">
-                                        <div class="text-gray-400 dark:text-gray-500">
-                                            <i class="fas fa-flask text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+                                        <div class="text-gray-400">
+                                            <i class="fas fa-flask text-6xl text-gray-300 mb-4"></i>
                                             <p class="mt-2 text-sm">No formulas found</p>
                                             <a href="<?php echo e(route('cosmetic.formulas.create')); ?>"
-                                                class="mt-2 inline-block text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                                class="mt-2 inline-block text-blue-600 hover:text-blue-900">
                                                 <i class="fas fa-plus mr-1"></i>Create your first formula
                                             </a>
                                         </div>

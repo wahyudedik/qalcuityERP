@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Registrasi Fingerprint Karyawan'); ?>
 
@@ -6,17 +6,17 @@
     <div class="container mx-auto px-4 py-6 max-w-2xl">
         <div class="mb-6">
             <a href="<?php echo e(route('hrm.fingerprint.employees.index')); ?>"
-                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2 mb-4">
+                class="text-blue-600 hover:text-blue-800 flex items-center gap-2 mb-4">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Kembali
             </a>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Registrasi Fingerprint</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1"><?php echo e($employee->name); ?> - <?php echo e($employee->position); ?></p>
+            <h1 class="text-2xl font-bold text-gray-800">Registrasi Fingerprint</h1>
+            <p class="text-sm text-gray-600 mt-1"><?php echo e($employee->name); ?> - <?php echo e($employee->position); ?></p>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-6">
             <?php if($employee->fingerprint_registered): ?>
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                     <strong>Fingerprint sudah terdaftar</strong><br>
@@ -31,11 +31,11 @@
                 <form id="registerForm" onsubmit="event.preventDefault(); registerFingerprint();">
                     <?php echo csrf_field(); ?>
                     <div class="mb-4">
-                        <label for="device_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="device_id" class="block text-sm font-medium text-gray-700 mb-2">
                             Pilih Perangkat <span class="text-red-500">*</span>
                         </label>
                         <select name="device_id" id="device_id" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white text-gray-900">
                             <option value="">Pilih Perangkat</option>
                             <?php $__currentLoopData = $devices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $device): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($device->id); ?>"><?php echo e($device->name); ?> (<?php echo e($device->device_id); ?>)</option>
@@ -44,13 +44,13 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="uid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label for="uid" class="block text-sm font-medium text-gray-700 mb-2">
                             Fingerprint UID <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="uid" id="uid" required
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                             placeholder="Masukkan UID dari perangkat fingerprint">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <p class="mt-1 text-xs text-gray-500">
                             Mintakan karyawan untuk menempelkan jari pada perangkat, lalu masukkan UID yang muncul
                         </p>
                     </div>

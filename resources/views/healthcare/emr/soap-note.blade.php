@@ -1,20 +1,13 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">SOAP Note - {{ $visit->patient->full_name }}
-                </h2>
-                <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">
-                    Visit Date:
-                    {{ $visit->visit_date ? \Carbon\Carbon::parse($visit->visit_date)->format('d M Y') : 'N/A' }}
-                </p>
-            </div>
-            <a href="{{ route('healthcare.emr.dashboard', $visit->patient_id) }}"
-                class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+﻿<x-app-layout>
+    <x-slot name="header">SOAP Note - {{ $visit->patient->full_name }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('healthcare.emr.dashboard', $visit->patient_id) }}"
+                class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                 Back to Dashboard
             </a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="max-w-6xl mx-auto">
         <form action="{{ route('healthcare.emr.soap-note.store', $visit) }}" method="POST" id="soapForm">
@@ -48,15 +41,15 @@
                 {{-- Main SOAP Form --}}
                 <div class="lg:col-span-2 space-y-6">
                     {{-- Subjective --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                                 <span
-                                    class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-600 dark:text-blue-400">S</span>
+                                    class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">S</span>
                                 Subjective
                             </h3>
                             <button type="button" onclick="startVoiceInput('chief_complaint')"
-                                class="px-3 py-1.5 text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 rounded-lg flex items-center gap-2">
+                                class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -67,111 +60,111 @@
 
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Chief Complaint *
                                 </label>
                                 <textarea name="subjective[chief_complaint]" id="chief_complaint" rows="3" required
-                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Patient's primary complaint...">{{ old('subjective.chief_complaint') }}</textarea>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     History of Present Illness
                                 </label>
                                 <textarea name="subjective[history_of_present_illness]" rows="4"
-                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Detailed history of the present condition...">{{ old('subjective.history_of_present_illness') }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     {{-- Objective --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
                             <span
-                                class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-500/20 flex items-center justify-center text-sm font-bold text-green-600 dark:text-green-400">O</span>
+                                class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-sm font-bold text-green-600">O</span>
                             Objective
                         </h3>
 
                         <div class="space-y-4">
                             {{-- Vital Signs Grid --}}
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Vital Signs
                                 </label>
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">Temperature
+                                        <label class="text-xs text-gray-500">Temperature
                                             (°C)</label>
                                         <input type="number" step="0.1" name="objective[vital_signs][temperature]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="36.5">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">Blood Pressure</label>
+                                        <label class="text-xs text-gray-500">Blood Pressure</label>
                                         <input type="text" name="objective[vital_signs][blood_pressure]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="120/80">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">Heart Rate</label>
+                                        <label class="text-xs text-gray-500">Heart Rate</label>
                                         <input type="number" name="objective[vital_signs][heart_rate]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="72">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">Respiratory
+                                        <label class="text-xs text-gray-500">Respiratory
                                             Rate</label>
                                         <input type="number" name="objective[vital_signs][respiratory_rate]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="16">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">SpO2 (%)</label>
+                                        <label class="text-xs text-gray-500">SpO2 (%)</label>
                                         <input type="number" name="objective[vital_signs][spo2]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="98">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500 dark:text-slate-400">Weight (kg)</label>
+                                        <label class="text-xs text-gray-500">Weight (kg)</label>
                                         <input type="number" step="0.1" name="objective[vital_signs][weight]"
-                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"
                                             placeholder="70">
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Physical Examination
                                 </label>
                                 <textarea name="objective[physical_examination]" rows="4"
-                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Physical examination findings...">{{ old('objective.physical_examination') }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     {{-- Assessment --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
                             <span
-                                class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-600 dark:text-amber-400">A</span>
+                                class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-sm font-bold text-amber-600">A</span>
                             Assessment
                         </h3>
 
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Diagnosis (ICD-10)
                                 </label>
                                 <div class="relative">
                                     <input type="text" id="icd10_search"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Search ICD-10 codes..." autocomplete="off">
                                     <div id="icd10_results"
-                                        class="hidden absolute z-10 w-full mt-2 bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 shadow-lg max-h-60 overflow-y-auto">
+                                        class="hidden absolute z-10 w-full mt-2 bg-white rounded-xl border border-gray-200 shadow-lg max-h-60 overflow-y-auto">
                                         <!-- ICD-10 results will appear here -->
                                     </div>
                                 </div>
@@ -184,37 +177,37 @@
                     </div>
 
                     {{-- Plan --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
                             <span
-                                class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-600 dark:text-purple-400">P</span>
+                                class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">P</span>
                             Plan
                         </h3>
 
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Treatment Plan
                                 </label>
                                 <textarea name="plan[treatment_plan]" rows="4"
-                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Detailed treatment plan...">{{ old('plan.treatment_plan') }}</textarea>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Follow-up Date
                                     </label>
                                     <input type="date" name="plan[follow_up_date]"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Follow-up Instructions
                                     </label>
                                     <input type="text" name="plan[follow_up_instructions]"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                                        class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                                         placeholder="e.g., Return in 1 week">
                                 </div>
                             </div>
@@ -225,28 +218,28 @@
                 {{-- Sidebar --}}
                 <div class="space-y-6">
                     {{-- Previous Records --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Previous Records</h3>
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Previous Records</h3>
                         <div class="space-y-3">
                             @forelse($previousRecords as $record)
-                                <div class="p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <p class="text-xs text-gray-500">
                                         {{ $record->record_date->format('d M Y') }}
                                     </p>
-                                    <p class="text-sm text-gray-900 dark:text-white mt-1 truncate">
+                                    <p class="text-sm text-gray-900 mt-1 truncate">
                                         {{ $record->chief_complaint }}
                                     </p>
                                 </div>
                             @empty
-                                <p class="text-sm text-gray-500 dark:text-slate-400 text-center py-4">No previous
+                                <p class="text-sm text-gray-500 text-center py-4">No previous
                                     records</p>
                             @endforelse
                         </div>
                     </div>
 
                     {{-- Drug Interaction Checker --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Drug Interaction Checker
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Drug Interaction Checker
                         </h3>
                         <div class="space-y-3">
                             <div id="medication_list" class="space-y-2">
@@ -263,14 +256,14 @@
                     </div>
 
                     {{-- Form Actions --}}
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-6">
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
                         <div class="space-y-3">
                             <button type="submit"
                                 class="w-full px-4 py-3 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium">
                                 Save SOAP Note
                             </button>
                             <a href="{{ route('healthcare.emr.dashboard', $visit->patient_id) }}"
-                                class="block w-full px-4 py-3 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 text-center">
+                                class="block w-full px-4 py-3 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-center">
                                 Cancel
                             </a>
                         </div>
@@ -359,13 +352,13 @@
                             }
 
                             resultsDiv.innerHTML = data.map(item => `
-                                <div class="p-3 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer border-b border-gray-100 dark:border-white/5 last:border-0"
+                                <div class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
                                     onclick="selectDiagnosis('${item.code}', '${item.description.replace(/'/g, "\\'")}')">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white">${item.code}</span>
-                                        <span class="text-xs text-gray-500 dark:text-slate-400">ICD-10</span>
+                                        <span class="text-sm font-medium text-gray-900">${item.code}</span>
+                                        <span class="text-xs text-gray-500">ICD-10</span>
                                     </div>
-                                    <p class="text-xs text-gray-600 dark:text-slate-300 mt-1">${item.description}</p>
+                                    <p class="text-xs text-gray-600 mt-1">${item.description}</p>
                                 </div>
                             `).join('');
                             resultsDiv.classList.remove('hidden');
@@ -395,7 +388,7 @@
             function updateDiagnosesDisplay() {
                 const container = document.getElementById('selected_diagnoses');
                 container.innerHTML = selectedDiagnoses.map(d => `
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-lg text-sm">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm">
                         <span class="font-medium">${d.code}</span>
                         <span class="text-xs">${d.description}</span>
                         <button type="button" onclick="removeDiagnosis('${d.code}')" class="ml-1 hover:text-red-600">×</button>
@@ -427,14 +420,14 @@
                         const resultsDiv = document.getElementById('interaction_results');
                         if (!data.has_interactions) {
                             resultsDiv.innerHTML =
-                                '<p class="text-sm text-green-600 dark:text-green-400">✓ No interactions found</p>';
+                                '<p class="text-sm text-green-600">✓ No interactions found</p>';
                         } else {
                             resultsDiv.innerHTML = data.interactions.map(interaction => `
-                            <div class="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
-                                <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p class="text-sm font-medium text-red-800">
                                     ⚠️ ${interaction.drug1} + ${interaction.drug2}
                                 </p>
-                                <p class="text-xs text-red-700 dark:text-red-300 mt-1">${interaction.description}</p>
+                                <p class="text-xs text-red-700 mt-1">${interaction.description}</p>
                                 <span class="inline-block mt-2 px-2 py-1 text-xs bg-red-600 text-white rounded">${interaction.severity}</span>
                             </div>
                         `).join('');

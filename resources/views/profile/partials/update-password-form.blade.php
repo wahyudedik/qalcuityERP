@@ -1,10 +1,10 @@
-<form method="post" action="{{ route('password.update') }}" class="space-y-4">
+﻿<form method="post" action="{{ route('password.update') }}" class="space-y-4">
     @csrf @method('put')
 
     <div>
-        <label for="update_password_current_password" class="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1.5">Password Saat Ini</label>
+        <label for="update_password_current_password" class="block text-sm font-medium text-gray-500 mb-1.5">Password Saat Ini</label>
         <input id="update_password_current_password" name="current_password" type="password" autocomplete="current-password"
-            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                    @if($errors->updatePassword->get('current_password')) border-red-500/50 @endif"
             placeholder="••••••••">
         @if($errors->updatePassword->get('current_password'))
@@ -13,9 +13,9 @@
     </div>
 
     <div>
-        <label for="update_password_password" class="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1.5">Password Baru</label>
+        <label for="update_password_password" class="block text-sm font-medium text-gray-500 mb-1.5">Password Baru</label>
         <input id="update_password_password" name="password" type="password" autocomplete="new-password"
-            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition
                    @if($errors->updatePassword->get('password')) border-red-500/50 @endif"
             placeholder="••••••••">
         @if($errors->updatePassword->get('password'))
@@ -24,9 +24,9 @@
     </div>
 
     <div>
-        <label for="update_password_password_confirmation" class="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1.5">Konfirmasi Password Baru</label>
+        <label for="update_password_password_confirmation" class="block text-sm font-medium text-gray-500 mb-1.5">Konfirmasi Password Baru</label>
         <input id="update_password_password_confirmation" name="password_confirmation" type="password" autocomplete="new-password"
-            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             placeholder="••••••••">
     </div>
 

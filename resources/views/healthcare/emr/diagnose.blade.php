@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Input Diagnosa - {{ $visit->patient->full_name ?? 'Pasien' }}</x-slot>
 
     <div class="max-w-4xl mx-auto">
@@ -25,10 +25,10 @@
 
             {{-- Diagnosis Entry --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div
-                    class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Entry Diagnosa ICD-10</h3>
+                    class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Entry Diagnosa ICD-10</h3>
                     <button type="button" onclick="addDiagnosis()"
                         class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
                         + Tambah Diagnosa
@@ -38,14 +38,14 @@
                     <div id="diagnosis-list" class="space-y-6">
                         {{-- Diagnosis Item 1 --}}
                         <div
-                            class="diagnosis-item p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                            class="diagnosis-item p-4 bg-gray-50 rounded-xl border border-gray-200">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-2">
-                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Diagnosa #1</h4>
-                                    <span class="text-xs text-gray-500 dark:text-slate-400">(Wajib)</span>
+                                    <h4 class="text-sm font-semibold text-gray-900">Diagnosa #1</h4>
+                                    <span class="text-xs text-gray-500">(Wajib)</span>
                                 </div>
                                 <button type="button" onclick="removeDiagnosis(this)"
-                                    class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hidden">
+                                    class="text-red-600 hover:text-red-700 hidden">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -55,36 +55,36 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Cari Kode ICD-10 <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <input type="text" name="diagnoses[0][icd_code]" id="icd-search-0" required
                                             placeholder="Ketik kode atau nama penyakit..."
                                             oninput="searchICD10(this.value, 0)"
-                                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <div id="icd-suggestions-0"
-                                            class="absolute z-10 w-full mt-2 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
+                                            class="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
                                             <!-- ICD-10 suggestions will appear here -->
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Diagnosa
                                     </label>
                                     <input type="text" name="diagnoses[0][description]" id="icd-description-0"
                                         readonly placeholder="Otomatis terisi saat memilih kode ICD-10"
-                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-100 text-gray-900">
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Tipe Diagnosa <span class="text-red-500">*</span>
                                     </label>
                                     <select name="diagnoses[0][type]" required
-                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">Pilih Tipe</option>
                                         <option value="primary">Diagnosa Utama (Primary)</option>
                                         <option value="secondary">Diagnosa Sekunder (Secondary)</option>
@@ -94,11 +94,11 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Status
                                     </label>
                                     <select name="diagnoses[0][status]"
-                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="confirmed">Confirmed (Dikonfirmasi)</option>
                                         <option value="provisional">Provisional (Sementara)</option>
                                         <option value="ruled_out">Ruled Out (Disingkirkan)</option>
@@ -106,11 +106,11 @@
                                 </div>
 
                                 <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Catatan Klinis
                                     </label>
                                     <textarea name="diagnoses[0][notes]" rows="2" placeholder="Catatan tambahan terkait diagnosa..."
-                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -120,26 +120,26 @@
 
             {{-- Clinical Notes --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Catatan Klinis</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-semibold text-gray-900">Catatan Klinis</h3>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Assessment / Rencana Pengobatan
                             </label>
                             <textarea name="clinical_notes" rows="4" placeholder="Tulis assessment dan rencana pengobatan..."
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Tindak Lanjut
                             </label>
                             <select name="follow_up"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Tindak Lanjut</option>
                                 <option value="follow_up_needed">Perlu Follow-up</option>
                                 <option value="refer_to_specialist">Rujuk ke Spesialis</option>
@@ -151,18 +151,18 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Tanggal Follow-up
                             </label>
                             <input type="datetime-local" name="follow_up_date"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label class="flex items-center gap-2">
                                 <input type="checkbox" name="complete_visit" value="1"
                                     class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                                <span class="text-sm text-gray-700 dark:text-slate-300">Tandai kunjungan selesai</span>
+                                <span class="text-sm text-gray-700">Tandai kunjungan selesai</span>
                             </label>
                         </div>
                     </div>
@@ -172,7 +172,7 @@
             {{-- Action Buttons --}}
             <div class="flex justify-end gap-3">
                 <a href="{{ route('healthcare.emr.show', $visit) }}"
-                    class="px-6 py-2.5 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</a>
+                    class="px-6 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</a>
                 <button type="submit"
                     class="px-6 py-2.5 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium">
                     Simpan Diagnosa
@@ -312,10 +312,10 @@
 
                 suggestionsDiv.innerHTML = filtered.map(item => `
                 <div onclick="selectICD10('${item.code}', '${item.description}', ${index})"
-                    class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer border-b border-gray-100 dark:border-white/5 last:border-b-0">
+                    class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
                     <div class="flex items-center justify-between">
-                        <span class="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">${item.code}</span>
-                        <span class="text-sm text-gray-700 dark:text-slate-300">${item.description}</span>
+                        <span class="font-mono text-sm font-semibold text-blue-600">${item.code}</span>
+                        <span class="text-sm text-gray-700">${item.description}</span>
                     </div>
                 </div>
             `).join('');

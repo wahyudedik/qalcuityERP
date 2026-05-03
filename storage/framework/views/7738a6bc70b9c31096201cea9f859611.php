@@ -8,18 +8,15 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <?php echo e(__('Geofencing Zone Management')); ?>
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Geofencing Zone Management')); ?> <?php $__env->endSlot(); ?>
 
-            </h2>
-            <a href="<?php echo e(route('telecom.geofencing.create')); ?>"
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('telecom.geofencing.create')); ?>"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                 <i class="fas fa-plus mr-2"></i>Create Zone
             </a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

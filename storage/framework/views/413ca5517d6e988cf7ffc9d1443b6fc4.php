@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -13,14 +13,14 @@
     <div class="max-w-2xl mx-auto space-y-6">
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h2 class="font-semibold text-white mb-1">Dokumen: <?php echo e(class_basename(get_class($model))); ?> #<?php echo e($modelId); ?></h2>
-            <p class="text-sm text-gray-500 dark:text-slate-400">Tanda tangani dokumen ini secara digital. Tanda tangan akan disimpan beserta timestamp dan IP address Anda.</p>
+            <p class="text-sm text-gray-500">Tanda tangani dokumen ini secara digital. Tanda tangan akan disimpan beserta timestamp dan IP address Anda.</p>
         </div>
 
         
         <?php if($existing->isNotEmpty()): ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 class="font-semibold text-white mb-3">Tanda Tangan Sebelumnya</h3>
             <div class="space-y-3">
                 <?php $__currentLoopData = $existing; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sig): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -32,9 +32,9 @@
                     </div>
                     <div>
                         <p class="text-sm font-medium text-white"><?php echo e($sig->user?->name); ?></p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($sig->signed_at?->format('d M Y H:i')); ?> · <?php echo e($sig->ip_address); ?></p>
+                        <p class="text-xs text-gray-500"><?php echo e($sig->signed_at?->format('d M Y H:i')); ?> · <?php echo e($sig->ip_address); ?></p>
                     </div>
-                    <img src="<?php echo e($sig->signature_data); ?>" class="ml-auto h-10 border border-gray-200 dark:border-white/10 rounded-lg bg-white" alt="Tanda tangan">
+                    <img src="<?php echo e($sig->signature_data); ?>" class="ml-auto h-10 border border-gray-200 rounded-lg bg-white" alt="Tanda tangan">
                 </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
@@ -42,13 +42,13 @@
         <?php endif; ?>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 class="font-semibold text-white mb-3">Tanda Tangan Anda</h3>
             <div class="border-2 border-dashed border-white/20 rounded-xl overflow-hidden bg-white">
                 <canvas id="signature-canvas" height="200" class="w-full touch-none cursor-crosshair"></canvas>
             </div>
             <div class="flex gap-2 mt-3">
-                <button onclick="clearPad()" class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">Hapus</button>
+                <button onclick="clearPad()" class="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Hapus</button>
                 <button onclick="savePad()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">Simpan Tanda Tangan</button>
             </div>
             <p id="sign-status" class="text-sm mt-2 hidden"></p>

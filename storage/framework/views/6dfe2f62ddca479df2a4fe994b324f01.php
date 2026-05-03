@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -29,31 +29,31 @@
                         100
                     : 0;
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Operasi</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e(number_format($totalOperations)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Operasi</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e(number_format($totalOperations)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Selesai</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1"><?php echo e($completedOperations); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Selesai</p>
+            <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($completedOperations); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Durasi Rata-rata</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Durasi Rata-rata</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1">
                 <?php echo e($avgDuration ? round($avgDuration) . ' min' : '-'); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Komplikasi</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"><?php echo e(number_format($complicationRate, 1)); ?>%
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Komplikasi</p>
+            <p class="text-2xl font-bold text-red-600 mt-1"><?php echo e(number_format($complicationRate, 1)); ?>%
             </p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Pasien</th>
                         <th class="px-4 py-3 text-left hidden md:table-cell">Prosedur</th>
@@ -65,62 +65,62 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $operations ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $operation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">
+                                <p class="font-medium text-gray-900">
                                     <?php echo e($operation->patient ? $operation->patient->full_name : '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($operation->patient ? $operation->patient->medical_record_number : '-'); ?></p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
-                                <p class="text-gray-900 dark:text-white"><?php echo e($operation->procedure_name ?? '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-gray-900"><?php echo e($operation->procedure_name ?? '-'); ?></p>
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($operation->surgery_type ?? '-'); ?></p>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 <?php echo e($operation->surgeon ? $operation->surgeon->name : '-'); ?></td>
                             <td class="px-4 py-3 hidden sm:table-cell">
-                                <p class="text-gray-900 dark:text-white">
+                                <p class="text-gray-900">
                                     <?php echo e($operation->operation_date ? \Carbon\Carbon::parse($operation->operation_date)->format('d M Y') : '-'); ?>
 
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($operation->operation_date ? \Carbon\Carbon::parse($operation->operation_date)->format('H:i') : '-'); ?>
 
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span
-                                    class="font-medium text-gray-900 dark:text-white"><?php echo e($operation->duration_minutes ?? '-'); ?>
+                                    class="font-medium text-gray-900"><?php echo e($operation->duration_minutes ?? '-'); ?>
 
                                     min</span>
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
                                 <?php if($operation->has_complications): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Yes</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Yes</span>
                                 <?php else: ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">No</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">No</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <?php if($operation->outcome === 'successful'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Successful</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Successful</span>
                                 <?php elseif($operation->outcome === 'partial'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Partial</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">Partial</span>
                                 <?php elseif($operation->outcome === 'failed'): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Failed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Failed</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <a href="<?php echo e(route('healthcare.surgery.operations.show', $operation)); ?>"
-                                    class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                     title="Detail">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -134,7 +134,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada log operasi</p>
                             </td>
                         </tr>
@@ -144,7 +144,7 @@
         </div>
 
         <?php if(isset($operations) && $operations->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 <?php echo e($operations->links()); ?>
 
             </div>

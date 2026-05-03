@@ -1,42 +1,31 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    <i class="fas fa-flask mr-2 text-purple-600"></i>{{ $formula ? 'Edit Formula' : 'Formula Builder' }}
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {{ $formula ? 'Edit formula: ' . $formula->formula_name : 'Create new cosmetic formula with advanced builder' }}
-                </p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ route('cosmetic.formulas.index') }}"
+﻿<x-app-layout>
+    <x-slot name="header"><i class="fas fa-flask mr-2 text-purple-600"></i>{{ $formula ? 'Edit Formula' : 'Formula Builder' }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('cosmetic.formulas.index') }}"
                     class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Formulas
                 </a>
-                @if ($formula)
-                    <a href="{{ route('cosmetic.formulas.show', $formula->id) }}"
+        <a href="{{ route('cosmetic.formulas.show', $formula->id) }}"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
                         <i class="fas fa-eye mr-2"></i>View Details
                     </a>
-                @endif
-            </div>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-6" x-data="formulaBuilder()" x-init="init()">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Success/Error Messages -->
             @if (session('success'))
                 <div
-                    class="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg">
+                    class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
                     <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
                 <div
-                    class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg">
+                    class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
                     <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
                 </div>
             @endif
@@ -52,30 +41,30 @@
                     <!-- Left Column: Formula Info & Ingredients -->
                     <div class="lg:col-span-2 space-y-6">
                         <!-- Basic Information -->
-                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">
                                 <i class="fas fa-info-circle mr-2 text-blue-600"></i>Basic Information
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Formula Name <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" name="formula_name" x-model="formula.formula_name" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('formula_name') border-red-500 @enderror"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 @error('formula_name') border-red-500 @enderror"
                                         placeholder="e.g., Hydrating Face Cream">
                                     @error('formula_name')
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400"><i
+                                        <p class="mt-1 text-sm text-red-600"><i
                                                 class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Product Type <span class="text-red-500">*</span>
                                     </label>
                                     <select name="product_type" x-model="formula.product_type" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                         <option value="">Select Type</option>
                                         <option value="cream">Cream</option>
                                         <option value="lotion">Lotion</option>
@@ -93,43 +82,43 @@
 
                                 <div>
                                     <label
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
+                                        class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
                                     <input type="text" name="brand" x-model="formula.brand"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                         placeholder="e.g., SkinCare Pro">
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Target pH
                                     </label>
                                     <input type="number" name="target_ph" x-model="formula.target_ph" step="0.1"
                                         min="0" max="14"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                         placeholder="e.g., 5.5">
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Shelf Life (months)
                                     </label>
                                     <input type="number" name="shelf_life_months" x-model="formula.shelf_life_months"
                                         min="1"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                         placeholder="e.g., 24">
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">
                                         Batch Size <span class="text-red-500">*</span>
                                     </label>
                                     <div class="flex gap-2">
                                         <input type="number" name="batch_size" x-model="formula.batch_size"
                                             step="0.01" min="0" required
-                                            class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             placeholder="1000">
                                         <select name="batch_unit" x-model="formula.batch_unit" required
-                                            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                                             <option value="grams">Grams</option>
                                             <option value="ml">Milliliters</option>
                                             <option value="units">Units</option>
@@ -140,17 +129,17 @@
 
                             <div class="mt-4">
                                 <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                                    class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                 <textarea name="notes" x-model="formula.notes" rows="3"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                     placeholder="Additional notes about the formula..."></textarea>
                             </div>
                         </div>
 
                         <!-- Ingredients Builder -->
-                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                <h3 class="text-lg font-semibold text-gray-900">
                                     <i class="fas fa-flask mr-2 text-purple-600"></i>Ingredients
                                 </h3>
                                 <button type="button" @click="addIngredient()"
@@ -162,7 +151,7 @@
                             <!-- Ingredient List -->
                             <div class="space-y-3">
                                 <template x-for="(ingredient, index) in ingredients" :key="index">
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50"
+                                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50"
                                         :class="{ 'border-red-500': ingredient.errors && ingredient.errors.length > 0 }">
                                         <!-- Header -->
                                         <div class="flex justify-between items-center mb-3">
@@ -170,11 +159,11 @@
                                                 <span
                                                     class="flex items-center justify-center w-8 h-8 bg-blue-600 text-white text-sm font-bold rounded-full"
                                                     x-text="index + 1"></span>
-                                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                <span class="text-sm font-medium text-gray-700"
                                                     x-text="ingredient.inci_name || 'New Ingredient'"></span>
                                             </div>
                                             <button type="button" @click="removeIngredient(index)"
-                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 text-sm">
+                                                class="text-red-600 hover:text-red-900 text-sm">
                                                 <i class="fas fa-trash mr-1"></i>Remove
                                             </button>
                                         </div>
@@ -182,25 +171,25 @@
                                         <!-- Search Ingredient -->
                                         <div class="mb-3 relative">
                                             <label
-                                                class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                class="block text-xs font-medium text-gray-700 mb-1">
                                                 Search Raw Material
                                             </label>
                                             <input type="text" x-model="ingredient.searchQuery"
                                                 @input="searchRawMaterial(index)" @focus="showSearchResults = index"
-                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                                 placeholder="Type to search...">
 
                                             <!-- Search Results Dropdown -->
                                             <div x-show="showSearchResults === index && ingredient.searchResults.length > 0"
                                                 @click.away="showSearchResults = null"
-                                                class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                                 <template x-for="material in ingredient.searchResults"
                                                     :key="material.id">
                                                     <button type="button" @click="selectRawMaterial(index, material)"
-                                                        class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                                                        <div class="text-sm font-medium text-gray-900 dark:text-white"
+                                                        class="w-full px-4 py-2 text-left hover:bg-gray-100 transition">
+                                                        <div class="text-sm font-medium text-gray-900"
                                                             x-text="material.name"></div>
-                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        <div class="text-xs text-gray-500">
                                                             SKU: <span x-text="material.sku"></span> |
                                                             Cost: Rp <span
                                                                 x-text="formatNumber(material.average_cost)"></span>/kg
@@ -217,52 +206,52 @@
                                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    class="block text-xs font-medium text-gray-700 mb-1">
                                                     INCI Name <span class="text-red-500">*</span>
                                                 </label>
                                                 <input type="text" :name="`ingredients[${index}][inci_name]`"
                                                     x-model="ingredient.inci_name" @blur="validateIngredient(index)"
                                                     required
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                             </div>
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Common
+                                                    class="block text-xs font-medium text-gray-700 mb-1">Common
                                                     Name</label>
                                                 <input type="text" :name="`ingredients[${index}][common_name]`"
                                                     x-model="ingredient.common_name"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                             </div>
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">CAS
+                                                    class="block text-xs font-medium text-gray-700 mb-1">CAS
                                                     Number</label>
                                                 <input type="text" :name="`ingredients[${index}][cas_number]`"
                                                     x-model="ingredient.cas_number"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                             </div>
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    class="block text-xs font-medium text-gray-700 mb-1">
                                                     Quantity <span class="text-red-500">*</span>
                                                 </label>
                                                 <input type="number" :name="`ingredients[${index}][quantity]`"
                                                     x-model.number="ingredient.quantity" @input="calculateTotals()"
                                                     step="0.001" min="0" required
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                             </div>
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    class="block text-xs font-medium text-gray-700 mb-1">
                                                     Unit <span class="text-red-500">*</span>
                                                 </label>
                                                 <select :name="`ingredients[${index}][unit]`" x-model="ingredient.unit"
                                                     required
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                     <option value="g">Grams (g)</option>
                                                     <option value="ml">Milliliters (ml)</option>
                                                     <option value="%">Percentage (%)</option>
@@ -272,21 +261,21 @@
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Percentage</label>
+                                                    class="block text-xs font-medium text-gray-700 mb-1">Percentage</label>
                                                 <input type="number" :name="`ingredients[${index}][percentage]`"
                                                     x-model.number="ingredient.percentage" @input="calculateTotals()"
                                                     step="0.01" min="0" max="100"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                     :class="{ 'border-yellow-500': ingredient.warnings && ingredient.warnings
                                                             .length > 0 }">
                                             </div>
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Function</label>
+                                                    class="block text-xs font-medium text-gray-700 mb-1">Function</label>
                                                 <select :name="`ingredients[${index}][function]`"
                                                     x-model="ingredient.function"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                     <option value="">Select Function</option>
                                                     @foreach ($ingredientFunctions as $key => $label)
                                                         <option value="{{ $key }}">{{ $label }}
@@ -297,10 +286,10 @@
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Phase</label>
+                                                    class="block text-xs font-medium text-gray-700 mb-1">Phase</label>
                                                 <select :name="`ingredients[${index}][phase]`"
                                                     x-model="ingredient.phase"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                                     <option value="">Select Phase</option>
                                                     @foreach ($phases as $key => $label)
                                                         <option value="{{ $key }}">{{ $label }}
@@ -311,11 +300,11 @@
 
                                             <div>
                                                 <label
-                                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mixing
+                                                    class="block text-xs font-medium text-gray-700 mb-1">Mixing
                                                     Order</label>
                                                 <input type="number" :name="`ingredients[${index}][sort_order]`"
                                                     x-model.number="ingredient.sort_order" min="1"
-                                                    class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                                                    class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                                             </div>
                                         </div>
 
@@ -323,7 +312,7 @@
                                         <div x-show="ingredient.errors && ingredient.errors.length > 0"
                                             class="mt-2">
                                             <template x-for="error in ingredient.errors" :key="error.message">
-                                                <div class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                                <div class="text-xs text-red-600 mt-1">
                                                     <i class="fas fa-exclamation-circle mr-1"></i>
                                                     <span x-text="error.message"></span>
                                                 </div>
@@ -333,7 +322,7 @@
                                         <div x-show="ingredient.warnings && ingredient.warnings.length > 0"
                                             class="mt-2">
                                             <template x-for="warning in ingredient.warnings" :key="warning.message">
-                                                <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                                                <div class="text-xs text-yellow-600 mt-1">
                                                     <i class="fas fa-exclamation-triangle mr-1"></i>
                                                     <span x-text="warning.message"></span>
                                                 </div>
@@ -355,16 +344,16 @@
                     <div class="space-y-6">
                         <!-- Formula Summary -->
                         <div
-                            class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 sticky top-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 sticky top-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">
                                 <i class="fas fa-chart-pie mr-2 text-green-600"></i>Formula Summary
                             </h3>
 
                             <div class="space-y-4">
                                 <!-- Total Quantity -->
-                                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                    <div class="text-sm text-blue-600 dark:text-blue-400">Total Quantity</div>
-                                    <div class="text-2xl font-bold text-blue-900 dark:text-blue-300">
+                                <div class="p-3 bg-blue-50 rounded-lg">
+                                    <div class="text-sm text-blue-600">Total Quantity</div>
+                                    <div class="text-2xl font-bold text-blue-900">
                                         <span x-text="formatNumber(totals.total_quantity)"></span>
                                         <span class="text-sm" x-text="formula.batch_unit"></span>
                                     </div>
@@ -372,75 +361,75 @@
 
                                 <!-- Total Percentage -->
                                 <div class="p-3 rounded-lg"
-                                    :class="totals.percentage_valid ? 'bg-green-50 dark:bg-green-900/20' :
-                                        'bg-red-50 dark:bg-red-900/20'">
+                                    :class="totals.percentage_valid ? 'bg-green-50' :
+                                        'bg-red-50'">
                                     <div class="text-sm"
-                                        :class="totals.percentage_valid ? 'text-green-600 dark:text-green-400' :
-                                            'text-red-600 dark:text-red-400'">
+                                        :class="totals.percentage_valid ? 'text-green-600' :
+                                            'text-red-600'">
                                         Total Percentage
                                     </div>
                                     <div class="text-2xl font-bold"
-                                        :class="totals.percentage_valid ? 'text-green-900 dark:text-green-300' :
-                                            'text-red-900 dark:text-red-300'">
+                                        :class="totals.percentage_valid ? 'text-green-900' :
+                                            'text-red-900'">
                                         <span x-text="formatNumber(totals.total_percentage)"></span>%
                                     </div>
                                     <div x-show="!totals.percentage_valid"
-                                        class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                        class="text-xs text-red-600 mt-1">
                                         <i class="fas fa-exclamation-triangle mr-1"></i>
                                         Should be 100%
                                     </div>
                                 </div>
 
                                 <!-- Total Cost -->
-                                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                    <div class="text-sm text-green-600 dark:text-green-400">Total Cost</div>
-                                    <div class="text-2xl font-bold text-green-900 dark:text-green-300">
+                                <div class="p-3 bg-green-50 rounded-lg">
+                                    <div class="text-sm text-green-600">Total Cost</div>
+                                    <div class="text-2xl font-bold text-green-900">
                                         Rp <span x-text="formatNumber(totals.total_cost)"></span>
                                     </div>
                                 </div>
 
                                 <!-- Cost Per Unit -->
-                                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                    <div class="text-sm text-purple-600 dark:text-purple-400">Cost per kg</div>
-                                    <div class="text-2xl font-bold text-purple-900 dark:text-purple-300">
+                                <div class="p-3 bg-purple-50 rounded-lg">
+                                    <div class="text-sm text-purple-600">Cost per kg</div>
+                                    <div class="text-2xl font-bold text-purple-900">
                                         Rp <span x-text="formatNumber(totals.cost_per_unit)"></span>
                                     </div>
                                 </div>
 
                                 <!-- Ingredient Count -->
-                                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">Total Ingredients</div>
-                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <div class="text-sm text-gray-600">Total Ingredients</div>
+                                    <div class="text-2xl font-bold text-gray-900">
                                         <span x-text="ingredients.length"></span> items
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Validation Status -->
-                            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Validation
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">Validation
                                     Status</h4>
                                 <div class="space-y-2">
                                     <div class="flex items-center text-sm"
-                                        :class="formula.formula_name ? 'text-green-600 dark:text-green-400' : 'text-gray-400'">
+                                        :class="formula.formula_name ? 'text-green-600' : 'text-gray-400'">
                                         <i class="fas"
                                             :class="formula.formula_name ? 'fa-check-circle' : 'fa-circle'"></i>
                                         <span class="ml-2">Formula name</span>
                                     </div>
                                     <div class="flex items-center text-sm"
-                                        :class="formula.product_type ? 'text-green-600 dark:text-green-400' : 'text-gray-400'">
+                                        :class="formula.product_type ? 'text-green-600' : 'text-gray-400'">
                                         <i class="fas"
                                             :class="formula.product_type ? 'fa-check-circle' : 'fa-circle'"></i>
                                         <span class="ml-2">Product type</span>
                                     </div>
                                     <div class="flex items-center text-sm"
-                                        :class="ingredients.length > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-400'">
+                                        :class="ingredients.length > 0 ? 'text-green-600' : 'text-gray-400'">
                                         <i class="fas"
                                             :class="ingredients.length > 0 ? 'fa-check-circle' : 'fa-circle'"></i>
                                         <span class="ml-2">At least 1 ingredient</span>
                                     </div>
                                     <div class="flex items-center text-sm"
-                                        :class="totals.percentage_valid ? 'text-green-600 dark:text-green-400' : 'text-gray-400'">
+                                        :class="totals.percentage_valid ? 'text-green-600' : 'text-gray-400'">
                                         <i class="fas"
                                             :class="totals.percentage_valid ? 'fa-check-circle' : 'fa-circle'"></i>
                                         <span class="ml-2">Percentage = 100%</span>
@@ -456,7 +445,7 @@
                                     <span x-text="$wire.formula ? 'Update Formula' : 'Create Formula'"></span>
                                 </button>
                                 <a href="{{ route('cosmetic.formulas.index') }}"
-                                    class="block w-full px-6 py-3 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg text-center transition">
+                                    class="block w-full px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium rounded-lg text-center transition">
                                     <i class="fas fa-times mr-2"></i>Cancel
                                 </a>
                             </div>

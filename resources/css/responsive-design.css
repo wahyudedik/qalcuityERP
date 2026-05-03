@@ -54,15 +54,15 @@
     }
 
     .table-responsive::-webkit-scrollbar-track {
-        @apply bg-gray-100 dark:bg-slate-800 rounded-full;
+        @apply bg-gray-100 rounded-full;
     }
 
     .table-responsive::-webkit-scrollbar-thumb {
-        @apply bg-gray-400 dark:bg-slate-600 rounded-full;
+        @apply bg-gray-400 rounded-full;
     }
 
     .table-responsive::-webkit-scrollbar-thumb:hover {
-        @apply bg-gray-500 dark:bg-slate-500;
+        @apply bg-gray-500;
     }
 
     /* Visual indicator that table is scrollable */
@@ -76,14 +76,14 @@
         right: 0;
         top: 50%;
         transform: translateY(-50%);
-        @apply text-xs text-gray-400 dark:text-slate-500 pointer-events-none animate-pulse;
+        @apply text-xs text-gray-400 pointer-events-none animate-pulse;
         background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.9) 50%, transparent);
-        @apply dark:bg-slate-900/90 px-2 py-1 rounded;
+        @apply px-2 py-1 rounded;
     }
 
     /* ── Form Validation Error Messages (Mobile Optimized) ─────────────────── */
     .form-error-message {
-        @apply mt-1.5 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5;
+        @apply mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1.5;
     }
 
     .form-error-icon {
@@ -92,7 +92,7 @@
 
     /* Error state for inputs */
     .input-error {
-        @apply border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500 dark:focus:ring-red-400/20;
+        @apply border-red-500 focus:border-red-500 focus:ring-red-500;
     }
 
     /* Mobile-friendly error display */
@@ -130,12 +130,12 @@
 
     /* Modal header sticky on mobile */
     .modal-header-sticky {
-        @apply sticky top-0 z-10 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10;
+        @apply sticky top-0 z-10 bg-white border-b border-gray-200;
     }
 
     /* Modal footer sticky on mobile */
     .modal-footer-sticky {
-        @apply sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-white/10;
+        @apply sticky bottom-0 z-10 bg-white border-t border-gray-200;
     }
 
     /* ── Responsive Typography ─────────────────────────────────────────────── */
@@ -155,7 +155,7 @@
 
     /* ── Card Layout Mobile Optimization ───────────────────────────────────── */
     .card-mobile {
-        @apply rounded-xl sm:rounded-2xl border border-gray-200 dark:border-white/10;
+        @apply rounded-xl sm:rounded-2xl border border-gray-200;
     }
 
     @media (max-width: 640px) {
@@ -217,7 +217,7 @@
         }
 
         .table-mobile-card tr {
-            @apply block mb-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-white/10;
+            @apply block mb-4 p-4 bg-white rounded-xl border border-gray-200;
         }
 
         .table-mobile-card td {
@@ -229,7 +229,7 @@
 
         .table-mobile-card td::before {
             content: attr(data-label);
-            @apply font-semibold text-gray-600 dark:text-gray-400 pr-4;
+            @apply font-semibold text-gray-600 pr-4;
         }
     }
 
@@ -240,12 +240,12 @@
 
     /* ── Accessible Focus States ──────────────────────────────────────────── */
     .focus-visible-enhanced:focus-visible {
-        @apply outline-none ring-2 ring-offset-2 ring-blue-500 dark:ring-blue-400;
+        @apply outline-none ring-2 ring-offset-2 ring-blue-500;
     }
 
     /* High contrast focus for better visibility */
     .focus-high-contrast:focus {
-        @apply outline-none ring-2 ring-blue-600 dark:ring-blue-400 ring-offset-2;
+        @apply outline-none ring-2 ring-blue-600 ring-offset-2;
     }
 
     /* ── Safe Area Insets (iPhone X+) ─────────────────────────────────────── */

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -18,18 +18,18 @@
             <!-- Header -->
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white"><?php echo e(__('Buat Subscription Baru')); ?></h1>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400"><?php echo e(__('Daftarkan pelanggan ke paket internet')); ?></p>
+                    <h1 class="text-3xl font-bold text-gray-900"><?php echo e(__('Buat Subscription Baru')); ?></h1>
+                    <p class="mt-1 text-sm text-gray-600"><?php echo e(__('Daftarkan pelanggan ke paket internet')); ?></p>
                 </div>
                 <a href="<?php echo e(route('telecom.subscriptions.index')); ?>"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     <i class="fas fa-arrow-left mr-2"></i><?php echo e(__('Kembali')); ?>
 
                 </a>
             </div>
 
             <?php if($errors->any()): ?>
-                <div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <li><?php echo e($error); ?></li>
@@ -38,17 +38,17 @@
                 </div>
             <?php endif; ?>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+            <div class="bg-white shadow-sm sm:rounded-lg">
                 <form action="<?php echo e(route('telecom.subscriptions.store')); ?>" method="POST" class="p-6 space-y-6">
                     <?php echo csrf_field(); ?>
 
                     <!-- Customer -->
                     <div>
-                        <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="customer_id" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Pelanggan')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="customer_id" id="customer_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['customer_id'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['customer_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -69,7 +69,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -78,11 +78,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Package -->
                     <div>
-                        <label for="package_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="package_id" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Paket Internet')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="package_id" id="package_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['package_id'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['package_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -102,7 +102,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -111,11 +111,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Device -->
                     <div>
-                        <label for="device_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="device_id" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Perangkat Jaringan')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="device_id" id="device_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['device_id'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['device_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -136,7 +136,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -146,12 +146,12 @@ unset($__errorArgs, $__bag); ?>
                     <!-- Dates -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="started_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label for="started_at" class="block text-sm font-medium text-gray-700 mb-1">
                                 <?php echo e(__('Tanggal Mulai')); ?> <span class="text-red-500">*</span>
                             </label>
                             <input type="date" name="started_at" id="started_at" required
                                 value="<?php echo e(old('started_at', now()->format('Y-m-d'))); ?>"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['started_at'];
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['started_at'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -164,7 +164,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                                <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                             <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -172,23 +172,23 @@ unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
-                            <label for="ends_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-1">
                                 <?php echo e(__('Tanggal Berakhir (opsional)')); ?>
 
                             </label>
                             <input type="date" name="ends_at" id="ends_at"
                                 value="<?php echo e(old('ends_at')); ?>"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
                     </div>
 
                     <!-- Auth Type -->
                     <div>
-                        <label for="auth_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="auth_type" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Tipe Autentikasi')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="auth_type" id="auth_type" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['auth_type'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['auth_type'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -205,7 +205,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -215,44 +215,44 @@ unset($__errorArgs, $__bag); ?>
                     <!-- Hotspot Credentials -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="hotspot_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label for="hotspot_username" class="block text-sm font-medium text-gray-700 mb-1">
                                 <?php echo e(__('Username Hotspot')); ?>
 
                             </label>
                             <input type="text" name="hotspot_username" id="hotspot_username"
                                 value="<?php echo e(old('hotspot_username')); ?>"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
 
                         <div>
-                            <label for="hotspot_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label for="hotspot_password" class="block text-sm font-medium text-gray-700 mb-1">
                                 <?php echo e(__('Password Hotspot')); ?>
 
                             </label>
                             <input type="password" name="hotspot_password" id="hotspot_password"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
                     </div>
 
                     <!-- Notes -->
                     <div>
-                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Catatan')); ?>
 
                         </label>
                         <textarea name="notes" id="notes" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><?php echo e(old('notes')); ?></textarea>
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><?php echo e(old('notes')); ?></textarea>
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                         <a href="<?php echo e(route('telecom.subscriptions.index')); ?>"
-                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                             <?php echo e(__('Batal')); ?>
 
                         </a>
                         <button type="submit"
-                            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600">
+                            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
                             <i class="fas fa-check mr-2"></i><?php echo e(__('Buat Subscription')); ?>
 
                         </button>

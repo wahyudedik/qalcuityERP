@@ -1,12 +1,12 @@
-
+﻿
 
 <?php $__env->startSection('content'); ?>
 <div class="space-y-6">
     
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Retur Penjualan</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pengembalian barang dari customer</p>
+            <h1 class="text-2xl font-bold text-slate-800">Retur Penjualan</h1>
+            <p class="text-sm text-slate-500 mt-1">Kelola pengembalian barang dari customer</p>
         </div>
         <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'sales_returns', 'create')): ?>
         <a href="<?php echo e(route('sales-returns.create')); ?>"
@@ -19,16 +19,16 @@
 
     
     <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Draft</p>
-            <p class="text-2xl font-bold text-slate-800 dark:text-white mt-1"><?php echo e($stats['draft']); ?></p>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-xs text-slate-500">Draft</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1"><?php echo e($stats['draft']); ?></p>
         </div>
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Disetujui</p>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-xs text-slate-500">Disetujui</p>
             <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e($stats['approved']); ?></p>
         </div>
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Selesai</p>
+        <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-xs text-slate-500">Selesai</p>
             <p class="text-2xl font-bold text-green-600 mt-1"><?php echo e($stats['completed']); ?></p>
         </div>
     </div>
@@ -36,8 +36,8 @@
     
     <form method="GET" class="flex gap-3">
         <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari nomor / customer..."
-               class="flex-1 px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
-        <select name="status" class="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
+               class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+        <select name="status" class="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800">
             <option value="">Semua Status</option>
             <option value="draft" <?php if(request('status') === 'draft'): echo 'selected'; endif; ?>>Draft</option>
             <option value="approved" <?php if(request('status') === 'approved'): echo 'selected'; endif; ?>>Disetujui</option>
@@ -48,9 +48,9 @@
     </form>
 
     
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table class="w-full text-sm">
-            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left">Nomor</th>
                     <th class="px-4 py-3 text-left">Customer</th>
@@ -62,15 +62,15 @@
                     <th class="px-4 py-3 text-center">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tbody class="divide-y divide-slate-100">
                 <?php $__empty_1 = true; $__currentLoopData = $returns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $return): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                    <td class="px-4 py-3 font-mono font-medium text-slate-800 dark:text-white"><?php echo e($return->number); ?></td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300"><?php echo e($return->customer->name ?? '-'); ?></td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs"><?php echo e($return->invoice->number ?? '-'); ?></td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400"><?php echo e($return->return_date->format('d/m/Y')); ?></td>
-                    <td class="px-4 py-3 text-right font-medium text-slate-800 dark:text-white">Rp <?php echo e(number_format($return->total, 0, ',', '.')); ?></td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 capitalize"><?php echo e(str_replace('_', ' ', $return->refund_method)); ?></td>
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono font-medium text-slate-800"><?php echo e($return->number); ?></td>
+                    <td class="px-4 py-3 text-slate-600"><?php echo e($return->customer->name ?? '-'); ?></td>
+                    <td class="px-4 py-3 text-slate-500 font-mono text-xs"><?php echo e($return->invoice->number ?? '-'); ?></td>
+                    <td class="px-4 py-3 text-slate-500"><?php echo e($return->return_date->format('d/m/Y')); ?></td>
+                    <td class="px-4 py-3 text-right font-medium text-slate-800">Rp <?php echo e(number_format($return->total, 0, ',', '.')); ?></td>
+                    <td class="px-4 py-3 text-slate-500 capitalize"><?php echo e(str_replace('_', ' ', $return->refund_method)); ?></td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 text-xs font-medium rounded-full <?php echo e($return->statusColor()); ?>">
                             <?php echo e($return->statusLabel()); ?>
@@ -105,7 +105,7 @@
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
-                    <td colspan="8" class="px-4 py-12 text-center text-slate-400 dark:text-slate-500">Belum ada retur penjualan</td>
+                    <td colspan="8" class="px-4 py-12 text-center text-slate-400">Belum ada retur penjualan</td>
                 </tr>
                 <?php endif; ?>
             </tbody>

@@ -10,23 +10,11 @@
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
-    
-    {{-- Theme detection script (prevent FOUC) --}}
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'light';
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            }
-        })();
-    </script>
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="h-full font-[Inter,sans-serif] antialiased bg-white dark:bg-gray-900 transition-colors">
+<body class="h-full font-[Inter,sans-serif] antialiased bg-white">
 
     <div class="min-h-full flex">
 
@@ -90,12 +78,12 @@
             </div>
         </div>
 
-        {{-- Right panel — form (light/dark) --}}
-        <div class="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 bg-white dark:bg-gray-900 transition-colors">
+        {{-- Right panel — form --}}
+        <div class="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 bg-white">
             <div class="mx-auto w-full max-w-sm">
                 {{-- Mobile logo --}}
                 <div class="lg:hidden flex items-center gap-2 mb-8">
-                    <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0 dark:brightness-100"
+                    <img src="/logo.png" alt="Qalcuity ERP" class="h-8 w-auto object-contain brightness-0"
                         loading="lazy">
                 </div>
 

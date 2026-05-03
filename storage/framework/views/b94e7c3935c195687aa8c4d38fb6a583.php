@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Tutup Sesi Kasir'); ?>
 
@@ -8,91 +8,91 @@
     
     <div>
         <a href="<?php echo e(route('pos.sessions.show', $session)); ?>"
-            class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-3 transition">
+            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
             Kembali ke Detail Sesi
         </a>
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Tutup Sesi Kasir</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Kasir: <span class="font-medium text-gray-700 dark:text-gray-300"><?php echo e($session->cashier?->name); ?></span>
+        <h1 class="text-xl font-semibold text-gray-900">Tutup Sesi Kasir</h1>
+        <p class="text-sm text-gray-500 mt-0.5">
+            Kasir: <span class="font-medium text-gray-700"><?php echo e($session->cashier?->name); ?></span>
             &bull; Dibuka: <?php echo e($session->opened_at?->format('d/m/Y H:i')); ?>
 
         </p>
     </div>
 
     
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Rekap Transaksi Sesi Ini</h2>
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Rekap Transaksi Sesi Ini</h2>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
             
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Jumlah Transaksi</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white"><?php echo e(number_format($recap['total_transactions'])); ?></p>
+            <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-xs text-gray-500 mb-1">Jumlah Transaksi</p>
+                <p class="text-2xl font-bold text-gray-900"><?php echo e(number_format($recap['total_transactions'])); ?></p>
             </div>
 
             
-            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-                <p class="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Penjualan</p>
-                <p class="text-lg font-bold text-blue-700 dark:text-blue-300">Rp <?php echo e(number_format($recap['total_sales'], 0, ',', '.')); ?></p>
+            <div class="bg-blue-50 rounded-xl p-4">
+                <p class="text-xs text-blue-600 mb-1">Total Penjualan</p>
+                <p class="text-lg font-bold text-blue-700">Rp <?php echo e(number_format($recap['total_sales'], 0, ',', '.')); ?></p>
             </div>
 
             
-            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Modal Awal</p>
-                <p class="text-lg font-bold text-gray-900 dark:text-white">Rp <?php echo e(number_format($session->opening_balance, 0, ',', '.')); ?></p>
+            <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-xs text-gray-500 mb-1">Modal Awal</p>
+                <p class="text-lg font-bold text-gray-900">Rp <?php echo e(number_format($session->opening_balance, 0, ',', '.')); ?></p>
             </div>
         </div>
 
         
-        <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Rincian per Metode Pembayaran</h3>
+        <div class="border-t border-gray-100 pt-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Rincian per Metode Pembayaran</h3>
             <div class="space-y-2">
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <span class="text-gray-600 flex items-center gap-2">
                         <span class="w-2 h-2 bg-green-500 rounded-full"></span> Tunai (Cash)
                     </span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Rp <?php echo e(number_format($recap['total_cash'], 0, ',', '.')); ?></span>
+                    <span class="font-medium text-gray-900">Rp <?php echo e(number_format($recap['total_cash'], 0, ',', '.')); ?></span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <span class="text-gray-600 flex items-center gap-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Kartu Debit/Kredit
                     </span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Rp <?php echo e(number_format($recap['total_card'], 0, ',', '.')); ?></span>
+                    <span class="font-medium text-gray-900">Rp <?php echo e(number_format($recap['total_card'], 0, ',', '.')); ?></span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <span class="text-gray-600 flex items-center gap-2">
                         <span class="w-2 h-2 bg-purple-500 rounded-full"></span> QRIS
                     </span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Rp <?php echo e(number_format($recap['total_qris'], 0, ',', '.')); ?></span>
+                    <span class="font-medium text-gray-900">Rp <?php echo e(number_format($recap['total_qris'], 0, ',', '.')); ?></span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <span class="text-gray-600 flex items-center gap-2">
                         <span class="w-2 h-2 bg-orange-500 rounded-full"></span> Transfer Bank
                     </span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Rp <?php echo e(number_format($recap['total_transfer'], 0, ',', '.')); ?></span>
+                    <span class="font-medium text-gray-900">Rp <?php echo e(number_format($recap['total_transfer'], 0, ',', '.')); ?></span>
                 </div>
-                <div class="border-t border-gray-100 dark:border-gray-700 pt-2 flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400">Total Diskon</span>
-                    <span class="font-medium text-red-600 dark:text-red-400">- Rp <?php echo e(number_format($recap['total_discount'], 0, ',', '.')); ?></span>
+                <div class="border-t border-gray-100 pt-2 flex justify-between items-center text-sm">
+                    <span class="text-gray-600">Total Diskon</span>
+                    <span class="font-medium text-red-600">- Rp <?php echo e(number_format($recap['total_discount'], 0, ',', '.')); ?></span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 dark:text-gray-400">Total Pajak</span>
-                    <span class="font-medium text-gray-900 dark:text-gray-100">Rp <?php echo e(number_format($recap['total_tax'], 0, ',', '.')); ?></span>
+                    <span class="text-gray-600">Total Pajak</span>
+                    <span class="font-medium text-gray-900">Rp <?php echo e(number_format($recap['total_tax'], 0, ',', '.')); ?></span>
                 </div>
             </div>
         </div>
 
         
-        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Kas yang Diharapkan di Laci</p>
-                    <p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Modal awal + total penjualan tunai</p>
+                    <p class="text-sm font-medium text-amber-800">Kas yang Diharapkan di Laci</p>
+                    <p class="text-xs text-amber-600 mt-0.5">Modal awal + total penjualan tunai</p>
                 </div>
-                <p class="text-xl font-bold text-amber-800 dark:text-amber-300">
+                <p class="text-xl font-bold text-amber-800">
                     Rp <?php echo e(number_format($recap['expected_balance'], 0, ',', '.')); ?>
 
                 </p>
@@ -102,31 +102,31 @@
 
     
     <form method="POST" action="<?php echo e(route('pos.sessions.close', $session)); ?>"
-        class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-5"
+        class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5"
         x-data="{ closingBalance: <?php echo e((int) $recap['expected_balance']); ?>, expectedBalance: <?php echo e((int) $recap['expected_balance']); ?> }">
         <?php echo csrf_field(); ?>
 
-        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Input Kas Aktual</h2>
+        <h2 class="text-base font-semibold text-gray-900">Input Kas Aktual</h2>
 
         
         <div>
-            <label for="closing_balance" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label for="closing_balance" class="block text-sm font-medium text-gray-700 mb-1.5">
                 Jumlah Kas di Laci (Aktual) <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400 font-medium">Rp</span>
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Rp</span>
                 <input type="number" id="closing_balance" name="closing_balance"
                     x-model="closingBalance"
                     value="<?php echo e(old('closing_balance', (int) $recap['expected_balance'])); ?>"
                     min="0" step="1000" required
-                    class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition">
+                    class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
             </div>
             <?php $__errorArgs = ['closing_balance'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                <p class="mt-1 text-xs text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                <p class="mt-1 text-xs text-red-600"><?php echo e($message); ?></p>
             <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -136,35 +136,35 @@ unset($__errorArgs, $__bag); ?>
         
         <div class="rounded-xl p-4 transition"
             :class="(closingBalance - expectedBalance) === 0
-                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                ? 'bg-green-50 border border-green-200'
                 : (closingBalance - expectedBalance) > 0
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
-                    : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'">
+                    ? 'bg-blue-50 border border-blue-200'
+                    : 'bg-red-50 border border-red-200'">
             <div class="flex justify-between items-center">
                 <p class="text-sm font-medium"
                     :class="(closingBalance - expectedBalance) === 0
-                        ? 'text-green-800 dark:text-green-300'
+                        ? 'text-green-800'
                         : (closingBalance - expectedBalance) > 0
-                            ? 'text-blue-800 dark:text-blue-300'
-                            : 'text-red-800 dark:text-red-300'">
+                            ? 'text-blue-800'
+                            : 'text-red-800'">
                     Selisih Kas
                 </p>
                 <p class="text-lg font-bold"
                     :class="(closingBalance - expectedBalance) === 0
-                        ? 'text-green-800 dark:text-green-300'
+                        ? 'text-green-800'
                         : (closingBalance - expectedBalance) > 0
-                            ? 'text-blue-800 dark:text-blue-300'
-                            : 'text-red-800 dark:text-red-300'">
+                            ? 'text-blue-800'
+                            : 'text-red-800'">
                     <span x-text="(closingBalance - expectedBalance) >= 0 ? '+' : ''"></span>
                     Rp <span x-text="new Intl.NumberFormat('id-ID').format(closingBalance - expectedBalance)"></span>
                 </p>
             </div>
             <p class="text-xs mt-1"
                 :class="(closingBalance - expectedBalance) === 0
-                    ? 'text-green-600 dark:text-green-400'
+                    ? 'text-green-600'
                     : (closingBalance - expectedBalance) > 0
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-red-600 dark:text-red-400'"
+                        ? 'text-blue-600'
+                        : 'text-red-600'"
                 x-text="(closingBalance - expectedBalance) === 0
                     ? 'Kas sesuai — tidak ada selisih'
                     : (closingBalance - expectedBalance) > 0
@@ -175,18 +175,18 @@ unset($__errorArgs, $__bag); ?>
 
         
         <div>
-            <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1.5">
                 Catatan Penutupan (opsional)
             </label>
             <textarea id="notes" name="notes" rows="2"
                 placeholder="Catatan untuk sesi ini..."
-                class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition resize-none"><?php echo e(old('notes', $session->notes)); ?></textarea>
+                class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"><?php echo e(old('notes', $session->notes)); ?></textarea>
         </div>
 
         
         <div class="flex gap-3 pt-2">
             <a href="<?php echo e(route('pos.sessions.show', $session)); ?>"
-                class="flex-1 text-center px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                class="flex-1 text-center px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition">
                 Batal
             </a>
             <button type="submit"

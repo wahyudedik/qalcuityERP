@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,16 +8,15 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <span>Material Requirement Planning (MRP)</span>
-            <div class="flex gap-2">
-                <a href="<?php echo e(route('manufacturing.mrp.accuracy')); ?>"
+     <?php $__env->slot('header', null, []); ?> Material Requirement Planning (MRP) <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('manufacturing.mrp.accuracy')); ?>"
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                     📊 Accuracy Dashboard
                 </a>
-                <?php if(isset($planningReport) && $planningReport['status'] === 'success'): ?>
-                    <form method="POST" action="<?php echo e(route('manufacturing.mrp.export-pdf')); ?>" target="_blank"
+        <form method="POST" action="<?php echo e(route('manufacturing.mrp.export-pdf')); ?>" target="_blank"
                         class="inline">
                         <?php echo csrf_field(); ?>
                         <?php if(request('bom_id')): ?>
@@ -28,30 +27,26 @@
                             class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                             📄 Export PDF Report
                         </button>
-                    </form>
-                <?php endif; ?>
-            </div>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     
     <?php if(isset($dashboardData)): ?>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-sm text-gray-500 dark:text-slate-400">Work Orders Aktif</div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-sm text-gray-500">Work Orders Aktif</div>
                 <div class="text-2xl font-bold text-blue-600"><?php echo e($dashboardData['pending_work_orders']); ?></div>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-sm text-gray-500 dark:text-slate-400">PO Pending</div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-sm text-gray-500">PO Pending</div>
                 <div class="text-2xl font-bold text-purple-600"><?php echo e($dashboardData['pending_purchase_orders']); ?></div>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-sm text-gray-500 dark:text-slate-400">Stok Rendah</div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-sm text-gray-500">Stok Rendah</div>
                 <div class="text-2xl font-bold text-orange-600"><?php echo e($dashboardData['low_stock_items']); ?></div>
             </div>
             <?php if(isset($dashboardData['planning']['summary'])): ?>
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                    <div class="text-sm text-gray-500 dark:text-slate-400">MRP Health</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                    <div class="text-sm text-gray-500">MRP Health</div>
                     <div
                         class="text-2xl font-bold <?php echo e($dashboardData['planning']['summary']['health_percentage'] >= 80 ? 'text-green-600' : 'text-red-600'); ?>">
                         <?php echo e($dashboardData['planning']['summary']['health_percentage']); ?>%
@@ -64,45 +59,45 @@
     
     <?php if(isset($planningReport) && $planningReport['status'] === 'success'): ?>
         <div
-            class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-6 mb-6">
+            class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6 mb-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">📊 Planning Report Summary</h3>
-                <span class="text-xs text-gray-500 dark:text-slate-400">Generated:
+                <h3 class="font-semibold text-gray-900 text-lg">📊 Planning Report Summary</h3>
+                <span class="text-xs text-gray-500">Generated:
                     <?php echo e(\Carbon\Carbon::parse($planningReport['generated_at'])->format('d M Y H:i')); ?></span>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                 <div>
-                    <div class="text-xs text-gray-500 dark:text-slate-400">Total Items</div>
+                    <div class="text-xs text-gray-500">Total Items</div>
                     <div class="text-xl font-bold"><?php echo e($planningReport['summary']['total_items']); ?></div>
                 </div>
                 <div>
-                    <div class="text-xs text-gray-500 dark:text-slate-400">Shortage</div>
+                    <div class="text-xs text-gray-500">Shortage</div>
                     <div class="text-xl font-bold text-red-600"><?php echo e($planningReport['summary']['items_with_shortage']); ?>
 
                     </div>
                 </div>
                 <div>
-                    <div class="text-xs text-gray-500 dark:text-slate-400">Critical</div>
+                    <div class="text-xs text-gray-500">Critical</div>
                     <div class="text-xl font-bold text-red-700"><?php echo e($planningReport['summary']['critical_items']); ?>
 
                     </div>
                 </div>
                 <div>
-                    <div class="text-xs text-gray-500 dark:text-slate-400">High Priority</div>
+                    <div class="text-xs text-gray-500">High Priority</div>
                     <div class="text-xl font-bold text-orange-600">
                         <?php echo e($planningReport['summary']['high_priority_items']); ?></div>
                 </div>
                 <div>
-                    <div class="text-xs text-gray-500 dark:text-slate-400">Est. Shortage Value</div>
-                    <div class="text-xl font-bold text-gray-900 dark:text-white">Rp
+                    <div class="text-xs text-gray-500">Est. Shortage Value</div>
+                    <div class="text-xl font-bold text-gray-900">Rp
                         <?php echo e(number_format($planningReport['summary']['estimated_shortage_value'], 0, ',', '.')); ?></div>
                 </div>
             </div>
 
             <?php if($planningReport['summary']['critical_items'] > 0): ?>
-                <div class="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3">
-                    <span class="text-sm text-red-800 dark:text-red-200">⚠️ Ada
+                <div class="bg-red-100 border border-red-300 rounded-lg p-3">
+                    <span class="text-sm text-red-800">⚠️ Ada
                         <?php echo e($planningReport['summary']['critical_items']); ?> item critical yang perlu segera
                         diorder!</span>
                 </div>
@@ -111,11 +106,11 @@
     <?php endif; ?>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mb-6">
-        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Kalkulasi Kebutuhan Material</h3>
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <h3 class="font-semibold text-gray-900 mb-4">Kalkulasi Kebutuhan Material</h3>
         <form method="GET" class="flex flex-col sm:flex-row gap-3">
             <select name="bom_id"
-                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">-- Pilih BOM --</option>
                 <?php $__currentLoopData = $boms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($b->id); ?>" <?php if(request('bom_id') == $b->id): echo 'selected'; endif; ?>><?php echo e($b->name); ?>
@@ -126,7 +121,7 @@
             </select>
             <input type="number" name="quantity" min="1" step="1" value="<?php echo e($quantity); ?>"
                 placeholder="Jumlah produksi"
-                class="w-32 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="w-32 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
             <button type="submit"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Hitung</button>
             <button type="submit" name="full_mrp" value="1"
@@ -138,16 +133,16 @@
     
     <?php if($results !== null): ?>
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">
                     Kebutuhan: <?php echo e($selectedBom->name ?? '-'); ?> × <?php echo e(number_format($quantity, 0, ',', '.')); ?>
 
                 </h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left">Material</th>
                             <th class="px-4 py-3 text-right">Dibutuhkan</th>
@@ -159,25 +154,25 @@
                             <th class="px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         <?php $__currentLoopData = $results; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                <td class="px-4 py-3 text-gray-900 dark:text-white">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-gray-900">
                                     <?php if($r['level'] > 0): ?>
                                         <span class="text-gray-400"><?php echo e(str_repeat('└─ ', $r['level'])); ?></span>
                                     <?php endif; ?>
                                     <?php echo e($r['product_name']); ?>
 
                                 </td>
-                                <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                                <td class="px-4 py-3 text-right font-medium text-gray-900">
                                     <?php echo e(number_format($r['required'], 2, ',', '.')); ?> <?php echo e($r['unit']); ?></td>
-                                <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                                <td class="px-4 py-3 text-right text-gray-700">
                                     <?php echo e(number_format($r['on_hand'], 2, ',', '.')); ?></td>
-                                <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                                <td class="px-4 py-3 text-right text-gray-700">
                                     <?php echo e(number_format($r['on_order'], 2, ',', '.')); ?></td>
-                                <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                                <td class="px-4 py-3 text-right text-gray-700">
                                     <?php echo e(number_format($r['other_demand'], 2, ',', '.')); ?></td>
-                                <td class="px-4 py-3 text-right text-gray-900 dark:text-white">
+                                <td class="px-4 py-3 text-right text-gray-900">
                                     <?php echo e(number_format($r['available'], 2, ',', '.')); ?></td>
                                 <td
                                     class="px-4 py-3 text-right font-bold <?php echo e($r['shortage'] > 0 ? 'text-red-500' : 'text-green-500'); ?>">
@@ -187,10 +182,10 @@
                                 <td class="px-4 py-3 text-center">
                                     <?php if($r['shortage'] > 0): ?>
                                         <span
-                                            class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Kurang</span>
+                                            class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">Kurang</span>
                                     <?php else: ?>
                                         <span
-                                            class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Cukup</span>
+                                            class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Cukup</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -199,7 +194,7 @@
                 </table>
             </div>
             <?php $totalShortage = collect($results)->sum('shortage'); ?>
-            <div class="px-6 py-3 border-t border-gray-100 dark:border-white/10 flex items-center gap-4">
+            <div class="px-6 py-3 border-t border-gray-100 flex items-center gap-4">
                 <?php if($totalShortage > 0): ?>
                     <span class="text-sm text-red-500">⚠️ Ada
                         <?php echo e(collect($results)->where('shortage', '>', 0)->count()); ?> material yang kurang stok.</span>
@@ -212,16 +207,16 @@
 
     
     <?php if($fullMrp !== null): ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Full MRP — Semua Work Order Aktif</h3>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Agregasi kebutuhan material dari semua WO
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Full MRP — Semua Work Order Aktif</h3>
+                <p class="text-xs text-gray-500 mt-1">Agregasi kebutuhan material dari semua WO
                     pending/in-progress yang memiliki BOM</p>
             </div>
             <?php if(count($fullMrp) > 0): ?>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Material</th>
                                 <th class="px-4 py-3 text-right">Total Dibutuhkan</th>
@@ -233,25 +228,25 @@
                                 <th class="px-4 py-3 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php $__currentLoopData = $fullMrp; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr
-                                    class="hover:bg-gray-50 dark:hover:bg-white/5 <?php echo e($r['shortage'] > 0 ? 'bg-red-50/50 dark:bg-red-500/5' : ''); ?>">
-                                    <td class="px-4 py-3 text-gray-900 dark:text-white"><?php echo e($r['product_name']); ?></td>
-                                    <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                                    class="hover:bg-gray-50 <?php echo e($r['shortage'] > 0 ? 'bg-red-50/50' : ''); ?>">
+                                    <td class="px-4 py-3 text-gray-900"><?php echo e($r['product_name']); ?></td>
+                                    <td class="px-4 py-3 text-right font-medium text-gray-900">
                                         <?php echo e(number_format($r['required'], 2, ',', '.')); ?> <?php echo e($r['unit']); ?></td>
-                                    <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                                    <td class="px-4 py-3 text-right text-gray-700">
                                         <?php echo e(number_format($r['on_hand'], 2, ',', '.')); ?></td>
-                                    <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                                    <td class="px-4 py-3 text-right text-gray-700">
                                         <?php echo e(number_format($r['on_order'], 2, ',', '.')); ?></td>
-                                    <td class="px-4 py-3 text-right text-gray-900 dark:text-white">
+                                    <td class="px-4 py-3 text-right text-gray-900">
                                         <?php echo e(number_format($r['available'], 2, ',', '.')); ?></td>
                                     <td
                                         class="px-4 py-3 text-right font-bold <?php echo e($r['shortage'] > 0 ? 'text-red-500' : 'text-green-500'); ?>">
                                         <?php echo e($r['shortage'] > 0 ? number_format($r['shortage'], 2, ',', '.') : '—'); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                    <td class="px-4 py-3 text-xs text-gray-500">
                                         <?php echo e(implode(', ', array_slice($r['wo_refs'], 0, 3))); ?>
 
                                         <?php if(count($r['wo_refs']) > 3): ?>
@@ -261,10 +256,10 @@
                                     <td class="px-4 py-3 text-center">
                                         <?php if($r['shortage'] > 0): ?>
                                             <span
-                                                class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Kurang</span>
+                                                class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">Kurang</span>
                                         <?php else: ?>
                                             <span
-                                                class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Cukup</span>
+                                                class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Cukup</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -273,7 +268,7 @@
                     </table>
                 </div>
                 <?php $shortageCount = collect($fullMrp)->where('shortage', '>', 0)->count(); ?>
-                <div class="px-6 py-3 border-t border-gray-100 dark:border-white/10">
+                <div class="px-6 py-3 border-t border-gray-100">
                     <?php if($shortageCount > 0): ?>
                         <span class="text-sm text-red-500">⚠️ <?php echo e($shortageCount); ?> material kekurangan stok. Buat
                             Purchase Order untuk memenuhi kebutuhan.</span>
@@ -283,7 +278,7 @@
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="px-6 py-12 text-center text-gray-400 dark:text-slate-500">
+                <div class="px-6 py-12 text-center text-gray-400">
                     Tidak ada Work Order aktif yang memiliki BOM. Buat WO dengan BOM terlebih dahulu.
                 </div>
             <?php endif; ?>
@@ -293,11 +288,11 @@
     
     <?php if(isset($planningReport) && $planningReport['status'] === 'success' && count($planningReport['items']) > 0): ?>
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden mt-6">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden mt-6">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white">📋 Planning Recommendations</h3>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Prioritas berdasarkan shortage, lead
+                    <h3 class="font-semibold text-gray-900">📋 Planning Recommendations</h3>
+                    <p class="text-xs text-gray-500 mt-1">Prioritas berdasarkan shortage, lead
                         time, dan quantity</p>
                 </div>
                 <div class="flex gap-2">
@@ -309,7 +304,7 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-left">Priority</th>
                             <th class="px-4 py-3 text-left">Material</th>
@@ -321,11 +316,11 @@
                             <th class="px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         <?php $__currentLoopData = $planningReport['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php if($item['has_shortage']): ?>
                                 <tr
-                                    class="hover:bg-gray-50 dark:hover:bg-white/5 <?php echo e($item['action']['urgency'] === 'critical' ? 'bg-red-50/50 dark:bg-red-500/5' : ''); ?>">
+                                    class="hover:bg-gray-50 <?php echo e($item['action']['urgency'] === 'critical' ? 'bg-red-50/50' : ''); ?>">
                                     <td class="px-4 py-3 text-center">
                                         <div
                                             class="font-bold <?php echo e($item['priority'] >= 70 ? 'text-red-600' : ($item['priority'] >= 50 ? 'text-orange-600' : 'text-yellow-600')); ?>">
@@ -333,19 +328,19 @@
 
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                                    <td class="px-4 py-3 text-gray-900 font-medium">
                                         <?php echo e($item['product_name']); ?></td>
                                     <td class="px-4 py-3 text-right font-bold text-red-600">
                                         <?php echo e(number_format($item['shortage'], 2, ',', '.')); ?> <?php echo e($item['unit']); ?></td>
                                     <td class="px-4 py-3 text-center">
                                         <span
-                                            class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                                            class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
                                             <?php echo e($item['lead_time_days']); ?> days
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-center text-xs text-gray-700 dark:text-slate-300">
+                                    <td class="px-4 py-3 text-center text-xs text-gray-700">
                                         <?php echo e($item['order_by_date_formatted']); ?></td>
-                                    <td class="px-4 py-3 text-xs text-gray-600 dark:text-slate-400">
+                                    <td class="px-4 py-3 text-xs text-gray-600">
                                         <?php if($item['supplier_info']): ?>
                                             <div class="font-medium"><?php echo e($item['supplier_info']['name']); ?></div>
                                             <?php if($item['supplier_info']['phone']): ?>
@@ -369,16 +364,16 @@
                                     <td class="px-4 py-3 text-center">
                                         <?php if($item['action']['urgency'] === 'critical'): ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 font-bold">CRITICAL</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 font-bold">CRITICAL</span>
                                         <?php elseif($item['action']['urgency'] === 'high'): ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400">HIGH</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700">HIGH</span>
                                         <?php elseif($item['action']['urgency'] === 'medium'): ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400">MEDIUM</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">MEDIUM</span>
                                         <?php else: ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">LOW</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">LOW</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -402,7 +397,7 @@
                     <div>
                         <label class="block text-sm font-medium mb-1">Product</label>
                         <input type="text" id="po_product_name" readonly
-                            class="w-full border rounded px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                            class="w-full border rounded px-3 py-2 bg-gray-100">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Quantity *</label>

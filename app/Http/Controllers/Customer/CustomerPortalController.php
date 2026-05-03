@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\SalesOrder;
 use App\Models\Invoice;
 use App\Models\Customer;
-use App\Models\SupportTicket;
+use App\Models\HelpdeskTicket;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerPortalController extends Controller
 {
@@ -21,24 +23,22 @@ class CustomerPortalController extends Controller
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            return redirect()->route('login')->withErrors(['error' => 'Please login as customer']);
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
         }
 
         // Dashboard statistics
         $stats = [
             'total_orders' => SalesOrder::where('customer_id', $customer->id)->count(),
             'pending_orders' => SalesOrder::where('customer_id', $customer->id)
-                ->whereIn('status', ['pending', 'confirmed'])->count(),
+                ->whereIn('status', ['pending', 'confirmed', 'processing'])->count(),
             'total_invoices' => Invoice::where('customer_id', $customer->id)->count(),
             'unpaid_invoices' => Invoice::where('customer_id', $customer->id)
-                ->where('status', '!=', 'paid')->count(),
+                ->whereNotIn('status', ['paid', 'voided', 'cancelled'])->count(),
             'outstanding_balance' => Invoice::where('customer_id', $customer->id)
-                ->where('status', '!=', 'paid')
-                ->sum('total') - Invoice::where('customer_id', $customer->id)
-                    ->where('status', 'paid')
-                    ->sum('total'),
-            'active_tickets' => SupportTicket::where('customer_id', $customer->id)
-                ->where('status', 'open')->count(),
+                ->whereNotIn('status', ['paid', 'voided', 'cancelled'])
+                ->sum('remaining_amount'),
+            'active_tickets' => HelpdeskTicket::where('customer_id', $customer->id)
+                ->whereNotIn('status', ['closed', 'resolved'])->count(),
         ];
 
         // Recent orders
@@ -64,6 +64,10 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
+        if (!$customer) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
+        }
+
         $query = SalesOrder::where('customer_id', $customer->id)
             ->with(['items.product']);
 
@@ -82,7 +86,7 @@ class CustomerPortalController extends Controller
 
         $orders = $query->latest()->paginate(20);
 
-        return view('customer-portal.orders.index', compact('orders'));
+        return view('customer-portal.orders.index', compact('orders', 'customer'));
     }
 
     /**
@@ -93,10 +97,10 @@ class CustomerPortalController extends Controller
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            abort(403, 'Customer not found');
+            abort(403, 'Pelanggan tidak ditemukan');
         }
 
-        // BUG-CRM-002 FIX: Verify order belongs to customer AND same tenant
+        // Verify order belongs to customer AND same tenant
         if ($order->customer_id !== $customer->id || $order->tenant_id !== $customer->tenant_id) {
             \Log::warning('Unauthorized order access attempt', [
                 'customer_id' => $customer->id,
@@ -104,15 +108,15 @@ class CustomerPortalController extends Controller
                 'order_customer_id' => $order->customer_id,
                 'order_tenant_id' => $order->tenant_id,
             ]);
-            abort(403, 'Unauthorized access');
+            abort(403, 'Akses tidak diizinkan');
         }
 
-        $order->load(['items.product', 'invoices', 'shipments']);
+        $order->load(['items.product', 'invoices', 'deliveryOrders']);
 
         // Tracking timeline
         $tracking = $this->getOrderTracking($order);
 
-        return view('customer-portal.orders.show', compact('order', 'tracking'));
+        return view('customer-portal.orders.show', compact('order', 'tracking', 'customer'));
     }
 
     /**
@@ -121,6 +125,10 @@ class CustomerPortalController extends Controller
     public function invoices(Request $request)
     {
         $customer = $this->getAuthenticatedCustomer();
+
+        if (!$customer) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
+        }
 
         $query = Invoice::where('customer_id', $customer->id);
 
@@ -139,7 +147,7 @@ class CustomerPortalController extends Controller
 
         $invoices = $query->latest()->paginate(20);
 
-        return view('customer-portal.invoices.index', compact('invoices'));
+        return view('customer-portal.invoices.index', compact('invoices', 'customer'));
     }
 
     /**
@@ -150,10 +158,10 @@ class CustomerPortalController extends Controller
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            abort(403, 'Customer not found');
+            abort(403, 'Pelanggan tidak ditemukan');
         }
 
-        // BUG-CRM-002 FIX: Verify invoice belongs to customer AND same tenant
+        // Verify invoice belongs to customer AND same tenant
         if ($invoice->customer_id !== $customer->id || $invoice->tenant_id !== $customer->tenant_id) {
             \Log::warning('Unauthorized invoice access attempt', [
                 'customer_id' => $customer->id,
@@ -161,12 +169,12 @@ class CustomerPortalController extends Controller
                 'invoice_customer_id' => $invoice->customer_id,
                 'invoice_tenant_id' => $invoice->tenant_id,
             ]);
-            abort(403, 'Unauthorized access');
+            abort(403, 'Akses tidak diizinkan');
         }
 
-        $invoice->load(['items', 'payments']);
+        $invoice->load(['salesOrder.items.product', 'payments']);
 
-        return view('customer-portal.invoices.show', compact('invoice'));
+        return view('customer-portal.invoices.show', compact('invoice', 'customer'));
     }
 
     /**
@@ -177,22 +185,89 @@ class CustomerPortalController extends Controller
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            abort(403, 'Customer not found');
+            abort(403, 'Pelanggan tidak ditemukan');
         }
 
-        // BUG-CRM-002 FIX: Verify invoice belongs to customer AND same tenant
+        // Verify invoice belongs to customer AND same tenant
         if ($invoice->customer_id !== $customer->id || $invoice->tenant_id !== $customer->tenant_id) {
             \Log::warning('Unauthorized invoice download attempt', [
                 'customer_id' => $customer->id,
                 'invoice_id' => $invoice->id,
             ]);
-            abort(403, 'Unauthorized access');
+            abort(403, 'Akses tidak diizinkan');
         }
 
-        // Generate or get existing PDF
-        $pdfPath = $this->generateInvoicePdf($invoice);
+        $invoice->load(['salesOrder.items.product', 'customer', 'payments']);
 
-        return response()->download($pdfPath);
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download("invoice-{$invoice->number}.pdf");
+    }
+
+    /**
+     * Make payment for an invoice
+     */
+    public function payInvoice(Request $request, Invoice $invoice)
+    {
+        $customer = $this->getAuthenticatedCustomer();
+
+        if (!$customer) {
+            abort(403, 'Pelanggan tidak ditemukan');
+        }
+
+        // Verify invoice belongs to customer AND same tenant
+        if ($invoice->customer_id !== $customer->id || $invoice->tenant_id !== $customer->tenant_id) {
+            abort(403, 'Akses tidak diizinkan');
+        }
+
+        // Validate payment
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1|max:' . $invoice->remaining_amount,
+            'payment_method' => 'required|in:bank_transfer,credit_card,qris',
+            'payment_reference' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        // Check invoice is payable
+        if (in_array($invoice->status, ['paid', 'voided', 'cancelled'])) {
+            return back()->withErrors(['error' => 'Invoice ini tidak dapat dibayar.']);
+        }
+
+        // Create payment record
+        $payment = $invoice->payments()->create([
+            'tenant_id' => $customer->tenant_id,
+            'amount' => $validated['amount'],
+            'payment_method' => $validated['payment_method'],
+            'reference' => $validated['payment_reference'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'payment_date' => now(),
+            'status' => 'pending',
+        ]);
+
+        // Update invoice payment status
+        $invoice->updatePaymentStatus();
+
+        return redirect()->route('customer-portal.invoices.show', $invoice)
+            ->with('success', 'Pembayaran berhasil diajukan. Menunggu konfirmasi.');
+    }
+
+    /**
+     * Transaction history
+     */
+    public function transactions(Request $request)
+    {
+        $customer = $this->getAuthenticatedCustomer();
+
+        if (!$customer) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
+        }
+
+        $payments = Payment::whereHasMorph('payable', [Invoice::class], function ($query) use ($customer) {
+            $query->where('customer_id', $customer->id);
+        })->latest('payment_date')->paginate(20);
+
+        return view('customer-portal.transactions.index', compact('payments', 'customer'));
     }
 
     /**
@@ -202,19 +277,21 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
+        if (!$customer) {
+            abort(403, 'Pelanggan tidak ditemukan');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:customers,email,' . $customer->id,
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
+            'company' => 'nullable|string|max:255',
         ]);
 
         $customer->update($validated);
 
-        return back()->with('success', 'Profile updated successfully');
+        return back()->with('success', 'Profil berhasil diperbarui');
     }
 
     /**
@@ -222,22 +299,26 @@ class CustomerPortalController extends Controller
      */
     public function changePassword(Request $request)
     {
-        $customer = $this->getAuthenticatedCustomer();
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         $validated = $request->validate([
             'current_password' => 'required',
             'password' => 'required|min:8|confirmed',
         ]);
 
-        if (!Auth::guard('customer')->attempt(['email' => $customer->email, 'password' => $validated['current_password']])) {
-            return back()->withErrors(['current_password' => 'Current password is incorrect']);
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini salah']);
         }
 
-        $customer->update([
-            'password' => bcrypt($validated['password']),
+        $user->update([
+            'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'Password changed successfully');
+        return back()->with('success', 'Password berhasil diubah');
     }
 
     /**
@@ -247,7 +328,11 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
-        $query = SupportTicket::where('customer_id', $customer->id);
+        if (!$customer) {
+            return redirect()->route('login')->withErrors(['error' => 'Silakan login sebagai pelanggan']);
+        }
+
+        $query = HelpdeskTicket::where('customer_id', $customer->id);
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -255,7 +340,7 @@ class CustomerPortalController extends Controller
 
         $tickets = $query->latest()->paginate(20);
 
-        return view('customer-portal.tickets.index', compact('tickets'));
+        return view('customer-portal.tickets.index', compact('tickets', 'customer'));
     }
 
     /**
@@ -265,71 +350,78 @@ class CustomerPortalController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer();
 
+        if (!$customer) {
+            abort(403, 'Pelanggan tidak ditemukan');
+        }
+
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
-            'message' => 'required|string',
+            'description' => 'required|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'category' => 'nullable|string|max:100',
         ]);
 
-        $ticket = SupportTicket::create([
+        $ticket = HelpdeskTicket::create([
             'customer_id' => $customer->id,
             'tenant_id' => $customer->tenant_id,
             'subject' => $validated['subject'],
-            'message' => $validated['message'],
+            'description' => $validated['description'],
             'priority' => $validated['priority'] ?? 'medium',
             'category' => $validated['category'] ?? 'general',
             'status' => 'open',
-            'ticket_number' => $this->generateTicketNumber(),
+            'ticket_number' => HelpdeskTicket::generateNumber($customer->tenant_id),
+            'contact_name' => $customer->name,
+            'contact_email' => $customer->email,
+            'contact_phone' => $customer->phone,
         ]);
 
         return redirect()->route('customer-portal.tickets.show', $ticket)
-            ->with('success', 'Support ticket created successfully');
+            ->with('success', 'Tiket support berhasil dibuat');
     }
 
     /**
      * Show ticket detail
      */
-    public function showTicket(SupportTicket $ticket)
+    public function showTicket(HelpdeskTicket $ticket)
     {
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            abort(403, 'Customer not found');
+            abort(403, 'Pelanggan tidak ditemukan');
         }
 
-        // BUG-CRM-002 FIX: Verify ticket belongs to customer AND same tenant
+        // Verify ticket belongs to customer AND same tenant
         if ($ticket->customer_id !== $customer->id || $ticket->tenant_id !== $customer->tenant_id) {
             \Log::warning('Unauthorized ticket access attempt', [
                 'customer_id' => $customer->id,
                 'ticket_id' => $ticket->id,
             ]);
-            abort(403, 'Unauthorized access');
+            abort(403, 'Akses tidak diizinkan');
         }
 
-        $ticket->load(['replies.user', 'replies.customer']);
+        $ticket->load(['replies.user']);
 
-        return view('customer-portal.tickets.show', compact('ticket'));
+        return view('customer-portal.tickets.show', compact('ticket', 'customer'));
     }
 
     /**
      * Reply to ticket
      */
-    public function replyTicket(Request $request, SupportTicket $ticket)
+    public function replyTicket(Request $request, HelpdeskTicket $ticket)
     {
         $customer = $this->getAuthenticatedCustomer();
 
         if (!$customer) {
-            abort(403, 'Customer not found');
+            abort(403, 'Pelanggan tidak ditemukan');
         }
 
-        // BUG-CRM-002 FIX: Verify ticket belongs to customer AND same tenant
+        // Verify ticket belongs to customer AND same tenant
         if ($ticket->customer_id !== $customer->id || $ticket->tenant_id !== $customer->tenant_id) {
             \Log::warning('Unauthorized ticket reply attempt', [
                 'customer_id' => $customer->id,
                 'ticket_id' => $ticket->id,
             ]);
-            abort(403, 'Unauthorized access');
+            abort(403, 'Akses tidak diizinkan');
         }
 
         $validated = $request->validate([
@@ -337,52 +429,44 @@ class CustomerPortalController extends Controller
         ]);
 
         $ticket->replies()->create([
-            'customer_id' => $customer->id,
-            'message' => $validated['message'],
-            'is_customer' => true,
+            'user_id' => Auth::id(),
+            'body' => $validated['message'],
+            'is_internal' => false,
         ]);
 
-        // Reopen if closed
-        if ($ticket->status === 'closed') {
+        // Reopen if closed/resolved
+        if (in_array($ticket->status, ['closed', 'resolved'])) {
             $ticket->update(['status' => 'open']);
         }
 
-        return back()->with('success', 'Reply sent successfully');
+        return back()->with('success', 'Balasan berhasil dikirim');
     }
 
     /**
      * Get authenticated customer
-     * BUG-CRM-002 FIX: Ensure strict customer isolation
+     * Ensures strict customer isolation by tenant
      */
-    protected function getAuthenticatedCustomer()
+    protected function getAuthenticatedCustomer(): ?Customer
     {
         $user = Auth::user();
 
-        // Must have authenticated user
         if (!$user) {
             return null;
         }
 
-        // If user has direct customer relation, use it
-        if ($user->customer) {
-            // BUG-CRM-002 FIX: Verify customer belongs to user's tenant
-            if ($user->customer->tenant_id !== $user->tenant_id) {
-                \Log::warning('Customer tenant mismatch detected', [
-                    'user_id' => $user->id,
-                    'user_tenant_id' => $user->tenant_id,
-                    'customer_id' => $user->customer->id,
-                    'customer_tenant_id' => $user->customer->tenant_id,
-                ]);
-                abort(403, 'Customer account configuration error');
-            }
+        // If user has direct customer relation via user_id, use it
+        $customer = Customer::where('email', $user->email)
+            ->where('tenant_id', $user->tenant_id)
+            ->first();
 
-            return $user->customer;
+        if ($customer) {
+            return $customer;
         }
 
-        // If user IS a customer (customer role), find their customer record
+        // If user IS a customer (customer role), try to find by name match
         if (in_array($user->role, ['customer', 'Customer'])) {
-            $customer = Customer::where('user_id', $user->id)
-                ->where('tenant_id', $user->tenant_id)
+            $customer = Customer::where('tenant_id', $user->tenant_id)
+                ->where('name', $user->name)
                 ->first();
 
             if (!$customer) {
@@ -406,42 +490,42 @@ class CustomerPortalController extends Controller
         $timeline = [];
 
         $timeline[] = [
-            'status' => 'Order Created',
+            'status' => 'Pesanan Dibuat',
             'date' => $order->created_at,
             'icon' => 'check-circle',
             'completed' => true,
         ];
 
-        if (in_array($order->status, ['confirmed', 'processing', 'shipped', 'completed'])) {
+        if (in_array($order->status, ['confirmed', 'processing', 'shipped', 'completed', 'delivered'])) {
             $timeline[] = [
-                'status' => 'Confirmed',
+                'status' => 'Dikonfirmasi',
                 'date' => $order->updated_at,
                 'icon' => 'check-circle',
                 'completed' => true,
             ];
         }
 
-        if (in_array($order->status, ['processing', 'shipped', 'completed'])) {
+        if (in_array($order->status, ['processing', 'shipped', 'completed', 'delivered'])) {
             $timeline[] = [
-                'status' => 'Processing',
+                'status' => 'Diproses',
                 'date' => $order->updated_at,
-                'icon' => 'spinner',
+                'icon' => 'cog',
                 'completed' => true,
             ];
         }
 
-        if (in_array($order->status, ['shipped', 'completed'])) {
+        if (in_array($order->status, ['shipped', 'completed', 'delivered'])) {
             $timeline[] = [
-                'status' => 'Shipped',
+                'status' => 'Dikirim',
                 'date' => $order->updated_at,
                 'icon' => 'truck',
                 'completed' => true,
             ];
         }
 
-        if ($order->status === 'completed') {
+        if (in_array($order->status, ['completed', 'delivered'])) {
             $timeline[] = [
-                'status' => 'Delivered',
+                'status' => 'Diterima',
                 'date' => $order->updated_at,
                 'icon' => 'check-circle',
                 'completed' => true,
@@ -449,34 +533,5 @@ class CustomerPortalController extends Controller
         }
 
         return $timeline;
-    }
-
-    /**
-     * Generate invoice PDF
-     */
-    protected function generateInvoicePdf(Invoice $invoice): string
-    {
-        // Use existing PDF generation service or create new one
-        $pdfPath = storage_path("app/invoices/invoice-{$invoice->invoice_number}.pdf");
-
-        if (!file_exists($pdfPath)) {
-            // Generate PDF using existing service
-            // This should integrate with your existing PDF generation
-            \Log::info("Generating PDF for invoice: {$invoice->invoice_number}");
-
-            // Placeholder - integrate with your PDF service
-            $pdf = \PDF::loadView('invoices.pdf', compact('invoice'));
-            $pdf->save($pdfPath);
-        }
-
-        return $pdfPath;
-    }
-
-    /**
-     * Generate unique ticket number
-     */
-    protected function generateTicketNumber(): string
-    {
-        return 'TKT-' . now()->format('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
     }
 }

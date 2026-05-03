@@ -97,11 +97,6 @@
         background: white;
     }
 
-    html.dark .table-card-mobile tr {
-        background: #1e293b;
-        border-color: #334155;
-    }
-
     .table-card-mobile td {
         display: flex;
         justify-content: space-between;
@@ -113,10 +108,6 @@
         content: attr(data-label);
         font-weight: 600;
         color: #6b7280;
-    }
-
-    html.dark .table-card-mobile td::before {
-        color: #9ca3af;
     }
 }
 
@@ -297,16 +288,8 @@
     border-radius: 3px;
 }
 
-html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-}
-
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
-}
-
-html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
 }
 
 .scrollbar-hide {

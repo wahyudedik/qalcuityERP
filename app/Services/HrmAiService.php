@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AiUseCase;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\PayrollItem;
@@ -13,6 +14,10 @@ use Illuminate\Support\Collection;
  *
  * 1. detectAttendanceAnomalies() — deteksi pola absensi tidak wajar per karyawan
  * 2. suggestSalaryComponents()   — suggest komponen gaji berdasarkan jabatan/histori
+ *
+ * Use Cases:
+ * - suggestSalaryComponents() uses AiUseCase::CRUD_AI
+ * - detectAttendanceAnomalies() uses AiUseCase::ANOMALY_DETECTION
  */
 class HrmAiService
 {
@@ -20,6 +25,9 @@ class HrmAiService
 
     /**
      * Deteksi pola absensi tidak wajar untuk semua karyawan aktif dalam N bulan terakhir.
+     *
+     * Use Case: AiUseCase::ANOMALY_DETECTION
+     * When AI provider is integrated, pass: AiUseCase::ANOMALY_DETECTION->value
      *
      * Pola yang dideteksi:
      * a) Absen berulang di hari tertentu (Senin/Jumat — "long weekend pattern")
@@ -32,6 +40,8 @@ class HrmAiService
      * Return: array keyed by employee_id => [
      *   'employee_name', 'anomalies' => [['type', 'severity', 'message']], 'risk' => 'high'|'medium'|'low'
      * ]
+     *
+     * Requirements: 8.5
      */
     public function detectAttendanceAnomalies(int $tenantId, int $months = 3): array
     {
@@ -147,7 +157,7 @@ class HrmAiService
         }
 
         // Sort by risk: high first
-        uasort($results, fn($a, $b) => match(true) {
+        uasort($results, fn($a, $b) => match (true) {
             $a['risk'] === 'high' && $b['risk'] !== 'high' => -1,
             $a['risk'] !== 'high' && $b['risk'] === 'high' => 1,
             default => 0,
@@ -181,6 +191,9 @@ class HrmAiService
     /**
      * Suggest komponen gaji untuk karyawan berdasarkan jabatan + histori payroll.
      *
+     * Use Case: AiUseCase::CRUD_AI
+     * When AI provider is integrated, pass: AiUseCase::CRUD_AI->value
+     *
      * Komponen yang disarankan:
      * - Gaji pokok (benchmark dari karyawan jabatan/departemen sama)
      * - Tunjangan transport (flat berdasarkan level jabatan)
@@ -196,6 +209,8 @@ class HrmAiService
      *   'total_suggested'    => float,
      *   'benchmark_note'     => string,
      * ]
+     *
+     * Requirements: 8.5
      */
     public function suggestSalaryComponents(int $tenantId, int $employeeId): array
     {
@@ -216,7 +231,7 @@ class HrmAiService
             'department'         => $employee->department,
             'current_salary'     => (float) $employee->salary,
             'base_salary'        => $baseSuggestion,
-            'allowance_transport'=> $allowances['transport'],
+            'allowance_transport' => $allowances['transport'],
             'allowance_meal'     => $allowances['meal'],
             'allowance_position' => $allowances['position'],
             'total_suggested'    => round($total, -3),
@@ -247,8 +262,8 @@ class HrmAiService
                 'confidence'     => $samePosition->count() >= 3 ? 'high' : 'medium',
                 'basis'          => "Median gaji {$samePosition->count()} karyawan jabatan \"{$employee->position}\"",
                 'benchmark_note' => "Min: Rp " . number_format($samePosition->min(), 0, ',', '.') .
-                                    " | Median: Rp " . number_format($median, 0, ',', '.') .
-                                    " | Max: Rp " . number_format($samePosition->max(), 0, ',', '.'),
+                    " | Median: Rp " . number_format($median, 0, ',', '.') .
+                    " | Max: Rp " . number_format($samePosition->max(), 0, ',', '.'),
             ];
         }
 
@@ -387,7 +402,7 @@ class HrmAiService
         $promoteCount  = $reviews->where('recommendation', 'promote')->count();
         $retainCount   = $reviews->where('recommendation', 'retain')->count();
         $pipCount      = $reviews->where('recommendation', 'pip')->count();
-        $terminateCount= $reviews->where('recommendation', 'terminate')->count();
+        $terminateCount = $reviews->where('recommendation', 'terminate')->count();
 
         // ── Attendance quality ────────────────────────────────────
         $totalAtt    = $attendances->count();
@@ -420,15 +435,22 @@ class HrmAiService
 
         // ── Factors ──────────────────────────────────────────────
         $factors = $this->buildFactors(
-            $avgScore, $latestScore, $trend, $tenureMonths,
-            $promoteCount, $pipCount, $absentRate, $lateRate, $reviews->count()
+            $avgScore,
+            $latestScore,
+            $trend,
+            $tenureMonths,
+            $promoteCount,
+            $pipCount,
+            $absentRate,
+            $lateRate,
+            $reviews->count()
         );
 
         // ── Action plan ───────────────────────────────────────────
         $actionPlan = $this->buildActionPlan($readiness, $trend, $avgScore, $pipCount, $absentRate, $lateRate);
 
         // ── Data quality ──────────────────────────────────────────
-        $dataQuality = match(true) {
+        $dataQuality = match (true) {
             $reviews->count() >= 4 => 'good',
             $reviews->count() >= 2 => 'limited',
             default                => 'insufficient',
@@ -440,7 +462,7 @@ class HrmAiService
                 'name'         => $employee->name,
                 'position'     => $employee->position ?? '-',
                 'department'   => $employee->department ?? '-',
-                'tenure_months'=> $tenureMonths,
+                'tenure_months' => $tenureMonths,
                 'tenure_label' => $tenureYears >= 1
                     ? "{$tenureYears} tahun"
                     : "{$tenureMonths} bulan",
@@ -452,8 +474,10 @@ class HrmAiService
             'promotion_eta'    => $eta,
             'suggested_roles'  => $suggestedRoles,
             'trend'            => $trend,
-            'trend_label'      => match($trend) {
-                'improving' => 'Meningkat', 'declining' => 'Menurun', default => 'Stabil',
+            'trend_label'      => match ($trend) {
+                'improving' => 'Meningkat',
+                'declining' => 'Menurun',
+                default => 'Stabil',
             },
             'avg_score'        => $avgScore,
             'latest_score'     => $latestScore,
@@ -484,9 +508,16 @@ class HrmAiService
     }
 
     private function computeReadiness(
-        ?float $avgScore, ?float $latestScore, string $trend,
-        int $tenureMonths, int $promoteCount, int $pipCount, int $terminateCount,
-        float $absentRate, float $lateRate, int $reviewCount
+        ?float $avgScore,
+        ?float $latestScore,
+        string $trend,
+        int $tenureMonths,
+        int $promoteCount,
+        int $pipCount,
+        int $terminateCount,
+        float $absentRate,
+        float $lateRate,
+        int $reviewCount
     ): int {
         $score = 0;
 
@@ -498,7 +529,11 @@ class HrmAiService
         }
 
         // Trend bonus/penalty (max ±10)
-        $score += match($trend) { 'improving' => 10, 'declining' => -10, default => 0 };
+        $score += match ($trend) {
+            'improving' => 10,
+            'declining' => -10,
+            default => 0
+        };
 
         // Tenure (max 20 pts) — sweet spot 18-60 months
         if ($tenureMonths >= 60)      $score += 20;
@@ -564,9 +599,15 @@ class HrmAiService
     }
 
     private function buildFactors(
-        ?float $avgScore, ?float $latestScore, string $trend,
-        int $tenureMonths, int $promoteCount, int $pipCount,
-        float $absentRate, float $lateRate, int $reviewCount
+        ?float $avgScore,
+        ?float $latestScore,
+        string $trend,
+        int $tenureMonths,
+        int $promoteCount,
+        int $pipCount,
+        float $absentRate,
+        float $lateRate,
+        int $reviewCount
     ): array {
         $positive = [];
         $negative = [];
@@ -574,7 +615,7 @@ class HrmAiService
         if ($avgScore !== null && $avgScore >= 4.0) $positive[] = "Rata-rata skor kinerja tinggi (" . number_format($avgScore, 1) . "/5)";
         if ($avgScore !== null && $avgScore >= 3.5 && $avgScore < 4.0) $positive[] = "Skor kinerja di atas rata-rata (" . number_format($avgScore, 1) . "/5)";
         if ($trend === 'improving') $positive[] = "Tren kinerja meningkat secara konsisten";
-        if ($tenureMonths >= 24) $positive[] = "Tenure memadai (" . round($tenureMonths/12, 1) . " tahun) — memahami budaya perusahaan";
+        if ($tenureMonths >= 24) $positive[] = "Tenure memadai (" . round($tenureMonths / 12, 1) . " tahun) — memahami budaya perusahaan";
         if ($promoteCount >= 2) $positive[] = "Direkomendasikan promosi oleh reviewer sebanyak {$promoteCount}x";
         if ($absentRate < 0.05) $positive[] = "Tingkat kehadiran sangat baik (absen < 5%)";
         if ($latestScore !== null && $latestScore >= 4.5) $positive[] = "Skor review terbaru sangat tinggi (" . number_format($latestScore, 1) . "/5)";
@@ -591,8 +632,12 @@ class HrmAiService
     }
 
     private function buildActionPlan(
-        int $readiness, string $trend, ?float $avgScore,
-        int $pipCount, float $absentRate, float $lateRate
+        int $readiness,
+        string $trend,
+        ?float $avgScore,
+        int $pipCount,
+        float $absentRate,
+        float $lateRate
     ): array {
         $actions = [];
 
@@ -627,7 +672,7 @@ class HrmAiService
 
     private function readinessLabel(int $score): string
     {
-        return match(true) {
+        return match (true) {
             $score >= 80 => 'Sangat Siap',
             $score >= 65 => 'Siap',
             $score >= 50 => 'Hampir Siap',
@@ -638,7 +683,7 @@ class HrmAiService
 
     private function readinessColor(int $score): string
     {
-        return match(true) {
+        return match (true) {
             $score >= 80 => 'green',
             $score >= 65 => 'blue',
             $score >= 50 => 'amber',
@@ -703,7 +748,7 @@ class HrmAiService
 
         foreach ($employees as $emp) {
             $reviews    = $allReviews->get($emp->id, collect());
-            $attendances= $allAttendances->get($emp->id, collect());
+            $attendances = $allAttendances->get($emp->id, collect());
             $leaves     = $allLeaves->get($emp->id, collect());
             $payrolls   = $allPayroll->get($emp->id, collect());
 
@@ -718,30 +763,45 @@ class HrmAiService
 
             if ($trend === 'declining') {
                 $riskScore += 20;
-                $signals[] = ['type' => 'performance', 'severity' => 'high',
-                    'message' => 'Tren kinerja menurun secara konsisten — sinyal kuat disengagement.'];
+                $signals[] = [
+                    'type' => 'performance',
+                    'severity' => 'high',
+                    'message' => 'Tren kinerja menurun secara konsisten — sinyal kuat disengagement.'
+                ];
             }
             if ($avgScore !== null && $avgScore < 3.0) {
                 $riskScore += 10;
-                $signals[] = ['type' => 'performance', 'severity' => 'medium',
-                    'message' => 'Rata-rata skor kinerja rendah (' . number_format($avgScore, 1) . '/5).'];
+                $signals[] = [
+                    'type' => 'performance',
+                    'severity' => 'medium',
+                    'message' => 'Rata-rata skor kinerja rendah (' . number_format($avgScore, 1) . '/5).'
+                ];
             }
             $pipCount = $reviews->where('recommendation', 'pip')->count();
             $termCount = $reviews->where('recommendation', 'terminate')->count();
             if ($pipCount >= 1) {
                 $riskScore += 10;
-                $signals[] = ['type' => 'performance', 'severity' => 'medium',
-                    'message' => "Masuk PIP sebanyak {$pipCount}x — risiko frustrasi & resign."];
+                $signals[] = [
+                    'type' => 'performance',
+                    'severity' => 'medium',
+                    'message' => "Masuk PIP sebanyak {$pipCount}x — risiko frustrasi & resign."
+                ];
             }
             if ($termCount >= 1) {
                 $riskScore += 15;
-                $signals[] = ['type' => 'performance', 'severity' => 'high',
-                    'message' => "Direkomendasikan terminate {$termCount}x — situasi kritis."];
+                $signals[] = [
+                    'type' => 'performance',
+                    'severity' => 'high',
+                    'message' => "Direkomendasikan terminate {$termCount}x — situasi kritis."
+                ];
             }
             if ($reviews->isEmpty()) {
                 $riskScore += 8;
-                $signals[] = ['type' => 'engagement', 'severity' => 'low',
-                    'message' => 'Tidak ada data penilaian kinerja — potensi disengagement tidak terdeteksi.'];
+                $signals[] = [
+                    'type' => 'engagement',
+                    'severity' => 'low',
+                    'message' => 'Tidak ada data penilaian kinerja — potensi disengagement tidak terdeteksi.'
+                ];
             }
 
             // ── b) Attendance deterioration ───────────────────────
@@ -753,17 +813,26 @@ class HrmAiService
 
             if ($absentRate > 0.20) {
                 $riskScore += 15;
-                $signals[] = ['type' => 'attendance', 'severity' => 'high',
-                    'message' => 'Tingkat absensi ' . round($absentRate * 100, 1) . '% dalam 6 bulan terakhir — jauh di atas normal.'];
+                $signals[] = [
+                    'type' => 'attendance',
+                    'severity' => 'high',
+                    'message' => 'Tingkat absensi ' . round($absentRate * 100, 1) . '% dalam 6 bulan terakhir — jauh di atas normal.'
+                ];
             } elseif ($absentRate > 0.10) {
                 $riskScore += 8;
-                $signals[] = ['type' => 'attendance', 'severity' => 'medium',
-                    'message' => 'Tingkat absensi ' . round($absentRate * 100, 1) . '% — perlu perhatian.'];
+                $signals[] = [
+                    'type' => 'attendance',
+                    'severity' => 'medium',
+                    'message' => 'Tingkat absensi ' . round($absentRate * 100, 1) . '% — perlu perhatian.'
+                ];
             }
             if ($lateRate > 0.25) {
                 $riskScore += 10;
-                $signals[] = ['type' => 'attendance', 'severity' => 'medium',
-                    'message' => 'Sering terlambat (' . round($lateRate * 100, 1) . '% hari kerja) — indikasi motivasi menurun.'];
+                $signals[] = [
+                    'type' => 'attendance',
+                    'severity' => 'medium',
+                    'message' => 'Sering terlambat (' . round($lateRate * 100, 1) . '% hari kerja) — indikasi motivasi menurun.'
+                ];
             }
 
             // ── c) Salary stagnation ──────────────────────────────
@@ -784,49 +853,70 @@ class HrmAiService
 
             if ($salaryStagnationMonths >= 24) {
                 $riskScore += 18;
-                $signals[] = ['type' => 'compensation', 'severity' => 'high',
-                    'message' => "Gaji tidak naik selama ≥{$salaryStagnationMonths} bulan — risiko resign karena kompensasi."];
+                $signals[] = [
+                    'type' => 'compensation',
+                    'severity' => 'high',
+                    'message' => "Gaji tidak naik selama ≥{$salaryStagnationMonths} bulan — risiko resign karena kompensasi."
+                ];
             } elseif ($salaryStagnationMonths >= 12) {
                 $riskScore += 8;
-                $signals[] = ['type' => 'compensation', 'severity' => 'medium',
-                    'message' => "Gaji tidak naik selama {$salaryStagnationMonths} bulan — pertimbangkan review kompensasi."];
+                $signals[] = [
+                    'type' => 'compensation',
+                    'severity' => 'medium',
+                    'message' => "Gaji tidak naik selama {$salaryStagnationMonths} bulan — pertimbangkan review kompensasi."
+                ];
             }
 
             // ── d) Tenure risk ────────────────────────────────────
             $tenureMonths = $emp->join_date ? (int)$emp->join_date->diffInMonths($now) : 0;
             if ($tenureMonths < 6) {
                 $riskScore += 12;
-                $signals[] = ['type' => 'tenure', 'severity' => 'medium',
-                    'message' => "Karyawan baru ({$tenureMonths} bulan) — periode rentan early turnover."];
+                $signals[] = [
+                    'type' => 'tenure',
+                    'severity' => 'medium',
+                    'message' => "Karyawan baru ({$tenureMonths} bulan) — periode rentan early turnover."
+                ];
             } elseif ($tenureMonths < 12) {
                 $riskScore += 6;
-                $signals[] = ['type' => 'tenure', 'severity' => 'low',
-                    'message' => "Tenure < 1 tahun ({$tenureMonths} bulan) — masih dalam fase adaptasi."];
+                $signals[] = [
+                    'type' => 'tenure',
+                    'severity' => 'low',
+                    'message' => "Tenure < 1 tahun ({$tenureMonths} bulan) — masih dalam fase adaptasi."
+                ];
             } elseif ($tenureMonths > 60 && $latestScore !== null && $latestScore < 3.5) {
                 $riskScore += 10;
-                $signals[] = ['type' => 'tenure', 'severity' => 'medium',
-                    'message' => 'Karyawan lama (>' . round($tenureMonths/12, 1) . ' tahun) dengan kinerja menurun — risiko burnout atau stagnasi karir.'];
+                $signals[] = [
+                    'type' => 'tenure',
+                    'severity' => 'medium',
+                    'message' => 'Karyawan lama (>' . round($tenureMonths / 12, 1) . ' tahun) dengan kinerja menurun — risiko burnout atau stagnasi karir.'
+                ];
             }
 
             // ── e) Leave overuse (burnout signal) ─────────────────
             $totalLeaveDays = $leaves->sum('days');
             if ($totalLeaveDays > 20) {
                 $riskScore += 10;
-                $signals[] = ['type' => 'burnout', 'severity' => 'medium',
-                    'message' => "Mengambil {$totalLeaveDays} hari cuti dalam 12 bulan terakhir — potensi burnout."];
+                $signals[] = [
+                    'type' => 'burnout',
+                    'severity' => 'medium',
+                    'message' => "Mengambil {$totalLeaveDays} hari cuti dalam 12 bulan terakhir — potensi burnout."
+                ];
             }
 
             // ── f) No attendance records (ghost / disengaged) ─────
             if ($totalAtt === 0 && $tenureMonths >= 3) {
                 $riskScore += 5;
-                $signals[] = ['type' => 'engagement', 'severity' => 'low',
-                    'message' => 'Tidak ada catatan absensi 6 bulan terakhir — data tidak lengkap.'];
+                $signals[] = [
+                    'type' => 'engagement',
+                    'severity' => 'low',
+                    'message' => 'Tidak ada catatan absensi 6 bulan terakhir — data tidak lengkap.'
+                ];
             }
 
             if (empty($signals)) continue; // no risk signals, skip
 
             $riskScore = min(100, $riskScore);
-            $riskLevel = match(true) {
+            $riskLevel = match (true) {
                 $riskScore >= 60 => 'critical',
                 $riskScore >= 40 => 'high',
                 $riskScore >= 20 => 'medium',
@@ -843,8 +933,11 @@ class HrmAiService
                     : "{$tenureMonths} bulan",
                 'risk_score'    => $riskScore,
                 'risk_level'    => $riskLevel,
-                'risk_color'    => match($riskLevel) {
-                    'critical' => 'red', 'high' => 'orange', 'medium' => 'amber', default => 'blue',
+                'risk_color'    => match ($riskLevel) {
+                    'critical' => 'red',
+                    'high' => 'orange',
+                    'medium' => 'amber',
+                    default => 'blue',
                 },
                 'signals'       => $signals,
                 'recommendations' => $this->turnoverRecommendations($riskLevel, $signals, $tenureMonths, $salaryStagnationMonths),
@@ -858,7 +951,10 @@ class HrmAiService
     }
 
     private function turnoverRecommendations(
-        string $riskLevel, array $signals, int $tenureMonths, int $salaryStagnationMonths
+        string $riskLevel,
+        array $signals,
+        int $tenureMonths,
+        int $salaryStagnationMonths
     ): array {
         $recs = [];
         $types = array_column($signals, 'type');

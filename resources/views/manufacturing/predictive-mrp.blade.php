@@ -1,11 +1,9 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-                🤖 Predictive MRP - AI Demand Forecasting
-            </h2>
-            <div class="flex gap-2">
-                <form method="POST" action="{{ route('manufacturing.mrp.predictive.refresh') }}" class="inline">
+﻿<x-app-layout>
+    <x-slot name="header">🤖 Predictive MRP - AI Demand Forecasting</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <form method="POST" action="{{ route('manufacturing.mrp.predictive.refresh') }}" class="inline">
                     @csrf
                     <input type="hidden" name="months" value="{{ $months }}">
                     @if ($productId)
@@ -15,16 +13,13 @@
                         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                         🔄 Refresh Forecast
                     </button>
-                </form>
-            </div>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- Filters --}}
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <form method="GET" class="flex gap-4 flex-wrap">
                     <div class="flex-1 min-w-[200px]">
                         <label class="block text-sm font-medium mb-1">Forecast Period</label>
@@ -82,7 +77,7 @@
 
             {{-- Critical Alerts --}}
             @if (($insights['critical_stock_products'] ?? 0) > 0)
-                <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -92,10 +87,10 @@
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800 dark:text-red-400">
+                            <h3 class="text-sm font-medium text-red-800">
                                 ⚠️ {{ $insights['critical_stock_products'] }} Products with Critical Stock
                             </h3>
-                            <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                            <div class="mt-2 text-sm text-red-700">
                                 Immediate action required to prevent stockouts
                             </div>
                         </div>
@@ -105,13 +100,13 @@
 
             {{-- AI Recommendations --}}
             @if (!empty($insights['recommendations']))
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">💡 AI Recommendations</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">💡 AI Recommendations</h3>
                     <ul class="space-y-2">
                         @foreach ($insights['recommendations'] as $rec)
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-600 mt-1">→</span>
-                                <span class="text-gray-700 dark:text-slate-300">{{ $rec }}</span>
+                                <span class="text-gray-700">{{ $rec }}</span>
                             </li>
                         @endforeach
                     </ul>
@@ -123,23 +118,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach ($forecast['forecast']['products'] as $product)
                         <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6 hover:shadow-lg transition-shadow">
+                            class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                             {{-- Header --}}
                             <div class="flex justify-between items-start mb-4">
                                 <div>
-                                    <h4 class="font-bold text-gray-900 dark:text-white">{{ $product['product_name'] }}
+                                    <h4 class="font-bold text-gray-900">{{ $product['product_name'] }}
                                     </h4>
                                     <p class="text-xs text-gray-500">ID: {{ $product['product_id'] }}</p>
                                 </div>
                                 @php
                                     $urgencyColor = match ($product['reorder_urgency']) {
-                                        'critical' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
+                                        'critical' => 'bg-red-100 text-red-700',
                                         'high'
-                                            => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
+                                            => 'bg-orange-100 text-orange-700',
                                         'medium'
-                                            => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
+                                            => 'bg-yellow-100 text-yellow-700',
                                         default
-                                            => 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
+                                            => 'bg-green-100 text-green-700',
                                     };
                                 @endphp
                                 <span class="px-2 py-1 rounded-full text-xs font-bold {{ $urgencyColor }}">
@@ -148,7 +143,7 @@
                             </div>
 
                             {{-- Current Stock --}}
-                            <div class="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                            <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                                 <div class="flex justify-between text-sm mb-1">
                                     <span class="text-gray-500">Current Stock:</span>
                                     <span class="font-bold">{{ number_format($product['current_stock'], 0) }}</span>
@@ -172,10 +167,10 @@
 
                             {{-- Recommendation --}}
                             <div
-                                class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-1">RECOMMENDED
+                                class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="text-xs text-blue-600 font-semibold mb-1">RECOMMENDED
                                     ACTION:</div>
-                                <div class="text-sm text-gray-700 dark:text-slate-300">
+                                <div class="text-sm text-gray-700">
                                     Order
                                     <strong>{{ number_format($product['recommended_order_quantity'], 0) }}</strong>
                                     units by
@@ -184,7 +179,7 @@
                             </div>
 
                             {{-- Reasoning --}}
-                            <div class="mt-3 text-xs text-gray-500 dark:text-slate-400 italic">
+                            <div class="mt-3 text-xs text-gray-500 italic">
                                 {{ Str::limit($product['reasoning'], 100) }}
                             </div>
                         </div>
@@ -192,10 +187,10 @@
                 </div>
             @else
                 <div
-                    class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
+                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <div class="text-6xl mb-4">📊</div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No Forecast Data Available</h3>
-                    <p class="text-gray-500 dark:text-slate-400 mb-4">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">No Forecast Data Available</h3>
+                    <p class="text-gray-500 mb-4">
                         Insufficient historical sales data. Need at least 3 months of completed sales orders.
                     </p>
                     <p class="text-sm text-gray-400">
@@ -206,13 +201,13 @@
 
             {{-- Risk Factors --}}
             @if (!empty($insights['risk_factors']))
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">⚠️ Risk Factors</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">⚠️ Risk Factors</h3>
                     <ul class="space-y-2">
                         @foreach ($insights['risk_factors'] as $risk)
                             <li class="flex items-start gap-2">
                                 <span class="text-orange-500 mt-1">⚠</span>
-                                <span class="text-gray-700 dark:text-slate-300">{{ $risk }}</span>
+                                <span class="text-gray-700">{{ $risk }}</span>
                             </li>
                         @endforeach
                     </ul>

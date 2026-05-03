@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Security;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLogEnhanced;
+use App\Models\DataRequest;
+use App\Models\IpWhitelist;
+use App\Models\TwoFactorAuth;
+use App\Models\UserSession;
 use App\Services\Security\TwoFactorAuthService;
 use App\Services\Security\EncryptionService;
 use App\Services\Security\SessionManagementService;
@@ -299,6 +304,11 @@ class SecurityController extends Controller
                 auth()->id(),
                 $request->details
             ),
+            'portability' => $this->gdprService->createAccessRequest(
+                auth()->user()->tenant_id,
+                auth()->id(),
+                $request->details ?? 'Data portability request'
+            ),
             default => throw new \InvalidArgumentException('Invalid request type'),
         };
 
@@ -322,7 +332,7 @@ class SecurityController extends Controller
             'rejection_reason' => 'sometimes|required_if:action,reject|string',
         ]);
 
-        $dataRequest = \App\Models\DataRequest::findOrFail($dataRequestId);
+        $dataRequest = DataRequest::findOrFail($dataRequestId);
 
         if ($request->action === 'approve') {
             if ($dataRequest->request_type === 'access') {
@@ -438,13 +448,13 @@ class SecurityController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $overview = [
-            'two_factor_enabled_users' => \App\Models\TwoFactorAuth::where('enabled', true)->count(),
-            'active_sessions' => \App\Models\UserSession::where('is_active', true)->count(),
-            'whitelisted_ips' => \App\Models\IpWhitelist::where('tenant_id', $tenantId)
+            'two_factor_enabled_users' => TwoFactorAuth::where('enabled', true)->count(),
+            'active_sessions' => UserSession::where('is_active', true)->count(),
+            'whitelisted_ips' => IpWhitelist::where('tenant_id', $tenantId)
                 ->where('is_active', true)->count(),
-            'pending_data_requests' => \App\Models\DataRequest::where('tenant_id', $tenantId)
+            'pending_data_requests' => DataRequest::where('tenant_id', $tenantId)
                 ->where('status', 'pending')->count(),
-            'recent_security_events' => \App\Models\AuditLogEnhanced::where('tenant_id', $tenantId)
+            'recent_security_events' => AuditLogEnhanced::where('tenant_id', $tenantId)
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get(),

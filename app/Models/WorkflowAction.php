@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Traits\BelongsToTenant;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class WorkflowAction extends Model
 {
@@ -69,7 +70,6 @@ class WorkflowAction extends Model
             };
 
             return ['success' => true, 'result' => $result];
-
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
@@ -140,8 +140,9 @@ class WorkflowAction extends Model
         PurchaseOrderItem::create([
             'purchase_order_id' => $po->id,
             'product_id' => $product->id,
-            'quantity' => $quantity,
-            'unit_price' => $product->cost_price ?? 0,
+            'quantity_ordered' => $quantity,
+            'price' => $product->cost_price ?? 0,
+            'total' => $quantity * ($product->cost_price ?? 0),
         ]);
 
         return ['purchase_order_id' => $po->id, 'order_number' => $po->order_number];
@@ -168,7 +169,7 @@ class WorkflowAction extends Model
         $subject = $this->action_config['subject'] ?? 'Notification';
         $message = $this->buildMessage($context);
 
-        \Illuminate\Support\Facades\Mail::raw($message, function ($mail) use ($to, $subject) {
+        Mail::raw($message, function ($mail) use ($to, $subject) {
             $mail->to($to)->subject($subject);
         });
 
@@ -250,7 +251,7 @@ class WorkflowAction extends Model
             throw new \Exception('Webhook URL not configured');
         }
 
-        $response = \Illuminate\Support\Facades\Http::post($url, [
+        $response = Http::post($url, [
             'event' => $this->workflow->name,
             'context' => $context,
             'timestamp' => now()->toIso8601String(),
@@ -265,7 +266,9 @@ class WorkflowAction extends Model
 
         // Replace placeholders like {{product_name}} with context values
         foreach ($context as $key => $value) {
-            $template = str_replace("{{{$key}}}", $value, $template);
+            if (is_string($value) || is_numeric($value)) {
+                $template = str_replace('{{' . $key . '}}', (string) $value, $template);
+            }
         }
 
         return $template;

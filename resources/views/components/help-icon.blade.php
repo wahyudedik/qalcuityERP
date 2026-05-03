@@ -1,4 +1,4 @@
-@props(['topic', 'title' => 'Bantuan', 'position' => 'right'])
+﻿@props(['topic', 'title' => 'Bantuan', 'position' => 'right'])
 
 {{-- 
     Help Icon Component
@@ -7,7 +7,7 @@
 
 <span class="inline-flex items-center" {{ $attributes }}>
     <button type="button"
-        class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
+        class="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
         title="{{ $title }}" x-data @click="$dispatch('show-help', { topic: '{{ $topic }}' })"
         aria-label="{{ $title }}">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -40,7 +40,6 @@ logger.info('Loading core UI/UX modules...');
 
 // Use moduleLoader to load core modules immediately
 Promise.all([
-    moduleLoader.load('theme'),
     moduleLoader.load('shortcuts'),
     moduleLoader.load('search'),
     moduleLoader.load('accessibility'),

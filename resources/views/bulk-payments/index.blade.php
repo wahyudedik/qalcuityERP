@@ -1,11 +1,11 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Bulk Payment</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">1 pembayaran untuk banyak invoice sekaligus</p>
+            <h1 class="text-2xl font-bold text-slate-800">Bulk Payment</h1>
+            <p class="text-sm text-slate-500 mt-1">1 pembayaran untuk banyak invoice sekaligus</p>
         </div>
         @canmodule('bulk_payments', 'create')
         <a href="{{ route('bulk-payments.create') }}"
@@ -18,8 +18,8 @@
 
     <form method="GET" class="flex gap-3">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor..."
-               class="flex-1 px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
-        <select name="status" class="px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
+               class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
+        <select name="status" class="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800">
             <option value="">Semua Status</option>
             <option value="applied" @selected(request('status') === 'applied')>Diterapkan</option>
             <option value="cancelled" @selected(request('status') === 'cancelled')>Dibatalkan</option>
@@ -27,9 +27,9 @@
         <button type="submit" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm rounded-lg">Filter</button>
     </form>
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table class="w-full text-sm">
-            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 text-xs uppercase">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left">Nomor</th>
                     <th class="px-4 py-3 text-left">Customer</th>
@@ -41,18 +41,18 @@
                     <th class="px-4 py-3 text-left">Status</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+            <tbody class="divide-y divide-slate-100">
                 @forelse($payments as $bp)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                    <td class="px-4 py-3 font-mono font-medium text-slate-800 dark:text-white">{{ $bp->number }}</td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300">{{ $bp->party?->name ?? '-' }}</td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400">{{ $bp->payment_date->format('d/m/Y') }}</td>
-                    <td class="px-4 py-3 text-right font-medium text-slate-800 dark:text-white">Rp {{ number_format($bp->total_amount, 0, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-300">Rp {{ number_format($bp->applied_amount, 0, ',', '.') }}</td>
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono font-medium text-slate-800">{{ $bp->number }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ $bp->party?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-slate-500">{{ $bp->payment_date->format('d/m/Y') }}</td>
+                    <td class="px-4 py-3 text-right font-medium text-slate-800">Rp {{ number_format($bp->total_amount, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">Rp {{ number_format($bp->applied_amount, 0, ',', '.') }}</td>
                     <td class="px-4 py-3 text-right {{ $bp->overpayment > 0 ? 'text-amber-600 font-medium' : 'text-slate-400' }}">
                         {{ $bp->overpayment > 0 ? 'Rp ' . number_format($bp->overpayment, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="px-4 py-3 text-slate-500 dark:text-slate-400 capitalize">{{ $bp->payment_method }}</td>
+                    <td class="px-4 py-3 text-slate-500 capitalize">{{ $bp->payment_method }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 text-xs font-medium rounded-full {{ $bp->statusColor() }}">
                             {{ $bp->statusLabel() }}
@@ -61,7 +61,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-12 text-center text-slate-400 dark:text-slate-500">Belum ada bulk payment</td>
+                    <td colspan="8" class="px-4 py-12 text-center text-slate-400">Belum ada bulk payment</td>
                 </tr>
                 @endforelse
             </tbody>

@@ -8,18 +8,15 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <?php echo e(__('Edit Triage Assessment')); ?> - <?php echo e($assessment->triage_code); ?>
+     <?php $__env->slot('header', null, []); ?> <?php echo e(__('Edit Triage Assessment')); ?> - <?php echo e($assessment->triage_code); ?> <?php $__env->endSlot(); ?>
 
-            </h2>
-            <a href="<?php echo e(route('healthcare.triage.show', $assessment)); ?>"
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('healthcare.triage.show', $assessment)); ?>"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Details
             </a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">

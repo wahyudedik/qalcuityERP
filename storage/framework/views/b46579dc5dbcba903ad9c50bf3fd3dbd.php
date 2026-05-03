@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Reservasi Meja ' . $table->table_number); ?>
 
@@ -7,7 +7,7 @@
         <!-- Breadcrumb -->
         <div class="mb-6">
             <a href="<?php echo e(route('fnb.tables.index')); ?>"
-                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm transition-colors">
+                class="text-blue-600 hover:text-blue-800 text-sm transition-colors">
                 ← Kembali ke Manajemen Meja
             </a>
         </div>
@@ -15,17 +15,17 @@
         <!-- Header -->
         <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 class="text-3xl font-bold text-gray-900">
                     Reservasi Meja <?php echo e($table->table_number); ?>
 
                 </h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mt-1 text-sm text-gray-600">
                     Kapasitas: <?php echo e($table->capacity); ?> orang &bull; Lokasi: <?php echo e($table->location ?? 'Area Utama'); ?>
 
                 </p>
             </div>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                <?php echo e($table->status === 'available' ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300' : ($table->status === 'occupied' ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300' : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300')); ?>">
+                <?php echo e($table->status === 'available' ? 'bg-green-100 text-green-800' : ($table->status === 'occupied' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800')); ?>">
                 <?php switch($table->status):
                     case ('available'): ?> Tersedia <?php break; ?>
                     <?php case ('occupied'): ?> Terisi <?php break; ?>
@@ -37,74 +37,74 @@
         </div>
 
         <?php if(session('success')): ?>
-            <div class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded text-green-700 dark:text-green-300">
+            <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded text-green-700">
                 <?php echo e(session('success')); ?>
 
             </div>
         <?php endif; ?>
 
         <!-- Reservations Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Daftar Reservasi Mendatang</h2>
+        <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Daftar Reservasi Mendatang</h2>
             </div>
 
             <?php if($reservations->isEmpty()): ?>
-                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-12 text-gray-500">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p>Tidak ada reservasi mendatang untuk meja ini</p>
                 </div>
             <?php else: ?>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pelanggan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tanggal & Jam</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tamu</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Durasi</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal & Jam</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamu</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <?php $__currentLoopData = $reservations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $reservation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100"><?php echo e($reservation->customer_name); ?></div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400"><?php echo e($reservation->customer_phone); ?></div>
+                                        <div class="text-sm font-medium text-gray-900"><?php echo e($reservation->customer_name); ?></div>
+                                        <div class="text-xs text-gray-500"><?php echo e($reservation->customer_phone); ?></div>
                                         <?php if($reservation->customer_email): ?>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400"><?php echo e($reservation->customer_email); ?></div>
+                                            <div class="text-xs text-gray-500"><?php echo e($reservation->customer_email); ?></div>
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                                        <div class="text-sm text-gray-900">
                                             <?php echo e(\Carbon\Carbon::parse($reservation->reservation_date)->format('d M Y')); ?>
 
                                         </div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        <div class="text-xs text-gray-500">
                                             <?php echo e(\Carbon\Carbon::parse($reservation->reservation_time)->format('H:i')); ?>
 
                                             — <?php echo e($reservation->getEndTime()); ?>
 
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         <?php echo e($reservation->party_size); ?> orang
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <?php echo e($reservation->duration_minutes); ?> menit
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <?php
                                             $statusClasses = [
-                                                'confirmed' => 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300',
-                                                'seated' => 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300',
-                                                'completed' => 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300',
-                                                'cancelled' => 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300',
-                                                'no_show' => 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300',
+                                                'confirmed' => 'bg-blue-100 text-blue-800',
+                                                'seated' => 'bg-green-100 text-green-800',
+                                                'completed' => 'bg-gray-100 text-gray-800',
+                                                'cancelled' => 'bg-red-100 text-red-800',
+                                                'no_show' => 'bg-yellow-100 text-yellow-800',
                                             ];
                                             $statusLabels = [
                                                 'confirmed' => 'Dikonfirmasi',
@@ -114,7 +114,7 @@
                                                 'no_show' => 'Tidak Hadir',
                                             ];
                                         ?>
-                                        <span class="px-2 py-1 text-xs rounded-full <?php echo e($statusClasses[$reservation->status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'); ?>">
+                                        <span class="px-2 py-1 text-xs rounded-full <?php echo e($statusClasses[$reservation->status] ?? 'bg-gray-100 text-gray-800'); ?>">
                                             <?php echo e($statusLabels[$reservation->status] ?? ucfirst($reservation->status)); ?>
 
                                         </span>
@@ -153,7 +153,7 @@
         </div>
 
         <?php if($reservations->isNotEmpty()): ?>
-            <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <div class="mt-4 text-sm text-gray-500">
                 Menampilkan <?php echo e($reservations->count()); ?> reservasi mendatang
             </div>
         <?php endif; ?>

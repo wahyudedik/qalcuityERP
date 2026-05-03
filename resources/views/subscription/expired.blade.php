@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -8,9 +8,9 @@
     <link rel="shortcut icon" href="/favicon.png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 dark:bg-[#0f172a] min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full text-center">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 shadow-xl p-10">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-xl p-10">
             @php $status = request('status', 'expired'); @endphp
 
             <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center
@@ -36,7 +36,7 @@
                 @endif
             </h1>
 
-            <p class="text-gray-500 dark:text-slate-400 text-sm mb-8">
+            <p class="text-gray-500 text-sm mb-8">
                 @if($status === 'nonaktif')
                     Akun perusahaan Anda telah dinonaktifkan oleh administrator. Hubungi tim support untuk informasi lebih lanjut.
                 @elseif($status === 'trial_expired')
@@ -56,7 +56,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                        class="w-full text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 py-2 transition">
+                        class="w-full text-sm text-gray-400 hover:text-gray-600 py-2 transition">
                         Keluar dari akun
                     </button>
                 </form>
@@ -64,7 +64,7 @@
         </div>
 
         <p class="mt-6 text-xs text-slate-600">
-            Qalcuity ERP &mdash; <a href="mailto:support@qalcuity.com" class="hover:text-gray-500 dark:text-slate-400 transition">support@qalcuity.com</a>
+            Qalcuity ERP &mdash; <a href="mailto:support@qalcuity.com" class="hover:text-gray-500 transition">support@qalcuity.com</a>
         </p>
     </div>
 </body>

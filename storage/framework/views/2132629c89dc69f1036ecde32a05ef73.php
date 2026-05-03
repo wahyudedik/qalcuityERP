@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['topic', 'field' => null]));
@@ -60,7 +60,7 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
 
     <?php if($field): ?>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" id="<?php echo e($field); ?>-help">
+        <p class="mt-1 text-xs text-gray-500" id="<?php echo e($field); ?>-help">
             Klik ikon <span class="text-blue-600">❓</span> untuk bantuan
         </p>
     <?php endif; ?>

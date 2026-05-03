@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AiUseCase;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\DB;
  * 1. suggestAccounts()       — suggest akun debit/kredit dari deskripsi transaksi
  * 2. detectJournalAnomalies()— deteksi jurnal "aneh" sebelum di-post
  * 3. categorizeStatement()   — auto-categorize transaksi bank statement ke akun COA
+ *
+ * Use Cases:
+ * - categorizeStatement() uses AiUseCase::BANK_RECONCILIATION_AI
+ * - Methods generating financial reports use AiUseCase::FINANCIAL_REPORT
  */
 class AccountingAiService
 {
@@ -162,70 +167,92 @@ class AccountingAiService
     {
         return [
             // Penjualan
-            ['keywords' => ['penjualan', 'jual', 'sales', 'revenue', 'pendapatan'],
-             'label' => 'Penjualan',
-             'debit_keywords'  => ['kas', 'bank', 'piutang'],
-             'credit_keywords' => ['penjualan', 'pendapatan', 'revenue']],
+            [
+                'keywords' => ['penjualan', 'jual', 'sales', 'revenue', 'pendapatan'],
+                'label' => 'Penjualan',
+                'debit_keywords'  => ['kas', 'bank', 'piutang'],
+                'credit_keywords' => ['penjualan', 'pendapatan', 'revenue']
+            ],
 
             // Pembelian / Pengadaan
-            ['keywords' => ['pembelian', 'beli', 'purchase', 'pengadaan', 'po'],
-             'label' => 'Pembelian',
-             'debit_keywords'  => ['persediaan', 'inventory', 'pembelian'],
-             'credit_keywords' => ['kas', 'bank', 'hutang', 'utang']],
+            [
+                'keywords' => ['pembelian', 'beli', 'purchase', 'pengadaan', 'po'],
+                'label' => 'Pembelian',
+                'debit_keywords'  => ['persediaan', 'inventory', 'pembelian'],
+                'credit_keywords' => ['kas', 'bank', 'hutang', 'utang']
+            ],
 
             // Gaji / Payroll
-            ['keywords' => ['gaji', 'salary', 'payroll', 'upah', 'tunjangan'],
-             'label' => 'Gaji',
-             'debit_keywords'  => ['beban gaji', 'gaji', 'biaya gaji'],
-             'credit_keywords' => ['kas', 'bank', 'hutang gaji']],
+            [
+                'keywords' => ['gaji', 'salary', 'payroll', 'upah', 'tunjangan'],
+                'label' => 'Gaji',
+                'debit_keywords'  => ['beban gaji', 'gaji', 'biaya gaji'],
+                'credit_keywords' => ['kas', 'bank', 'hutang gaji']
+            ],
 
             // Sewa
-            ['keywords' => ['sewa', 'rent', 'rental', 'kontrak'],
-             'label' => 'Sewa',
-             'debit_keywords'  => ['beban sewa', 'sewa', 'biaya sewa'],
-             'credit_keywords' => ['kas', 'bank']],
+            [
+                'keywords' => ['sewa', 'rent', 'rental', 'kontrak'],
+                'label' => 'Sewa',
+                'debit_keywords'  => ['beban sewa', 'sewa', 'biaya sewa'],
+                'credit_keywords' => ['kas', 'bank']
+            ],
 
             // Listrik / Utilitas
-            ['keywords' => ['listrik', 'pln', 'air', 'pdam', 'telepon', 'internet', 'utilitas'],
-             'label' => 'Utilitas',
-             'debit_keywords'  => ['beban listrik', 'beban utilitas', 'utilitas', 'listrik'],
-             'credit_keywords' => ['kas', 'bank']],
+            [
+                'keywords' => ['listrik', 'pln', 'air', 'pdam', 'telepon', 'internet', 'utilitas'],
+                'label' => 'Utilitas',
+                'debit_keywords'  => ['beban listrik', 'beban utilitas', 'utilitas', 'listrik'],
+                'credit_keywords' => ['kas', 'bank']
+            ],
 
             // Depresiasi
-            ['keywords' => ['depresiasi', 'depreciation', 'penyusutan'],
-             'label' => 'Depresiasi',
-             'debit_keywords'  => ['beban depresiasi', 'penyusutan'],
-             'credit_keywords' => ['akumulasi depresiasi', 'akumulasi penyusutan']],
+            [
+                'keywords' => ['depresiasi', 'depreciation', 'penyusutan'],
+                'label' => 'Depresiasi',
+                'debit_keywords'  => ['beban depresiasi', 'penyusutan'],
+                'credit_keywords' => ['akumulasi depresiasi', 'akumulasi penyusutan']
+            ],
 
             // Pajak
-            ['keywords' => ['pajak', 'tax', 'ppn', 'pph', 'bphtb'],
-             'label' => 'Pajak',
-             'debit_keywords'  => ['pajak', 'ppn masukan', 'beban pajak'],
-             'credit_keywords' => ['kas', 'bank', 'hutang pajak', 'ppn keluaran']],
+            [
+                'keywords' => ['pajak', 'tax', 'ppn', 'pph', 'bphtb'],
+                'label' => 'Pajak',
+                'debit_keywords'  => ['pajak', 'ppn masukan', 'beban pajak'],
+                'credit_keywords' => ['kas', 'bank', 'hutang pajak', 'ppn keluaran']
+            ],
 
             // Kas masuk / transfer
-            ['keywords' => ['transfer masuk', 'setoran', 'deposit', 'penerimaan'],
-             'label' => 'Penerimaan Kas',
-             'debit_keywords'  => ['kas', 'bank'],
-             'credit_keywords' => ['piutang', 'pendapatan']],
+            [
+                'keywords' => ['transfer masuk', 'setoran', 'deposit', 'penerimaan'],
+                'label' => 'Penerimaan Kas',
+                'debit_keywords'  => ['kas', 'bank'],
+                'credit_keywords' => ['piutang', 'pendapatan']
+            ],
 
             // Kas keluar
-            ['keywords' => ['transfer keluar', 'penarikan', 'pembayaran', 'bayar'],
-             'label' => 'Pembayaran',
-             'debit_keywords'  => ['hutang', 'utang', 'beban'],
-             'credit_keywords' => ['kas', 'bank']],
+            [
+                'keywords' => ['transfer keluar', 'penarikan', 'pembayaran', 'bayar'],
+                'label' => 'Pembayaran',
+                'debit_keywords'  => ['hutang', 'utang', 'beban'],
+                'credit_keywords' => ['kas', 'bank']
+            ],
 
             // Biaya operasional
-            ['keywords' => ['operasional', 'kantor', 'atk', 'alat tulis', 'supplies'],
-             'label' => 'Biaya Operasional',
-             'debit_keywords'  => ['beban operasional', 'biaya operasional', 'perlengkapan'],
-             'credit_keywords' => ['kas', 'bank']],
+            [
+                'keywords' => ['operasional', 'kantor', 'atk', 'alat tulis', 'supplies'],
+                'label' => 'Biaya Operasional',
+                'debit_keywords'  => ['beban operasional', 'biaya operasional', 'perlengkapan'],
+                'credit_keywords' => ['kas', 'bank']
+            ],
 
             // Asuransi
-            ['keywords' => ['asuransi', 'insurance', 'premi'],
-             'label' => 'Asuransi',
-             'debit_keywords'  => ['beban asuransi', 'asuransi dibayar dimuka'],
-             'credit_keywords' => ['kas', 'bank']],
+            [
+                'keywords' => ['asuransi', 'insurance', 'premi'],
+                'label' => 'Asuransi',
+                'debit_keywords'  => ['beban asuransi', 'asuransi dibayar dimuka'],
+                'credit_keywords' => ['kas', 'bank']
+            ],
         ];
     }
 
@@ -347,11 +374,13 @@ class AccountingAiService
                 // Cek pasangan yang tidak pernah muncul di histori (6 bulan)
                 $existsInHistory = JournalEntryLine::where('account_id', $dId)
                     ->where('debit', '>', 0)
-                    ->whereHas('journalEntry', fn($q) => $q
-                        ->where('tenant_id', $tenantId)
-                        ->where('status', 'posted')
-                        ->where('date', '>=', now()->subMonths(6)->toDateString())
-                        ->whereHas('lines', fn($q2) => $q2->where('account_id', $cId)->where('credit', '>', 0))
+                    ->whereHas(
+                        'journalEntry',
+                        fn($q) => $q
+                            ->where('tenant_id', $tenantId)
+                            ->where('status', 'posted')
+                            ->where('date', '>=', now()->subMonths(6)->toDateString())
+                            ->whereHas('lines', fn($q2) => $q2->where('account_id', $cId)->where('credit', '>', 0))
                     )->exists();
 
                 if (!$existsInHistory) {
@@ -391,6 +420,9 @@ class AccountingAiService
     /**
      * Auto-categorize transaksi bank statement ke akun COA.
      *
+     * Use Case: AiUseCase::BANK_RECONCILIATION_AI
+     * When AI provider is integrated, pass: AiUseCase::BANK_RECONCILIATION_AI->value
+     *
      * Return: [
      *   'account_id'   => int,
      *   'account_code' => string,
@@ -399,6 +431,8 @@ class AccountingAiService
      *   'basis'        => string,
      *   'journal_type' => 'debit'|'credit',  // posisi di jurnal (bukan tipe bank)
      * ]
+     *
+     * Requirements: 8.3
      */
     public function categorizeStatement(int $tenantId, string $description, string $type, float $amount): array
     {
@@ -440,14 +474,16 @@ class AccountingAiService
         if (empty($transactionIds)) return null;
 
         // Cari journal lines yang terkait
-        $accountId = JournalEntryLine::whereHas('journalEntry', fn($q) => $q
-            ->where('tenant_id', $tenantId)
-            ->whereIn('reference_id', $transactionIds)
+        $accountId = JournalEntryLine::whereHas(
+            'journalEntry',
+            fn($q) => $q
+                ->where('tenant_id', $tenantId)
+                ->whereIn('reference_id', $transactionIds)
         )
-        ->where($type === 'credit' ? 'credit' : 'debit', '>', 0)
-        ->groupBy('account_id')
-        ->orderByRaw('COUNT(*) DESC')
-        ->value('account_id');
+            ->where($type === 'credit' ? 'credit' : 'debit', '>', 0)
+            ->groupBy('account_id')
+            ->orderByRaw('COUNT(*) DESC')
+            ->value('account_id');
 
         if (!$accountId) return null;
 
@@ -490,8 +526,9 @@ class AccountingAiService
             }
             if (!$matched) continue;
 
-            $account = $accounts->first(fn($a) => collect($rule['account_keywords'])
-                ->contains(fn($kw) => str_contains(strtolower($a->name), $kw))
+            $account = $accounts->first(
+                fn($a) => collect($rule['account_keywords'])
+                    ->contains(fn($kw) => str_contains(strtolower($a->name), $kw))
             );
 
             if (!$account) continue;
@@ -507,9 +544,10 @@ class AccountingAiService
         }
 
         // Fallback: kas/bank
-        $bankAccount = $accounts->first(fn($a) =>
+        $bankAccount = $accounts->first(
+            fn($a) =>
             str_contains(strtolower($a->name), 'kas') ||
-            str_contains(strtolower($a->name), 'bank')
+                str_contains(strtolower($a->name), 'bank')
         );
 
         return [
@@ -526,51 +564,78 @@ class AccountingAiService
     {
         return [
             // Kredit bank (uang masuk) → Piutang / Pendapatan
-            ['keywords' => ['transfer masuk', 'trfin', 'cr', 'setoran', 'penerimaan', 'pembayaran dari'],
-             'bank_type' => 'credit', 'label' => 'Penerimaan',
-             'account_keywords' => ['piutang', 'pendapatan', 'penjualan'],
-             'journal_side' => 'credit'],
+            [
+                'keywords' => ['transfer masuk', 'trfin', 'cr', 'setoran', 'penerimaan', 'pembayaran dari'],
+                'bank_type' => 'credit',
+                'label' => 'Penerimaan',
+                'account_keywords' => ['piutang', 'pendapatan', 'penjualan'],
+                'journal_side' => 'credit'
+            ],
 
-            ['keywords' => ['penjualan', 'sales', 'invoice'],
-             'bank_type' => 'credit', 'label' => 'Penjualan',
-             'account_keywords' => ['penjualan', 'pendapatan'],
-             'journal_side' => 'credit'],
+            [
+                'keywords' => ['penjualan', 'sales', 'invoice'],
+                'bank_type' => 'credit',
+                'label' => 'Penjualan',
+                'account_keywords' => ['penjualan', 'pendapatan'],
+                'journal_side' => 'credit'
+            ],
 
             // Debit bank (uang keluar) → Hutang / Beban
-            ['keywords' => ['gaji', 'salary', 'payroll', 'upah'],
-             'bank_type' => 'debit', 'label' => 'Gaji',
-             'account_keywords' => ['beban gaji', 'gaji', 'hutang gaji'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['gaji', 'salary', 'payroll', 'upah'],
+                'bank_type' => 'debit',
+                'label' => 'Gaji',
+                'account_keywords' => ['beban gaji', 'gaji', 'hutang gaji'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['sewa', 'rent', 'rental'],
-             'bank_type' => 'debit', 'label' => 'Sewa',
-             'account_keywords' => ['beban sewa', 'sewa'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['sewa', 'rent', 'rental'],
+                'bank_type' => 'debit',
+                'label' => 'Sewa',
+                'account_keywords' => ['beban sewa', 'sewa'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['listrik', 'pln', 'air', 'pdam', 'telepon', 'internet'],
-             'bank_type' => 'debit', 'label' => 'Utilitas',
-             'account_keywords' => ['beban listrik', 'utilitas', 'listrik'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['listrik', 'pln', 'air', 'pdam', 'telepon', 'internet'],
+                'bank_type' => 'debit',
+                'label' => 'Utilitas',
+                'account_keywords' => ['beban listrik', 'utilitas', 'listrik'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['pajak', 'tax', 'pph', 'ppn', 'bpjs'],
-             'bank_type' => 'debit', 'label' => 'Pajak',
-             'account_keywords' => ['hutang pajak', 'pajak', 'beban pajak'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['pajak', 'tax', 'pph', 'ppn', 'bpjs'],
+                'bank_type' => 'debit',
+                'label' => 'Pajak',
+                'account_keywords' => ['hutang pajak', 'pajak', 'beban pajak'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['pembelian', 'purchase', 'supplier', 'vendor', 'po'],
-             'bank_type' => 'debit', 'label' => 'Pembelian',
-             'account_keywords' => ['hutang', 'utang usaha', 'persediaan'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['pembelian', 'purchase', 'supplier', 'vendor', 'po'],
+                'bank_type' => 'debit',
+                'label' => 'Pembelian',
+                'account_keywords' => ['hutang', 'utang usaha', 'persediaan'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['operasional', 'atk', 'kantor', 'supplies'],
-             'bank_type' => 'debit', 'label' => 'Operasional',
-             'account_keywords' => ['beban operasional', 'biaya operasional'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['operasional', 'atk', 'kantor', 'supplies'],
+                'bank_type' => 'debit',
+                'label' => 'Operasional',
+                'account_keywords' => ['beban operasional', 'biaya operasional'],
+                'journal_side' => 'debit'
+            ],
 
-            ['keywords' => ['asuransi', 'insurance', 'premi'],
-             'bank_type' => 'debit', 'label' => 'Asuransi',
-             'account_keywords' => ['beban asuransi', 'asuransi'],
-             'journal_side' => 'debit'],
+            [
+                'keywords' => ['asuransi', 'insurance', 'premi'],
+                'bank_type' => 'debit',
+                'label' => 'Asuransi',
+                'account_keywords' => ['beban asuransi', 'asuransi'],
+                'journal_side' => 'debit'
+            ],
         ];
     }
 }

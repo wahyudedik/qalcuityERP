@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -28,37 +28,37 @@
                 ->get()
                 ->sum(fn($item) => $item->current_stock * $item->unit_cost);
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Supplies</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e(number_format($totalSupplies)); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Supplies</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e(number_format($totalSupplies)); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Stok Menipis</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"><?php echo e($lowStockSupplies); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Stok Menipis</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1"><?php echo e($lowStockSupplies); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Habis</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1"><?php echo e($outOfStock); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Habis</p>
+            <p class="text-2xl font-bold text-red-600 mt-1"><?php echo e($outOfStock); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Critical Items</p>
-            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1"><?php echo e($criticalItems); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Critical Items</p>
+            <p class="text-2xl font-bold text-orange-600 mt-1"><?php echo e($criticalItems); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Nilai Inventori</p>
-            <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">Rp
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Nilai Inventori</p>
+            <p class="text-lg font-bold text-blue-600 mt-1">Rp
                 <?php echo e(number_format($totalValue, 0, ',', '.')); ?></p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="p-4">
             <form method="GET" class="flex flex-col lg:flex-row gap-3">
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari supply / SKU..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="category"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Kategori</option>
                     <option value="surgical" <?php if(request('category') === 'surgical'): echo 'selected'; endif; ?>>Surgical</option>
                     <option value="diagnostic" <?php if(request('category') === 'diagnostic'): echo 'selected'; endif; ?>>Diagnostic</option>
@@ -67,7 +67,7 @@
                     <option value="equipment" <?php if(request('category') === 'equipment'): echo 'selected'; endif; ?>>Equipment</option>
                 </select>
                 <select name="stock_status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="available" <?php if(request('stock_status') === 'available'): echo 'selected'; endif; ?>>Available</option>
                     <option value="low" <?php if(request('stock_status') === 'low'): echo 'selected'; endif; ?>>Low Stock</option>
@@ -81,10 +81,10 @@
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">SKU</th>
                         <th class="px-4 py-3 text-left">Nama Supply</th>
@@ -97,34 +97,34 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $supplies ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supply): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-xs text-gray-600 dark:text-slate-300"><?php echo e($supply->sku ?? '-'); ?></span>
+                                    class="font-mono text-xs text-gray-600"><?php echo e($supply->sku ?? '-'); ?></span>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white"><?php echo e($supply->name); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($supply->supplier ?? '-'); ?></p>
+                                <p class="font-medium text-gray-900"><?php echo e($supply->name); ?></p>
+                                <p class="text-xs text-gray-500"><?php echo e($supply->supplier ?? '-'); ?></p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">
                                     <?php echo e(ucfirst($supply->category ?? '-')); ?>
 
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="font-bold text-gray-900 dark:text-white"><?php echo e($supply->current_stock); ?></span>
-                                <span class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($supply->unit); ?></span>
+                                    class="font-bold text-gray-900"><?php echo e($supply->current_stock); ?></span>
+                                <span class="text-xs text-gray-500"><?php echo e($supply->unit); ?></span>
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
-                                <span class="text-gray-600 dark:text-slate-300"><?php echo e($supply->reorder_level); ?></span>
+                                <span class="text-gray-600"><?php echo e($supply->reorder_level); ?></span>
                             </td>
                             <td class="px-4 py-3 text-right hidden lg:table-cell">
-                                <span class="text-gray-900 dark:text-white">Rp
+                                <span class="text-gray-900">Rp
                                     <?php echo e(number_format($supply->unit_cost, 0, ',', '.')); ?></span>
                             </td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell">
@@ -141,22 +141,22 @@
                             <td class="px-4 py-3 text-center">
                                 <?php if($supply->current_stock == 0): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Out</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Out</span>
                                 <?php elseif($supply->is_critical && $supply->current_stock <= $supply->reorder_level): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Critical</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700">Critical</span>
                                 <?php elseif($supply->current_stock <= $supply->reorder_level): ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Low</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">Low</span>
                                 <?php else: ?>
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Available</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Available</span>
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="<?php echo e(route('healthcare.inventory.supplies.show', $supply)); ?>"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -167,7 +167,7 @@
                                         </svg>
                                     </a>
                                     <a href="<?php echo e(route('healthcare.inventory.supplies.edit', $supply)); ?>"
-                                        class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                        class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                         title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -181,7 +181,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="9" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada data supplies</p>
                             </td>
                         </tr>
@@ -191,7 +191,7 @@
         </div>
 
         <?php if(isset($supplies) && $supplies->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 <?php echo e($supplies->links()); ?>
 
             </div>

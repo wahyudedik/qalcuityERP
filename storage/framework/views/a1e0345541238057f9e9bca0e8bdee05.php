@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
@@ -35,7 +35,7 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 
-<div <?php echo e($attributes->merge(['class' => 'bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm ' . $class])); ?>>
+<div <?php echo e($attributes->merge(['class' => 'bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm ' . $class])); ?>>
     <div class="overflow-x-auto">
         <table class="w-full text-sm <?php echo e($striped ? 'table-striped' : ''); ?>">
             <?php echo e($slot); ?>
@@ -47,20 +47,20 @@ unset($__defined_vars, $__key, $__value); ?>
 <style>
     /* TASK 6.4: Alternating row colors untuk keterbacaan */
     .table-striped tbody tr:nth-child(even) {
-        @apply bg-gray-50 dark:bg-slate-700/30;
+        @apply bg-gray-50;
     }
     
     .table-striped tbody tr:hover {
-        @apply bg-blue-50 dark:bg-slate-700/50;
+        @apply bg-blue-50;
     }
     
     /* Header styling */
     .table-striped thead th {
-        @apply bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold text-left px-4 py-3 border-b border-gray-200 dark:border-slate-600;
+        @apply bg-gray-100 text-gray-700 font-semibold text-left px-4 py-3 border-b border-gray-200;
     }
     
     .table-striped tbody td {
-        @apply px-4 py-3 border-b border-gray-100 dark:border-slate-700/50;
+        @apply px-4 py-3 border-b border-gray-100;
     }
     
     /* Kolom aksi konsisten di kanan */

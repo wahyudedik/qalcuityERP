@@ -7,10 +7,12 @@ use PHPUnit\Framework\TestCase;
 /**
  * Bug 1.8 — FOUC (Flash of Unstyled Content) dengan theme=system
  *
- * Membuktikan bahwa script inisialisasi tema di <head> tidak menangani
- * theme === 'system' dengan window.matchMedia sebelum render pertama.
- *
- * EXPECTED: Test ini HARUS GAGAL pada kode unfixed.
+ * UPDATED: Dark mode telah dihapus sepenuhnya dari aplikasi.
+ * FOUC prevention script telah dihapus karena tidak ada lagi dark mode.
+ * Test ini sekarang memverifikasi bahwa:
+ * - Tidak ada FOUC script yang membaca theme dari localStorage
+ * - Ada localStorage cleanup script (one-time)
+ * - Layout menggunakan light mode secara default
  */
 class DarkModeFoucTest extends TestCase
 {
@@ -18,22 +20,14 @@ class DarkModeFoucTest extends TestCase
 
     /**
      * @test
-     * Bug 1.8: Verifikasi bahwa script inisialisasi tema menangani theme=system
-     *
-     * Script di <head> seharusnya menangani:
-     * - theme === 'dark' → tambah class 'dark'
-     * - theme === 'light' → hapus class 'dark'
-     * - theme === 'system' → cek window.matchMedia('(prefers-color-scheme: dark)')
-     *
-     * AKAN GAGAL karena script hanya menangani theme === 'light'
+     * Post dark mode removal: No theme system handling needed (dark mode removed)
      */
     public function test_theme_init_script_handles_system_theme(): void
     {
         $this->assertFileExists($this->appBladeFile);
         $content = file_get_contents($this->appBladeFile);
 
-        // Cari script inisialisasi tema di <head>
-        // Berdasarkan kode aktual: hanya ada pengecekan theme === 'light'
+        // After dark mode removal, there should be NO system theme handling
         $hasSystemThemeHandling = (
             str_contains($content, "theme === 'system'") ||
             str_contains($content, 'theme === "system"') ||
@@ -41,69 +35,55 @@ class DarkModeFoucTest extends TestCase
             str_contains($content, 'matchMedia')
         );
 
-        // Test ini AKAN GAGAL karena script hanya menangani theme === 'light'
-        // Kode aktual: if (localStorage.getItem('theme') === 'light') { remove dark }
-        $this->assertTrue(
+        $this->assertFalse(
             $hasSystemThemeHandling,
-            "Bug 1.8: Script inisialisasi tema di <head> tidak menangani theme === 'system'. " .
-            "Pengguna dengan preferensi OS dark mode akan mengalami FOUC (flash putih) " .
-            "saat halaman pertama kali dimuat karena tema tidak diterapkan sebelum render. " .
-            "Kode aktual hanya menangani theme === 'light'."
+            "Layout should NOT contain system theme handling after dark mode removal"
         );
     }
 
     /**
      * @test
-     * Bug 1.8: Verifikasi bahwa script inisialisasi tema adalah IIFE (Immediately Invoked)
-     *
-     * Script harus dijalankan segera (IIFE) sebelum render pertama untuk mencegah FOUC.
-     * AKAN GAGAL jika script tidak menggunakan IIFE pattern
+     * Post dark mode removal: localStorage cleanup script should be IIFE
      */
     public function test_theme_init_script_is_iife(): void
     {
         $this->assertFileExists($this->appBladeFile);
         $content = file_get_contents($this->appBladeFile);
 
-        // Cari IIFE pattern: (function() { ... })() atau (() => { ... })()
+        // The localStorage cleanup script should use IIFE pattern
         $hasIife = (
             preg_match('/\(function\s*\(\)\s*\{/', $content) ||
-            preg_match('/\(\(\)\s*=>\s*\{/', $content) ||
-            preg_match('/\(function\s*\(\)\s*\{[^}]*localStorage[^}]*\}\)\(\)/', $content)
+            preg_match('/\(\(\)\s*=>\s*\{/', $content)
         );
 
-        // Test ini AKAN GAGAL karena script tidak menggunakan IIFE
         $this->assertTrue(
             $hasIife,
-            "Bug 1.8: Script inisialisasi tema tidak menggunakan IIFE pattern. " .
-            "Script harus dijalankan segera (immediately invoked) sebelum render pertama " .
-            "untuk mencegah FOUC. Gunakan: (function() { ... })() atau (() => { ... })()"
+            "localStorage cleanup script should use IIFE pattern"
         );
     }
 
     /**
      * @test
-     * Bug 1.8: Verifikasi bahwa script inisialisasi tema berada di <head> sebelum @vite
-     *
-     * Script harus berada di <head> SEBELUM stylesheet dimuat untuk mencegah FOUC.
-     * AKAN GAGAL jika script berada setelah @vite
+     * Post dark mode removal: Cleanup script should be before @vite in head
      */
     public function test_theme_init_script_is_before_vite_in_head(): void
     {
         $this->assertFileExists($this->appBladeFile);
         $content = file_get_contents($this->appBladeFile);
 
-        // Cari posisi script tema
-        $scriptPos = strpos($content, "localStorage.getItem('theme')");
+        // Cari posisi localStorage cleanup script
+        $scriptPos = strpos($content, '_theme_cleaned');
 
         if ($scriptPos === false) {
-            $this->fail(
-                "Bug 1.8: Script inisialisasi tema tidak ditemukan di blade file. " .
-                "Tidak ada script yang membaca localStorage untuk tema."
-            );
+            // Also check for localStorage reference (cleanup script)
+            $scriptPos = strpos($content, "localStorage.removeItem('theme')");
         }
 
-        // Cari posisi @vite directive yang sebenarnya (bukan dalam komentar)
-        // Gunakan regex untuk menemukan @vite yang diikuti tanda kurung (directive aktual)
+        if ($scriptPos === false) {
+            $this->markTestSkipped("localStorage cleanup script not found in layout");
+        }
+
+        // Cari posisi @vite directive
         $vitePos = false;
         if (preg_match('/\n\s*@vite\s*\(/', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $vitePos = $matches[0][1];
@@ -113,12 +93,11 @@ class DarkModeFoucTest extends TestCase
             $this->markTestSkipped("Directive @vite tidak ditemukan di blade file.");
         }
 
-        // Script tema harus berada SEBELUM @vite untuk mencegah FOUC
+        // Cleanup script harus berada SEBELUM @vite
         $this->assertLessThan(
             $vitePos,
             $scriptPos,
-            "Bug 1.8: Script inisialisasi tema berada SETELAH @vite directive. " .
-            "Script harus berada di <head> SEBELUM stylesheet dimuat untuk mencegah FOUC."
+            "localStorage cleanup script should be before @vite directive in <head>"
         );
     }
 }

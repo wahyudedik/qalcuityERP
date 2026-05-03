@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -104,14 +104,14 @@
     
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selamat datang, <?php echo e(auth()->user()->name); ?>
+            <h2 class="text-xl font-semibold text-gray-900">Selamat datang, <?php echo e(auth()->user()->name); ?>
 
                 👋
             </h2>
-            <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5"><?php echo e(now()->translatedFormat('l, d F Y')); ?></p>
+            <p class="text-sm text-gray-500 mt-0.5"><?php echo e(now()->translatedFormat('l, d F Y')); ?></p>
         </div>
         <button onclick="document.getElementById('widgetModal').classList.remove('hidden')"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-slate-400 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition">
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -167,23 +167,23 @@
         $pct = $totalSteps > 0 ? round(($doneCount / $totalSteps) * 100) : 0;
     ?>
     <?php if(!$allDone && $tenant): ?>
-        <div class="mb-6 bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5"
+        <div class="mb-6 bg-white rounded-2xl border border-gray-200 p-5"
             id="setup-checklist">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-lg">🚀</div>
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Setup Bisnis Anda</p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($doneCount); ?>/<?php echo e($totalSteps); ?>
+                        <p class="text-sm font-semibold text-gray-900">Setup Bisnis Anda</p>
+                        <p class="text-xs text-gray-500"><?php echo e($doneCount); ?>/<?php echo e($totalSteps); ?>
 
                             langkah selesai</p>
                     </div>
                 </div>
                 <button onclick="document.getElementById('setup-checklist').remove()"
-                    class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white"
+                    class="text-xs text-gray-400 hover:text-gray-600"
                     title="Sembunyikan">✕</button>
             </div>
-            <div class="w-full h-2 bg-gray-100 dark:bg-white/10 rounded-full mb-4 overflow-hidden">
+            <div class="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500 <?php echo e($pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-blue-500' : 'bg-amber-500')); ?>"
                     style="width:<?php echo e($pct); ?>%"></div>
             </div>
@@ -192,16 +192,16 @@
                     <a href="<?php echo e($step['done'] ? '#' : $step['url']); ?>"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition
                     <?php echo e($step['done']
-                        ? 'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20'
-                        : 'bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10'); ?>">
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-gray-50 border border-gray-200 hover:border-blue-300 hover:bg-blue-50'); ?>">
                         <span class="text-lg shrink-0"><?php echo e($step['done'] ? '✅' : $step['icon']); ?></span>
                         <span
-                            class="text-sm <?php echo e($step['done'] ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-700 dark:text-slate-300 font-medium'); ?>">
+                            class="text-sm <?php echo e($step['done'] ? 'text-green-700 line-through' : 'text-gray-700 font-medium'); ?>">
                             <?php echo e($step['label']); ?>
 
                         </span>
                         <?php if(!$step['done']): ?>
-                            <svg class="w-4 h-4 ml-auto text-gray-400 dark:text-slate-500 shrink-0" fill="none"
+                            <svg class="w-4 h-4 ml-auto text-gray-400 shrink-0" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
@@ -235,8 +235,8 @@
                     <div
                         class="widget-handle absolute -top-1.5 left-1/2 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <div
-                            class="flex items-center gap-0.5 bg-gray-200 dark:bg-slate-700 rounded-full px-2.5 py-0.5 shadow-sm">
-                            <svg class="w-3 h-3 text-gray-400 dark:text-slate-500" viewBox="0 0 24 24"
+                            class="flex items-center gap-0.5 bg-gray-200 rounded-full px-2.5 py-0.5 shadow-sm">
+                            <svg class="w-3 h-3 text-gray-400" viewBox="0 0 24 24"
                                 fill="currentColor">
                                 <circle cx="9" cy="6" r="1.5" />
                                 <circle cx="15" cy="6" r="1.5" />
@@ -259,15 +259,15 @@
     <div id="widgetModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg max-h-[85vh] flex flex-col">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <div>
-                    <h3 class="text-base font-semibold text-gray-900 dark:text-white">Kustomisasi Dashboard</h3>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Aktifkan, urutkan, dan ubah ukuran
+                    <h3 class="text-base font-semibold text-gray-900">Kustomisasi Dashboard</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Aktifkan, urutkan, dan ubah ukuran
                         widget. Drag untuk mengubah urutan.</p>
                 </div>
                 <button onclick="document.getElementById('widgetModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                    class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -287,10 +287,10 @@
                             $isCustom = !empty($meta['is_custom']);
                         ?>
                         <div class="modal-widget-item flex items-center gap-2 p-2.5 rounded-xl mb-1.5 cursor-grab
-                            bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 transition"
+                            bg-gray-50 border border-gray-200 hover:bg-gray-100 transition"
                             data-widget-key="<?php echo e($key); ?>">
                             
-                            <div class="modal-drag-handle shrink-0 text-gray-300 dark:text-slate-600 cursor-grab">
+                            <div class="modal-drag-handle shrink-0 text-gray-300 cursor-grab">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                     <circle cx="9" cy="6" r="1.5" />
                                     <circle cx="15" cy="6" r="1.5" />
@@ -302,7 +302,7 @@
                             </div>
                             
                             <input type="checkbox"
-                                class="widget-toggle rounded border-gray-300 dark:border-white/20 text-blue-600 shrink-0"
+                                class="widget-toggle rounded border-gray-300 text-blue-600 shrink-0"
                                 data-widget-key="<?php echo e($key); ?>" <?php echo e($isVisible ? 'checked' : ''); ?>>
                             <div
                                 class="w-7 h-7 rounded-lg <?php echo e($meta['icon_bg']); ?> flex items-center justify-center shrink-0">
@@ -314,7 +314,7 @@
                             </div>
                             
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                <p class="text-xs font-medium text-gray-900 truncate">
                                     <?php echo e($meta['title']); ?></p>
                             </div>
                             
@@ -325,7 +325,7 @@
                                             onclick="setWidgetSize('<?php echo e($key); ?>', <?php echo e($sz); ?>, this)"
                                             data-widget-key="<?php echo e($key); ?>" data-size="<?php echo e($sz); ?>"
                                             class="size-btn px-1.5 py-0.5 rounded text-xs font-medium transition
-                                            <?php echo e($activeCols === $sz ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-white/20'); ?>">
+                                            <?php echo e($activeCols === $sz ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'); ?>">
                                             <?php echo e($label); ?>
 
                                         </button>
@@ -348,12 +348,12 @@
                     <?php endif; ?>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-            <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-white/10">
+            <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200">
                 <div class="flex items-center gap-2">
                     <button onclick="resetWidgets()"
                         class="text-xs text-red-400 hover:text-red-300 font-medium transition">Reset Default</button>
                     <?php if(in_array(auth()->user()->role, ['admin', 'manager', 'super_admin'])): ?>
-                        <span class="text-gray-200 dark:text-slate-700">|</span>
+                        <span class="text-gray-200">|</span>
                         <button onclick="openWidgetBuilder(null)"
                             class="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400 font-medium transition">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -366,7 +366,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button onclick="document.getElementById('widgetModal').classList.add('hidden')"
-                        class="px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">Batal</button>
+                        class="px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition">Batal</button>
                     <button onclick="saveWidgetConfig()"
                         class="px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
                         id="btn-save-widgets">Simpan</button>
@@ -380,16 +380,16 @@
         <div id="modal-widget-builder"
             class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
+                class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div>
-                        <h3 class="font-semibold text-gray-900 dark:text-white text-sm" id="builder-title">Buat Widget
+                        <h3 class="font-semibold text-gray-900 text-sm" id="builder-title">Buat Widget
                             Baru</h3>
-                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Kartu metrik kustom berbasis data
+                        <p class="text-xs text-gray-400 mt-0.5">Kartu metrik kustom berbasis data
                             ERP</p>
                     </div>
                     <button onclick="closeWidgetBuilder()"
-                        class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                        class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -402,28 +402,28 @@
 
                     
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Widget
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Widget
                             <span class="text-red-400">*</span></label>
                         <input type="text" id="builder-title-input" maxlength="60"
                             placeholder="Contoh: Total Invoice Lunas"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Subtitle
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Subtitle
                             (opsional)</label>
                         <input type="text" id="builder-subtitle" maxlength="100" placeholder="Contoh: Bulan ini"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe Metrik
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Metrik
                                 <span class="text-red-400">*</span></label>
                             <select id="builder-metric-type" onchange="toggleBuilderFields()"
-                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="count">Count (hitung baris)</option>
                                 <option value="sum">Sum (jumlahkan kolom)</option>
                                 <option value="avg">Avg (rata-rata kolom)</option>
@@ -433,10 +433,10 @@
 
                         
                         <div id="builder-model-wrap">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Sumber
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Sumber
                                 Data</label>
                             <select id="builder-model-class"
-                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">-- Pilih --</option>
                                 <option value="SalesOrder">Sales Order</option>
                                 <option value="PurchaseOrder">Purchase Order</option>
@@ -452,26 +452,26 @@
 
                     
                     <div id="builder-column-wrap" class="hidden">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama
                             Kolom</label>
                         <input type="text" id="builder-metric-column" placeholder="Contoh: total atau amount"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     
                     <div id="builder-static-wrap" class="hidden">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nilai</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nilai</label>
                         <input type="number" id="builder-static-value" placeholder="100"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         
                         <div id="builder-date-wrap">
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Periode</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Periode</label>
                             <select id="builder-date-scope"
-                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="this_month">Bulan Ini</option>
                                 <option value="today">Hari Ini</option>
                                 <option value="this_year">Tahun Ini</option>
@@ -481,10 +481,10 @@
 
                         
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Format
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Format
                                 Nilai</label>
                             <select id="builder-value-format"
-                                class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="number">Angka (1.234)</option>
                                 <option value="currency">Mata Uang (Rp 1.234)</option>
                                 <option value="percent">Persen (12.3%)</option>
@@ -494,40 +494,40 @@
 
                     
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Ukuran
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Ukuran
                             Widget</label>
                         <div class="flex gap-2">
                             <?php $__currentLoopData = [1 => 'Kecil (1 kolom)', 2 => 'Sedang (2 kolom)', 4 => 'Lebar (4 kolom)']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sz => $lbl): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <label
-                                    class="flex-1 flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 dark:border-white/10 cursor-pointer hover:border-blue-400 transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-500/10">
+                                    class="flex-1 flex items-center gap-2 p-2.5 rounded-xl border border-gray-200 cursor-pointer hover:border-blue-400 transition has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
                                     <input type="radio" name="builder-cols" value="<?php echo e($sz); ?>"
                                         <?php echo e($sz === 1 ? 'checked' : ''); ?> class="text-blue-600">
-                                    <span class="text-xs text-gray-700 dark:text-slate-300"><?php echo e($lbl); ?></span>
+                                    <span class="text-xs text-gray-700"><?php echo e($lbl); ?></span>
                                 </label>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
 
                     
-                    <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3 flex items-center justify-between">
-                        <span class="text-xs text-gray-500 dark:text-slate-400">Preview nilai:</span>
+                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Preview nilai:</span>
                         <div class="flex items-center gap-2">
                             <span id="builder-preview-value"
-                                class="text-lg font-bold text-gray-900 dark:text-white">—</span>
+                                class="text-lg font-bold text-gray-900">—</span>
                             <button onclick="previewWidget()"
                                 class="text-xs text-blue-500 hover:text-blue-400 underline">Hitung</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-white/10">
+                <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
                     <div id="builder-delete-wrap" class="hidden">
                         <button onclick="deleteCustomWidget()"
                             class="text-xs text-red-400 hover:text-red-300 font-medium">Hapus Widget</button>
                     </div>
                     <div class="ml-auto flex gap-2">
                         <button onclick="closeWidgetBuilder()"
-                            class="px-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
+                            class="px-4 py-2 rounded-xl text-sm border border-gray-200 text-gray-700">Batal</button>
                         <button onclick="saveCustomWidget()" id="builder-save-btn"
                             class="px-4 py-2 rounded-xl text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium transition">Simpan</button>
                     </div>
@@ -599,13 +599,13 @@
                     b.className = b.className
                         .replace(/bg-blue-500 text-white/g, '')
                         .replace(
-                            /bg-gray-100 dark:bg-white\/10 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-white\/20/g,
+                            /bg-gray-100\/10 text-gray-500 hover:bg-gray-200\/20/g,
                             '');
                     if (active) {
                         b.classList.add('bg-blue-500', 'text-white');
                     } else {
-                        b.classList.add('bg-gray-100', 'dark:bg-white/10', 'text-gray-500', 'dark:text-slate-400',
-                            'hover:bg-gray-200', 'dark:hover:bg-white/20');
+                        b.classList.add('bg-gray-100', 'text-gray-500',
+                            'hover:bg-gray-200');
                     }
                 });
             }
@@ -1012,10 +1012,10 @@
                     '';
                 return `<div class="rounded-xl border ${borders[sev] || borders.info} p-4 flex flex-col gap-2">
             <div class="flex items-start justify-between gap-2">
-                <p class="text-sm font-semibold text-gray-900 dark:text-white leading-snug">${insight.title}</p>
+                <p class="text-sm font-semibold text-gray-900 leading-snug">${insight.title}</p>
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${badges[sev] || badges.info}">${labels[sev] || 'Info'}</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">${insight.body}</p>
+            <p class="text-xs text-gray-500 leading-relaxed">${insight.body}</p>
             ${action}
         </div>`;
             }
@@ -1048,11 +1048,11 @@
             </svg>
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-0.5">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">${a.title}</p>
+                    <p class="text-sm font-semibold text-gray-900 truncate">${a.title}</p>
                     <span class="text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${badges[sev] || badges.info}">${labels[sev] || 'Info'}</span>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">${a.description}</p>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">${a.age}</p>
+                <p class="text-xs text-gray-500 leading-relaxed">${a.description}</p>
+                <p class="text-xs text-gray-400 mt-1">${a.age}</p>
             </div>
             <button onclick="acknowledgeAnomaly(${a.id}, this)" class="text-xs text-gray-400 hover:text-green-400 transition shrink-0 font-medium" title="Tandai sudah ditinjau">Tinjau</button>
         </div>`;
@@ -1085,7 +1085,7 @@
             x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-gray-200 dark:border-white/10">
+                class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-gray-200">
                 
                 <?php if($popupAd->image_path): ?>
                     <div class="relative">
@@ -1097,13 +1097,13 @@
                 
                 <div class="p-6">
                     <div class="flex items-start justify-between gap-4 mb-3">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-snug">
+                        <h3 class="text-lg font-bold text-gray-900 leading-snug">
                             <?php echo e($popupAd->title); ?>
 
                         </h3>
                         <button
                             @click="open=false; fetch('<?php echo e(route('popup-ads.dismiss', $popupAd)); ?>', {method:'POST',headers:{'X-CSRF-TOKEN':'<?php echo e(csrf_token()); ?>','Content-Type':'application/json'}})"
-                            class="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition"
+                            class="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
                             aria-label="Tutup">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -1113,7 +1113,7 @@
                     </div>
 
                     <?php if($popupAd->body): ?>
-                        <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed mb-5">
+                        <p class="text-sm text-gray-500 leading-relaxed mb-5">
                             <?php echo e($popupAd->body); ?>
 
                         </p>
@@ -1134,7 +1134,7 @@
                         <?php endif; ?>
                         <button
                             @click="open=false; fetch('<?php echo e(route('popup-ads.dismiss', $popupAd)); ?>', {method:'POST',headers:{'X-CSRF-TOKEN':'<?php echo e(csrf_token()); ?>','Content-Type':'application/json'}})"
-                            class="ml-auto text-sm text-gray-400 hover:text-gray-700 dark:hover:text-slate-300 transition">
+                            class="ml-auto text-sm text-gray-400 hover:text-gray-700 transition">
                             Tutup
                         </button>
                     </div>

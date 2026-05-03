@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
@@ -103,7 +103,7 @@ unset($__defined_vars, $__key, $__value); ?>
     <?php endif; ?>
     
     <?php if($help && !$hasError): ?>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p class="mt-1 text-xs text-gray-500">
             <?php echo e($help); ?>
 
         </p>

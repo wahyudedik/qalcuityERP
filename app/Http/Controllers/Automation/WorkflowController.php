@@ -42,7 +42,7 @@ class WorkflowController extends Controller
         $workflows = Workflow::where('tenant_id', auth()->user()->tenant_id)
             ->withCount('actions')
             ->withCount([
-                'logs' => function ($query) {
+                'logs as logs_today_count' => function ($query) {
                     $query->whereDate('started_at', today());
                 }
             ])

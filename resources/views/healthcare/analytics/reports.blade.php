@@ -1,14 +1,14 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Healthcare Reports</x-slot>
 
     @php $tid = auth()->user()->tenant_id; @endphp
 
     {{-- Filters --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-6">
         <div class="p-4">
             <form method="GET" class="flex flex-col lg:flex-row gap-3">
                 <select name="report_type"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Report</option>
                     <option value="patient_statistics" @selected(request('report_type') === 'patient_statistics')>Patient Statistics</option>
                     <option value="revenue_report" @selected(request('report_type') === 'revenue_report')>Revenue Report</option>
@@ -18,12 +18,12 @@
                 </select>
                 <div>
                     <input type="date" name="from" value="{{ request('from') }}"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                         placeholder="Dari Tanggal">
                 </div>
                 <div>
                     <input type="date" name="to" value="{{ request('to') }}"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                         placeholder="Sampai Tanggal">
                 </div>
                 <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -44,10 +44,10 @@
     </div>
 
     {{-- Reports Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Report Name</th>
                         <th class="px-4 py-3 text-left hidden md:table-cell">Type</th>
@@ -59,56 +59,56 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($reports ?? [] as $report)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">{{ $report->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="font-medium text-gray-900">{{ $report->name }}</p>
+                                <p class="text-xs text-gray-500">
                                     {{ Str::limit($report->description ?? '', 50) }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">
                                     {{ str_replace('_', ' ', ucfirst($report->report_type)) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell">
-                                <p class="text-gray-900 dark:text-white">
+                                <p class="text-gray-900">
                                     {{ $report->from_date ? \Carbon\Carbon::parse($report->from_date)->format('d M Y') : '-' }}
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">to
+                                <p class="text-xs text-gray-500">to
                                     {{ $report->to_date ? \Carbon\Carbon::parse($report->to_date)->format('d M Y') : '-' }}
                                 </p>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                 {{ $report->generatedBy ? $report->generatedBy->name : '-' }}</td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">
                                     {{ strtoupper($report->format ?? 'PDF') }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-center text-gray-600 dark:text-slate-300 hidden sm:table-cell">
+                            <td class="px-4 py-3 text-center text-gray-600 hidden sm:table-cell">
                                 {{ $report->file_size ? number_format($report->file_size / 1024, 1) . ' KB' : '-' }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if ($report->status === 'completed')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Completed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Completed</span>
                                 @elseif($report->status === 'generating')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Generating</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Generating</span>
                                 @elseif($report->status === 'failed')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Failed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Failed</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     @if ($report->status === 'completed')
                                         <a href="{{ route('healthcare.analytics.reports.download', $report) }}"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                             title="Download">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                                             </svg>
                                         </a>
                                         <a href="{{ route('healthcare.analytics.reports.show', $report) }}"
-                                            class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                            class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                             title="View">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada report yang dibuat</p>
                             </td>
                         </tr>
@@ -145,7 +145,7 @@
         </div>
 
         @if (isset($reports) && $reports->hasPages())
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $reports->links() }}
             </div>
         @endif

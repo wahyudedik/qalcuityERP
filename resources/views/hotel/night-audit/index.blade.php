@@ -1,6 +1,6 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-white">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
             {{ __('Night Audit') }}
         </h2>
     </x-slot>
@@ -10,30 +10,30 @@
             {{-- Today's Statistics --}}
             @if ($todayStats)
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Occupancy Rate</h3>
-                        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Occupancy Rate</h3>
+                        <p class="text-3xl font-bold text-blue-600">
                             {{ number_format($todayStats->occupancy_percentage, 1) }}%</p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">{{ $todayStats->occupied_rooms }} /
+                        <p class="text-xs text-gray-500 mt-1">{{ $todayStats->occupied_rooms }} /
                             {{ $todayStats->total_rooms }} rooms</p>
                     </div>
 
-                    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Monthly ADR</h3>
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">Rp
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Monthly ADR</h3>
+                        <p class="text-3xl font-bold text-green-600">Rp
                             {{ number_format($monthlyADR, 0, ',', '.') }}</p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Average Daily Rate</p>
+                        <p class="text-xs text-gray-500 mt-1">Average Daily Rate</p>
                     </div>
 
-                    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Check-ins Today</h3>
-                        <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Check-ins Today</h3>
+                        <p class="text-3xl font-bold text-purple-600">
                             {{ $todayStats->check_ins ?? 0 }}</p>
                     </div>
 
-                    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Check-outs Today</h3>
-                        <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Check-outs Today</h3>
+                        <p class="text-3xl font-bold text-orange-600">
                             {{ $todayStats->check_outs ?? 0 }}</p>
                     </div>
                 </div>
@@ -64,85 +64,85 @@
 
             {{-- Recent Audit Batches --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Audit Batches</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Audit Batches</h3>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-                        <thead class="bg-gray-50 dark:bg-slate-800">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Batch #</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Date</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Rooms</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Revenue</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     ADR</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Completed</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-[#1e293b] divide-y divide-gray-200 dark:divide-white/10">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($recentBatches as $batch)
                                 <tr>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {{ $batch->batch_number }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $batch->audit_date->format('d/m/Y') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span
                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                         {{ $batch->status === 'completed'
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            ? 'bg-green-100 text-green-800'
                                             : ($batch->status === 'in_progress'
-                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200') }}">
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-gray-100 text-gray-800') }}">
                                             {{ ucfirst(str_replace('_', ' ', $batch->status)) }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $batch->occupied_rooms }} / {{ $batch->total_rooms }}
                                     </td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                                         Rp {{ number_format($batch->total_revenue, 0, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         Rp {{ number_format($batch->adr, 0, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $batch->completed_at ? $batch->completed_at->format('H:i') : '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <a href="{{ route('hotel.night-audit.batch', $batch->id) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                            class="text-indigo-600 hover:text-indigo-900">
                                             View Details
                                         </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
+                                    <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                                         No audit batches yet. Start your first night audit!
                                     </td>
                                 </tr>
@@ -156,35 +156,35 @@
 
     {{-- Start Audit Modal --}}
     <div id="modal-start-audit" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200 dark:border-white/10">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Start Night Audit</h3>
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Start Night Audit</h3>
             </div>
 
             <form action="{{ route('hotel.night-audit.start') }}" method="POST">
                 @csrf
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Audit
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Audit
                             Date</label>
                         <input type="date" name="audit_date" value="{{ today()->format('Y-m-d') }}" required
-                            class="w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
-                        <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                            class="w-full rounded-md border-gray-300">
+                        <p class="mt-1 text-xs text-gray-500">
                             Select the business date you want to audit (usually yesterday)
                         </p>
                     </div>
 
-                    <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4">
-                        <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <p class="text-sm text-yellow-700">
                             <strong>Note:</strong> Night audit will process all room charges, F&B revenue, and calculate
                             statistics for the selected date.
                         </p>
                     </div>
                 </div>
 
-                <div class="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
                     <button type="button" onclick="closeStartAuditModal()"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-md">
+                        class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">
                         Cancel
                     </button>
                     <button type="submit"

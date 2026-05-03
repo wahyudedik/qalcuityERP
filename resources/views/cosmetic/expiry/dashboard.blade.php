@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Expiry Management Dashboard')
 
@@ -26,7 +26,7 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div class="bg-white rounded-lg shadow p-4">
                 <p class="text-sm text-gray-500">Total Alerts</p>
                 <p class="text-2xl font-bold text-gray-900">{{ $stats['total_alerts'] }}</p>
             </div>
@@ -53,32 +53,32 @@
         </div>
 
         <!-- Alerts by Severity -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Alerts by Severity</h2>
             <div class="grid grid-cols-4 gap-4">
-                <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                    <p class="text-sm text-blue-600 dark:text-blue-400">Info</p>
-                    <p class="text-3xl font-bold text-blue-900 dark:text-blue-200">{{ $alertsBySeverity['info'] ?? 0 }}</p>
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-600">Info</p>
+                    <p class="text-3xl font-bold text-blue-900">{{ $alertsBySeverity['info'] ?? 0 }}</p>
                 </div>
-                <div class="p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
-                    <p class="text-sm text-yellow-600 dark:text-yellow-400">Warning</p>
-                    <p class="text-3xl font-bold text-yellow-900 dark:text-yellow-200">{{ $alertsBySeverity['warning'] ?? 0 }}</p>
+                <div class="p-4 bg-yellow-50 rounded-lg">
+                    <p class="text-sm text-yellow-600">Warning</p>
+                    <p class="text-3xl font-bold text-yellow-900">{{ $alertsBySeverity['warning'] ?? 0 }}</p>
                 </div>
-                <div class="p-4 bg-orange-50 dark:bg-orange-900 rounded-lg">
-                    <p class="text-sm text-orange-600 dark:text-orange-400">Critical</p>
-                    <p class="text-3xl font-bold text-orange-900 dark:text-orange-200">{{ $alertsBySeverity['critical'] ?? 0 }}</p>
+                <div class="p-4 bg-orange-50 rounded-lg">
+                    <p class="text-sm text-orange-600">Critical</p>
+                    <p class="text-3xl font-bold text-orange-900">{{ $alertsBySeverity['critical'] ?? 0 }}</p>
                 </div>
-                <div class="p-4 bg-red-50 dark:bg-red-900 rounded-lg">
-                    <p class="text-sm text-red-600 dark:text-red-400">Expired</p>
-                    <p class="text-3xl font-bold text-red-900 dark:text-red-200">{{ $alertsBySeverity['expired'] ?? 0 }}</p>
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <p class="text-sm text-red-600">Expired</p>
+                    <p class="text-3xl font-bold text-red-900">{{ $alertsBySeverity['expired'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Alerts -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-900">🔔 Recent Alerts</h2>
                 </div>
                 <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
@@ -142,8 +142,8 @@
             </div>
 
             <!-- Batches Expiring Soon -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-900">⏰ Expiring Soon (90 days)</h2>
                 </div>
                 <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">

@@ -1,22 +1,22 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Piutang (Receivables)</x-slot>
 
     {{-- Stats --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Total Outstanding</p>
-            <p class="text-xl font-bold text-gray-900 dark:text-white">Rp {{ number_format($stats['total_outstanding'], 0, ',', '.') }}</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 mb-1">Total Outstanding</p>
+            <p class="text-xl font-bold text-gray-900">Rp {{ number_format($stats['total_outstanding'], 0, ',', '.') }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Belum Bayar</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 mb-1">Belum Bayar</p>
             <p class="text-xl font-bold text-red-500">{{ $stats['unpaid_count'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Sebagian Bayar</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 mb-1">Sebagian Bayar</p>
             <p class="text-xl font-bold text-amber-500">{{ $stats['partial_count'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Jatuh Tempo</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 mb-1">Jatuh Tempo</p>
             <p class="text-xl font-bold text-red-600">{{ $stats['overdue_count'] }}</p>
         </div>
     </div>
@@ -25,20 +25,20 @@
     <div class="flex flex-col sm:flex-row gap-2 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nomor invoice / customer..."
-                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
                 <option value="unpaid" @selected(request('status')==='unpaid')>Belum Bayar</option>
                 <option value="partial" @selected(request('status')==='partial')>Sebagian</option>
                 <option value="paid" @selected(request('status')==='paid')>Lunas</option>
             </select>
-            <label class="flex items-center gap-2 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] cursor-pointer">
+            <label class="flex items-center gap-2 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white cursor-pointer">
                 <input type="checkbox" name="overdue" value="1" @checked(request('overdue')) class="rounded">
-                <span class="text-gray-700 dark:text-slate-300">Jatuh Tempo</span>
+                <span class="text-gray-700">Jatuh Tempo</span>
             </label>
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>
-        <a href="{{ route('payables.index') }}" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 text-center">
+        <a href="{{ route('payables.index') }}" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-center">
             Hutang (Payables) →
         </a>
         <a href="{{ route('receivables.aging') }}" class="px-4 py-2 text-sm border border-indigo-500/30 rounded-xl text-indigo-400 hover:bg-indigo-500/10 text-center">
@@ -47,10 +47,10 @@
     </div>
 
     {{-- Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">No. Invoice</th>
                         <th class="px-4 py-3 text-left">Customer</th>
@@ -61,25 +61,25 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($invoices as $inv)
                     @php
                         $overdue = in_array($inv->status, ['unpaid','partial']) && $inv->due_date < today();
                     @endphp
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5 {{ $overdue ? 'bg-red-50/50 dark:bg-red-900/10' : '' }}">
-                        <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900 dark:text-white">{{ $inv->number }}</td>
-                        <td class="px-4 py-3 text-gray-700 dark:text-slate-300">{{ $inv->customer->name ?? '-' }}</td>
-                        <td class="px-4 py-3 text-right text-gray-900 dark:text-white">Rp {{ number_format($inv->total_amount, 0, ',', '.') }}</td>
+                    <tr class="hover:bg-gray-50 {{ $overdue ? 'bg-red-50/50' : '' }}">
+                        <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">{{ $inv->number }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $inv->customer->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($inv->total_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right font-semibold {{ $inv->remaining_amount > 0 ? 'text-red-500' : 'text-green-500' }}">
                             Rp {{ number_format($inv->remaining_amount, 0, ',', '.') }}
                         </td>
                         <td class="px-4 py-3 text-center">
                             @php $colors = ['unpaid'=>'red','partial'=>'amber','paid'=>'green']; $c = $colors[$inv->status] ?? 'gray'; @endphp
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 dark:bg-{{ $c }}-500/20 dark:text-{{ $c }}-400">
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                 {{ ['unpaid'=>'Belum Bayar','partial'=>'Sebagian','paid'=>'Lunas'][$inv->status] ?? $inv->status }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-xs {{ $overdue ? 'text-red-500 font-semibold' : 'text-gray-500 dark:text-slate-400' }}">
+                        <td class="px-4 py-3 hidden sm:table-cell text-xs {{ $overdue ? 'text-red-500 font-semibold' : 'text-gray-500' }}">
                             {{ $inv->due_date->format('d M Y') }}
                             @if($overdue) <span class="text-red-400">({{ $inv->daysOverdue() }}h)</span> @endif
                         </td>
@@ -96,40 +96,40 @@
                                 </a>
                             </div>
                             @else
-                            <span class="text-xs text-gray-400 dark:text-slate-500">Lunas</span>
+                            <span class="text-xs text-gray-400">Lunas</span>
                             @endif
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Tidak ada piutang.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400">Tidak ada piutang.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
         @if($invoices->hasPages())
-        <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $invoices->links() }}</div>
+        <div class="px-4 py-3 border-t border-gray-100">{{ $invoices->links() }}</div>
         @endif
     </div>
 
     {{-- Modal Catat Pembayaran --}}
     <div id="modal-pay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Catat Pembayaran Piutang</h3>
-                <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Catat Pembayaran Piutang</h3>
+                <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-pay" method="POST" class="p-6 space-y-4">
                 @csrf
-                <p class="text-sm text-gray-600 dark:text-slate-400">Invoice: <span id="pay-number" class="font-mono font-semibold text-gray-900 dark:text-white"></span></p>
-                <p class="text-sm text-gray-600 dark:text-slate-400">Sisa: <span id="pay-remaining" class="font-semibold text-red-500"></span></p>
+                <p class="text-sm text-gray-600">Invoice: <span id="pay-number" class="font-mono font-semibold text-gray-900"></span></p>
+                <p class="text-sm text-gray-600">Sisa: <span id="pay-remaining" class="font-semibold text-red-500"></span></p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Jumlah Bayar *</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Bayar *</label>
                     <input type="number" name="amount" id="pay-amount" required min="1" step="1"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Metode Bayar *</label>
-                    <select name="method" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Metode Bayar *</label>
+                    <select name="method" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="cash">Cash</option>
                         <option value="transfer">Transfer Bank</option>
                         <option value="qris">QRIS</option>
@@ -137,11 +137,11 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
-                    <input type="text" name="notes" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
+                    <input type="text" name="notes" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('modal-pay').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                    <button type="button" onclick="document.getElementById('modal-pay').classList.add('hidden')" class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Simpan</button>
                 </div>
             </form>

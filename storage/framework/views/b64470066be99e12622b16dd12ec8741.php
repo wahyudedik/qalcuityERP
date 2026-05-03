@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['topic', 'title' => 'Bantuan', 'position' => 'right']));
@@ -32,7 +32,7 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <span class="inline-flex items-center" <?php echo e($attributes); ?>>
     <button type="button"
-        class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
+        class="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
         title="<?php echo e($title); ?>" x-data @click="$dispatch('show-help', { topic: '<?php echo e($topic); ?>' })"
         aria-label="<?php echo e($title); ?>">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

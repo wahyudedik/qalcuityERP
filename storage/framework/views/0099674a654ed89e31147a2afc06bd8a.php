@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -9,24 +9,24 @@
 </head>
 
 <body
-    class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-red-900 min-h-screen flex items-center justify-center p-4">
+    class="bg-gradient-to-br from-red-50 to-orange-50 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-2xl w-full">
         <!-- Error Icon -->
         <div class="text-center mb-8">
             <div
-                class="inline-flex items-center justify-center w-32 h-32 bg-red-100 dark:bg-red-900/30 rounded-full mb-6">
-                <svg class="w-20 h-20 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                class="inline-flex items-center justify-center w-32 h-32 bg-red-100 rounded-full mb-6">
+                <svg class="w-20 h-20 text-red-600" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
 
-            <h1 class="text-6xl font-bold text-red-600 dark:text-red-400 mb-4">500</h1>
-            <h2 class="text-3xl font-semibold text-gray-900 dark:text-white mb-4">
+            <h1 class="text-6xl font-bold text-red-600 mb-4">500</h1>
+            <h2 class="text-3xl font-semibold text-gray-900 mb-4">
                 Kesalahan Server
             </h2>
-            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+            <p class="text-lg text-gray-600 mb-6">
                 <?php echo e($message ?? 'Terjadi kesalahan yang tidak terduga. Silakan coba lagi nanti.'); ?>
 
             </p>
@@ -34,19 +34,19 @@
 
         <!-- Error ID (for support) -->
         <?php if(isset($error_id)): ?>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
                 <div class="flex items-start gap-4">
                     <svg class="w-6 h-6 text-blue-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                        <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Referensi Error</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        <h3 class="font-semibold text-gray-900 mb-2">Referensi Error</h3>
+                        <p class="text-sm text-gray-600 mb-2">
                             Jika Anda memerlukan bantuan, berikan ID error ini kepada tim support:
                         </p>
                         <code
-                            class="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-md font-mono text-sm text-gray-800 dark:text-gray-200">
+                            class="bg-gray-100 px-3 py-2 rounded-md font-mono text-sm text-gray-800">
                             <?php echo e($error_id); ?>
 
                         </code>
@@ -67,7 +67,7 @@
             </a>
 
             <button onclick="window.location.reload()"
-                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition-colors min-h-[44px] min-w-[44px]">
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors min-h-[44px] min-w-[44px]">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v5h.058h5V4.058A1.992 1.992 0 008 4H4a1 1 0 00-1 1v5a1 1 0 001 1h5a1 1 0 001-1V5a1 1 0 00-1-1H4zM4 20v-5h.058h5V20H4a1 1 0 01-1-1v-5a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H4z" />
@@ -87,8 +87,8 @@
 
         <!-- Technical Details (Development Only) -->
         <?php if(config('app.debug')): ?>
-            <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -97,14 +97,14 @@
                 </h3>
                 <div class="space-y-2 text-sm">
                     <div>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Exception:</span>
+                        <span class="font-medium text-gray-700">Exception:</span>
                         <code
-                            class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"><?php echo e($exception->getMessage()); ?></code>
+                            class="ml-2 bg-gray-100 px-2 py-1 rounded"><?php echo e($exception->getMessage()); ?></code>
                     </div>
                     <div>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Lokasi:</span>
+                        <span class="font-medium text-gray-700">Lokasi:</span>
                         <code
-                            class="ml-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"><?php echo e($exception->getFile()); ?>:<?php echo e($exception->getLine()); ?></code>
+                            class="ml-2 bg-gray-100 px-2 py-1 rounded"><?php echo e($exception->getFile()); ?>:<?php echo e($exception->getLine()); ?></code>
                     </div>
                 </div>
             </div>

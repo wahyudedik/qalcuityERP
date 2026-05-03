@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -14,8 +14,8 @@
         
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Rooms</h2>
-                <p class="text-sm text-gray-500 dark:text-slate-400">Manage hotel rooms and their status</p>
+                <h2 class="text-lg font-semibold text-gray-900">Rooms</h2>
+                <p class="text-sm text-gray-500">Manage hotel rooms and their status</p>
             </div>
             <button @click="openAddModal"
                 class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -27,15 +27,15 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <div class="flex flex-col sm:flex-row gap-3">
                 <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
                     <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                         placeholder="Search room number..."
-                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
                     <select name="type"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Types</option>
                         <?php $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($rt->id); ?>" <?php if(request('type') == $rt->id): echo 'selected'; endif; ?>><?php echo e($rt->name); ?>
@@ -45,7 +45,7 @@
                     </select>
 
                     <select name="floor"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Floors</option>
                         <?php $__currentLoopData = $floors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($f); ?>" <?php if(request('floor') == $f): echo 'selected'; endif; ?>><?php echo e($f); ?>
@@ -55,7 +55,7 @@
                     </select>
 
                     <select name="status"
-                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">All Status</option>
                         <?php $__currentLoopData = ['available', 'occupied', 'cleaning', 'maintenance', 'out_of_order']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($s); ?>" <?php if(request('status') == $s): echo 'selected'; endif; ?>>
@@ -66,7 +66,7 @@
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Filter</button>
                     <a href="<?php echo e(route('hotel.rooms.index')); ?>"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 text-center">Reset</a>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 text-center">Reset</a>
                 </form>
             </div>
         </div>
@@ -79,50 +79,50 @@
                         'available' => [
                             'bg' => 'bg-green-500',
                             'border' => 'border-green-500',
-                            'text' => 'text-green-600 dark:text-green-400',
+                            'text' => 'text-green-600',
                         ],
                         'occupied' => [
                             'bg' => 'bg-red-500',
                             'border' => 'border-red-500',
-                            'text' => 'text-red-600 dark:text-red-400',
+                            'text' => 'text-red-600',
                         ],
                         'cleaning' => [
                             'bg' => 'bg-yellow-500',
                             'border' => 'border-yellow-500',
-                            'text' => 'text-yellow-600 dark:text-yellow-400',
+                            'text' => 'text-yellow-600',
                         ],
                         'maintenance' => [
                             'bg' => 'bg-orange-500',
                             'border' => 'border-orange-500',
-                            'text' => 'text-orange-600 dark:text-orange-400',
+                            'text' => 'text-orange-600',
                         ],
                         'out_of_order' => [
                             'bg' => 'bg-gray-500',
                             'border' => 'border-gray-500',
-                            'text' => 'text-gray-600 dark:text-gray-400',
+                            'text' => 'text-gray-600',
                         ],
                     ];
                     $cfg = $statusConfig[$room->status] ?? $statusConfig['available'];
                 ?>
                 <div
-                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-lg transition-shadow">
+                    class="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
                     
                     <div class="<?php echo e($cfg['bg']); ?> h-1.5"></div>
 
                     <div class="p-4">
                         
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white"><?php echo e($room->number); ?></h3>
+                            <h3 class="text-xl font-bold text-gray-900"><?php echo e($room->number); ?></h3>
                             <span class="w-2.5 h-2.5 rounded-full <?php echo e($cfg['bg']); ?>"
                                 title="<?php echo e(ucfirst($room->status)); ?>"></span>
                         </div>
 
                         
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">
+                        <p class="text-xs text-gray-500 mb-1">
                             <?php echo e($room->roomType?->name ?? 'No Type'); ?>
 
                         </p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">
+                        <p class="text-xs text-gray-400">
                             <?php if($room->floor): ?>
                                 Floor <?php echo e($room->floor); ?>
 
@@ -146,7 +146,7 @@
                         <div class="mt-3 flex items-center gap-1">
                             
                             <select @change="changeStatus(<?php echo e($room->id); ?>, $el.value)"
-                                class="flex-1 text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-700 dark:text-slate-300 cursor-pointer">
+                                class="flex-1 text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 cursor-pointer">
                                 <?php $__currentLoopData = ['available', 'occupied', 'cleaning', 'maintenance', 'out_of_order']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($s); ?>" <?php if($room->status === $s): echo 'selected'; endif; ?>>
                                         <?php echo e(ucfirst(str_replace('_', ' ', $s))); ?></option>
@@ -155,7 +155,7 @@
 
                             
                             <button @click="openEditModal(<?php echo e($room->id); ?>)"
-                                class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                 title="Edit">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -168,7 +168,7 @@
                                 onsubmit="return confirm('Delete this room?')">
                                 <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                 <button type="submit"
-                                    class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                    class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                     title="Delete">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -182,13 +182,13 @@
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="col-span-full">
                     <div
-                        class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
-                        <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-slate-600 mb-4" fill="none"
+                        class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m4-4h1m-1 4h1" />
                         </svg>
-                        <p class="text-gray-500 dark:text-slate-400">No rooms found.</p>
+                        <p class="text-gray-500">No rooms found.</p>
                         <button @click="openAddModal" class="mt-4 text-blue-500 hover:underline">Add your first
                             room</button>
                     </div>
@@ -198,7 +198,7 @@
 
         
         <?php if($rooms->hasPages()): ?>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 px-4 py-3">
+            <div class="bg-white rounded-2xl border border-gray-200 px-4 py-3">
                 <?php echo e($rooms->links()); ?>
 
             </div>
@@ -210,16 +210,16 @@
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div @click.away="showModal = false"
-                class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl"
+                class="bg-white rounded-2xl w-full max-w-md shadow-xl"
                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100">
 
                 
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                    <h3 class="font-semibold text-gray-900 dark:text-white"
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-900"
                         x-text="isEdit ? 'Edit Room' : 'Add Room'"></h3>
                     <button @click="showModal = false"
-                        class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+                        class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -237,17 +237,17 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Room Number
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Room Number
                                 *</label>
                             <input type="text" name="number" x-model="form.number" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div class="col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Room Type
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Room Type
                                 *</label>
                             <select name="room_type_id" x-model="form.room_type_id" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                                 <option value="">Select type...</option>
                                 <?php $__currentLoopData = $roomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($rt->id); ?>"><?php echo e($rt->name); ?></option>
@@ -257,23 +257,23 @@
 
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Floor</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Floor</label>
                             <input type="text" name="floor" x-model="form.floor"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
 
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Building</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Building</label>
                             <input type="text" name="building" x-model="form.building"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
 
                         <div class="col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Status
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Status
                                 *</label>
                             <select name="status" x-model="form.status" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                                 <?php $__currentLoopData = ['available', 'occupied', 'cleaning', 'maintenance', 'out_of_order']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($s); ?>"><?php echo e(ucfirst(str_replace('_', ' ', $s))); ?>
 
@@ -284,16 +284,16 @@
 
                         <div class="col-span-2">
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Notes</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
                             <textarea name="description" x-model="form.description" rows="2"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"></textarea>
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"></textarea>
                         </div>
 
                         <?php if(isset($editRoom) && $editRoom): ?>
                             <div class="col-span-2 flex items-center gap-2">
                                 <input type="checkbox" name="is_active" id="is_active" value="1"
-                                    x-model="form.is_active" class="rounded border-gray-300 dark:border-white/20">
-                                <label for="is_active" class="text-sm text-gray-700 dark:text-slate-300">Room is
+                                    x-model="form.is_active" class="rounded border-gray-300">
+                                <label for="is_active" class="text-sm text-gray-700">Room is
                                     active</label>
                             </div>
                         <?php endif; ?>
@@ -301,7 +301,7 @@
 
                     <div class="flex justify-end gap-3 pt-2">
                         <button type="button" @click="showModal = false"
-                            class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                            class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                             Cancel
                         </button>
                         <button type="submit"

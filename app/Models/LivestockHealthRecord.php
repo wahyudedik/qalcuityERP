@@ -11,10 +11,21 @@ class LivestockHealthRecord extends Model
 {
     use BelongsToTenant;
     protected $fillable = [
-        'livestock_herd_id', 'tenant_id', 'user_id', 'date', 'type',
-        'condition', 'affected_count', 'death_count', 'symptoms',
-        'medication', 'medication_cost', 'administered_by',
-        'severity', 'status', 'notes',
+        'livestock_herd_id',
+        'tenant_id',
+        'user_id',
+        'date',
+        'type',
+        'condition',
+        'affected_count',
+        'death_count',
+        'symptoms',
+        'medication',
+        'medication_cost',
+        'administered_by',
+        'severity',
+        'status',
+        'notes',
     ];
 
     protected function casts(): array
@@ -31,13 +42,39 @@ class LivestockHealthRecord extends Model
     ];
 
     public const SEVERITY_COLORS = [
-        'low' => 'gray', 'medium' => 'amber', 'high' => 'orange', 'critical' => 'red',
+        'low' => 'gray',
+        'medium' => 'amber',
+        'high' => 'orange',
+        'critical' => 'red',
     ];
 
-    public function herd(): BelongsTo { return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id'); }
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function herd(): BelongsTo
+    {
+        return $this->belongsTo(LivestockHerd::class, 'livestock_herd_id');
+    }
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    public function typeLabel(): string { return self::TYPE_LABELS[$this->type] ?? $this->type; }
-    public function severityColor(): string { return self::SEVERITY_COLORS[$this->severity] ?? 'gray'; }
+    /**
+     * Alias for user relationship - used by HealthController
+     */
+    public function veterinarian(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function typeLabel(): string
+    {
+        return self::TYPE_LABELS[$this->type] ?? $this->type;
+    }
+    public function severityColor(): string
+    {
+        return self::SEVERITY_COLORS[$this->severity] ?? 'gray';
+    }
 }

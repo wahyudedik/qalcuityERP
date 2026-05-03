@@ -1,4 +1,4 @@
-{{-- 
+﻿{{-- 
     Bulk Table Header Component
     Usage: Di dalam <thead><tr>, taruh di kolom pertama
 --}}
@@ -7,7 +7,7 @@
 
 <th class="px-6 py-3 text-left w-12">
     <input type="checkbox" id="{{ $selectAllId }}"
-        class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         onclick="toggleAllCheckboxes(this)">
 </th>
 

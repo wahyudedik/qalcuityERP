@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AiUseCase;
 use App\Models\ZeroInputLog;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
@@ -11,6 +12,11 @@ use Illuminate\Support\Facades\Storage;
  * ZeroInputService — Task 56
  * Proses input via foto nota (OCR), voice, atau teks WhatsApp
  * dan mapping otomatis ke modul ERP yang tepat menggunakan Gemini AI.
+ *
+ * Use Cases:
+ * - processPhoto() and processText() use AiUseCase::DOCUMENT_PARSING
+ *
+ * Requirements: 8.8
  */
 class ZeroInputService
 {
@@ -43,6 +49,7 @@ class ZeroInputService
                 files: [['mime_type' => $mimeType, 'data' => $base64]],
                 history: [],
                 toolDeclarations: [],
+                useCase: AiUseCase::DOCUMENT_PARSING->value,
             );
 
             $extracted = $this->parseAiResponse($response['text'] ?? '');
@@ -79,7 +86,7 @@ class ZeroInputService
 
         try {
             $prompt   = $this->buildTextPrompt($text);
-            $response = $this->gemini->chat($prompt, []);
+            $response = $this->gemini->chat($prompt, [], [], AiUseCase::DOCUMENT_PARSING->value);
             $extracted = $this->parseAiResponse($response['text'] ?? '');
             $module    = $this->detectModule($extracted);
             $confidence = (float) ($extracted['confidence'] ?? 0);

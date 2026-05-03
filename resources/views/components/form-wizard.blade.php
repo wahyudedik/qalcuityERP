@@ -1,4 +1,4 @@
-@props(['totalSteps', 'draftKey' => null, 'showProgress' => true, 'allowStepJump' => false])
+﻿@props(['totalSteps', 'draftKey' => null, 'showProgress' => true, 'allowStepJump' => false])
 
 {{-- 
     Form Wizard Component
@@ -46,13 +46,13 @@
                                     d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <div class="step-label mt-2 text-xs text-center text-gray-600 dark:text-gray-400">
+                        <div class="step-label mt-2 text-xs text-center text-gray-600">
                             {{ $slot->where('number', $i)->first()?->attributes['title'] ?? "Step {$i}" }}
                         </div>
                     </div>
 
                     @if ($i < $totalSteps)
-                        <div class="wizard-step-connector flex-1 h-0.5 bg-gray-200 dark:bg-gray-700 mx-2 mt-[-20px] transition-all duration-300"
+                        <div class="wizard-step-connector flex-1 h-0.5 bg-gray-200 mx-2 mt-[-20px] transition-all duration-300"
                             data-connector="{{ $i }}">
                         </div>
                     @endif
@@ -68,7 +68,7 @@
 
     {{-- Navigation --}}
     @isset($navigation)
-        <div class="wizard-navigation mt-6 pt-6 border-t border-gray-200 dark:border-white/10">
+        <div class="wizard-navigation mt-6 pt-6 border-t border-gray-200">
             {{ $navigation }}
         </div>
     @else
@@ -80,7 +80,7 @@
     <style>
         /* Wizard Progress Bar Styles */
         .wizard-step-indicator {
-            @apply border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400;
+            @apply border-gray-300 bg-white text-gray-600;
         }
 
         .wizard-step-indicator.active {

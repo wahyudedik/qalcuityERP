@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class Teleconsultation extends Model
 {
     use BelongsToTenant;
-use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'patient_id',
@@ -231,6 +231,22 @@ use HasFactory;
     }
 
     /**
+     * Get prescriptions for this consultation.
+     */
+    public function prescriptions()
+    {
+        return $this->hasMany(TelemedicinePrescription::class, 'consultation_id');
+    }
+
+    /**
+     * Get payment for this consultation.
+     */
+    public function payment()
+    {
+        return $this->hasOne(TeleconsultationPayment::class, 'consultation_id');
+    }
+
+    /**
      * Get tenant settings.
      */
     public function tenantSetting()
@@ -298,4 +314,3 @@ use HasFactory;
         ]);
     }
 }
-

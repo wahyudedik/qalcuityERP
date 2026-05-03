@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,14 +8,14 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex items-center gap-3">
-            CRM & Pipeline Penjualan
-            <a href="<?php echo e(route('crm.kanban')); ?>"
-                class="text-xs text-gray-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">Tampilan
+     <?php $__env->slot('header', null, []); ?> CRM & Pipeline Penjualan <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('crm.kanban')); ?>"
+                class="text-xs text-gray-500 hover:text-blue-600">Tampilan
                 Kanban →</a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -26,22 +26,22 @@
                 ->whereNotIn('stage', ['won', 'lost'])
                 ->count();
         ?>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Lead</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e($totalLeads); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Lead</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo e($totalLeads); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Pipeline Aktif</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1"><?php echo e($activeLeads); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Pipeline Aktif</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1"><?php echo e($activeLeads); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Won Bulan Ini</p>
-            <p class="text-xl font-bold text-green-600 dark:text-green-400 mt-1">Rp
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Won Bulan Ini</p>
+            <p class="text-xl font-bold text-green-600 mt-1">Rp
                 <?php echo e(number_format($wonThisMonth, 0, ',', '.')); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Follow-up Hari Ini</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"><?php echo e($followUpToday); ?></p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Follow-up Hari Ini</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1"><?php echo e($followUpToday); ?></p>
         </div>
     </div>
 
@@ -50,10 +50,10 @@
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
             <?php $__currentLoopData = ['new' => 'Baru', 'contacted' => 'Dihubungi', 'qualified' => 'Qualified', 'proposal' => 'Proposal', 'negotiation' => 'Negosiasi']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stage => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if($pipeline->has($stage)): ?>
-                    <div class="bg-white dark:bg-[#1e293b] rounded-xl p-3 border border-gray-200 dark:border-white/10">
-                        <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($label); ?></p>
-                        <p class="text-lg font-bold text-gray-900 dark:text-white"><?php echo e($pipeline[$stage]->count); ?></p>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Rp
+                    <div class="bg-white rounded-xl p-3 border border-gray-200">
+                        <p class="text-xs text-gray-500"><?php echo e($label); ?></p>
+                        <p class="text-lg font-bold text-gray-900"><?php echo e($pipeline[$stage]->count); ?></p>
+                        <p class="text-xs text-gray-500">Rp
                             <?php echo e(number_format($pipeline[$stage]->total_value / 1000000, 1)); ?>jt</p>
                     </div>
                 <?php endif; ?>
@@ -65,9 +65,9 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
             <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari nama / perusahaan..."
-                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <select name="stage"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Stage</option>
                 <?php $__currentLoopData = ['new' => 'Baru', 'contacted' => 'Dihubungi', 'qualified' => 'Qualified', 'proposal' => 'Proposal', 'negotiation' => 'Negosiasi', 'won' => 'Won', 'lost' => 'Lost']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($v); ?>" <?php if(request('stage') === $v): echo 'selected'; endif; ?>><?php echo e($l); ?></option>
@@ -83,10 +83,10 @@
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Lead</th>
                         <th class="px-4 py-3 text-left hidden sm:table-cell">Kontak</th>
@@ -98,7 +98,7 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $leads; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lead): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
                             $stageColors = [
@@ -121,40 +121,40 @@
                             ];
                             $c = $stageColors[$lead->stage] ?? 'gray';
                         ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white"><?php echo e($lead->name); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($lead->company ?? '-'); ?></p>
+                                <p class="font-medium text-gray-900"><?php echo e($lead->name); ?></p>
+                                <p class="text-xs text-gray-500"><?php echo e($lead->company ?? '-'); ?></p>
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell">
-                                <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($lead->phone ?? '-'); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500"><?php echo e($lead->phone ?? '-'); ?></p>
+                                <p class="text-xs text-gray-500">
                                     <?php echo e($lead->product_interest ?? ''); ?></p>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-<?php echo e($c); ?>-100 text-<?php echo e($c); ?>-700 dark:bg-<?php echo e($c); ?>-500/20 dark:text-<?php echo e($c); ?>-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-<?php echo e($c); ?>-100 text-<?php echo e($c); ?>-700 $c }}-500/20 $c }}-400">
                                     <?php echo e($stageLabels[$lead->stage] ?? $lead->stage); ?>
 
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-right hidden md:table-cell text-gray-900 dark:text-white">
+                            <td class="px-4 py-3 text-right hidden md:table-cell text-gray-900">
                                 <?php echo e($lead->estimated_value > 0 ? 'Rp ' . number_format($lead->estimated_value, 0, ',', '.') : '-'); ?>
 
                             </td>
-                            <td class="px-4 py-3 text-center hidden md:table-cell text-gray-500 dark:text-slate-400">
+                            <td class="px-4 py-3 text-center hidden md:table-cell text-gray-500">
                                 <?php echo e($lead->probability); ?>%</td>
-                            <td class="px-4 py-3 hidden lg:table-cell text-xs text-gray-500 dark:text-slate-400">
+                            <td class="px-4 py-3 hidden lg:table-cell text-xs text-gray-500">
                                 <?php echo e($lead->last_contact_at?->diffForHumans() ?? '-'); ?></td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span id="score-badge-<?php echo e($lead->id); ?>"
-                                    class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400">...</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">...</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <button
                                         onclick="openAiModal(<?php echo e($lead->id); ?>, '<?php echo e(addslashes($lead->name)); ?>')"
-                                        class="p-1.5 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10"
+                                        class="p-1.5 rounded-lg text-purple-600 hover:bg-purple-50"
                                         title="AI Score & Follow-up">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,7 +163,7 @@
                                     </button>
                                     <button
                                         onclick="openActivity(<?php echo e($lead->id); ?>, '<?php echo e(addslashes($lead->name)); ?>')"
-                                        class="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                                        class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50"
                                         title="Log Aktivitas">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -172,7 +172,7 @@
                                     </button>
                                     <button
                                         onclick="openStage(<?php echo e($lead->id); ?>, '<?php echo e(addslashes($lead->name)); ?>', '<?php echo e($lead->stage); ?>', <?php echo e($lead->probability); ?>)"
-                                        class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                         title="Update Stage">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -182,7 +182,7 @@
                                     <?php if($lead->stage === 'won' && !$lead->converted_to_customer_id): ?>
                                         <button type="button"
                                             onclick="convertLeadWithDuplicateCheck(<?php echo e($lead->id); ?>, '<?php echo e(addslashes($lead->name)); ?>')"
-                                            class="p-1.5 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10"
+                                            class="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
                                             title="Konversi ke Customer">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -191,7 +191,7 @@
                                             </svg>
                                         </button>
                                     <?php elseif($lead->converted_to_customer_id): ?>
-                                        <span class="p-1.5 text-green-500 dark:text-green-400"
+                                        <span class="p-1.5 text-green-500"
                                             title="Sudah dikonversi ke Customer">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -205,7 +205,7 @@
                                         onsubmit="return confirm('Hapus lead ini?')">
                                         <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                         <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -219,7 +219,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="7" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum
+                            <td colspan="7" class="px-4 py-12 text-center text-gray-400">Belum
                                 ada lead. Tambahkan prospek pertama Anda.</td>
                         </tr>
                     <?php endif; ?>
@@ -227,16 +227,16 @@
             </table>
         </div>
         <?php if($leads->hasPages()): ?>
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5"><?php echo e($leads->links()); ?></div>
+            <div class="px-4 py-3 border-t border-gray-100"><?php echo e($leads->links()); ?></div>
         <?php endif; ?>
     </div>
 
     
     <div id="modal-ai" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 01-4.95 0l-.347-.347z" />
@@ -244,7 +244,7 @@
                     AI Insight Lead
                 </h3>
                 <button onclick="document.getElementById('modal-ai').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div id="ai-modal-body" class="p-6">
                 <div class="flex items-center justify-center py-8">
@@ -260,32 +260,32 @@
 
     
     <div id="modal-add-lead" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Tambah Lead</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Tambah Lead</h3>
                 <button onclick="document.getElementById('modal-add-lead').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="<?php echo e(route('crm.store')); ?>" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Kontak
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Kontak
                             *</label>
                         <input type="text" name="name" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label
-                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Perusahaan</label>
+                            class="block text-xs font-medium text-gray-600 mb-1">Perusahaan</label>
                         <input type="text" name="company"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Sumber</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Sumber</label>
                         <select name="source"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih --</option>
                             <option value="referral">Referral</option>
                             <option value="website">Website</option>
@@ -295,43 +295,43 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">No.
+                        <label class="block text-xs font-medium text-gray-600 mb-1">No.
                             Telepon</label>
                         <input type="text" name="phone"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Email</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Email</label>
                         <input type="email" name="email"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Produk
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Produk
                             Diminati</label>
                         <input type="text" name="product_interest"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Estimasi Nilai
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Estimasi Nilai
                             (Rp)</label>
                         <input type="number" name="estimated_value" min="0" step="100000"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Target
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Target
                             Closing</label>
                         <input type="date" name="expected_close_date"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                         <textarea name="notes" rows="2"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="document.getElementById('modal-add-lead').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
@@ -341,33 +341,33 @@
 
     
     <div id="modal-stage" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Update Stage</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Update Stage</h3>
                 <button onclick="document.getElementById('modal-stage').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-stage" method="POST" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
-                <p id="stage-lead-name" class="text-sm font-medium text-gray-900 dark:text-white"></p>
+                <p id="stage-lead-name" class="text-sm font-medium text-gray-900"></p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Stage</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Stage</label>
                     <select id="stage-select" name="stage"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <?php $__currentLoopData = ['new' => 'Baru', 'contacted' => 'Dihubungi', 'qualified' => 'Qualified', 'proposal' => 'Proposal', 'negotiation' => 'Negosiasi', 'won' => 'Won', 'lost' => 'Lost']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($v); ?>"><?php echo e($l); ?></option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Probabilitas
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Probabilitas
                         (%)</label>
                     <input type="number" id="stage-prob" name="probability" min="0" max="100"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('modal-stage').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Update</button>
                 </div>
@@ -378,9 +378,9 @@
     
     <div id="modal-duplicate-warning"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-2xl shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -388,12 +388,12 @@
                     Potential Duplicate Detected
                 </h3>
                 <button onclick="document.getElementById('modal-duplicate-warning').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div class="p-6">
                 <div
-                    class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                    <p class="text-sm text-amber-800 dark:text-amber-300">
+                    class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p class="text-sm text-amber-800">
                         <strong>Lead: <span id="duplicate-lead-name"></span></strong><br>
                         Ditemukan <span id="duplicate-count" class="font-bold"></span> potential duplicate(s). Pilih
                         aksi:
@@ -402,7 +402,7 @@
 
                 <div class="overflow-x-auto mb-4">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-3 py-2 text-left">Customer Name</th>
                                 <th class="px-3 py-2 text-left">Email</th>
@@ -412,18 +412,17 @@
                                 <th class="px-3 py-2 text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="duplicates-tbody" class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody id="duplicates-tbody" class="divide-y divide-gray-100">
                         </tbody>
                     </table>
                 </div>
 
                 <div class="flex justify-between items-center">
                     <button onclick="document.getElementById('modal-duplicate-warning').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                         Batal
                     </button>
-                    <button
-                        onclick="forceCreateCustomer(parseInt(new URLSearchParams(window.location.search).get('lead') || document.getElementById('duplicate-lead-name').dataset.leadId))"
+                    <button id="btn-force-create" onclick="forceCreateCustomer(this.dataset.leadId)"
                         class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">
                         Force Create New Customer
                     </button>
@@ -435,26 +434,25 @@
     
     <form id="form-link-customer" method="POST" action="" class="hidden">
         <?php echo csrf_field(); ?>
-        <input type="hidden" id="link-lead-id" name="lead_id" value="">
         <input type="hidden" id="link-customer-id" name="link_to_customer_id" value="">
     </form>
 
     
     <div id="modal-activity" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Log Aktivitas</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Log Aktivitas</h3>
                 <button onclick="document.getElementById('modal-activity').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-activity" method="POST" class="p-6 space-y-4">
                 <?php echo csrf_field(); ?>
-                <p id="activity-lead-name" class="text-sm font-medium text-gray-900 dark:text-white"></p>
+                <p id="activity-lead-name" class="text-sm font-medium text-gray-900"></p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Tipe
                         Aktivitas</label>
                     <select name="type"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="call">Telepon</option>
                         <option value="whatsapp">WhatsApp</option>
                         <option value="email">Email</option>
@@ -464,14 +462,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan *</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan *</label>
                     <textarea name="description" rows="3" required
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Hasil</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Hasil</label>
                     <select name="outcome"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">-- Pilih --</option>
                         <option value="interested">Tertarik</option>
                         <option value="follow_up">Perlu Follow-up</option>
@@ -480,14 +478,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Follow-up
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Follow-up
                         Berikutnya</label>
                     <input type="date" name="next_follow_up"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('modal-activity').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
@@ -505,16 +503,16 @@
                     const res = await fetch('<?php echo e(route('crm.ai.score-all')); ?>');
                     const data = await res.json();
                     const tierClasses = {
-                        hot: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                        warm: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-                        cold: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+                        hot: 'bg-red-100 text-red-700',
+                        warm: 'bg-amber-100 text-amber-700',
+                        cold: 'bg-blue-100 text-blue-700',
                     };
                     Object.entries(data).forEach(([id, s]) => {
                         const el = document.getElementById('score-badge-' + id);
                         if (el) {
                             el.textContent = s.tier_label + ' ' + s.score;
                             el.className = 'px-2 py-0.5 rounded-full text-xs ' + (tierClasses[s.tier] ||
-                            '');
+                                '');
                         }
                     });
                 } catch (e) {}
@@ -535,21 +533,21 @@
                 const follow = await followRes.json();
 
                 const tierClasses = {
-                    hot: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                    warm: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-                    cold: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+                    hot: 'bg-red-100 text-red-700',
+                    warm: 'bg-amber-100 text-amber-700',
+                    cold: 'bg-blue-100 text-blue-700',
                 };
                 const priorityClasses = {
-                    high: 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20 text-red-700 dark:text-red-400',
-                    normal: 'bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 text-blue-700 dark:text-blue-400',
-                    low: 'bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10 text-gray-600 dark:text-slate-400',
+                    high: 'bg-red-50 border-red-200 text-red-700',
+                    normal: 'bg-blue-50 border-blue-200 text-blue-700',
+                    low: 'bg-gray-50 border-gray-200 text-gray-600',
                 };
 
                 const breakdownRows = score.breakdown.map(b =>
-                    `<tr class="border-t border-gray-100 dark:border-white/5">
-                <td class="py-1.5 text-gray-600 dark:text-slate-400">${b.label}</td>
-                <td class="py-1.5 text-gray-500 dark:text-slate-500 text-xs">${b.value}</td>
-                <td class="py-1.5 text-right font-medium text-gray-900 dark:text-white">+${b.points}</td>
+                    `<tr class="border-t border-gray-100">
+                <td class="py-1.5 text-gray-600">${b.label}</td>
+                <td class="py-1.5 text-gray-500 text-xs">${b.value}</td>
+                <td class="py-1.5 text-right font-medium text-gray-900">+${b.points}</td>
             </tr>`
                 ).join('');
 
@@ -558,32 +556,32 @@
                 ).join('');
 
                 document.getElementById('ai-modal-body').innerHTML = `
-            <p class="text-sm font-semibold text-gray-900 dark:text-white mb-4">${name}</p>
+            <p class="text-sm font-semibold text-gray-900 mb-4">${name}</p>
 
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-4 ${score.score >= 70 ? 'border-red-400 text-red-600 dark:text-red-400' : score.score >= 40 ? 'border-amber-400 text-amber-600 dark:text-amber-400' : 'border-blue-400 text-blue-600 dark:text-blue-400'}">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-4 ${score.score >= 70 ? 'border-red-400 text-red-600' : score.score >= 40 ? 'border-amber-400 text-amber-600' : 'border-blue-400 text-blue-600'}">
                     ${score.score}
                 </div>
                 <div>
                     <span class="px-2 py-0.5 rounded-full text-xs ${tierClasses[score.tier]}">${score.tier_label}</span>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Lead Score</p>
+                    <p class="text-xs text-gray-500 mt-1">Lead Score</p>
                 </div>
             </div>
 
             <table class="w-full text-sm mb-5">
-                <thead><tr class="text-xs text-gray-400 dark:text-slate-500 uppercase">
+                <thead><tr class="text-xs text-gray-400 uppercase">
                     <th class="text-left pb-1">Faktor</th><th class="text-left pb-1">Detail</th><th class="text-right pb-1">Poin</th>
                 </tr></thead>
                 <tbody>${breakdownRows}</tbody>
             </table>
 
-            <div class="border-t border-gray-100 dark:border-white/10 pt-4">
-                <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-2">Saran Follow-up AI</p>
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Saran Follow-up AI</p>
                 <div class="p-3 rounded-xl border ${priorityClasses[follow.priority] || priorityClasses.normal} mb-3">
                     <p class="text-sm font-medium">${follow.action_label}: ${follow.message}</p>
                     ${follow.days_since_last !== null ? `<p class="text-xs mt-1 opacity-75">Terakhir kontak: ${follow.days_since_last} hari lalu</p>` : ''}
                 </div>
-                <ul class="space-y-1 text-sm text-gray-600 dark:text-slate-300">${suggestionItems}</ul>
+                <ul class="space-y-1 text-sm text-gray-600">${suggestionItems}</ul>
             </div>`;
             }
 
@@ -646,19 +644,23 @@
 
                 tbody.innerHTML = '';
 
+                // Store leadId on the force-create button for later use
+                document.getElementById('btn-force-create').dataset.leadId = leadId;
+                document.getElementById('duplicate-lead-name').dataset.leadId = leadId;
+
                 data.duplicates.forEach((dup, index) => {
                     const confidenceColor = dup.confidence >= 90 ? 'text-red-600' :
                         dup.confidence >= 80 ? 'text-amber-600' : 'text-blue-600';
 
                     tbody.innerHTML += `
-                <tr class="border-b dark:border-white/5">
+                <tr class="border-b">
                     <td class="px-3 py-2">${dup.customer_name}</td>
                     <td class="px-3 py-2 text-xs">${dup.customer_email || '-'}</td>
                     <td class="px-3 py-2 text-xs">${dup.customer_phone || '-'}</td>
                     <td class="px-3 py-2 text-xs">${dup.match_field}</td>
                     <td class="px-3 py-2 text-center font-semibold ${confidenceColor}">${dup.confidence}%</td>
                     <td class="px-3 py-2 text-center">
-                        <button onclick="linkToExistingCustomer(${leadId}, ${dup.customer_id})" 
+                        <button onclick="linkToExistingCustomer(${leadId}, ${dup.customer_id})"
                             class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                             Link to This
                         </button>
@@ -675,7 +677,7 @@
             function linkToExistingCustomer(leadId, customerId) {
                 if (confirm('Link this lead to the existing customer instead of creating a new one?')) {
                     const form = document.getElementById('form-link-customer');
-                    document.getElementById('link-lead-id').value = leadId;
+                    form.action = `<?php echo e(url('crm')); ?>/${leadId}/convert-customer`;
                     document.getElementById('link-customer-id').value = customerId;
                     form.submit();
                 }

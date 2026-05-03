@@ -1,4 +1,4 @@
-{{--
+﻿{{--
     Offline sync status panel — shows pending mutations and allows manual sync.
     Include in any page that needs to show offline queue status.
 
@@ -18,7 +18,7 @@
                     :class="online ? 'bg-green-500' : 'bg-amber-500'"></span>
             </span>
             <span class="text-sm font-medium"
-                :class="online ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'">
+                :class="online ? 'text-green-700' : 'text-amber-700'">
                 <template x-if="!online">
                     <span>Offline — <span x-text="count"></span> perubahan menunggu sinkronisasi</span>
                 </template>

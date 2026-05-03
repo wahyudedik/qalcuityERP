@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -11,39 +11,39 @@
      <?php $__env->slot('header', null, []); ?> Lembur Saya <?php $__env->endSlot(); ?>
 
     <?php if(!$employee): ?>
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
-        <svg class="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
         </svg>
-        <p class="text-gray-500 dark:text-slate-400 text-sm">Akun Anda belum terhubung ke data karyawan.</p>
-        <p class="text-gray-400 dark:text-slate-500 text-xs mt-1">Hubungi admin untuk menghubungkan akun ke profil karyawan.</p>
+        <p class="text-gray-500 text-sm">Akun Anda belum terhubung ke data karyawan.</p>
+        <p class="text-gray-400 text-xs mt-1">Hubungi admin untuk menghubungkan akun ke profil karyawan.</p>
     </div>
     <?php else: ?>
 
     
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Menunggu Persetujuan</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Menunggu Persetujuan</p>
             <p class="text-3xl font-black text-amber-500"><?php echo e($stats['pending']); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Disetujui Tahun Ini</p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Disetujui Tahun Ini</p>
             <p class="text-3xl font-black text-green-500"><?php echo e($stats['approved']); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Total Jam Lembur (Tahun Ini)</p>
-            <p class="text-3xl font-black text-blue-500"><?php echo e(number_format($stats['total_hours'], 1)); ?><span class="text-base font-normal text-gray-400 dark:text-slate-500 ml-1">jam</span></p>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <p class="text-xs text-gray-500 mb-1">Total Jam Lembur (Tahun Ini)</p>
+            <p class="text-3xl font-black text-blue-500"><?php echo e(number_format($stats['total_hours'], 1)); ?><span class="text-base font-normal text-gray-400 ml-1">jam</span></p>
         </div>
     </div>
 
     <?php if($errors->any()): ?>
-    <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-4">
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">
         <?php echo e($errors->first()); ?>
 
     </div>
     <?php endif; ?>
     <?php if(session('success')): ?>
-    <div class="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-400 px-4 py-3 rounded-xl text-sm mb-4">
+    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm mb-4">
         <?php echo e(session('success')); ?>
 
     </div>
@@ -53,14 +53,14 @@
 
         
         <div class="lg:w-80 shrink-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Ajukan Lembur</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Ajukan Lembur</h3>
                 <form method="POST" action="<?php echo e(route('self-service.overtime.store')); ?>" class="space-y-4">
                     <?php echo csrf_field(); ?>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Tanggal Lembur</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Tanggal Lembur</label>
                         <input type="date" name="date" value="<?php echo e(old('date')); ?>" required
-                            class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <?php $__errorArgs = ['date'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -72,14 +72,14 @@ unset($__errorArgs, $__bag); ?>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Mulai</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Mulai</label>
                             <input type="time" name="start_time" value="<?php echo e(old('start_time')); ?>" required
-                                class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Selesai</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Selesai</label>
                             <input type="time" name="end_time" value="<?php echo e(old('end_time')); ?>" required
-                                class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                     </div>
                     <?php $__errorArgs = ['end_time'];
@@ -91,9 +91,9 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Alasan Lembur</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Alasan Lembur</label>
                         <textarea name="reason" rows="3" required placeholder="Jelaskan alasan lembur..."
-                            class="w-full rounded-xl border border-gray-300 dark:border-white/10 bg-white dark:bg-white/5 text-gray-900 dark:text-white text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"><?php echo e(old('reason')); ?></textarea>
+                            class="w-full rounded-xl border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"><?php echo e(old('reason')); ?></textarea>
                         <?php $__errorArgs = ['reason'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -113,57 +113,57 @@ unset($__errorArgs, $__bag); ?>
 
         
         <div class="flex-1 min-w-0">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-100 dark:border-white/10">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Riwayat Pengajuan Lembur</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h3 class="text-sm font-semibold text-gray-900">Riwayat Pengajuan Lembur</h3>
                 </div>
                 <?php if($overtimes->isEmpty()): ?>
                 <div class="p-12 text-center">
-                    <p class="text-gray-400 dark:text-slate-500 text-sm">Belum ada pengajuan lembur.</p>
+                    <p class="text-gray-400 text-sm">Belum ada pengajuan lembur.</p>
                 </div>
                 <?php else: ?>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Tanggal</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Waktu</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Durasi</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Alasan</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Upah Est.</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Tanggal</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Waktu</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Durasi</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Alasan</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Upah Est.</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
                                 <th class="px-4 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php $__currentLoopData = $overtimes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ot): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-4 py-3 text-gray-900 font-medium">
                                     <?php echo e($ot->date->format('d M Y')); ?>
 
                                 </td>
-                                <td class="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                <td class="px-4 py-3 text-gray-600">
                                     <?php echo e(substr($ot->start_time, 0, 5)); ?> – <?php echo e(substr($ot->end_time, 0, 5)); ?>
 
                                 </td>
-                                <td class="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                <td class="px-4 py-3 text-gray-600">
                                     <?php echo e($ot->durationLabel()); ?>
 
                                 </td>
-                                <td class="px-4 py-3 text-gray-600 dark:text-slate-300 max-w-xs truncate">
+                                <td class="px-4 py-3 text-gray-600 max-w-xs truncate">
                                     <?php echo e($ot->reason); ?>
 
                                 </td>
-                                <td class="px-4 py-3 text-right text-gray-900 dark:text-white">
+                                <td class="px-4 py-3 text-right text-gray-900">
                                     Rp <?php echo e(number_format($ot->overtime_pay, 0, ',', '.')); ?>
 
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <?php
                                         $badge = match($ot->status) {
-                                            'approved' => 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-                                            'rejected' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                                            default    => 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+                                            'approved' => 'bg-green-100 text-green-700',
+                                            'rejected' => 'bg-red-100 text-red-700',
+                                            default    => 'bg-amber-100 text-amber-700',
                                         };
                                         $label = match($ot->status) {
                                             'approved' => 'Disetujui',
@@ -178,7 +178,7 @@ unset($__errorArgs, $__bag); ?>
                                     <form method="POST" action="<?php echo e(route('self-service.overtime.cancel', $ot)); ?>"
                                         onsubmit="return confirm('Batalkan pengajuan lembur ini?')">
                                         <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
-                                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors">
+                                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 transition-colors">
                                             Batalkan
                                         </button>
                                     </form>
@@ -189,7 +189,7 @@ unset($__errorArgs, $__bag); ?>
                         </tbody>
                     </table>
                 </div>
-                <div class="px-5 py-3 border-t border-gray-100 dark:border-white/10">
+                <div class="px-5 py-3 border-t border-gray-100">
                     <?php echo e($overtimes->links()); ?>
 
                 </div>

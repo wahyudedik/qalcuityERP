@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Pemeriksaan Radiologi</x-slot>
 
     {{-- Breadcrumbs --}}
@@ -11,41 +11,41 @@
 
     {{-- Stats - Data from Controller (no more queries in Blade) --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Exam</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Exam</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">
                 {{ number_format($statistics['total_exams'] ?? 0) }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Terjadwal Hari Ini</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $statistics['scheduled_today'] ?? 0 }}
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Terjadwal Hari Ini</p>
+            <p class="text-2xl font-bold text-blue-600 mt-1">{{ $statistics['scheduled_today'] ?? 0 }}
             </p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Selesai Hari Ini</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Selesai Hari Ini</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">
                 {{ $statistics['completed_today'] ?? 0 }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Pending Report</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Pending Report</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">
                 {{ $statistics['pending_reports'] ?? 0 }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Urgent</p>
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{{ $statistics['urgent_exams'] ?? 0 }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Urgent</p>
+            <p class="text-2xl font-bold text-red-600 mt-1">{{ $statistics['urgent_exams'] ?? 0 }}</p>
         </div>
     </div>
 
     {{-- Filters --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 mb-4">
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4">
             <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
                 <input type="text" name="search" value="{{ request('search') }}"
                     placeholder="Cari pasien / No. exam..."
-                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="exam_type"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Jenis</option>
                     <option value="xray" @selected(request('exam_type') === 'xray')>X-Ray</option>
                     <option value="ct_scan" @selected(request('exam_type') === 'ct_scan')>CT Scan</option>
@@ -54,7 +54,7 @@
                     <option value="fluoroscopy" @selected(request('exam_type') === 'fluoroscopy')>Fluoroscopy</option>
                 </select>
                 <select name="status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
                     <option value="scheduled" @selected(request('status') === 'scheduled')>Scheduled</option>
                     <option value="in_progress" @selected(request('status') === 'in_progress')>In Progress</option>
@@ -68,11 +68,11 @@
     </div>
 
     {{-- Table / Card View - Responsive --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {{-- Desktop Table View (hidden on mobile <768px) --}}
         <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">No. Exam</th>
                         <th class="px-4 py-3 text-left">Pasien</th>
@@ -84,80 +84,80 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($exams ?? [] as $exam)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <span
-                                    class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">{{ $exam->exam_number ?? '-' }}</span>
+                                    class="font-mono text-sm font-bold text-blue-600">{{ $exam->exam_number ?? '-' }}</span>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white">
+                                <p class="font-medium text-gray-900">
                                     {{ $exam->patient ? $exam->patient->full_name : '-' }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     {{ $exam->patient ? $exam->patient->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3">
                                 @if ($exam->exam_type === 'xray')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">X-Ray</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">X-Ray</span>
                                 @elseif($exam->exam_type === 'ct_scan')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">CT
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700">CT
                                         Scan</span>
                                 @elseif($exam->exam_type === 'mri')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">MRI</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-indigo-100 text-indigo-700">MRI</span>
                                 @elseif($exam->exam_type === 'ultrasound')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Ultrasound</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Ultrasound</span>
                                 @else
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">{{ ucfirst($exam->exam_type ?? '-') }}</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">{{ ucfirst($exam->exam_type ?? '-') }}</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-slate-300">
+                            <td class="px-4 py-3 text-gray-600">
                                 {{ $exam->body_part ?? '-' }}</td>
                             <td class="px-4 py-3">
-                                <p class="text-gray-900 dark:text-white">
+                                <p class="text-gray-900">
                                     {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d M Y') : '-' }}
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('H:i') : '-' }}
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if ($exam->priority === 'urgent')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Urgent</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Urgent</span>
                                 @elseif($exam->priority === 'high')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">High</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700">High</span>
                                 @else
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Normal</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Normal</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if ($exam->status === 'scheduled')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">Scheduled</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">Scheduled</span>
                                 @elseif($exam->status === 'in_progress')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">In
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700">In
                                         Progress</span>
                                 @elseif($exam->status === 'completed')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Completed</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700">Completed</span>
                                 @elseif($exam->status === 'cancelled')
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Cancelled</span>
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700">Cancelled</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('healthcare.radiology.exams.show', $exam) }}"
-                                        class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                         title="Detail">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -169,7 +169,7 @@
                                     </a>
                                     @if ($exam->status === 'completed')
                                         <a href="{{ route('healthcare.radiology.reports.create', $exam) }}"
-                                            class="p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg"
+                                            class="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
                                             title="Buat Laporan">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -185,7 +185,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <p>Belum ada pemeriksaan radiologi</p>
                             </td>
                         </tr>
@@ -195,57 +195,57 @@
         </div>
 
         {{-- Mobile Card View (visible only on mobile <768px) --}}
-        <div class="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+        <div class="md:hidden divide-y divide-gray-100">
             @forelse($exams ?? [] as $exam)
-                <div class="p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                <div class="p-4 hover:bg-gray-50 transition-colors">
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="flex-1 min-w-0">
-                            <p class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
+                            <p class="font-mono text-sm font-bold text-blue-600">
                                 {{ $exam->exam_number ?? '-' }}</p>
-                            <p class="font-semibold text-gray-900 dark:text-white truncate mt-0.5">
+                            <p class="font-semibold text-gray-900 truncate mt-0.5">
                                 {{ $exam->patient ? $exam->patient->full_name : '-' }}
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">
+                            <p class="text-xs text-gray-500">
                                 {{ $exam->patient ? $exam->patient->medical_record_number : '-' }}
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1">
                             @if ($exam->status === 'scheduled')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shrink-0">Scheduled</span>
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 shrink-0">Scheduled</span>
                             @elseif($exam->status === 'in_progress')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">In
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-100 text-amber-700 shrink-0">In
                                     Progress</span>
                             @elseif($exam->status === 'completed')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 shrink-0">Completed</span>
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-green-100 text-green-700 shrink-0">Completed</span>
                             @elseif($exam->status === 'cancelled')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 shrink-0">Cancelled</span>
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 shrink-0">Cancelled</span>
                             @endif
                             @if ($exam->priority === 'urgent')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 shrink-0">Urgent</span>
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 shrink-0">Urgent</span>
                             @elseif($exam->priority === 'high')
                                 <span
-                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 shrink-0">High</span>
+                                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 shrink-0">High</span>
                             @endif
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                         <div>
-                            <p class="text-gray-400 dark:text-slate-500">Jenis Exam</p>
-                            <p class="text-gray-700 dark:text-slate-300 font-medium">
+                            <p class="text-gray-400">Jenis Exam</p>
+                            <p class="text-gray-700 font-medium">
                                 @if ($exam->exam_type === 'xray')
-                                    <span class="text-blue-600 dark:text-blue-400">X-Ray</span>
+                                    <span class="text-blue-600">X-Ray</span>
                                 @elseif($exam->exam_type === 'ct_scan')
-                                    <span class="text-purple-600 dark:text-purple-400">CT Scan</span>
+                                    <span class="text-purple-600">CT Scan</span>
                                 @elseif($exam->exam_type === 'mri')
-                                    <span class="text-indigo-600 dark:text-indigo-400">MRI</span>
+                                    <span class="text-indigo-600">MRI</span>
                                 @elseif($exam->exam_type === 'ultrasound')
-                                    <span class="text-green-600 dark:text-green-400">Ultrasound</span>
+                                    <span class="text-green-600">Ultrasound</span>
                                 @else
                                     {{ ucfirst($exam->exam_type ?? '-') }}
                                 @endif
@@ -253,21 +253,21 @@
                         </div>
                         @if ($exam->body_part)
                             <div>
-                                <p class="text-gray-400 dark:text-slate-500">Body Part</p>
-                                <p class="text-gray-700 dark:text-slate-300">{{ $exam->body_part }}</p>
+                                <p class="text-gray-400">Body Part</p>
+                                <p class="text-gray-700">{{ $exam->body_part }}</p>
                             </div>
                         @endif
                         <div class="col-span-2">
-                            <p class="text-gray-400 dark:text-slate-500">Tanggal</p>
-                            <p class="text-gray-700 dark:text-slate-300">
+                            <p class="text-gray-400">Tanggal</p>
+                            <p class="text-gray-700">
                                 {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d M Y, H:i') : '-' }}
                             </p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-white/5">
+                    <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
                         <a href="{{ route('healthcare.radiology.exams.show', $exam) }}"
-                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -279,7 +279,7 @@
                         </a>
                         @if ($exam->status === 'completed')
                             <a href="{{ route('healthcare.radiology.reports.create', $exam) }}"
-                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -292,14 +292,14 @@
                 </div>
             @empty
                 <div class="p-12 text-center">
-                    <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-slate-600 mb-4" fill="none"
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                         </path>
                     </svg>
-                    <p class="text-gray-500 dark:text-slate-400">Belum ada pemeriksaan radiologi</p>
-                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Klik tombol "+ Exam" untuk membuat
+                    <p class="text-gray-500">Belum ada pemeriksaan radiologi</p>
+                    <p class="text-xs text-gray-400 mt-1">Klik tombol "+ Exam" untuk membuat
                         pemeriksaan baru</p>
                 </div>
             @endforelse
@@ -307,7 +307,7 @@
 
         {{-- Pagination --}}
         @if (isset($exams) && $exams->hasPages())
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $exams->links() }}
             </div>
         @endif

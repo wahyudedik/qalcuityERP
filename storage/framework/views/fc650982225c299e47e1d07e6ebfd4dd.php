@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -8,65 +8,63 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-                📊 MRP Accuracy Dashboard
-            </h2>
-            <a href="<?php echo e(route('manufacturing.mrp')); ?>"
+     <?php $__env->slot('header', null, []); ?> 📊 MRP Accuracy Dashboard <?php $__env->endSlot(); ?>
+
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('manufacturing.mrp')); ?>"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                 ← Back to MRP
             </a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <div class="flex gap-2">
                     <button onclick="switchPeriod('7')" class="period-btn px-4 py-2 rounded-lg bg-blue-600 text-white"
                         data-period="7">7 Days</button>
                     <button onclick="switchPeriod('30')"
-                        class="period-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700" data-period="30">30
+                        class="period-btn px-4 py-2 rounded-lg bg-gray-200" data-period="30">30
                         Days</button>
                     <button onclick="switchPeriod('90')"
-                        class="period-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700" data-period="90">90
+                        class="period-btn px-4 py-2 rounded-lg bg-gray-200" data-period="90">90
                         Days</button>
                     <button onclick="switchPeriod('all')"
-                        class="period-btn px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700" data-period="all">All
+                        class="period-btn px-4 py-2 rounded-lg bg-gray-200" data-period="all">All
                         Time</button>
                 </div>
             </div>
 
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Accuracy Rate</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Accuracy Rate</div>
                     <div class="text-3xl font-bold text-green-600" id="accuracy-rate">
                         <?php echo e($dashboardData['last_30_days']['accuracy_rate']); ?>%
                     </div>
                     <div class="text-xs text-gray-400 mt-2">±5% tolerance</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Avg Variance</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Avg Variance</div>
                     <div class="text-3xl font-bold <?php echo e($dashboardData['last_30_days']['avg_variance_percent'] > 0 ? 'text-red-600' : 'text-green-600'); ?>"
                         id="avg-variance">
                         <?php echo e($dashboardData['last_30_days']['avg_variance_percent']); ?>%
                     </div>
                     <div class="text-xs text-gray-400 mt-2">Planned vs Actual</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Total Records</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Total Records</div>
                     <div class="text-3xl font-bold text-blue-600" id="total-records">
                         <?php echo e($dashboardData['last_30_days']['total_records']); ?>
 
                     </div>
                     <div class="text-xs text-gray-400 mt-2">Tracking entries</div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">Cost Variance</div>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500 mb-1">Cost Variance</div>
                     <div class="text-3xl font-bold <?php echo e($dashboardData['last_30_days']['total_savings_loss'] > 0 ? 'text-red-600' : 'text-green-600'); ?>"
                         id="cost-variance">
                         Rp <?php echo e(number_format(abs($dashboardData['last_30_days']['total_savings_loss']), 0, ',', '.')); ?>
@@ -82,31 +80,31 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📈 Planned vs Actual Quantity</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">📈 Planned vs Actual Quantity</h3>
                     <canvas id="plannedVsActualChart" height="300"></canvas>
                 </div>
 
                 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📉 Variance Trend (%)</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">📉 Variance Trend (%)</h3>
                     <canvas id="varianceChart" height="300"></canvas>
                 </div>
             </div>
 
             
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">💰 Planned vs Actual Cost</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">💰 Planned vs Actual Cost</h3>
                 <canvas id="costChart" height="100"></canvas>
             </div>
 
             
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">⚠️ Top 10 Products with Highest Variance
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">⚠️ Top 10 Products with Highest Variance
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Product</th>
                                 <th class="px-4 py-3 text-right">Avg |Variance|</th>
@@ -114,10 +112,10 @@
                                 <th class="px-4 py-3 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php $__currentLoopData = $topVarianceProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-gray-900 font-medium">
                                         <?php echo e($product->product_name); ?></td>
                                     <td
                                         class="px-4 py-3 text-right font-bold <?php echo e($product->avg_abs_variance > 10 ? 'text-red-600' : 'text-yellow-600'); ?>">
@@ -127,13 +125,13 @@
                                     <td class="px-4 py-3 text-center">
                                         <?php if($product->avg_abs_variance > 15): ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Critical</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Critical</span>
                                         <?php elseif($product->avg_abs_variance > 10): ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400">Warning</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">Warning</span>
                                         <?php else: ?>
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Acceptable</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Acceptable</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -144,11 +142,11 @@
             </div>
 
             
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">📋 Recent Tracking Records</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">📋 Recent Tracking Records</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Date</th>
                                 <th class="px-4 py-3 text-left">Work Order</th>
@@ -160,14 +158,14 @@
                                 <th class="px-4 py-3 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php $__currentLoopData = $recentRecords->take(20); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-gray-700">
                                         <?php echo e($record->tracking_date->format('d M Y')); ?></td>
-                                    <td class="px-4 py-3 text-gray-900 dark:text-white">
+                                    <td class="px-4 py-3 text-gray-900">
                                         <?php echo e($record->workOrder?->number ?? '-'); ?></td>
-                                    <td class="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                                    <td class="px-4 py-3 text-gray-900 font-medium">
                                         <?php echo e($record->product?->name ?? '-'); ?></td>
                                     <td class="px-4 py-3 text-right"><?php echo e(number_format($record->planned_quantity, 2)); ?>
 
@@ -345,9 +343,9 @@
             // Update button styles
             document.querySelectorAll('.period-btn').forEach(btn => {
                 btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('bg-gray-200', 'dark:bg-gray-700');
+                btn.classList.add('bg-gray-200');
             });
-            event.target.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+            event.target.classList.remove('bg-gray-200');
             event.target.classList.add('bg-blue-600', 'text-white');
 
             // Update KPI cards

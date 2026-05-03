@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -44,7 +44,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <?php if(session('success')): ?>
                 <div
-                    class="mb-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-xl">
+                    class="mb-4 bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
                     <?php echo e(session('success')); ?>
 
                 </div>
@@ -146,10 +146,10 @@
 
             
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">No. Claim</th>
                                 <th class="px-4 py-3 text-left">Pasien</th>
@@ -160,20 +160,20 @@
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             <?php $__empty_1 = true; $__currentLoopData = $claims; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $claim): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <span
-                                            class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400"><?php echo e($claim->claim_number); ?></span>
+                                            class="font-mono text-sm font-bold text-blue-600"><?php echo e($claim->claim_number); ?></span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <p class="font-medium text-gray-900 dark:text-white">
+                                        <p class="font-medium text-gray-900">
                                             <?php echo e($claim->patient->name ?? 'N/A'); ?></p>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-600 dark:text-slate-300 hidden lg:table-cell">
+                                    <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
                                         <?php echo e($claim->bpjs_number); ?></td>
-                                    <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Rp
+                                    <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp
                                         <?php echo e(number_format($claim->claim_amount, 0, ',', '.')); ?></td>
                                     <td class="px-4 py-3 hidden sm:table-cell">
                                         <?php echo e($claim->submission_date ? $claim->submission_date->format('d M Y') : '-'); ?>
@@ -181,7 +181,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <span
-                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg <?php echo e($claim->status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($claim->status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400')); ?>">
+                                            class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg <?php echo e($claim->status === 'approved' ? 'bg-green-100 text-green-700' : ($claim->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')); ?>">
                                             <?php echo e(ucfirst($claim->status)); ?>
 
                                         </span>
@@ -189,7 +189,7 @@
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <a href="<?php echo e(route('healthcare.bpjs-claims.show', $claim)); ?>"
-                                                class="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg"
+                                                class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                                                 title="Detail">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -202,7 +202,7 @@
                                                 </svg>
                                             </a>
                                             <a href="<?php echo e(route('healthcare.bpjs-claims.edit', $claim)); ?>"
-                                                class="p-1.5 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/30 rounded-lg"
+                                                class="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg"
                                                 title="Edit">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -217,7 +217,7 @@
                                                 onsubmit="return confirm('Yakin ingin menghapus?')">
                                                 <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                                 <button type="submit"
-                                                    class="p-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg"
+                                                    class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
                                                     title="Hapus">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -233,7 +233,7 @@
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
-                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">
                                         Tidak ada data claim BPJS</td>
                                 </tr>
                             <?php endif; ?>
@@ -242,21 +242,21 @@
                 </div>
 
                 
-                <div class="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+                <div class="md:hidden divide-y divide-gray-100">
                     <?php $__empty_1 = true; $__currentLoopData = $claims; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $claim): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <div class="p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                        <div class="p-4 hover:bg-gray-50 transition-colors">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    <p class="font-mono text-sm font-bold text-blue-600">
                                         <?php echo e($claim->claim_number); ?></p>
-                                    <p class="font-semibold text-gray-900 dark:text-white truncate mt-0.5">
+                                    <p class="font-semibold text-gray-900 truncate mt-0.5">
                                         <?php echo e($claim->patient->name ?? 'N/A'); ?></p>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">BPJS:
+                                    <p class="text-xs text-gray-500">BPJS:
                                         <?php echo e($claim->bpjs_number); ?></p>
                                 </div>
                                 <div class="text-right">
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg <?php echo e($claim->status === 'approved' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($claim->status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400')); ?>">
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg <?php echo e($claim->status === 'approved' ? 'bg-green-100 text-green-700' : ($claim->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')); ?>">
                                         <?php echo e(ucfirst($claim->status)); ?>
 
                                     </span>
@@ -265,29 +265,29 @@
 
                             <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                                 <div>
-                                    <p class="text-gray-500 dark:text-slate-400">Jumlah Claim</p>
-                                    <p class="font-bold text-gray-900 dark:text-white">Rp
+                                    <p class="text-gray-500">Jumlah Claim</p>
+                                    <p class="font-bold text-gray-900">Rp
                                         <?php echo e(number_format($claim->claim_amount, 0, ',', '.')); ?></p>
                                 </div>
                                 <div>
-                                    <p class="text-gray-500 dark:text-slate-400">Tanggal</p>
-                                    <p class="font-medium text-gray-900 dark:text-white">
+                                    <p class="text-gray-500">Tanggal</p>
+                                    <p class="font-medium text-gray-900">
                                         <?php echo e($claim->submission_date ? $claim->submission_date->format('d M Y') : '-'); ?>
 
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-white/5">
+                            <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
                                 <a href="<?php echo e(route('healthcare.bpjs-claims.show', $claim)); ?>"
-                                    class="flex-1 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center hover:bg-blue-100 dark:hover:bg-blue-900/30">Detail</a>
+                                    class="flex-1 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg text-center hover:bg-blue-100">Detail</a>
                                 <a href="<?php echo e(route('healthcare.bpjs-claims.edit', $claim)); ?>"
-                                    class="flex-1 px-3 py-2 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-center hover:bg-amber-100 dark:hover:bg-amber-900/30">Edit</a>
+                                    class="flex-1 px-3 py-2 text-xs font-medium text-amber-600 bg-amber-50 rounded-lg text-center hover:bg-amber-100">Edit</a>
                             </div>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <div class="p-8 text-center text-gray-500 dark:text-slate-400">
-                            <svg class="w-16 h-16 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none"
+                        <div class="p-8 text-center text-gray-500">
+                            <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -300,7 +300,7 @@
 
                 
                 <?php if($claims->hasPages()): ?>
-                    <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+                    <div class="px-4 py-3 border-t border-gray-200">
                         <?php echo e($claims->links()); ?>
 
                     </div>

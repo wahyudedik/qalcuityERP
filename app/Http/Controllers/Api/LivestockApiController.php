@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Livestock;
-use App\Models\LivestockHealth;
-use App\Models\LivestockBreeding;
+use App\Models\LivestockHerd;
+use App\Models\LivestockHealthRecord;
+use App\Models\BreedingRecord;
 use Illuminate\Http\Request;
 
 class LivestockApiController extends ApiBaseController
 {
     public function animals(Request $request)
     {
-        $query = Livestock::where('tenant_id', $this->getTenantId())
-            ->with(['healthRecords', 'breedingRecords']);
+        $query = LivestockHerd::where('tenant_id', $this->getTenantId())
+            ->with(['healthRecords', 'movements']);
 
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('animal_type', $request->type);
         }
 
         if ($request->filled('status')) {
@@ -29,8 +29,8 @@ class LivestockApiController extends ApiBaseController
 
     public function animal($id)
     {
-        $animal = Livestock::where('tenant_id', $this->getTenantId())
-            ->with(['healthRecords', 'breedingRecords'])
+        $animal = LivestockHerd::where('tenant_id', $this->getTenantId())
+            ->with(['healthRecords', 'movements', 'vaccinations', 'feedLogs'])
             ->findOrFail($id);
         return $this->success($animal);
     }
@@ -38,30 +38,36 @@ class LivestockApiController extends ApiBaseController
     public function createAnimal(Request $request)
     {
         $validated = $request->validate([
-            'tag_number' => 'required|string|unique:livestock,tag_number',
-            'type' => 'required|string',
-            'breed' => 'nullable|string',
-            'gender' => 'required|in:male,female',
-            'birth_date' => 'nullable|date',
-            'weight' => 'nullable|numeric',
-            'status' => 'nullable|in:healthy,sick,breeding,sold,deceased',
+            'name' => 'required|string|max:255',
+            'animal_type' => 'required|string|max:50',
+            'breed' => 'nullable|string|max:100',
+            'initial_count' => 'required|integer|min:1',
+            'entry_date' => 'required|date',
+            'entry_age_days' => 'nullable|integer|min:0',
+            'entry_weight_kg' => 'nullable|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'target_harvest_date' => 'nullable|date',
+            'target_weight_kg' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
         ]);
 
-        $animal = Livestock::create(array_merge($validated, [
+        $herd = LivestockHerd::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'status' => $validated['status'] ?? 'healthy',
+            'code' => LivestockHerd::generateCode($this->getTenantId(), $validated['animal_type']),
+            'current_count' => $validated['initial_count'],
+            'status' => 'active',
         ]));
 
-        return $this->success($animal, 'Animal created successfully', 201);
+        return $this->success($herd, 'Livestock herd created successfully', 201);
     }
 
     public function healthRecords(Request $request)
     {
-        $query = LivestockHealth::where('tenant_id', $this->getTenantId())
-            ->with(['livestock']);
+        $query = LivestockHealthRecord::where('tenant_id', $this->getTenantId())
+            ->with(['herd']);
 
-        if ($request->filled('livestock_id')) {
-            $query->where('livestock_id', $request->livestock_id);
+        if ($request->filled('livestock_herd_id')) {
+            $query->where('livestock_herd_id', $request->livestock_herd_id);
         }
 
         $records = $query->latest()->paginate($request->get('per_page', 20));
@@ -71,17 +77,24 @@ class LivestockApiController extends ApiBaseController
     public function recordHealth(Request $request)
     {
         $validated = $request->validate([
-            'livestock_id' => 'required|exists:livestock,id',
-            'type' => 'required|in:vaccination,treatment,checkup,deworming',
-            'description' => 'required|string',
-            'veterinarian' => 'nullable|string',
-            'cost' => 'nullable|numeric|min:0',
-            'next_visit_date' => 'nullable|date',
+            'livestock_herd_id' => 'required|exists:livestock_herds,id',
+            'type' => 'required|in:illness,treatment,observation,quarantine,recovery',
+            'date' => 'required|date',
+            'condition' => 'required|string|max:255',
+            'affected_count' => 'nullable|integer|min:0',
+            'death_count' => 'nullable|integer|min:0',
+            'symptoms' => 'nullable|string|max:500',
+            'medication' => 'nullable|string|max:255',
+            'medication_cost' => 'nullable|numeric|min:0',
+            'administered_by' => 'nullable|string|max:100',
+            'severity' => 'nullable|in:low,medium,high,critical',
+            'notes' => 'nullable|string',
         ]);
 
-        $record = LivestockHealth::create(array_merge($validated, [
+        $record = LivestockHealthRecord::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'record_date' => now(),
+            'user_id' => auth()->id(),
+            'status' => $validated['type'] === 'recovery' ? 'resolved' : 'active',
         ]));
 
         return $this->success($record, 'Health record created successfully', 201);
@@ -89,26 +102,31 @@ class LivestockApiController extends ApiBaseController
 
     public function breeding(Request $request)
     {
-        $query = LivestockBreeding::where('tenant_id', $this->getTenantId())
-            ->with(['mother', 'father']);
+        $query = BreedingRecord::where('tenant_id', $this->getTenantId())
+            ->with(['herd', 'recordedBy']);
 
-        $records = $query->latest()->paginate($request->get('per_page', 20));
+        $records = $query->latest('mating_date')->paginate($request->get('per_page', 20));
         return $this->success($records);
     }
 
     public function recordBreeding(Request $request)
     {
         $validated = $request->validate([
-            'mother_id' => 'required|exists:livestock,id',
-            'father_id' => 'nullable|exists:livestock,id',
+            'livestock_herd_id' => 'nullable|exists:livestock_herds,id',
+            'dam_id' => 'required|string',
+            'sire_id' => 'required|string',
             'mating_date' => 'required|date',
-            'expected_birth_date' => 'nullable|date',
-            'status' => 'nullable|in:pregnant,given_birth,failed',
+            'mating_type' => 'required|in:natural,artificial_insemination,embryo_transfer',
+            'expected_due_date' => 'nullable|date|after:mating_date',
+            'genetics_line' => 'nullable|string',
+            'genetic_traits' => 'nullable|array',
+            'notes' => 'nullable|string',
         ]);
 
-        $record = LivestockBreeding::create(array_merge($validated, [
+        $record = BreedingRecord::create(array_merge($validated, [
             'tenant_id' => $this->getTenantId(),
-            'status' => $validated['status'] ?? 'pregnant',
+            'status' => 'pending',
+            'recorded_by' => auth()->id(),
         ]));
 
         return $this->success($record, 'Breeding record created successfully', 201);

@@ -8,17 +8,14 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-     <?php $__env->slot('header', null, []); ?> 
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <?php echo e($group->name); ?>
+     <?php $__env->slot('header', null, []); ?> <?php echo e($group->name); ?> <?php $__env->endSlot(); ?>
 
-            </h2>
-            <a href="<?php echo e(route('consolidation.index')); ?>" class="text-gray-600 hover:text-gray-900">
+    
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="<?php echo e(route('consolidation.index')); ?>" class="text-gray-600 hover:text-gray-900">
                 ← Kembali
             </a>
-        </div>
-     <?php $__env->endSlot(); ?>
+    </div>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">

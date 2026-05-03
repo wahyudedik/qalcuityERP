@@ -1,12 +1,9 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-                🧮 Mix Design Beton - Kalkulator Mutu Beton SNI
-            </h2>
-            <div class="flex gap-2">
-                @if ($calculation)
-                    <form method="POST" action="{{ route('manufacturing.mix-design.export-pdf') }}" target="_blank"
+﻿<x-app-layout>
+    <x-slot name="header">🧮 Mix Design Beton - Kalkulator Mutu Beton SNI</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <form method="POST" action="{{ route('manufacturing.mix-design.export-pdf') }}" target="_blank"
                         class="inline">
                         @csrf
                         <input type="hidden" name="mix_design_id" value="{{ $selectedMix->id }}">
@@ -17,15 +14,11 @@
                             class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                             📄 Export PDF
                         </button>
-                    </form>
-                @endif
-                <button onclick="document.getElementById('addMixModal').showModal()"
+        <button onclick="document.getElementById('addMixModal').showModal()"
                     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                     + Tambah Custom Mix
                 </button>
-            </div>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -44,7 +37,7 @@
             @endif
 
             {{-- Calculator Form --}}
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold mb-4">📊 Kalkulator Kebutuhan Material</h3>
 
@@ -85,12 +78,12 @@
             @if ($calculation)
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {{-- Material Needs --}}
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">📦 Kebutuhan Material</h3>
 
                             <div class="space-y-3">
-                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                     <span class="font-medium">🏭 Semen</span>
                                     <div class="text-right">
                                         <div class="font-bold">
@@ -99,14 +92,14 @@
                                             sak (@50kg)</div>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                     <span class="font-medium">💧 Air</span>
                                     <div class="text-right">
                                         <div class="font-bold">
                                             {{ number_format($calculation['adjusted']['water_liter'], 1) }} liter</div>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                     <span class="font-medium">🪨 Pasir (Agregat Halus)</span>
                                     <div class="text-right">
                                         <div class="font-bold">
@@ -115,7 +108,7 @@
                                             {{ $calculation['adjusted']['fine_agg_m3'] }} m³</div>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                     <span class="font-medium">🪨 Split (Agregat Kasar)</span>
                                     <div class="text-right">
                                         <div class="font-bold">
@@ -126,7 +119,7 @@
                                 </div>
                                 @if ($calculation['adjusted']['admixture_liter'] > 0)
                                     <div
-                                        class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                        class="flex justify-between items-center p-3 bg-gray-50 rounded">
                                         <span class="font-medium">⚗️ Admixture</span>
                                         <div class="text-right">
                                             <div class="font-bold">
@@ -137,7 +130,7 @@
                                 @endif
                             </div>
 
-                            <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded text-sm">
+                            <div class="mt-4 p-3 bg-blue-50 rounded text-sm">
                                 <strong>Volume:</strong> {{ $calculation['adjusted']['volume_m3'] }} m³ |
                                 <strong>Waste:</strong> {{ $calculation['adjusted']['waste_percent'] }}% |
                                 <strong>Grade:</strong> {{ $calculation['adjusted']['grade'] }}
@@ -147,7 +140,7 @@
 
                     {{-- Cost Analysis --}}
                     @if ($costAnalysis)
-                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div class="p-6">
                                 <h3 class="text-lg font-semibold mb-4">💰 Analisis Biaya</h3>
 
@@ -198,7 +191,7 @@
 
                 {{-- Material Availability --}}
                 @if ($availability)
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">
                                 📋 Ketersediaan Material
@@ -213,7 +206,7 @@
 
                             <div class="overflow-x-auto">
                                 <table class="min-w-full">
-                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <thead class="bg-gray-50">
                                         <tr>
                                             <th class="px-4 py-2 text-left">Material</th>
                                             <th class="px-4 py-2 text-right">Dibutuhkan</th>
@@ -259,7 +252,7 @@
             @endif
 
             {{-- Recommendation Tool --}}
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold mb-4">🎯 Rekomendasi Mix Design</h3>
 
@@ -297,7 +290,7 @@
                     </form>
 
                     @if ($recommendation && $recommendation['status'] === 'success')
-                        <div class="mt-4 p-4 bg-green-50 dark:bg-green-900 rounded border border-green-300">
+                        <div class="mt-4 p-4 bg-green-50 rounded border border-green-300">
                             <h4 class="font-bold text-green-800 mb-2">✓ Rekomendasi Terbaik</h4>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div>
@@ -328,14 +321,14 @@
             </div>
 
             {{-- Mix Design List --}}
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-semibold mb-4">📚 Daftar Mix Design</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach ($mixDesigns as $mix)
                             <div
-                                class="border rounded-lg p-4 hover:shadow-md transition {{ $mix->is_standard ? 'bg-blue-50 dark:bg-blue-900' : 'bg-white dark:bg-gray-700' }}">
+                                class="border rounded-lg p-4 hover:shadow-md transition {{ $mix->is_standard ? 'bg-blue-50' : 'bg-white' }}">
                                 <div class="flex justify-between items-start mb-2">
                                     <h4 class="font-bold text-lg">{{ $mix->grade }}</h4>
                                     @if ($mix->is_standard)
@@ -343,7 +336,7 @@
                                             SNI</span>
                                     @endif
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">{{ $mix->name }}</p>
+                                <p class="text-sm text-gray-600 mb-3">{{ $mix->name }}</p>
 
                                 <div class="space-y-1 text-sm">
                                     <div class="flex justify-between">
@@ -634,14 +627,14 @@
                     <textarea id="edit_notes" name="notes" rows="2" class="w-full border rounded px-3 py-2"></textarea>
                 </div>
                 <div
-                    class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <label class="block text-sm font-medium mb-1 text-yellow-800 dark:text-yellow-400">
+                    class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <label class="block text-sm font-medium mb-1 text-yellow-800">
                         ⚠️ Change Reason (Required for Version Tracking)
                     </label>
                     <input type="text" id="edit_change_reason" name="change_reason" required
                         placeholder="e.g., Adjusted cement ratio for better strength"
-                        class="w-full border border-yellow-300 dark:border-yellow-700 rounded px-3 py-2">
-                    <p class="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                        class="w-full border border-yellow-300 rounded px-3 py-2">
+                    <p class="text-xs text-yellow-600 mt-1">
                         A new version will be created to track this change
                     </p>
                 </div>

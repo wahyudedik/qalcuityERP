@@ -1,19 +1,19 @@
-<x-app-layout title="Maintenance Requests">
+﻿<x-app-layout title="Maintenance Requests">
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Maintenance Requests</h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-slate-400">Track and manage maintenance issues</p>
+                <h1 class="text-2xl font-bold text-gray-900">Maintenance Requests</h1>
+                <p class="mt-1 text-sm text-gray-600">Track and manage maintenance issues</p>
             </div>
         </div>
     </x-slot>
 
     <div class="space-y-6">
         {{-- Filters --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <form method="GET" class="flex flex-wrap gap-4">
                 <select name="status" onchange="this.form.submit()"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">All Status</option>
                     <option value="reported" {{ request('status') === 'reported' ? 'selected' : '' }}>Reported</option>
                     <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress
@@ -23,7 +23,7 @@
                 </select>
 
                 <select name="priority" onchange="this.form.submit()"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">All Priorities</option>
                     <option value="urgent" {{ request('priority') === 'urgent' ? 'selected' : '' }}>Urgent</option>
                     <option value="high" {{ request('priority') === 'high' ? 'selected' : '' }}>High</option>
@@ -34,48 +34,48 @@
         </div>
 
         {{-- Requests Table --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="bg-gray-50 dark:bg-white/5">
+                    <thead class="bg-gray-50">
                         <tr>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Room</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Title</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Category</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Priority</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Status</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Assigned To</th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">
+                                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-white/10">
+                    <tbody class="divide-y divide-gray-200">
                         @forelse($requests as $request)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900">
                                     {{ $request->room?->number }}</td>
                                 <td class="px-4 py-3">
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                        <p class="text-sm font-medium text-gray-900">
                                             {{ $request->title }}</p>
-                                        <p class="text-xs text-gray-600 dark:text-slate-400">
+                                        <p class="text-xs text-gray-600">
                                             {{ $request->created_at->diffForHumans() }}</p>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                <td class="px-4 py-3 text-sm text-gray-600">
                                     {{ $request->category }}</td>
                                 <td class="px-4 py-3">
                                     <span
@@ -99,7 +99,7 @@
                                         {{ ucfirst(str_replace('_', ' ', $request->status)) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                <td class="px-4 py-3 text-sm text-gray-600">
                                     {{ $request->assignedTo?->name ?? 'Unassigned' }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
@@ -116,7 +116,7 @@
                         @empty
                             <tr>
                                 <td colspan="7"
-                                    class="px-4 py-8 text-center text-sm text-gray-500 dark:text-slate-400">No
+                                    class="px-4 py-8 text-center text-sm text-gray-500">No
                                     maintenance requests found</td>
                             </tr>
                         @endforelse
@@ -124,7 +124,7 @@
                 </table>
             </div>
 
-            <div class="px-4 py-3 border-t border-gray-200 dark:border-white/10">
+            <div class="px-4 py-3 border-t border-gray-200">
                 {{ $requests->links() }}
             </div>
         </div>
@@ -132,32 +132,32 @@
 
     {{-- Complete Modal --}}
     <div id="modal-complete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl max-w-lg w-full p-6">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6">
             <form id="form-complete" method="POST">
                 @csrf
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Complete Maintenance Request</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Complete Maintenance Request</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Resolution Notes
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Resolution Notes
                             *</label>
                         <textarea name="resolution_notes" required rows="3"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                             placeholder="Describe what was done to fix the issue"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Cost
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Cost
                             (Optional)</label>
                         <input type="number" name="cost" step="0.01" min="0"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900"
                             placeholder="0.00">
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" onclick="closeCompleteModal()"
-                        class="px-4 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl">Cancel</button>
+                        class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-xl">Cancel</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-green-600 text-white rounded-xl hover:bg-green-700">Complete</button>
                 </div>

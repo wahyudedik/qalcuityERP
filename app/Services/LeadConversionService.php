@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * LeadConversionService - Prevent duplicate customer creation during lead conversion
- * 
+ *
  * BUG-CRM-001 FIX: Comprehensive duplicate detection before lead conversion
- * 
+ *
  * Problems Fixed:
  * 1. Incomplete duplicate check (only email OR name+company)
  * 2. No phone number duplicate detection
@@ -22,7 +22,7 @@ class LeadConversionService
 {
     /**
      * BUG-CRM-001 FIX: Comprehensive duplicate detection
-     * 
+     *
      * @param CrmLead $lead
      * @return array ['has_duplicates' => bool, 'duplicates' => array, 'suggestion' => string]
      */
@@ -107,8 +107,10 @@ class LeadConversionService
         // Check 4: Fuzzy name match (similar names)
         if ($lead->name) {
             $similarCustomers = Customer::where('tenant_id', $tid)
-                ->where('name', 'LIKE', '%' . $lead->name . '%')
-                ->orWhere('name', 'LIKE', '%' . str_replace(' ', '%', $lead->name) . '%')
+                ->where(function ($q) use ($lead) {
+                    $q->where('name', 'LIKE', '%' . $lead->name . '%')
+                        ->orWhere('name', 'LIKE', '%' . str_replace(' ', '%', $lead->name) . '%');
+                })
                 ->limit(5)
                 ->get();
 
@@ -182,7 +184,7 @@ class LeadConversionService
 
     /**
      * BUG-CRM-001 FIX: Convert lead to customer with duplicate prevention
-     * 
+     *
      * @param CrmLead $lead
      * @param bool $forceCreate Force create even if duplicates found
      * @param int|null $linkToCustomerId Link to existing customer instead of creating new

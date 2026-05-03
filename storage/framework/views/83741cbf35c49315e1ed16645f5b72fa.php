@@ -1,7 +1,7 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white dark:bg-slate-800']));
+$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white']));
 
 foreach ($attributes->all() as $__key => $__value) {
     if (in_array($__key, $__propNames)) {
@@ -16,7 +16,7 @@ $attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
 unset($__propNames);
 unset($__newAttributes);
 
-foreach (array_filter((['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white dark:bg-slate-800']), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
+foreach (array_filter((['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white']), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
 
@@ -66,7 +66,7 @@ $width = match ($width) {
             style="display: none;"
             @click="open = false"
             x-cloak>
-        <div class="rounded-lg ring-1 ring-black/5 dark:ring-white/10 <?php echo e($contentClasses); ?>">
+        <div class="rounded-lg ring-1 ring-black/5 <?php echo e($contentClasses); ?>">
             <?php echo e($content); ?>
 
         </div>

@@ -14,7 +14,7 @@ class CrmController extends Controller
     public function index(Request $request)
     {
         $tid = $this->tenantId();
-        $query = CrmLead::where('tenant_id', $tid)->with('assignedUser');
+        $query = CrmLead::where('tenant_id', $tid)->with(['assignedUser', 'convertedCustomer']);
 
         if ($request->stage) {
             $query->where('stage', $request->stage);
@@ -36,13 +36,13 @@ class CrmController extends Controller
             ->keyBy('stage');
 
         $wonThisMonth = CrmLead::where('tenant_id', $tid)
-            ->where('stage', 'won')
+            ->where('stage', CrmLead::STAGE_WON)
             ->whereMonth('updated_at', now()->month)
             ->sum('estimated_value');
 
         $followUpToday = CrmLead::where('tenant_id', $tid)
             ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))
-            ->whereNotIn('stage', ['won', 'lost'])
+            ->whereNotIn('stage', [CrmLead::STAGE_WON, CrmLead::STAGE_LOST])
             ->count();
 
         return view('crm.index', compact('leads', 'pipeline', 'wonThisMonth', 'followUpToday'));
@@ -86,8 +86,14 @@ class CrmController extends Controller
         ]);
 
         $prob = $data['probability'] ?? match ($data['stage']) {
-            'new' => 10, 'contacted' => 20, 'qualified' => 40,
-            'proposal' => 60, 'negotiation' => 80, 'won' => 100, 'lost' => 0, default => 10,
+            'new' => 10,
+            'contacted' => 20,
+            'qualified' => 40,
+            'proposal' => 60,
+            'negotiation' => 80,
+            'won' => 100,
+            'lost' => 0,
+            default => 10,
         };
 
         $lead->update([
@@ -191,7 +197,7 @@ class CrmController extends Controller
     {
         $tid = $this->tenantId();
 
-        $stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
+        $stages = CrmLead::STAGES;
         $leads = CrmLead::where('tenant_id', $tid)
             ->with(['activities' => fn($q) => $q->latest()->limit(1)])
             ->orderByDesc('estimated_value')
@@ -199,15 +205,15 @@ class CrmController extends Controller
             ->groupBy('stage');
 
         $stageStats = CrmLead::where('tenant_id', $tid)
-            ->whereNotIn('stage', ['won', 'lost'])
+            ->whereNotIn('stage', [CrmLead::STAGE_WON, CrmLead::STAGE_LOST])
             ->selectRaw('stage, count(*) as count, sum(estimated_value) as total_value')
             ->groupBy('stage')->get()->keyBy('stage');
 
-        $wonThisMonth = CrmLead::where('tenant_id', $tid)->where('stage', 'won')
+        $wonThisMonth = CrmLead::where('tenant_id', $tid)->where('stage', CrmLead::STAGE_WON)
             ->whereMonth('updated_at', now()->month)->sum('estimated_value');
         $followUpToday = CrmLead::where('tenant_id', $tid)
             ->whereHas('activities', fn($q) => $q->where('next_follow_up', '<=', today()))
-            ->whereNotIn('stage', ['won', 'lost'])->count();
+            ->whereNotIn('stage', [CrmLead::STAGE_WON, CrmLead::STAGE_LOST])->count();
 
         return view('crm.kanban', compact('leads', 'stages', 'stageStats', 'wonThisMonth', 'followUpToday'));
     }
@@ -219,8 +225,14 @@ class CrmController extends Controller
         $request->validate(['stage' => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost']);
 
         $prob = match ($request->stage) {
-            'new' => 10, 'contacted' => 20, 'qualified' => 40,
-            'proposal' => 60, 'negotiation' => 80, 'won' => 100, 'lost' => 0, default => 10,
+            'new' => 10,
+            'contacted' => 20,
+            'qualified' => 40,
+            'proposal' => 60,
+            'negotiation' => 80,
+            'won' => 100,
+            'lost' => 0,
+            default => 10,
         };
 
         $lead->update(['stage' => $request->stage, 'probability' => $prob, 'last_contact_at' => now()]);

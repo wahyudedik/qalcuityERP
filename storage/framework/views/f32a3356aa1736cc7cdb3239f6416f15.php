@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -24,13 +24,13 @@
     ?>
 
     
-    <div class="mb-5 flex items-center gap-4 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4">
+    <div class="mb-5 flex items-center gap-4 bg-white border border-gray-200 rounded-2xl px-5 py-4">
         <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
             <?php echo e(strtoupper(substr($user->name, 0, 1))); ?>
 
         </div>
         <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900 dark:text-white"><?php echo e($user->name); ?></p>
+            <p class="font-semibold text-gray-900"><?php echo e($user->name); ?></p>
             <p class="text-xs text-slate-400"><?php echo e($user->email); ?> &middot; Role: <span class="text-blue-400 font-medium"><?php echo e($user->roleLabel()); ?></span></p>
         </div>
         <div class="text-xs text-slate-500 text-right hidden sm:block">
@@ -58,9 +58,9 @@
                 ?>
                 <?php if(count($visibleModules) === 0): ?> <?php continue; ?> <?php endif; ?>
 
-                <div class="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+                <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                     
-                    <div class="px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03]">
+                    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400"><?php echo e($catLabel); ?></h3>
                     </div>
 
@@ -68,18 +68,18 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 dark:border-white/5">
+                                <tr class="border-b border-gray-100">
                                     <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 w-52">Modul</th>
                                     <?php $__currentLoopData = $actionLabels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $act => $lbl): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <th class="text-center px-4 py-2.5 text-xs font-semibold text-slate-500 w-20"><?php echo e($lbl); ?></th>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50 dark:divide-white/[0.03]">
+                            <tbody class="divide-y divide-gray-50">
                                 <?php $__currentLoopData = $visibleModules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <?php $actions = $modules[$module]; ?>
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition">
-                                        <td class="px-5 py-3 font-medium text-gray-800 dark:text-slate-200 text-sm">
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-5 py-3 font-medium text-gray-800 text-sm">
                                             <?php echo e(\App\Services\PermissionService::moduleLabel($module)); ?>
 
                                             <?php
@@ -111,7 +111,7 @@
                                                            <?php echo e($current ? 'checked' : ''); ?>
 
                                                            title="<?php echo e($isDefault ? 'Default role: izin' : 'Default role: tolak'); ?>"
-                                                           class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-500 bg-white dark:bg-white/10 focus:ring-blue-500 cursor-pointer accent-blue-500">
+                                                           class="w-4 h-4 rounded border-gray-300 text-blue-500 bg-white focus:ring-blue-500 cursor-pointer accent-blue-500">
                                                 <?php else: ?>
                                                     <span class="text-slate-700 text-xs">—</span>
                                                 <?php endif; ?>
@@ -134,7 +134,7 @@
             </button>
             <button type="button"
                     onclick="if(confirm('Reset semua izin ke default role <?php echo e($user->roleLabel()); ?>?')) document.getElementById('reset-form').submit()"
-                    class="px-6 py-2.5 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 text-sm font-semibold rounded-xl transition">
+                    class="px-6 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition">
                 Reset ke Default Role
             </button>
         </div>

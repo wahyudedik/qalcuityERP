@@ -1,4 +1,4 @@
-@props(['topic', 'field' => null])
+﻿@props(['topic', 'field' => null])
 
 {{-- 
     Help Form Field Component
@@ -21,7 +21,7 @@
     </div>
 
     @if ($field)
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" id="{{ $field }}-help">
+        <p class="mt-1 text-xs text-gray-500" id="{{ $field }}-help">
             Klik ikon <span class="text-blue-600">❓</span> untuk bantuan
         </p>
     @endif

@@ -1,5 +1,5 @@
-<div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 h-full">
-    <p class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Keuangan 6 Bulan Terakhir</p>
+﻿<div class="bg-white rounded-2xl border border-gray-200 p-5 h-full">
+    <p class="text-sm font-semibold text-gray-900 mb-4">Keuangan 6 Bulan Terakhir</p>
     <div style="height:200px;position:relative">
         <canvas id="financeChart"></canvas>
     </div>

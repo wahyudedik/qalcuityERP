@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Achievement & Gamification — Qalcuity ERP</x-slot>
     <x-slot name="header">Achievement & Gamification</x-slot>
 
@@ -62,9 +62,9 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
         {{-- Total Poin --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Poin</p>
+                <p class="text-xs font-medium text-gray-500">Total Poin</p>
                 <div class="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
@@ -72,14 +72,14 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['total_points']) }}</p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">poin terkumpul</p>
+            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_points']) }}</p>
+            <p class="text-xs text-gray-400 mt-1">poin terkumpul</p>
         </div>
 
         {{-- Level --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Level</p>
+                <p class="text-xs font-medium text-gray-500">Level</p>
                 <div class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
@@ -87,15 +87,15 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['level'] }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ $stats['level'] }}</p>
             <div class="mt-2">
                 <div class="flex items-center justify-between mb-1">
                     <span
-                        class="text-xs text-gray-400 dark:text-slate-500">{{ $stats['progress_to_next_level'] }}/{{ $stats['points_needed_for_next'] }}
+                        class="text-xs text-gray-400">{{ $stats['progress_to_next_level'] }}/{{ $stats['points_needed_for_next'] }}
                         poin</span>
                     <span class="text-xs font-medium text-indigo-400">{{ $stats['progress_percent'] }}%</span>
                 </div>
-                <div class="w-full bg-gray-200 dark:bg-white/10 rounded-full h-1.5">
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
                     <div class="bg-indigo-500 h-1.5 rounded-full transition-all duration-500"
                         style="width: {{ $stats['progress_percent'] }}%"></div>
                 </div>
@@ -103,9 +103,9 @@
         </div>
 
         {{-- Rank --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Peringkat</p>
+                <p class="text-xs font-medium text-gray-500">Peringkat</p>
                 <div class="w-9 h-9 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
@@ -113,14 +113,14 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">#{{ $stats['rank'] }}</p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">dari {{ $stats['total_users'] }} pengguna</p>
+            <p class="text-2xl font-bold text-gray-900">#{{ $stats['rank'] }}</p>
+            <p class="text-xs text-gray-400 mt-1">dari {{ $stats['total_users'] }} pengguna</p>
         </div>
 
         {{-- Achievement --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Achievement</p>
+                <p class="text-xs font-medium text-gray-500">Achievement</p>
                 <div class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
@@ -128,35 +128,35 @@
                     </svg>
                 </div>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['earned_achievements'] }}<span
-                    class="text-base font-normal text-gray-400 dark:text-slate-500">/{{ $stats['total_achievements'] }}</span>
+            <p class="text-2xl font-bold text-gray-900">{{ $stats['earned_achievements'] }}<span
+                    class="text-base font-normal text-gray-400">/{{ $stats['total_achievements'] }}</span>
             </p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">achievement terbuka</p>
+            <p class="text-xs text-gray-400 mt-1">achievement terbuka</p>
         </div>
 
     </div>
 
     {{-- Tab Navigation --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-1.5 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-200 p-1.5 mb-6">
         <div class="flex gap-1">
             <a href="{{ route('gamification.index') }}"
                 class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                      {{ $activeTab === 'all' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                      {{ $activeTab === 'all' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                 🏆 Semua
             </a>
             <a href="{{ route('gamification.achievements') }}"
                 class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                      {{ $activeTab === 'achievements' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                      {{ $activeTab === 'achievements' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                 🎖️ Achievement
             </a>
             <a href="{{ route('gamification.leaderboard') }}"
                 class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                      {{ $activeTab === 'leaderboard' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                      {{ $activeTab === 'leaderboard' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                 📊 Leaderboard
             </a>
             <a href="{{ route('gamification.points') }}"
                 class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                      {{ $activeTab === 'points' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white' }}">
+                      {{ $activeTab === 'points' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                 💰 Riwayat Poin
             </a>
         </div>
@@ -164,12 +164,12 @@
 
     {{-- Recent Achievements --}}
     @if (!($showLeaderboardOnly ?? false) && $stats['recent_achievements']->isNotEmpty())
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-6">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Achievement Terbaru</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Achievement Terbaru</h3>
             <div class="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                 @foreach ($stats['recent_achievements'] as $ua)
                     <div
-                        class="flex-shrink-0 flex flex-col items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 w-28 text-center">
+                        class="flex-shrink-0 flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 w-28 text-center">
                         <div
                             class="w-12 h-12 rounded-full flex items-center justify-center text-2xl
                     @php
@@ -177,9 +177,9 @@ $cat = $ua->achievement->category ?? 'general';
                         echo $categoryColors[$cat]['bg'] ?? 'bg-purple-500/20'; @endphp">
                             {{ $ua->achievement->icon ?? '🏆' }}
                         </div>
-                        <p class="text-xs font-medium text-gray-900 dark:text-white leading-tight line-clamp-2">
+                        <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">
                             {{ $ua->achievement->name }}</p>
-                        <p class="text-[10px] text-gray-400 dark:text-slate-500">
+                        <p class="text-[10px] text-gray-400">
                             {{ \Carbon\Carbon::parse($ua->earned_at)->format('d M Y') }}</p>
                     </div>
                 @endforeach
@@ -189,9 +189,9 @@ $cat = $ua->achievement->category ?? 'general';
 
     {{-- Leaderboard --}}
     @if (!($showAchievementsOnly ?? false))
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Leaderboard</h3>
+                <h3 class="text-sm font-semibold text-gray-900">Leaderboard</h3>
                 @if ($activeTab !== 'leaderboard')
                     <a href="{{ route('gamification.leaderboard') }}"
                         class="text-xs text-indigo-400 hover:text-indigo-300 transition">Lihat semua →</a>
@@ -200,7 +200,7 @@ $cat = $ua->achievement->category ?? 'general';
 
             @if ($leaderboard->isEmpty())
                 <div class="text-center py-8">
-                    <p class="text-sm text-gray-400 dark:text-slate-500">Belum ada data leaderboard</p>
+                    <p class="text-sm text-gray-400">Belum ada data leaderboard</p>
                 </div>
             @else
                 <div class="space-y-2">
@@ -215,8 +215,8 @@ $cat = $ua->achievement->category ?? 'general';
                                 default => null,
                             };
                             $rowClass = $isCurrentUser
-                                ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-xl'
-                                : 'hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition';
+                                ? 'bg-indigo-50 border border-indigo-200 rounded-xl'
+                                : 'hover:bg-gray-50 rounded-xl transition';
                         @endphp
                         <div class="flex items-center gap-3 px-3 py-2.5 {{ $rowClass }}">
                             {{-- Rank --}}
@@ -225,7 +225,7 @@ $cat = $ua->achievement->category ?? 'general';
                                     <span class="text-lg">{{ $medalEmoji }}</span>
                                 @else
                                     <span
-                                        class="text-sm font-semibold text-gray-500 dark:text-slate-400">#{{ $rank }}</span>
+                                        class="text-sm font-semibold text-gray-500">#{{ $rank }}</span>
                                 @endif
                             </div>
 
@@ -243,13 +243,13 @@ $cat = $ua->achievement->category ?? 'general';
                                 @endif
                                 <div class="min-w-0">
                                     <p
-                                        class="text-sm font-medium text-gray-900 dark:text-white truncate {{ $isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : '' }}">
+                                        class="text-sm font-medium text-gray-900 truncate {{ $isCurrentUser ? 'text-indigo-600' : '' }}">
                                         {{ $member->name }}
                                         @if ($isCurrentUser)
                                             <span class="text-xs text-indigo-400">(Kamu)</span>
                                         @endif
                                     </p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500 capitalize">
+                                    <p class="text-xs text-gray-400 capitalize">
                                         {{ $member->role }}
                                     </p>
                                 </div>
@@ -265,9 +265,9 @@ $cat = $ua->achievement->category ?? 'general';
 
                             {{-- Points --}}
                             <div class="shrink-0 text-right">
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">
+                                <p class="text-sm font-bold text-gray-900">
                                     {{ number_format($member->gamification_points) }}</p>
-                                <p class="text-xs text-gray-400 dark:text-slate-500">poin</p>
+                                <p class="text-xs text-gray-400">poin</p>
                             </div>
                         </div>
                     @endforeach
@@ -291,8 +291,8 @@ $cat = $ua->achievement->category ?? 'general';
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $colors['bg'] }} {{ $colors['text'] }} border {{ $colors['border'] }}">
                             {{ $label }}
                         </span>
-                        <div class="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
-                        <span class="text-xs text-gray-400 dark:text-slate-500">
+                        <div class="flex-1 h-px bg-gray-200"></div>
+                        <span class="text-xs text-gray-400">
                             {{ $achievements->filter(fn($a) => in_array($a->id, $earnedIds ?? []))->count() }}/{{ $achievements->count() }}
                             tercapai
                         </span>
@@ -312,7 +312,7 @@ $cat = $ua->achievement->category ?? 'general';
                                 class="relative rounded-2xl border overflow-hidden transition-all duration-200
                     {{ $earned
                         ? $colors['bg'] . ' ' . $colors['border'] . ' shadow-sm'
-                        : 'bg-white dark:bg-[#1e293b] border-gray-200 dark:border-white/10 opacity-70 hover:opacity-90' }}">
+                        : 'bg-white border-gray-200 opacity-70 hover:opacity-90' }}">
 
                                 {{-- Lock overlay for unearned --}}
                                 @if (!$earned)
@@ -333,9 +333,9 @@ $cat = $ua->achievement->category ?? 'general';
                                     <div class="text-3xl mb-3 leading-none">{{ $achievement->icon ?? '🏆' }}</div>
 
                                     {{-- Name & Desc --}}
-                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                                    <h4 class="text-sm font-semibold text-gray-900 mb-1">
                                         {{ $achievement->name }}</h4>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed mb-3">
+                                    <p class="text-xs text-gray-500 leading-relaxed mb-3">
                                         {{ $achievement->description }}</p>
 
                                     {{-- Points Badge --}}
@@ -357,18 +357,18 @@ $cat = $ua->achievement->category ?? 'general';
                                         @else
                                             {{-- Progress --}}
                                             <span
-                                                class="text-xs text-gray-400 dark:text-slate-500">{{ $progress }}/{{ $target }}</span>
+                                                class="text-xs text-gray-400">{{ $progress }}/{{ $target }}</span>
                                         @endif
                                     </div>
 
                                     {{-- Progress Bar (only for unearned) --}}
                                     @if (!$earned)
                                         <div class="mt-3">
-                                            <div class="w-full bg-gray-200 dark:bg-white/10 rounded-full h-1.5">
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5">
                                                 <div class="h-1.5 rounded-full transition-all duration-500 {{ $colors['badge'] }}"
                                                     style="width: {{ $pct }}%"></div>
                                             </div>
-                                            <p class="text-[10px] text-gray-400 dark:text-slate-500 mt-1 text-right">
+                                            <p class="text-[10px] text-gray-400 mt-1 text-right">
                                                 {{ $pct }}%</p>
                                         </div>
                                     @endif
@@ -381,10 +381,10 @@ $cat = $ua->achievement->category ?? 'general';
 
             @if ($grouped->isEmpty())
                 <div
-                    class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
+                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <div class="text-5xl mb-4">🎖️</div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Belum ada achievement</p>
-                    <p class="text-xs text-gray-400 dark:text-slate-500">Achievement akan muncul setelah dikonfigurasi
+                    <p class="text-sm font-medium text-gray-900 mb-1">Belum ada achievement</p>
+                    <p class="text-xs text-gray-400">Achievement akan muncul setelah dikonfigurasi
                         oleh admin.</p>
                 </div>
             @endif
@@ -393,21 +393,21 @@ $cat = $ua->achievement->category ?? 'general';
 
     {{-- Points History --}}
     @if (!empty($showPointsHistory))
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Riwayat Poin</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Riwayat Poin</h3>
             @if (isset($points) && $points->isNotEmpty())
                 <div class="space-y-2">
                     @foreach ($points as $log)
                         <div
-                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div
                                     class="w-8 h-8 rounded-full {{ $log->points > 0 ? 'bg-emerald-500/20' : 'bg-red-500/20' }} flex items-center justify-center shrink-0">
                                     <span class="text-sm">{{ $log->points > 0 ? '⬆' : '⬇' }}</span>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-900 dark:text-white">{{ $log->reason }}</p>
-                                    <p class="text-xs text-gray-400 dark:text-slate-500">
+                                    <p class="text-sm text-gray-900">{{ $log->reason }}</p>
+                                    <p class="text-xs text-gray-400">
                                         {{ $log->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
@@ -421,7 +421,7 @@ $cat = $ua->achievement->category ?? 'general';
             @else
                 <div class="text-center py-10">
                     <div class="text-4xl mb-3">💰</div>
-                    <p class="text-sm text-gray-400 dark:text-slate-500">Belum ada riwayat poin.</p>
+                    <p class="text-sm text-gray-400">Belum ada riwayat poin.</p>
                 </div>
             @endif
         </div>

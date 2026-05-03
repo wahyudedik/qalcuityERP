@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Rekonsiliasi Bank</x-slot>
 
     @push('styles')
@@ -25,37 +25,37 @@
 
         {{-- Summary Stats --}}
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Total Mutasi</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $summary['total'] }}</p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <p class="text-xs text-gray-500">Total Mutasi</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $summary['total'] }}</p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Matched</p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <p class="text-xs text-gray-500">Matched</p>
                 <p class="text-2xl font-bold text-green-500 mt-1">{{ $summary['matched'] }}</p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Unmatched</p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <p class="text-xs text-gray-500">Unmatched</p>
                 <p class="text-2xl font-bold text-amber-500 mt-1">{{ $summary['unmatched'] }}</p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Total Kredit</p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <p class="text-xs text-gray-500">Total Kredit</p>
                 <p class="text-lg font-bold text-green-500 mt-1">Rp {{ number_format($summary['credit'], 0, ',', '.') }}
                 </p>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400">Total Debit</p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <p class="text-xs text-gray-500">Total Debit</p>
                 <p class="text-lg font-bold text-red-500 mt-1">Rp {{ number_format($summary['debit'], 0, ',', '.') }}
                 </p>
             </div>
         </div>
 
         {{-- Filter Bar --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Rekening</label>
+                    <label class="block text-xs text-gray-500 mb-1">Rekening</label>
                     <select name="account_id"
-                        class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Semua Rekening</option>
                         @foreach ($accounts as $acc)
                             <option value="{{ $acc->id }}" @selected(request('account_id') == $acc->id)>{{ $acc->bank_name }} —
@@ -64,45 +64,45 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Status</label>
+                    <label class="block text-xs text-gray-500 mb-1">Status</label>
                     <select name="status"
-                        class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Semua</option>
                         <option value="unmatched" @selected(request('status') === 'unmatched')>Unmatched</option>
                         <option value="matched" @selected(request('status') === 'matched')>Matched</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Dari</label>
+                    <label class="block text-xs text-gray-500 mb-1">Dari</label>
                     <input type="date" name="from" value="{{ request('from') }}"
-                        class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1">Sampai</label>
+                    <label class="block text-xs text-gray-500 mb-1">Sampai</label>
                     <input type="date" name="to" value="{{ request('to') }}"
-                        class="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button type="submit"
                     class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm hover:bg-blue-700">Filter</button>
                 @if (request()->hasAny(['account_id', 'status', 'from', 'to']))
                     <a href="{{ route('bank.reconciliation') }}"
-                        class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Reset</a>
+                        class="px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50">Reset</a>
                 @endif
             </form>
         </div>
 
         {{-- Import CSV/PDF --}}
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Import Mutasi Rekening</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-4">Import Mutasi Rekening</h2>
             <form method="POST" action="{{ route('bank.import') }}" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {{-- Bank Account --}}
                     <div>
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Rekening Bank <span
+                        <label class="block text-xs text-gray-500 mb-1.5">Rekening Bank <span
                                 class="text-red-500">*</span></label>
                         <select name="bank_account_id" required
-                            class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                             <option value="">Pilih rekening</option>
                             @foreach ($accounts as $acc)
                                 <option value="{{ $acc->id }}">{{ $acc->bank_name }} —
@@ -113,9 +113,9 @@
 
                     {{-- Bank Format --}}
                     <div>
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Format Bank</label>
+                        <label class="block text-xs text-gray-500 mb-1.5">Format Bank</label>
                         <select name="bank_format" id="bank_format"
-                            class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                             <option value="">Auto-Detect</option>
                             <option value="bca">BCA KlikBCA</option>
                             <option value="mandiri">Mandiri CIB</option>
@@ -123,18 +123,18 @@
                             <option value="bri">BRI Internet Banking</option>
                             <option value="generic">Generic/Universal</option>
                         </select>
-                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Kosongkan untuk auto-detect (CSV only)
+                        <p class="text-xs text-gray-400 mt-1">Kosongkan untuk auto-detect (CSV only)
                         </p>
                     </div>
 
                     {{-- File Upload with Drag & Drop --}}
                     <div class="sm:col-span-2">
-                        <label class="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">File Mutasi <span
+                        <label class="block text-xs text-gray-500 mb-1.5">File Mutasi <span
                                 class="text-red-500">*</span></label>
 
                         {{-- Drag & Drop Zone --}}
                         <div id="drop-zone"
-                            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                            class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
                             onclick="document.getElementById('file-input').click()">
 
                             <input type="file" name="csv_file" id="file-input"
@@ -148,11 +148,11 @@
                                         d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
-                                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <span class="font-medium text-blue-600 dark:text-blue-400">Klik untuk upload</span>
+                                <p class="mt-2 text-sm text-gray-600">
+                                    <span class="font-medium text-blue-600">Klik untuk upload</span>
                                     atau drag & drop
                                 </p>
-                                <p class="mt-1 text-xs text-gray-500 dark:text-slate-500">
+                                <p class="mt-1 text-xs text-gray-500">
                                     CSV, TXT, PDF, JPG, PNG (Max 10MB)
                                 </p>
                             </div>
@@ -166,9 +166,9 @@
                                             d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                     </svg>
                                     <div class="text-left">
-                                        <p id="file-name" class="text-sm font-medium text-gray-900 dark:text-white">
+                                        <p id="file-name" class="text-sm font-medium text-gray-900">
                                         </p>
-                                        <p id="file-size" class="text-xs text-gray-500 dark:text-slate-400"></p>
+                                        <p id="file-size" class="text-xs text-gray-500"></p>
                                     </div>
                                     <button type="button" onclick="clearFile(event)"
                                         class="ml-4 text-red-500 hover:text-red-700">
@@ -186,7 +186,7 @@
 
                 {{-- Help & Samples --}}
                 <div
-                    class="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4">
+                    class="bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -194,31 +194,31 @@
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div class="flex-1">
-                            <p class="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Format File yang
+                            <p class="text-sm font-medium text-blue-700 mb-2">Format File yang
                                 Didukung:</p>
                             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                                 <a href="{{ route('bank.sample', 'bca') }}"
-                                    class="text-xs px-3 py-2 bg-white dark:bg-white/5 border border-blue-200 dark:border-blue-500/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition text-center">
+                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition text-center">
                                     📄 BCA CSV
                                 </a>
                                 <a href="{{ route('bank.sample', 'mandiri') }}"
-                                    class="text-xs px-3 py-2 bg-white dark:bg-white/5 border border-blue-200 dark:border-blue-500/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-500/20 transition text-center">
+                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition text-center">
                                     📄 Mandiri CSV
                                 </a>
                                 <div
-                                    class="text-xs px-3 py-2 bg-white dark:bg-white/5 border border-blue-200 dark:border-blue-500/20 rounded-lg text-center">
+                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     📑 PDF Bank
                                 </div>
                                 <div
-                                    class="text-xs px-3 py-2 bg-white dark:bg-white/5 border border-blue-200 dark:border-blue-500/20 rounded-lg text-center">
+                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     🖼️ Screenshot
                                 </div>
                                 <div
-                                    class="text-xs px-3 py-2 bg-white dark:bg-white/5 border border-blue-200 dark:border-blue-500/20 rounded-lg text-center">
+                                    class="text-xs px-3 py-2 bg-white border border-blue-200 rounded-lg text-center">
                                     📸 Foto Mutasi
                                 </div>
                             </div>
-                            <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">💡 PDF dan gambar akan diproses
+                            <p class="text-xs text-blue-600 mt-2">💡 PDF dan gambar akan diproses
                                 dengan AI OCR (Gemini Vision)</p>
                         </div>
                     </div>
@@ -242,7 +242,7 @@
         @php $unmatchedCount = $statements->where('status','unmatched')->count(); @endphp
         @if ($unmatchedCount > 0)
             <div id="ai-banner"
-                class="bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                class="bg-purple-50 border border-purple-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-purple-500 shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -250,9 +250,9 @@
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 01-4.95 0l-.347-.347z" />
                     </svg>
                     <div>
-                        <p class="text-sm font-semibold text-purple-700 dark:text-purple-300">{{ $unmatchedCount }}
+                        <p class="text-sm font-semibold text-purple-700">{{ $unmatchedCount }}
                             transaksi belum dicocokkan</p>
-                        <p class="text-xs text-purple-600 dark:text-purple-400">AI mencocokkan berdasarkan jumlah,
+                        <p class="text-xs text-purple-600">AI mencocokkan berdasarkan jumlah,
                             tanggal, deskripsi, dan referensi</p>
                     </div>
                 </div>
@@ -271,7 +271,7 @@
         @php $processableCount = $statements->whereIn('status', ['unmatched', 'matched'])->count(); @endphp
         @if ($processableCount > 0)
             <div id="auto-generate-banner"
-                class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-indigo-500 shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -279,9 +279,9 @@
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <div>
-                        <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{{ $processableCount }}
+                        <p class="text-sm font-semibold text-indigo-700">{{ $processableCount }}
                             statements siap di-generate journals</p>
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400">AI akan generate dan post journals
+                        <p class="text-xs text-indigo-600">AI akan generate dan post journals
                             otomatis di background</p>
                     </div>
                 </div>
@@ -308,10 +308,10 @@
             {{-- Auto-Generate Progress Modal --}}
             <div id="auto-generate-progress"
                 class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl">
+                <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl">
                     <div
-                        class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                        <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                             <svg class="w-5 h-5 text-indigo-500 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10"
                                     stroke="currentColor" stroke-width="4" />
@@ -326,11 +326,11 @@
                         <div>
                             <div class="flex justify-between text-sm mb-2">
                                 <span id="progress-status"
-                                    class="text-gray-600 dark:text-gray-400">Initializing...</span>
+                                    class="text-gray-600">Initializing...</span>
                                 <span id="progress-percentage"
-                                    class="font-medium text-indigo-600 dark:text-indigo-400">0%</span>
+                                    class="font-medium text-indigo-600">0%</span>
                             </div>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="w-full bg-gray-200 rounded-full h-3">
                                 <div id="progress-bar-main"
                                     class="bg-indigo-600 h-3 rounded-full transition-all duration-500"
                                     style="width: 0%"></div>
@@ -339,28 +339,28 @@
 
                         {{-- Stats --}}
                         <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3 text-center">
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Processed</p>
-                                <p id="stat-processed" class="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                            <div class="bg-gray-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-gray-500">Processed</p>
+                                <p id="stat-processed" class="text-2xl font-bold text-gray-900">0</p>
                             </div>
-                            <div class="bg-green-50 dark:bg-green-500/10 rounded-xl p-3 text-center">
-                                <p class="text-xs text-green-600 dark:text-green-400">Success</p>
-                                <p id="stat-success" class="text-2xl font-bold text-green-600 dark:text-green-400">0
+                            <div class="bg-green-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-green-600">Success</p>
+                                <p id="stat-success" class="text-2xl font-bold text-green-600">0
                                 </p>
                             </div>
-                            <div class="bg-red-50 dark:bg-red-500/10 rounded-xl p-3 text-center">
-                                <p class="text-xs text-red-600 dark:text-red-400">Failed</p>
-                                <p id="stat-failed" class="text-2xl font-bold text-red-600 dark:text-red-400">0</p>
+                            <div class="bg-red-50 rounded-xl p-3 text-center">
+                                <p class="text-xs text-red-600">Failed</p>
+                                <p id="stat-failed" class="text-2xl font-bold text-red-600">0</p>
                             </div>
                         </div>
 
                         {{-- Job ID --}}
-                        <div class="text-xs text-gray-500 dark:text-slate-400">
+                        <div class="text-xs text-gray-500">
                             <p>Job ID: <span id="job-id-display" class="font-mono"></span></p>
                         </div>
                     </div>
 
-                    <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10">
+                    <div class="px-6 py-4 border-t border-gray-200">
                         <button id="btn-view-results" onclick="viewJobResults()"
                             class="hidden w-full py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">
                             View Results
@@ -372,10 +372,10 @@
 
         {{-- Statements Table --}}
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between flex-wrap gap-2">
-                <h2 class="font-semibold text-gray-900 dark:text-white">Mutasi Rekening</h2>
+                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+                <h2 class="font-semibold text-gray-900">Mutasi Rekening</h2>
                 <div class="flex gap-2 text-xs">
                     <span
                         class="px-2 py-1 bg-green-500/20 text-green-400 rounded-full">{{ $statements->where('status', 'matched')->count() }}
@@ -388,10 +388,10 @@
 
             {{-- Bulk Action Toolbar --}}
             <div id="bulk-toolbar"
-                class="hidden px-6 py-3 bg-blue-50 dark:bg-blue-500/10 border-b border-blue-200 dark:border-blue-500/20">
+                class="hidden px-6 py-3 bg-blue-50 border-b border-blue-200">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span id="selected-count" class="text-sm font-medium text-blue-700 dark:text-blue-300">0
+                        <span id="selected-count" class="text-sm font-medium text-blue-700">0
                             dipilih</span>
                         <button onclick="generateSelectedJournals()"
                             class="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
@@ -411,27 +411,27 @@
                         </button>
                     </div>
                     <button onclick="clearSelection()"
-                        class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                        class="text-sm text-gray-600 hover:text-gray-900">
                         Batal
                     </button>
                 </div>
                 {{-- Progress Bar --}}
                 <div id="bulk-progress" class="hidden mt-3">
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
                         <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
                             style="width: 0%"></div>
                     </div>
-                    <p id="progress-text" class="text-xs text-gray-600 dark:text-gray-400 mt-1">Memproses...</p>
+                    <p id="progress-text" class="text-xs text-gray-600 mt-1">Memproses...</p>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
                             <th class="px-4 py-3 text-center w-10">
                                 <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)"
-                                    class="rounded border-gray-300 dark:border-gray-600">
+                                    class="rounded border-gray-300">
                             </th>
                             <th class="px-4 py-3 text-left">Tanggal</th>
                             <th class="px-4 py-3 text-left hidden sm:table-cell">Rekening</th>
@@ -443,28 +443,28 @@
                             <th class="px-4 py-3 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                    <tbody class="divide-y divide-gray-100">
                         @forelse($statements as $stmt)
                             <tr id="row-{{ $stmt->id }}"
-                                class="hover:bg-gray-50 dark:hover:bg-white/5 transition"
+                                class="hover:bg-gray-50 transition"
                                 data-statement-id="{{ $stmt->id }}" data-status="{{ $stmt->status }}">
                                 <td class="px-4 py-3 text-center">
                                     @if ($stmt->status !== 'journalized')
                                         <input type="checkbox"
-                                            class="stmt-checkbox rounded border-gray-300 dark:border-gray-600"
+                                            class="stmt-checkbox rounded border-gray-300"
                                             value="{{ $stmt->id }}" onchange="updateBulkToolbar()">
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-gray-500 dark:text-slate-400 whitespace-nowrap text-xs">
+                                <td class="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
                                     {{ $stmt->transaction_date->format('d M Y') }}
                                 </td>
-                                <td class="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs hidden sm:table-cell">
+                                <td class="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">
                                     {{ $stmt->bankAccount?->bank_name }}
                                 </td>
-                                <td class="px-4 py-3 text-gray-900 dark:text-white max-w-xs">
+                                <td class="px-4 py-3 text-gray-900 max-w-xs">
                                     <p class="truncate text-sm">{{ $stmt->description }}</p>
                                     @if ($stmt->reference)
-                                        <p class="text-xs text-gray-400 dark:text-slate-500">Ref:
+                                        <p class="text-xs text-gray-400">Ref:
                                             {{ $stmt->reference }}</p>
                                     @endif
                                 </td>
@@ -496,7 +496,7 @@
                                 {{-- AI Match Column --}}
                                 <td class="px-4 py-3 min-w-[200px]">
                                     @if ($stmt->status === 'matched' || $stmt->status === 'journalized')
-                                        <span class="text-xs text-gray-400 dark:text-slate-500">—</span>
+                                        <span class="text-xs text-gray-400">—</span>
                                     @else
                                         <div id="ai-cell-{{ $stmt->id }}" class="text-xs text-slate-400 italic">
                                             Menunggu...</div>
@@ -536,7 +536,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-6 py-10 text-center text-gray-400 dark:text-slate-500">
+                                <td colspan="9" class="px-6 py-10 text-center text-gray-400">
                                     Belum ada data mutasi. Import file CSV terlebih dahulu.
                                 </td>
                             </tr>
@@ -544,7 +544,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="px-6 py-4 border-t border-gray-200 dark:border-white/10">
+            <div class="px-6 py-4 border-t border-gray-200">
                 {{ $statements->links() }}
             </div>
         </div>
@@ -552,10 +552,10 @@
 
     {{-- AI Match Detail Modal --}}
     <div id="modal-ai-match" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 01-4.95 0l-.347-.347z" />
@@ -563,7 +563,7 @@
                     AI Match Detail
                 </h3>
                 <button onclick="document.getElementById('modal-ai-match').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div id="modal-ai-body" class="p-6">
                 <div class="flex items-center justify-center py-8">
@@ -579,28 +579,28 @@
 
     {{-- Manual Match Modal --}}
     <div id="modal-manual-match" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Manual Match</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Manual Match</h3>
                 <button onclick="document.getElementById('modal-manual-match').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div class="p-6">
                 <div
-                    class="mb-4 bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Mutasi Bank</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white" id="manual-stmt-desc"></p>
+                    class="mb-4 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                    <p class="text-xs text-gray-500 mb-1">Mutasi Bank</p>
+                    <p class="text-sm font-medium text-gray-900" id="manual-stmt-desc"></p>
                     <p class="text-sm font-bold text-blue-500 mt-1" id="manual-stmt-amount"></p>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mb-2 uppercase font-semibold">Pilih Transaksi ERP
+                <p class="text-xs text-gray-500 mb-2 uppercase font-semibold">Pilih Transaksi ERP
                 </p>
                 <div class="space-y-2 max-h-60 overflow-y-auto" id="manual-erp-list">
                     @forelse($unmatchedErp ?? collect() as $erp)
                         <button onclick="applyManualMatch({{ $erp['id'] }})"
-                            class="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/40 transition text-left">
+                            class="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-400 transition text-left">
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                <p class="text-sm font-medium text-gray-900 truncate">
                                     {{ $erp['number'] }}</p>
                                 <p class="text-xs text-gray-400 truncate">{{ $erp['date'] }} ·
                                     {{ Str::limit($erp['description'], 50) }}</p>
@@ -611,7 +611,7 @@
                             </span>
                         </button>
                     @empty
-                        <p class="text-sm text-gray-400 dark:text-slate-500 text-center py-4">Tidak ada transaksi ERP
+                        <p class="text-sm text-gray-400 text-center py-4">Tidak ada transaksi ERP
                             yang tersedia. Pastikan sudah ada jurnal yang diposting.</p>
                     @endforelse
                 </div>
@@ -626,10 +626,10 @@
     {{-- Journal Preview Modal --}}
     <div id="modal-journal-preview"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b] z-10">
-                <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <h3 class="font-semibold text-gray-900 flex items-center gap-2">
                     <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -637,7 +637,7 @@
                     Preview Journal Entry
                 </h3>
                 <button onclick="closeJournalModal()"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
             <div id="modal-journal-body" class="p-6">
@@ -650,26 +650,26 @@
                                 stroke-width="4" />
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                         </svg>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Generating journal with AI...</p>
+                        <p class="text-sm text-gray-600">Generating journal with AI...</p>
                     </div>
                 </div>
 
                 <!-- Preview Content -->
                 <div id="journal-content" class="hidden space-y-4">
                     <!-- Statement Info -->
-                    <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/10">
+                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <div class="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal</p>
-                                <p class="font-medium text-gray-900 dark:text-white" id="journal-date"></p>
+                                <p class="text-xs text-gray-500">Tanggal</p>
+                                <p class="font-medium text-gray-900" id="journal-date"></p>
                             </div>
                             <div>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Jumlah</p>
+                                <p class="text-xs text-gray-500">Jumlah</p>
                                 <p class="font-bold text-blue-500" id="journal-amount"></p>
                             </div>
                             <div class="col-span-2">
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Deskripsi</p>
-                                <p class="font-medium text-gray-900 dark:text-white" id="journal-description"></p>
+                                <p class="text-xs text-gray-500">Deskripsi</p>
+                                <p class="font-medium text-gray-900" id="journal-description"></p>
                             </div>
                         </div>
                     </div>
@@ -678,28 +678,28 @@
                     <div class="flex items-center gap-3">
                         <span id="journal-confidence"
                             class="px-3 py-1 rounded-full text-sm font-medium border"></span>
-                        <p class="text-xs text-gray-600 dark:text-gray-400" id="journal-ai-basis"></p>
+                        <p class="text-xs text-gray-600" id="journal-ai-basis"></p>
                     </div>
 
                     <!-- Warnings -->
                     <div id="journal-warnings"
-                        class="hidden bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4">
-                        <p class="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2">⚠️ Peringatan:</p>
-                        <ul id="warning-list" class="space-y-1 text-sm text-amber-700 dark:text-amber-300"></ul>
+                        class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-amber-600 mb-2">⚠️ Peringatan:</p>
+                        <ul id="warning-list" class="space-y-1 text-sm text-amber-700"></ul>
                     </div>
 
                     <!-- Journal Lines (Editable) -->
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-white">Journal Lines</p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">Klik account untuk edit</p>
+                            <p class="text-sm font-semibold text-gray-900">Journal Lines</p>
+                            <p class="text-xs text-gray-500">Klik account untuk edit</p>
                         </div>
                         <div id="journal-lines" class="space-y-2"></div>
                     </div>
 
                     <!-- Balance Check -->
                     <div id="balance-check"
-                        class="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4">
+                        class="bg-green-50 border border-green-200 rounded-xl p-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor"
@@ -707,12 +707,12 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7" />
                                 </svg>
-                                <span class="text-sm font-medium text-green-700 dark:text-green-300">Journal
+                                <span class="text-sm font-medium text-green-700">Journal
                                     Balance</span>
                             </div>
                             <div class="text-right">
-                                <p class="text-xs text-gray-500 dark:text-slate-400">Total Debit = Total Credit</p>
-                                <p class="text-lg font-bold text-green-600 dark:text-green-400" id="balance-amount">
+                                <p class="text-xs text-gray-500">Total Debit = Total Credit</p>
+                                <p class="text-lg font-bold text-green-600" id="balance-amount">
                                 </p>
                             </div>
                         </div>
@@ -722,14 +722,14 @@
 
             <!-- Footer Actions -->
             <div id="journal-footer"
-                class="hidden px-6 py-4 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 rounded-b-2xl">
+                class="hidden px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
                 <div class="flex items-center justify-end gap-3">
                     <button onclick="closeJournalModal()"
-                        class="px-4 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition">
+                        class="px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
                         Batal
                     </button>
                     <button onclick="regenerateJournal()"
-                        class="px-4 py-2 border border-indigo-200 dark:border-indigo-500/20 rounded-xl text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition">
+                        class="px-4 py-2 border border-indigo-200 rounded-xl text-sm text-indigo-600 hover:bg-indigo-50 transition">
                         Regenerate
                     </button>
                     <button id="btn-approve-post" onclick="approveAndPostJournal()"
@@ -814,18 +814,18 @@
                         `
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/20 shrink-0">✓ ${result.confidence}%</span>
-                    <span class="text-gray-700 dark:text-slate-300 truncate max-w-[130px] text-xs">${tx.number ?? tx.description ?? ''}</span>
+                    <span class="text-gray-700 truncate max-w-[130px] text-xs">${tx.number ?? tx.description ?? ''}</span>
                 </div>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-tight">${result.reasons.slice(0,2).join(' · ')}</p>`;
+                <p class="text-xs text-gray-400 mt-0.5 leading-tight">${result.reasons.slice(0,2).join(' · ')}</p>`;
                 } else if (result.status === 'suggestion') {
                     const tx = result.transaction;
                     cell.innerHTML =
                         `
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2 py-0.5 rounded-full text-xs bg-amber-500/20 text-amber-400 border border-amber-500/20 shrink-0">~ ${result.confidence}%</span>
-                    <span class="text-gray-700 dark:text-slate-300 truncate max-w-[130px] text-xs">${tx.number ?? tx.description ?? ''}</span>
+                    <span class="text-gray-700 truncate max-w-[130px] text-xs">${tx.number ?? tx.description ?? ''}</span>
                 </div>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-tight">${result.reasons.slice(0,2).join(' · ')}</p>`;
+                <p class="text-xs text-gray-400 mt-0.5 leading-tight">${result.reasons.slice(0,2).join(' · ')}</p>`;
                 } else {
                     const flag = result.flags?.[0] ?? 'Tidak ditemukan kecocokan';
                     cell.innerHTML = `
@@ -908,14 +908,14 @@
                     const tx = result.transaction;
                     const canApply = result.status !== 'unmatched';
                     txBlock = `
-                <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-4 mb-4 border border-gray-200 dark:border-white/10">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-2 uppercase font-semibold">Kandidat Terbaik</p>
+                <div class="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
+                    <p class="text-xs text-gray-500 mb-2 uppercase font-semibold">Kandidat Terbaik</p>
                     <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div><p class="text-xs text-gray-400">No. Transaksi</p><p class="font-medium text-gray-900 dark:text-white">${tx.number ?? '—'}</p></div>
-                        <div><p class="text-xs text-gray-400">Tanggal</p><p class="font-medium text-gray-900 dark:text-white">${tx.date ?? '—'}</p></div>
-                        <div><p class="text-xs text-gray-400">Jumlah</p><p class="font-medium text-gray-900 dark:text-white">Rp ${Number(tx.amount).toLocaleString('id-ID')}</p></div>
-                        <div><p class="text-xs text-gray-400">Tipe</p><p class="font-medium text-gray-900 dark:text-white">${tx.type ?? '—'}</p></div>
-                        <div class="col-span-2"><p class="text-xs text-gray-400">Deskripsi</p><p class="font-medium text-gray-900 dark:text-white">${tx.description ?? '—'}</p></div>
+                        <div><p class="text-xs text-gray-400">No. Transaksi</p><p class="font-medium text-gray-900">${tx.number ?? '—'}</p></div>
+                        <div><p class="text-xs text-gray-400">Tanggal</p><p class="font-medium text-gray-900">${tx.date ?? '—'}</p></div>
+                        <div><p class="text-xs text-gray-400">Jumlah</p><p class="font-medium text-gray-900">Rp ${Number(tx.amount).toLocaleString('id-ID')}</p></div>
+                        <div><p class="text-xs text-gray-400">Tipe</p><p class="font-medium text-gray-900">${tx.type ?? '—'}</p></div>
+                        <div class="col-span-2"><p class="text-xs text-gray-400">Deskripsi</p><p class="font-medium text-gray-900">${tx.description ?? '—'}</p></div>
                     </div>
                     ${canApply ? `<button onclick="applyMatch(${id}, ${tx.id})"
                                                         class="mt-3 w-full py-2 bg-green-600 text-white text-sm rounded-xl hover:bg-green-700 transition font-medium">
@@ -926,27 +926,27 @@
 
                 const reasonsBlock = result.reasons?.length ? `
             <div class="mb-4">
-                <p class="text-xs text-gray-500 dark:text-slate-400 uppercase font-semibold mb-2">Alasan Kecocokan</p>
+                <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Alasan Kecocokan</p>
                 <ul class="space-y-1">
-                    ${result.reasons.map(r => `<li class="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300"><span class="text-green-400">✓</span>${r}</li>`).join('')}
+                    ${result.reasons.map(r => `<li class="flex items-center gap-2 text-sm text-gray-700"><span class="text-green-400">✓</span>${r}</li>`).join('')}
                 </ul>
             </div>` : '';
 
                 const flagsBlock = (result.flags?.length || result.explanation) ? `
-            <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 mb-4">
-                <p class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase mb-2">Alasan Tidak Cocok</p>
-                ${(result.flags ?? []).map(f => `<p class="text-sm text-red-700 dark:text-red-300 flex items-start gap-2 mb-1"><span class="shrink-0">⚠</span>${f}</p>`).join('')}
-                ${result.explanation ? `<p class="text-sm text-red-600 dark:text-red-400 mt-2 italic">${result.explanation}</p>` : ''}
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p class="text-xs font-semibold text-red-600 uppercase mb-2">Alasan Tidak Cocok</p>
+                ${(result.flags ?? []).map(f => `<p class="text-sm text-red-700 flex items-start gap-2 mb-1"><span class="shrink-0">⚠</span>${f}</p>`).join('')}
+                ${result.explanation ? `<p class="text-sm text-red-600 mt-2 italic">${result.explanation}</p>` : ''}
             </div>` : '';
 
                 const altBlock = result.alternatives?.length ? `
             <div>
-                <p class="text-xs text-gray-500 dark:text-slate-400 uppercase font-semibold mb-2">Alternatif Lain</p>
+                <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Alternatif Lain</p>
                 <div class="space-y-2">
                     ${result.alternatives.map(alt => `
-                                                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                                                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
                                                         <div class="text-sm min-w-0 flex-1 mr-3">
-                                                            <p class="font-medium text-gray-900 dark:text-white truncate">${alt.number ?? alt.description ?? '—'}</p>
+                                                            <p class="font-medium text-gray-900 truncate">${alt.number ?? alt.description ?? '—'}</p>
                                                             <p class="text-xs text-gray-400">${alt.date} · Rp ${Number(alt.amount).toLocaleString('id-ID')}</p>
                                                         </div>
                                                         <div class="flex items-center gap-2 shrink-0">
@@ -1123,35 +1123,35 @@
 
                 if (!preview.is_balanced) {
                     document.getElementById('balance-check').className =
-                        'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4';
+                        'bg-red-50 border border-red-200 rounded-xl p-4';
                     document.getElementById('balance-check').querySelector('span').textContent = 'Journal TIDAK Balance!';
                     document.getElementById('balance-check').querySelector('span').className =
-                        'text-sm font-medium text-red-700 dark:text-red-300';
+                        'text-sm font-medium text-red-700';
                 } else {
                     document.getElementById('balance-check').className =
-                        'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4';
+                        'bg-green-50 border border-green-200 rounded-xl p-4';
                     document.getElementById('balance-check').querySelector('span').textContent = 'Journal Balance';
                     document.getElementById('balance-check').querySelector('span').className =
-                        'text-sm font-medium text-green-700 dark:text-green-300';
+                        'text-sm font-medium text-green-700';
                 }
             }
 
             function renderJournalLines(lines) {
                 const container = document.getElementById('journal-lines');
                 container.innerHTML = lines.map((line, index) => `
-                    <div class="grid grid-cols-12 gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10" data-line-index="${index}">
+                    <div class="grid grid-cols-12 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200" data-line-index="${index}">
                         <div class="col-span-5">
-                            <label class="text-xs text-gray-500 dark:text-slate-400">Account</label>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">${line.account_code} - ${line.account_name}</p>
+                            <label class="text-xs text-gray-500">Account</label>
+                            <p class="text-sm font-medium text-gray-900">${line.account_code} - ${line.account_name}</p>
                         </div>
                         <div class="col-span-3">
-                            <label class="text-xs text-gray-500 dark:text-slate-400">Debit</label>
+                            <label class="text-xs text-gray-500">Debit</label>
                             <p class="text-sm font-mono ${line.debit > 0 ? 'text-green-500' : 'text-gray-400'}">
                                 ${line.debit > 0 ? 'Rp ' + Number(line.debit).toLocaleString('id-ID') : '-'}
                             </p>
                         </div>
                         <div class="col-span-3">
-                            <label class="text-xs text-gray-500 dark:text-slate-400">Credit</label>
+                            <label class="text-xs text-gray-500">Credit</label>
                             <p class="text-sm font-mono ${line.credit > 0 ? 'text-red-500' : 'text-gray-400'}">
                                 ${line.credit > 0 ? 'Rp ' + Number(line.credit).toLocaleString('id-ID') : '-'}
                             </p>
@@ -1562,11 +1562,11 @@
                 });
 
                 function highlight(e) {
-                    dropZone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+                    dropZone.classList.add('border-blue-500', 'bg-blue-50');
                 }
 
                 function unhighlight(e) {
-                    dropZone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+                    dropZone.classList.remove('border-blue-500', 'bg-blue-50');
                 }
 
                 // Handle dropped files

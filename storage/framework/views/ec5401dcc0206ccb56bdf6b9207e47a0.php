@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -34,15 +34,15 @@ unset($__defined_vars, $__key, $__value); ?>
     <?php $lastItem = $items[count($items) - 1]; ?>
 
     
-    <nav class="flex sm:hidden items-center text-xs text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
-        <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[200px]">
+    <nav class="flex sm:hidden items-center text-xs text-gray-500" aria-label="Breadcrumb">
+        <span class="text-gray-700 font-medium truncate max-w-[200px]">
             <?php echo e($lastItem['label']); ?>
 
         </span>
     </nav>
 
     
-    <nav class="hidden sm:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
+    <nav class="hidden sm:flex items-center gap-1 text-xs text-gray-500" aria-label="Breadcrumb">
         <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php if($index > 0): ?>
                 <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -61,12 +61,12 @@ unset($__defined_vars, $__key, $__value); ?>
                 title="<?php echo e($item['label']); ?>"
             >
                 <?php if(isset($item['url']) && $index < count($items) - 1): ?>
-                    <a href="<?php echo e($item['url']); ?>" class="hover:text-gray-700 dark:hover:text-gray-300 transition truncate max-w-[180px] inline-block">
+                    <a href="<?php echo e($item['url']); ?>" class="hover:text-gray-700 transition truncate max-w-[180px] inline-block">
                         <?php echo e($item['label']); ?>
 
                     </a>
                 <?php else: ?>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[180px] inline-block">
+                    <span class="text-gray-700 font-medium truncate max-w-[180px] inline-block">
                         <?php echo e($item['label']); ?>
 
                     </span>
@@ -82,7 +82,7 @@ unset($__defined_vars, $__key, $__value); ?>
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
                         x-transition:leave-end="opacity-0 translate-y-1"
-                        class="absolute bottom-full left-0 mb-1 z-50 px-2 py-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded shadow-lg whitespace-nowrap pointer-events-none"
+                        class="absolute bottom-full left-0 mb-1 z-50 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap pointer-events-none"
                         role="tooltip"
                     >
                         <?php echo e($item['label']); ?>

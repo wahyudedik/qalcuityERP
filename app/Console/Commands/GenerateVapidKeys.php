@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 
 class GenerateVapidKeys extends Command
 {
-    protected $signature = 'vapid:generate';
+    protected $signature = 'vapid:generate {--force : Backward-compatible no-op option}';
     protected $description = 'Generate VAPID key pair for Web Push notifications';
 
     public function handle(): int

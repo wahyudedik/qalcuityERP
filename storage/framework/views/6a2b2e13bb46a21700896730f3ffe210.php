@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,11 +12,11 @@
 
     <div class="py-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <?php if(session('success')): ?>
-            <div class="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm"><?php echo e(session('success')); ?></div>
+            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg text-sm"><?php echo e(session('success')); ?></div>
         <?php endif; ?>
 
         <div class="flex items-center justify-between mb-5">
-            <p class="text-sm text-gray-500 dark:text-slate-400">Kelola beberapa perusahaan dan laporan konsolidasi.</p>
+            <p class="text-sm text-gray-500">Kelola beberapa perusahaan dan laporan konsolidasi.</p>
             <a href="<?php echo e(route('company-groups.create')); ?>"
                class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-medium transition">
                 + Buat Grup
@@ -24,7 +24,7 @@
         </div>
 
         <?php if($groups->isEmpty()): ?>
-            <div class="text-center py-16 text-gray-500 dark:text-gray-400">
+            <div class="text-center py-16 text-gray-500">
                 <div class="text-5xl mb-4">🏢</div>
                 <p class="text-lg font-medium">Belum ada grup perusahaan</p>
                 <p class="text-sm mt-1">Buat grup untuk mengelola beberapa perusahaan dan laporan konsolidasi.</p>
@@ -36,11 +36,11 @@
         <?php else: ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-5">
                         <div class="flex items-start justify-between mb-3">
                             <div>
-                                <h3 class="font-semibold text-gray-800 dark:text-gray-100"><?php echo e($group->name); ?></h3>
-                                <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                <h3 class="font-semibold text-gray-800"><?php echo e($group->name); ?></h3>
+                                <p class="text-xs text-gray-500 mt-0.5">
                                     <?php echo e($group->members_count); ?> perusahaan · <?php echo e($group->currency_code); ?>
 
                                 </p>
@@ -48,7 +48,7 @@
                             <span class="text-2xl">🏢</span>
                         </div>
                         <a href="<?php echo e(route('company-groups.show', $group)); ?>"
-                           class="block w-full text-center px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition">
+                           class="block w-full text-center px-3 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm hover:bg-blue-100 transition">
                             Lihat Konsolidasi →
                         </a>
                     </div>

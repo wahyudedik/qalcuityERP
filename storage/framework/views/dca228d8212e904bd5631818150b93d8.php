@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['value', 'required' => false]));
@@ -29,7 +29,7 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 
-<label <?php echo e($attributes->merge(['class' => 'block font-medium text-sm text-gray-700 dark:text-gray-300 mb-1'])); ?>>
+<label <?php echo e($attributes->merge(['class' => 'block font-medium text-sm text-gray-700 mb-1'])); ?>>
     <?php echo e($value ?? $slot); ?>
 
     <?php if($required): ?>

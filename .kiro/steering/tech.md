@@ -8,7 +8,7 @@
 
 ## Frontend
 - **Blade** — server-side templating
-- **Alpine.js 3** — lightweight reactivity (no Vue/React)
+- **Alpine.js 3** — lightweight reactivity (no Vue/React); `@alpinejs/collapse` plugin included
 - **Tailwind CSS 3** (with `@tailwindcss/forms`)
 - **Chart.js 4** — data visualizations
 - **Vite 8** — asset bundling via `laravel-vite-plugin`
@@ -31,8 +31,11 @@
 | `mike42/escpos-php` | ESC/POS thermal printer support |
 | `aws/aws-sdk-php` | AWS S3/cloud storage |
 | `google/cloud-storage` | Google Cloud Storage |
+| `microsoft/azure-storage-blob` | Azure Blob Storage |
 | `giorgiosironi/eris` | Property-based testing (dev) |
 | `laravel/pint` | PHP code style fixer (dev) |
+| `laravel/pail` | Real-time log tailing in terminal (dev) |
+| `laravel/breeze` | Auth scaffolding (dev) |
 | `barryvdh/laravel-debugbar` | Debug toolbar (dev) |
 
 ## Common Commands

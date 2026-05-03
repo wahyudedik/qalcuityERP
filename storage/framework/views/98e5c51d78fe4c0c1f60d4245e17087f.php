@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -24,15 +24,15 @@
         <?php endif; ?>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 flex items-center gap-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 flex items-center gap-4">
             <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center shrink-0">
                 <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
                 </svg>
             </div>
             <div class="flex-1">
-                <p class="font-semibold text-gray-900 dark:text-white"><?php echo e($product->name); ?></p>
-                <p class="text-xs text-gray-500 dark:text-slate-400">
+                <p class="font-semibold text-gray-900"><?php echo e($product->name); ?></p>
+                <p class="text-xs text-gray-500">
                     Alert expired: <strong class="text-yellow-400"><?php echo e($product->expiry_alert_days); ?> hari sebelum</strong>
                     &bull; Total stok: <?php echo e($product->totalStock()); ?> <?php echo e($product->unit); ?>
 
@@ -43,21 +43,21 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
-                <h2 class="font-semibold text-gray-900 dark:text-white">Daftar Batch</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="font-semibold text-gray-900">Daftar Batch</h2>
                 <span class="text-xs text-gray-400"><?php echo e($batches->total()); ?> batch</span>
             </div>
 
             <?php if($batches->isEmpty()): ?>
-                <div class="px-6 py-12 text-center text-gray-400 dark:text-slate-500 text-sm">
+                <div class="px-6 py-12 text-center text-gray-400 text-sm">
                     Belum ada batch. Tambah stok dengan mengisi nomor batch dan tanggal expired.
                 </div>
             <?php else: ?>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
-                            <tr class="border-b border-gray-100 dark:border-white/5 text-xs text-gray-500 dark:text-slate-400">
+                            <tr class="border-b border-gray-100 text-xs text-gray-500">
                                 <th class="px-4 py-3 text-left">No. Batch</th>
                                 <th class="px-4 py-3 text-left">Gudang</th>
                                 <th class="px-4 py-3 text-right">Qty</th>
@@ -68,7 +68,7 @@
                                 <th class="px-4 py-3 text-left">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-50">
                             <?php $__currentLoopData = $batches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $batch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <?php
                                     $days = $batch->daysUntilExpiry();
@@ -81,24 +81,24 @@
                                     };
                                 ?>
                                 <tr class="<?php echo e($rowClass); ?>">
-                                    <td class="px-4 py-3 font-mono text-xs text-gray-700 dark:text-slate-300">
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-700">
                                         <?php echo e($batch->batch_number); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-gray-600 dark:text-slate-400">
+                                    <td class="px-4 py-3 text-gray-600">
                                         <?php echo e($batch->warehouse->name ?? '-'); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                                    <td class="px-4 py-3 text-right font-medium text-gray-900">
                                         <?php echo e(number_format($batch->quantity)); ?> <?php echo e($product->unit); ?>
 
                                     </td>
-                                    <td class="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">
+                                    <td class="px-4 py-3 text-gray-500 text-xs">
                                         <?php echo e($batch->manufacture_date?->format('d/m/Y') ?? '-'); ?>
 
                                     </td>
                                     <td class="px-4 py-3 text-xs font-medium
-                                        <?php echo e($days < 0 ? 'text-red-400' : ($days <= $alertDays ? 'text-yellow-400' : 'text-gray-600 dark:text-slate-300')); ?>">
+                                        <?php echo e($days < 0 ? 'text-red-400' : ($days <= $alertDays ? 'text-yellow-400' : 'text-gray-600')); ?>">
                                         <?php echo e($batch->expiry_date->format('d/m/Y')); ?>
 
                                     </td>
@@ -140,7 +140,7 @@
                                             <form method="POST" action="<?php echo e(route('inventory.batches.status', $batch)); ?>">
                                                 <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
                                                 <select name="status" onchange="this.form.submit()"
-                                                    class="text-xs bg-gray-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1 text-gray-700 dark:text-slate-300 cursor-pointer">
+                                                    class="text-xs bg-gray-100 border-0 rounded-lg px-2 py-1 text-gray-700 cursor-pointer">
                                                     <option value="">Ubah status...</option>
                                                     <option value="consumed">Tandai Habis</option>
                                                     <option value="recalled">Tarik (Recall)</option>
@@ -156,7 +156,7 @@
                 </div>
 
                 <?php if($batches->hasPages()): ?>
-                    <div class="px-6 py-4 border-t border-gray-100 dark:border-white/5">
+                    <div class="px-6 py-4 border-t border-gray-100">
                         <?php echo e($batches->links()); ?>
 
                     </div>
@@ -165,7 +165,7 @@
         </div>
 
         
-        <div class="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-slate-400">
+        <div class="flex flex-wrap gap-3 text-xs text-gray-500">
             <span class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-red-500/20 inline-block"></span> Expired / akan expired hari ini
             </span>

@@ -74,6 +74,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(\App\Models\Affiliate::class);
     }
 
+    public function customer(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Customer::class, 'user_id');
+    }
+
     public function userPermissions(): HasMany
     {
         return $this->hasMany(UserPermission::class);
@@ -293,7 +298,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * 1. Subscription plan (via PlanModuleMap)
      * 2. Tenant module settings (enabled_modules)
      * 3. User role permissions (via PermissionService)
-     * 
+     *
      * @param string $moduleKey Module key from ModuleRecommendationService::ALL_MODULES
      * @return bool True if user can access the module
      */
@@ -368,7 +373,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get notification channels based on user preferences.
-     * 
+     *
      * @param string $notificationClass Fully qualified notification class name
      * @return array Array of channels: 'database', 'mail', 'broadcast'
      */
@@ -376,9 +381,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // Extract notification type from class name
         $notificationType = $this->extractNotificationType($notificationClass);
-        
+
         $channels = [];
-        
+
         if (NotificationPreference::isEnabled($this->id, $notificationType, 'in_app')) {
             $channels[] = 'database';
         }
@@ -388,7 +393,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if (NotificationPreference::isEnabled($this->id, $notificationType, 'push')) {
             $channels[] = 'broadcast';
         }
-        
+
         // Fallback to in-app if no channels enabled
         return $channels ?: ['database'];
     }

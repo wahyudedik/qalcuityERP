@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -18,21 +18,21 @@
             <!-- Header -->
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white"><?php echo e(__('Edit Subscription')); ?></h1>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    <h1 class="text-3xl font-bold text-gray-900"><?php echo e(__('Edit Subscription')); ?></h1>
+                    <p class="mt-1 text-sm text-gray-600">
                         <?php echo e($subscription->customer?->name ?? '-'); ?>
 
                     </p>
                 </div>
                 <a href="<?php echo e(route('telecom.subscriptions.show', $subscription)); ?>"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     <i class="fas fa-arrow-left mr-2"></i><?php echo e(__('Kembali')); ?>
 
                 </a>
             </div>
 
             <?php if($errors->any()): ?>
-                <div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                     <ul class="list-disc list-inside">
                         <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <li><?php echo e($error); ?></li>
@@ -41,24 +41,24 @@
                 </div>
             <?php endif; ?>
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+            <div class="bg-white shadow-sm sm:rounded-lg">
                 <form action="<?php echo e(route('telecom.subscriptions.update', $subscription)); ?>" method="POST" class="p-6 space-y-6">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('PUT'); ?>
 
                     <!-- Customer (read-only) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"><?php echo e(__('Pelanggan')); ?></label>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white font-medium"><?php echo e($subscription->customer?->name ?? '-'); ?></p>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><?php echo e(__('Pelanggan')); ?></label>
+                        <p class="mt-1 text-sm text-gray-900 font-medium"><?php echo e($subscription->customer?->name ?? '-'); ?></p>
                     </div>
 
                     <!-- Package -->
                     <div>
-                        <label for="package_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="package_id" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Paket Internet')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="package_id" id="package_id" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['package_id'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['package_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -77,7 +77,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -86,11 +86,11 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- Status -->
                     <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Status')); ?> <span class="text-red-500">*</span>
                         </label>
                         <select name="status" id="status" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['status'];
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm <?php $__errorArgs = ['status'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -108,7 +108,7 @@ $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400"><?php echo e($message); ?></p>
+                            <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
                         <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
@@ -117,34 +117,34 @@ unset($__errorArgs, $__bag); ?>
 
                     <!-- End Date -->
                     <div>
-                        <label for="ends_at" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Tanggal Berakhir')); ?>
 
                         </label>
                         <input type="date" name="ends_at" id="ends_at"
                             value="<?php echo e(old('ends_at', $subscription->ends_at?->format('Y-m-d') ?? $subscription->expires_at?->format('Y-m-d'))); ?>"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     </div>
 
                     <!-- Notes -->
                     <div>
-                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
                             <?php echo e(__('Catatan')); ?>
 
                         </label>
                         <textarea name="notes" id="notes" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><?php echo e(old('notes', $subscription->notes)); ?></textarea>
+                            class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"><?php echo e(old('notes', $subscription->notes)); ?></textarea>
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                         <a href="<?php echo e(route('telecom.subscriptions.show', $subscription)); ?>"
-                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                             <?php echo e(__('Batal')); ?>
 
                         </a>
                         <button type="submit"
-                            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600">
+                            class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
                             <i class="fas fa-save mr-2"></i><?php echo e(__('Simpan Perubahan')); ?>
 
                         </button>

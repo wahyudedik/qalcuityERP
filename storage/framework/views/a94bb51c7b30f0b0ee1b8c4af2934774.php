@@ -1,41 +1,41 @@
-
+﻿
 
 <?php $__env->startSection('title', 'Status Fingerprint Karyawan'); ?>
 
 <?php $__env->startSection('content'); ?>
     <div class="container mx-auto px-4 py-6">
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Status Fingerprint Karyawan</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Kelola registrasi fingerprint untuk semua karyawan</p>
+            <h1 class="text-2xl font-bold text-gray-800">Status Fingerprint Karyawan</h1>
+            <p class="text-sm text-gray-600 mt-1">Kelola registrasi fingerprint untuk semua karyawan</p>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Karyawan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Jabatan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Departemen</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                             Status Fingerprint</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Aksi
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-gray-200">
                     <?php $__empty_1 = true; $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white"><?php echo e($employee->name); ?></div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400"><?php echo e($employee->employee_id); ?></div>
+                                <div class="text-sm font-medium text-gray-900"><?php echo e($employee->name); ?></div>
+                                <div class="text-sm text-gray-500"><?php echo e($employee->employee_id); ?></div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white"><?php echo e($employee->position ?? '-'); ?>
+                            <td class="px-6 py-4 text-sm text-gray-900"><?php echo e($employee->position ?? '-'); ?>
 
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white"><?php echo e($employee->department ?? '-'); ?>
+                            <td class="px-6 py-4 text-sm text-gray-900"><?php echo e($employee->department ?? '-'); ?>
 
                             </td>
                             <td class="px-6 py-4">
@@ -53,7 +53,7 @@
                             </td>
                             <td class="px-6 py-4 text-right text-sm font-medium">
                                 <a href="<?php echo e(route('hrm.fingerprint.employees.register', $employee)); ?>"
-                                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400">
+                                    class="text-blue-600 hover:text-blue-900">
                                     <?php echo e($employee->fingerprint_registered ? 'Kelola' : 'Daftarkan'); ?>
 
                                 </a>
@@ -61,7 +61,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                                 Tidak ada data karyawan
                             </td>
                         </tr>

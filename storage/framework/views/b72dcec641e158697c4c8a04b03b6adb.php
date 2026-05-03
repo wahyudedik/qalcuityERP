@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -16,36 +16,36 @@
 
     
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Luas</p>
-            <p class="text-xl font-bold text-gray-900 dark:text-white"><?php echo e(number_format($totalArea, 1)); ?> ha</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Luas</p>
+            <p class="text-xl font-bold text-gray-900"><?php echo e(number_format($totalArea, 1)); ?> ha</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Biaya</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Biaya</p>
             <p class="text-xl font-bold text-red-500">Rp <?php echo e(number_format($totalCost, 0, ',', '.')); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Panen Bersih</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Panen Bersih</p>
             <p class="text-xl font-bold text-emerald-600"><?php echo e(number_format($totalHarvest, 0)); ?> kg</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Rata-rata HPP/kg</p>
-            <p class="text-xl font-bold text-gray-900 dark:text-white"><?php echo e($avgHpp ? 'Rp '.number_format($avgHpp, 0, ',', '.') : '-'); ?></p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Rata-rata HPP/kg</p>
+            <p class="text-xl font-bold text-gray-900"><?php echo e($avgHpp ? 'Rp '.number_format($avgHpp, 0, ',', '.') : '-'); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Yield Rata-rata</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Yield Rata-rata</p>
             <p class="text-xl font-bold text-blue-600"><?php echo e(number_format($avgYieldPerHa, 0)); ?> kg/ha</p>
         </div>
     </div>
 
     
-    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden mb-6">
-        <div class="px-5 py-4 border-b border-gray-100 dark:border-white/10">
-            <h3 class="font-semibold text-gray-900 dark:text-white">Perbandingan Biaya & Produktivitas per Lahan</h3>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900">Perbandingan Biaya & Produktivitas per Lahan</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Lahan</th>
                         <th class="px-4 py-3 text-left">Tanaman</th>
@@ -58,20 +58,20 @@
                         <th class="px-4 py-3 text-right">Reject</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     <?php $__currentLoopData = $comparison; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <a href="<?php echo e(route('farm.plots.show', $p['code'])); ?>" class="font-medium text-gray-900 dark:text-white hover:text-blue-600"><?php echo e($p['code']); ?></a>
+                            <a href="<?php echo e(route('farm.plots.show', $p['code'])); ?>" class="font-medium text-gray-900 hover:text-blue-600"><?php echo e($p['code']); ?></a>
                             <span class="text-xs text-gray-400 ml-1"><?php echo e($p['name']); ?></span>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-slate-300"><?php echo e($p['crop']); ?></td>
+                        <td class="px-4 py-3 text-gray-600"><?php echo e($p['crop']); ?></td>
                         <td class="px-4 py-3 text-right text-xs text-gray-500"><?php echo e($p['area']); ?></td>
                         <td class="px-4 py-3 text-right font-mono <?php echo e($p['total_cost'] > 0 ? 'text-red-500' : 'text-gray-300'); ?>">
                             <?php echo e($p['total_cost'] > 0 ? 'Rp '.number_format($p['total_cost'], 0, ',', '.') : '-'); ?>
 
                         </td>
-                        <td class="px-4 py-3 text-right font-mono text-gray-600 dark:text-slate-300">
+                        <td class="px-4 py-3 text-right font-mono text-gray-600">
                             <?php echo e($p['cost_per_ha'] > 0 ? 'Rp '.number_format($p['cost_per_ha'], 0, ',', '.') : '-'); ?>
 
                         </td>
@@ -83,7 +83,7 @@
                             <?php echo e($p['yield_per_ha'] > 0 ? number_format($p['yield_per_ha'], 0).' kg' : '-'); ?>
 
                         </td>
-                        <td class="px-4 py-3 text-right font-mono font-bold <?php echo e($p['hpp_per_kg'] !== null ? 'text-gray-900 dark:text-white' : 'text-gray-300'); ?>">
+                        <td class="px-4 py-3 text-right font-mono font-bold <?php echo e($p['hpp_per_kg'] !== null ? 'text-gray-900' : 'text-gray-300'); ?>">
                             <?php echo e($p['hpp_per_kg'] !== null ? 'Rp '.number_format($p['hpp_per_kg'], 0, ',', '.') : '-'); ?>
 
                         </td>
@@ -100,8 +100,8 @@
 
     
     <?php if($ranked->isNotEmpty()): ?>
-    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-5">
-        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">🏆 Ranking Efisiensi (HPP Terendah = Paling Efisien)</h3>
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold text-gray-900 mb-4">🏆 Ranking Efisiensi (HPP Terendah = Paling Efisien)</h3>
         <div class="space-y-3">
             <?php $__currentLoopData = $ranked; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php
@@ -112,10 +112,10 @@
                 <span class="text-lg w-8 text-center"><?php echo e($medal); ?></span>
                 <div class="flex-1">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white"><?php echo e($p['code']); ?> — <?php echo e($p['crop']); ?></span>
-                        <span class="text-sm font-bold text-gray-900 dark:text-white">Rp <?php echo e(number_format($p['hpp_per_kg'], 0, ',', '.')); ?>/kg</span>
+                        <span class="text-sm font-medium text-gray-900"><?php echo e($p['code']); ?> — <?php echo e($p['crop']); ?></span>
+                        <span class="text-sm font-bold text-gray-900">Rp <?php echo e(number_format($p['hpp_per_kg'], 0, ',', '.')); ?>/kg</span>
                     </div>
-                    <div class="w-full bg-gray-100 dark:bg-white/10 rounded-full h-2">
+                    <div class="w-full bg-gray-100 rounded-full h-2">
                         <div class="h-2 rounded-full <?php echo e($i === 0 ? 'bg-emerald-500' : ($i === $ranked->count()-1 ? 'bg-red-400' : 'bg-blue-400')); ?>" style="width:<?php echo e($barWidth); ?>%"></div>
                     </div>
                     <div class="flex gap-4 mt-1 text-[10px] text-gray-400">

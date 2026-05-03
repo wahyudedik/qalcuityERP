@@ -1,35 +1,35 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Memori AI</x-slot>
 
     <div class="py-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         @if (session('success'))
             <div
-                class="p-3 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-200 rounded-xl text-sm">
+                class="p-3 bg-green-100 border border-green-200 text-green-800 rounded-xl text-sm">
                 {{ session('success') }}
             </div>
         @endif
 
         <!-- Stats Bar -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $memories->count() }}</div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Total Preferensi</div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-2xl font-bold text-gray-900">{{ $memories->count() }}</div>
+                <div class="text-xs text-gray-500">Total Preferensi</div>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-2xl font-bold text-gray-900">
                     {{ number_format($memories->avg('confidence_score') ?? 0, 2) }}
                 </div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Rata-rata Keyakinan</div>
+                <div class="text-xs text-gray-500">Rata-rata Keyakinan</div>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $patterns->count() }}</div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Pola Dipelajari</div>
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-2xl font-bold text-gray-900">{{ $patterns->count() }}</div>
+                <div class="text-xs text-gray-500">Pola Dipelajari</div>
             </div>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
+            <div class="bg-white rounded-2xl border border-gray-200 p-4">
+                <div class="text-2xl font-bold text-gray-900">
                     {{ $memories->where('confidence_score', '<', 0.3)->count() }}
                 </div>
-                <div class="text-xs text-gray-500 dark:text-slate-400">Memori Usang</div>
+                <div class="text-xs text-gray-500">Memori Usang</div>
             </div>
         </div>
 
@@ -39,7 +39,7 @@
                 onsubmit="return confirm('Hapus semua memori usang (keyakinan < 30%)?')">
                 @csrf
                 <button type="submit"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-xl text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors border border-amber-200 dark:border-amber-700">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-xl text-sm font-medium hover:bg-amber-200 transition-colors border border-amber-200">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -51,7 +51,7 @@
                 onsubmit="return confirm('Reset semua memori AI? Preferensi yang dipelajari akan dihapus.')">
                 @csrf
                 <button type="submit"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-xl text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors border border-red-200 dark:border-red-700">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-xl text-sm font-medium hover:bg-red-200 transition-colors border border-red-200">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -64,8 +64,8 @@
         <!-- Suggestions -->
         @if (!empty($suggestions))
             <div
-                class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-2xl p-5">
-                <h3 class="font-semibold text-indigo-800 dark:text-indigo-200 text-sm mb-3 flex items-center gap-2">
+                class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
+                <h3 class="font-semibold text-indigo-800 text-sm mb-3 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -74,7 +74,7 @@
                 </h3>
                 <ul class="space-y-2">
                     @foreach ($suggestions as $s)
-                        <li class="text-sm text-indigo-700 dark:text-indigo-300 flex items-start gap-2">
+                        <li class="text-sm text-indigo-700 flex items-start gap-2">
                             <span class="mt-0.5 text-indigo-500">→</span>
                             <span>{{ $s }}</span>
                         </li>
@@ -84,14 +84,14 @@
         @endif
 
         <!-- Grouped Preferences Tabs -->
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="border-b border-gray-100 dark:border-white/10 px-5 py-3 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Preferensi yang Dipelajari</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="border-b border-gray-100 px-5 py-3 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900">Preferensi yang Dipelajari</h3>
             </div>
 
             <!-- Tab Navigation -->
             <div
-                class="flex overflow-x-auto border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-slate-800/50">
+                class="flex overflow-x-auto border-b border-gray-100 bg-gray-50">
                 @php
                     $categoryLabels = [
                         'pelanggan' => [
@@ -129,11 +129,11 @@
                 @foreach ($categoryLabels as $key => $info)
                     @if (($groupedMemories[$key] ?? collect())->count() > 0)
                         <button type="button" data-tab="{{ $key }}"
-                            class="tab-btn flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors {{ $loop->first ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300' }}">
+                            class="tab-btn flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors {{ $loop->first ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700' }}">
                             {!! $info['icon'] !!}
                             {{ $info['label'] }}
                             <span
-                                class="text-xs bg-gray-200 dark:bg-slate-700 rounded-full px-2 py-0.5">{{ ($groupedMemories[$key] ?? collect())->count() }}</span>
+                                class="text-xs bg-gray-200 rounded-full px-2 py-0.5">{{ ($groupedMemories[$key] ?? collect())->count() }}</span>
                         </button>
                     @endif
                 @endforeach
@@ -161,21 +161,21 @@
             @foreach ($groupedMemories as $category => $memoriesInCategory)
                 @if ($memoriesInCategory->count() > 0)
                     <div data-content="{{ $category }}"
-                        class="tab-content {{ $loop->first ? '' : 'hidden' }} divide-y divide-gray-100 dark:divide-white/10">
+                        class="tab-content {{ $loop->first ? '' : 'hidden' }} divide-y divide-gray-100">
                         @foreach ($memoriesInCategory as $memory)
                             <div class="p-4">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                            <p class="text-sm font-medium text-gray-900">
                                                 {{ $keyLabels[$memory->key] ?? str_replace('_', ' ', $memory->key) }}
                                             </p>
                                             <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200">
+                                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                                 {{ $memory->frequency }}x
                                             </span>
                                         </div>
-                                        <p class="text-sm text-gray-600 dark:text-slate-300 mt-1 truncate">
+                                        <p class="text-sm text-gray-600 mt-1 truncate">
                                             @if (is_array($memory->value))
                                                 {{ implode(', ', array_slice($memory->value, 0, 3)) }}
                                                 @if (count($memory->value) > 3)
@@ -190,18 +190,18 @@
                                         <!-- Confidence Bar -->
                                         <div class="mt-2 flex items-center gap-2">
                                             <div
-                                                class="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                                                 <div class="h-full rounded-full {{ ($memory->confidence_score ?? 0) < 0.3 ? 'bg-red-500' : (($memory->confidence_score ?? 0) < 0.6 ? 'bg-amber-500' : 'bg-green-500') }}"
                                                     style="width: {{ ($memory->confidence_score ?? 0) * 100 }}%"></div>
                                             </div>
-                                            <span class="text-xs text-gray-500 dark:text-slate-400 w-10 text-right">
+                                            <span class="text-xs text-gray-500 w-10 text-right">
                                                 {{ number_format(($memory->confidence_score ?? 0) * 100, 0) }}%
                                             </span>
                                         </div>
 
                                         <!-- Dates -->
                                         <div
-                                            class="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-slate-500">
+                                            class="flex items-center gap-4 mt-2 text-xs text-gray-400">
                                             <span>Dilihat: {{ $memory->last_seen_at?->diffForHumans() ?? '-' }}</span>
                                             <span>Pertama:
                                                 {{ $memory->first_observed_at?->diffForHumans() ?? '-' }}</span>
@@ -211,18 +211,18 @@
                                         @if ($memory->metadata && is_array($memory->metadata) && count($memory->metadata) > 0)
                                             <div class="mt-2">
                                                 <button type="button"
-                                                    class="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 underline"
+                                                    class="text-xs text-gray-400 hover:text-gray-600 underline"
                                                     onclick="this.nextElementSibling.classList.toggle('hidden')">
                                                     Lihat Detail
                                                 </button>
                                                 <div
-                                                    class="hidden mt-2 p-2 bg-gray-50 dark:bg-slate-800/50 rounded-lg text-xs">
+                                                    class="hidden mt-2 p-2 bg-gray-50 rounded-lg text-xs">
                                                     @foreach ($memory->metadata as $metaKey => $metaVal)
                                                         <div class="flex gap-2">
                                                             <span
-                                                                class="text-gray-400 dark:text-slate-500">{{ $metaKey }}:</span>
+                                                                class="text-gray-400">{{ $metaKey }}:</span>
                                                             <span
-                                                                class="text-gray-600 dark:text-slate-300">{{ is_array($metaVal) ? json_encode($metaVal) : $metaVal }}</span>
+                                                                class="text-gray-600">{{ is_array($metaVal) ? json_encode($metaVal) : $metaVal }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -236,7 +236,7 @@
                                             <form method="POST" action="{{ route('ai-memory.lock', $memory) }}">
                                                 @csrf
                                                 <button type="submit"
-                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg border border-green-200 dark:border-green-700 transition-colors"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg border border-green-200 transition-colors"
                                                     title="Konfirmasi preferensi ini">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -249,7 +249,7 @@
                                             </form>
                                         @else
                                             <span
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-700">
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 rounded-lg border border-green-200">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -262,7 +262,7 @@
                                         <form method="POST" action="{{ route('ai-memory.destroy', $memory) }}">
                                             @csrf @method('DELETE')
                                             <button type="submit"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg border border-red-200 dark:border-red-700 transition-colors">
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg border border-red-200 transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -281,7 +281,7 @@
             @endforeach
 
             @if ($memories->isEmpty())
-                <div class="p-8 text-center text-gray-500 dark:text-slate-400">
+                <div class="p-8 text-center text-gray-500">
                     <div class="text-4xl mb-3">🧠</div>
                     <p class="text-sm">AI belum mempelajari preferensi Anda.</p>
                     <p class="text-xs mt-1">Preferensi akan dipelajari secara otomatis saat Anda menggunakan sistem.
@@ -293,9 +293,9 @@
         <!-- Learned Patterns Section -->
         @if ($patterns->count() > 0)
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div class="border-b border-gray-100 dark:border-white/10 px-5 py-3">
-                    <h3 class="font-semibold text-gray-900 dark:text-white">Pola yang Dipelajari</h3>
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="border-b border-gray-100 px-5 py-3">
+                    <h3 class="font-semibold text-gray-900">Pola yang Dipelajari</h3>
                 </div>
 
                 @php
@@ -309,19 +309,19 @@
                 @endphp
 
                 @foreach ($groupedPatterns as $type => $typePatterns)
-                    <div class="border-b border-gray-100 dark:border-white/10 last:border-b-0">
-                        <div class="px-5 py-2 bg-gray-50 dark:bg-slate-800/50">
-                            <h4 class="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <div class="border-b border-gray-100 last:border-b-0">
+                        <div class="px-5 py-2 bg-gray-50">
+                            <h4 class="text-sm font-medium text-gray-700">
                                 {{ $patternTypeLabels[$type] ?? ucfirst(str_replace('_', ' ', $type)) }}
                             </h4>
                         </div>
-                        <div class="divide-y divide-gray-100 dark:divide-white/10">
+                        <div class="divide-y divide-gray-100">
                             @foreach ($typePatterns as $pattern)
                                 <div class="p-4">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-2">
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white">
+                                                <span class="text-sm font-medium text-gray-900">
                                                     {{ $pattern->entity_type ?? 'Pola' }}
                                                     @if ($pattern->entity_id)
                                                         #{{ $pattern->entity_id }}
@@ -334,11 +334,11 @@
                                                 <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
                                                     @foreach ($pattern->pattern_data as $dataKey => $dataVal)
                                                         <div
-                                                            class="px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs">
+                                                            class="px-2 py-1 bg-gray-100 rounded-lg text-xs">
                                                             <span
-                                                                class="text-gray-500 dark:text-slate-400">{{ $dataKey }}:</span>
+                                                                class="text-gray-500">{{ $dataKey }}:</span>
                                                             <span
-                                                                class="text-gray-700 dark:text-slate-200 ml-1">{{ is_array($dataVal) ? json_encode($dataVal) : $dataVal }}</span>
+                                                                class="text-gray-700 ml-1">{{ is_array($dataVal) ? json_encode($dataVal) : $dataVal }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -347,17 +347,17 @@
                                             <!-- Confidence Bar -->
                                             <div class="mt-2 flex items-center gap-2">
                                                 <div
-                                                    class="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden max-w-32">
+                                                    class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-32">
                                                     <div class="h-full rounded-full {{ $pattern->confidence < 0.3 ? 'bg-red-500' : ($pattern->confidence < 0.6 ? 'bg-amber-500' : 'bg-green-500') }}"
                                                         style="width: {{ $pattern->confidence * 100 }}%"></div>
                                                 </div>
-                                                <span class="text-xs text-gray-500 dark:text-slate-400">
+                                                <span class="text-xs text-gray-500">
                                                     {{ number_format($pattern->confidence * 100, 0) }}% keyakinan
                                                 </span>
                                             </div>
 
                                             @if ($pattern->analyzed_at)
-                                                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                                                <p class="text-xs text-gray-400 mt-1">
                                                     Dianalisis: {{ $pattern->analyzed_at->diffForHumans() }}
                                                 </p>
                                             @endif
@@ -373,8 +373,8 @@
 
         <!-- Info Box -->
         <div
-            class="bg-gray-50 dark:bg-[#1e293b]/50 rounded-2xl p-5 text-sm text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-white/10">
-            <p class="font-medium mb-2 text-gray-700 dark:text-slate-300">Tentang Memori AI</p>
+            class="bg-gray-50 rounded-2xl p-5 text-sm text-gray-500 border border-gray-200">
+            <p class="font-medium mb-2 text-gray-700">Tentang Memori AI</p>
             <p>AI mempelajari kebiasaan Anda secara otomatis: metode pembayaran favorit, gudang default, customer yang
                 sering digunakan, dan langkah yang sering dilewati. Data ini digunakan untuk memberikan saran yang lebih
                 relevan dan mempercepat alur kerja Anda.</p>
@@ -408,13 +408,13 @@
 
                     // Update button styles
                     tabBtns.forEach(b => {
-                        b.classList.remove('text-indigo-600', 'dark:text-indigo-400',
-                            'border-b-2', 'border-indigo-600', 'dark:border-indigo-400');
-                        b.classList.add('text-gray-500', 'dark:text-slate-400');
+                        b.classList.remove('text-indigo-600',
+                            'border-b-2', 'border-indigo-600');
+                        b.classList.add('text-gray-500');
                     });
-                    this.classList.remove('text-gray-500', 'dark:text-slate-400');
-                    this.classList.add('text-indigo-600', 'dark:text-indigo-400', 'border-b-2',
-                        'border-indigo-600', 'dark:border-indigo-400');
+                    this.classList.remove('text-gray-500');
+                    this.classList.add('text-indigo-600', 'border-b-2',
+                        'border-indigo-600');
 
                     // Show/hide content
                     tabContents.forEach(content => {

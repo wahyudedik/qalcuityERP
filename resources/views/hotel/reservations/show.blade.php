@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Reservation {{ $reservation->reservation_number }}</x-slot>
 
     <x-slot name="pageHeader">
@@ -52,12 +52,12 @@
             @endif
             @if (!in_array($reservation->status, ['cancelled', 'checked_out']))
                 <button onclick="document.getElementById('modal-cancel').classList.remove('hidden')"
-                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 text-sm font-medium hover:bg-red-200 dark:hover:bg-red-500/30 transition">
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 text-red-700 text-sm font-medium hover:bg-red-200 transition">
                     Cancel
                 </button>
             @endif
             <a href="{{ route('hotel.reservations.edit', $reservation) }}"
-                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -72,13 +72,13 @@
             \Carbon\Carbon::parse($reservation->check_out_date),
         );
         $statusColor = match ($reservation->status) {
-            'pending' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-            'confirmed' => 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-            'checked_in' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-            'checked_out' => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-slate-400',
-            'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-            'no_show' => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
-            default => 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-slate-500',
+            'pending' => 'bg-yellow-100 text-yellow-700',
+            'confirmed' => 'bg-green-100 text-green-700',
+            'checked_in' => 'bg-blue-100 text-blue-700',
+            'checked_out' => 'bg-gray-100 text-gray-600',
+            'cancelled' => 'bg-red-100 text-red-700',
+            'no_show' => 'bg-orange-100 text-orange-700',
+            default => 'bg-gray-100 text-gray-500',
         };
         $sourceLabel = match ($reservation->source) {
             'direct' => 'Direct',
@@ -113,8 +113,8 @@
         {{-- Left Column --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Guest Info Card --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -124,44 +124,44 @@
                 <div class="flex items-start justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-600">
                             {{ substr($reservation->guest?->name ?? '?', 0, 1) }}
                         </div>
                         <div>
                             <a href="{{ route('hotel.guests.show', $reservation->guest) }}"
-                                class="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+                                class="text-lg font-semibold text-gray-900 hover:text-blue-600">
                                 {{ $reservation->guest?->name ?? 'N/A' }}
                             </a>
-                            <p class="text-sm text-gray-500 dark:text-slate-400">
+                            <p class="text-sm text-gray-500">
                                 {{ $reservation->guest?->email ?? '—' }}</p>
-                            <p class="text-sm text-gray-500 dark:text-slate-400">
+                            <p class="text-sm text-gray-500">
                                 {{ $reservation->guest?->phone ?? '—' }}</p>
                         </div>
                     </div>
                     @if ($reservation->guest?->vip_level)
                         <span
-                            class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400">
+                            class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
                             {{ strtoupper($reservation->guest->vip_level) }} VIP
                         </span>
                     @endif
                 </div>
                 <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
                     <div>
-                        <p class="text-gray-500 dark:text-slate-400">ID Type</p>
-                        <p class="font-medium text-gray-900 dark:text-white">
+                        <p class="text-gray-500">ID Type</p>
+                        <p class="font-medium text-gray-900">
                             {{ strtoupper($reservation->guest?->id_type ?? '—') }}</p>
                     </div>
                     <div>
-                        <p class="text-gray-500 dark:text-slate-400">ID Number</p>
-                        <p class="font-medium text-gray-900 dark:text-white">
+                        <p class="text-gray-500">ID Number</p>
+                        <p class="font-medium text-gray-900">
                             {{ $reservation->guest?->id_number ?? '—' }}</p>
                     </div>
                 </div>
             </div>
 
             {{-- Room Details Card --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -170,31 +170,31 @@
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Room Type</p>
-                        <p class="font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500 mb-1">Room Type</p>
+                        <p class="font-semibold text-gray-900">
                             {{ $reservation->roomType?->name ?? '—' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Room Number</p>
-                        <p class="font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500 mb-1">Room Number</p>
+                        <p class="font-semibold text-gray-900">
                             {{ $reservation->room?->number ?? 'Not assigned' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Floor</p>
-                        <p class="font-medium text-gray-700 dark:text-slate-300">
+                        <p class="text-xs text-gray-500 mb-1">Floor</p>
+                        <p class="font-medium text-gray-700">
                             {{ $reservation->room?->floor ?? '—' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Building</p>
-                        <p class="font-medium text-gray-700 dark:text-slate-300">
+                        <p class="text-xs text-gray-500 mb-1">Building</p>
+                        <p class="font-medium text-gray-700">
                             {{ $reservation->room?->building ?? '—' }}</p>
                     </div>
                 </div>
             </div>
 
             {{-- Stay Details Card --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -203,38 +203,38 @@
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Check-in</p>
-                        <p class="font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500 mb-1">Check-in</p>
+                        <p class="font-semibold text-gray-900">
                             {{ \Carbon\Carbon::parse($reservation->check_in_date)->format('d M Y') }}</p>
                         <p class="text-xs text-gray-500">
                             {{ $reservation->roomType?->default_checkin_time ?? '14:00' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Check-out</p>
-                        <p class="font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xs text-gray-500 mb-1">Check-out</p>
+                        <p class="font-semibold text-gray-900">
                             {{ \Carbon\Carbon::parse($reservation->check_out_date)->format('d M Y') }}</p>
                         <p class="text-xs text-gray-500">
                             {{ $reservation->roomType?->default_checkout_time ?? '12:00' }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Nights</p>
-                        <p class="font-semibold text-gray-900 dark:text-white">{{ $nights }}</p>
+                        <p class="text-xs text-gray-500 mb-1">Nights</p>
+                        <p class="font-semibold text-gray-900">{{ $nights }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Adults</p>
-                        <p class="font-medium text-gray-700 dark:text-slate-300">{{ $reservation->adults ?? 1 }}</p>
+                        <p class="text-xs text-gray-500 mb-1">Adults</p>
+                        <p class="font-medium text-gray-700">{{ $reservation->adults ?? 1 }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Children</p>
-                        <p class="font-medium text-gray-700 dark:text-slate-300">{{ $reservation->children ?? 0 }}</p>
+                        <p class="text-xs text-gray-500 mb-1">Children</p>
+                        <p class="font-medium text-gray-700">{{ $reservation->children ?? 0 }}</p>
                     </div>
                 </div>
             </div>
 
             {{-- Special Requests --}}
             @if ($reservation->special_requests)
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -242,18 +242,18 @@
                         </svg>
                         Special Requests
                     </h3>
-                    <p class="text-gray-700 dark:text-slate-300 text-sm whitespace-pre-line">
+                    <p class="text-gray-700 text-sm whitespace-pre-line">
                         {{ $reservation->special_requests }}</p>
                 </div>
             @endif
 
             {{-- Check-in/out History --}}
             @if ($reservation->checkInOuts->count() > 0)
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Check-in/out History</h3>
+                <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-4">Check-in/out History</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+                            <thead class="text-xs text-gray-500 uppercase">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Type</th>
                                     <th class="px-3 py-2 text-left">Room</th>
@@ -263,24 +263,24 @@
                                     <th class="px-3 py-2 text-right">Deposit</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            <tbody class="divide-y divide-gray-100">
                                 @foreach ($reservation->checkInOuts as $cio)
                                     <tr>
                                         <td class="px-3 py-2">
                                             <span
-                                                class="px-2 py-0.5 rounded-full text-xs font-medium {{ $cio->type === 'check_in' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400' }}">
+                                                class="px-2 py-0.5 rounded-full text-xs font-medium {{ $cio->type === 'check_in' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">
                                                 {{ $cio->type === 'check_in' ? 'Check-in' : 'Check-out' }}
                                             </span>
                                         </td>
-                                        <td class="px-3 py-2 text-gray-700 dark:text-slate-300">
+                                        <td class="px-3 py-2 text-gray-700">
                                             {{ $cio->room?->number ?? '—' }}</td>
-                                        <td class="px-3 py-2 text-gray-600 dark:text-slate-400">
+                                        <td class="px-3 py-2 text-gray-600">
                                             {{ $cio->processed_at->format('d M Y, H:i') }}</td>
-                                        <td class="px-3 py-2 text-gray-700 dark:text-slate-300">
+                                        <td class="px-3 py-2 text-gray-700">
                                             {{ $cio->processedBy?->name ?? 'System' }}</td>
-                                        <td class="px-3 py-2 text-gray-600 dark:text-slate-400">
+                                        <td class="px-3 py-2 text-gray-600">
                                             {{ $cio->key_card_number ?? '—' }}</td>
-                                        <td class="px-3 py-2 text-right text-gray-700 dark:text-slate-300">
+                                        <td class="px-3 py-2 text-right text-gray-700">
                                             {{ $cio->deposit ? 'Rp ' . number_format($cio->deposit, 0, ',', '.') : '—' }}
                                         </td>
                                     </tr>
@@ -295,8 +295,8 @@
         {{-- Right Column --}}
         <div class="space-y-6">
             {{-- Financial Summary Card --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -305,17 +305,17 @@
                 </h3>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Rate/Night</span>
-                        <span class="font-medium text-gray-900 dark:text-white">Rp
+                        <span class="text-gray-500">Rate/Night</span>
+                        <span class="font-medium text-gray-900">Rp
                             {{ number_format($reservation->rate_per_night, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Nights</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ $nights }}</span>
+                        <span class="text-gray-500">Nights</span>
+                        <span class="font-medium text-gray-900">{{ $nights }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Subtotal</span>
-                        <span class="font-medium text-gray-900 dark:text-white">Rp
+                        <span class="text-gray-500">Subtotal</span>
+                        <span class="font-medium text-gray-900">Rp
                             {{ number_format($reservation->total_amount, 0, ',', '.') }}</span>
                     </div>
                     @if ($reservation->discount > 0)
@@ -325,65 +325,65 @@
                         </div>
                     @endif
                     <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-slate-400">Tax (11%)</span>
-                        <span class="font-medium text-gray-900 dark:text-white">Rp
+                        <span class="text-gray-500">Tax (11%)</span>
+                        <span class="font-medium text-gray-900">Rp
                             {{ number_format($reservation->tax, 0, ',', '.') }}</span>
                     </div>
-                    <hr class="border-gray-200 dark:border-white/10">
+                    <hr class="border-gray-200">
                     <div class="flex justify-between text-lg">
-                        <span class="font-semibold text-gray-900 dark:text-white">Grand Total</span>
-                        <span class="font-bold text-green-600 dark:text-green-400">Rp
+                        <span class="font-semibold text-gray-900">Grand Total</span>
+                        <span class="font-bold text-green-600">Rp
                             {{ number_format($reservation->grand_total, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
 
             {{-- Source & Booking Info --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Booking Info</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Booking Info</h3>
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-slate-400 text-sm">Source</span>
+                        <span class="text-gray-500 text-sm">Source</span>
                         <span
-                            class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400">{{ $sourceLabel }}</span>
+                            class="px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700">{{ $sourceLabel }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-slate-400">Created by</span>
+                        <span class="text-gray-500">Created by</span>
                         <span
-                            class="text-gray-700 dark:text-slate-300">{{ $reservation->createdBy?->name ?? 'System' }}</span>
+                            class="text-gray-700">{{ $reservation->createdBy?->name ?? 'System' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500 dark:text-slate-400">Created at</span>
+                        <span class="text-gray-500">Created at</span>
                         <span
-                            class="text-gray-700 dark:text-slate-300">{{ $reservation->created_at->format('d M Y, H:i') }}</span>
+                            class="text-gray-700">{{ $reservation->created_at->format('d M Y, H:i') }}</span>
                     </div>
                     @if ($reservation->updated_at != $reservation->created_at)
                         <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500 dark:text-slate-400">Last updated</span>
+                            <span class="text-gray-500">Last updated</span>
                             <span
-                                class="text-gray-700 dark:text-slate-300">{{ $reservation->updated_at->format('d M Y, H:i') }}</span>
+                                class="text-gray-700">{{ $reservation->updated_at->format('d M Y, H:i') }}</span>
                         </div>
                     @endif
                 </div>
             </div>
 
             {{-- Booking Timeline --}}
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Booking Timeline</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Booking Timeline</h3>
                 <div class="space-y-4">
                     {{-- Created --}}
                     <div class="flex items-start gap-3">
                         <div
-                            class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-500 dark:text-slate-400" fill="none"
+                            class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-gray-500" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">Created</p>
-                            <p class="text-xs text-gray-500 dark:text-slate-400">
+                            <p class="text-sm font-medium text-gray-900">Created</p>
+                            <p class="text-xs text-gray-500">
                                 {{ $reservation->created_at->format('d M Y, H:i') }}</p>
                         </div>
                     </div>
@@ -391,7 +391,7 @@
                     @if ($reservation->status !== 'pending')
                         <div class="flex items-start gap-3">
                             <div
-                                class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center">
+                                class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -399,9 +399,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Confirmed</p>
+                                <p class="text-sm font-medium text-gray-900">Confirmed</p>
                                 @if ($reservation->confirmed_at)
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="text-xs text-gray-500">
                                         {{ \Carbon\Carbon::parse($reservation->confirmed_at)->format('d M Y, H:i') }}
                                     </p>
                                 @endif
@@ -412,7 +412,7 @@
                     @if (in_array($reservation->status, ['checked_in', 'checked_out']))
                         <div class="flex items-start gap-3">
                             <div
-                                class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
+                                class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -420,9 +420,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Checked In</p>
+                                <p class="text-sm font-medium text-gray-900">Checked In</p>
                                 @if ($reservation->checked_in_at)
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="text-xs text-gray-500">
                                         {{ \Carbon\Carbon::parse($reservation->checked_in_at)->format('d M Y, H:i') }}
                                     </p>
                                 @endif
@@ -433,7 +433,7 @@
                     @if ($reservation->status === 'checked_out')
                         <div class="flex items-start gap-3">
                             <div
-                                class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center">
+                                class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -441,9 +441,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Checked Out</p>
+                                <p class="text-sm font-medium text-gray-900">Checked Out</p>
                                 @if ($reservation->checked_out_at)
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="text-xs text-gray-500">
                                         {{ \Carbon\Carbon::parse($reservation->checked_out_at)->format('d M Y, H:i') }}
                                     </p>
                                 @endif
@@ -454,7 +454,7 @@
                     @if ($reservation->status === 'cancelled')
                         <div class="flex items-start gap-3">
                             <div
-                                class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                                class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -462,9 +462,9 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Cancelled</p>
+                                <p class="text-sm font-medium text-gray-900">Cancelled</p>
                                 @if ($reservation->cancelled_at)
-                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                    <p class="text-xs text-gray-500">
                                         {{ \Carbon\Carbon::parse($reservation->cancelled_at)->format('d M Y, H:i') }}
                                     </p>
                                 @endif
@@ -481,8 +481,8 @@
 
     {{-- Room Change & Early/Late Request Buttons --}}
     @if (in_array($reservation->status, ['confirmed', 'checked_in']))
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6 mt-6">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Special Requests</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mt-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Special Requests</h3>
             <div class="flex flex-wrap gap-3">
                 <button onclick="openRoomChangeModal()"
                     class="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">
@@ -516,16 +516,16 @@
 
     {{-- Room Change Modal --}}
     <div id="modal-room-change" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Request Room Change</h3>
-                <p class="text-sm text-gray-600 dark:text-slate-400 mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Request Room Change</h3>
+                <p class="text-sm text-gray-600 mb-4">
                     This will open a form to select a new room and calculate rate differences.
                 </p>
                 <div class="flex justify-end gap-3">
                     <button type="button"
                         onclick="document.getElementById('modal-room-change').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                         Cancel
                     </button>
                     <a href="{{ route('hotel.reservations.room-change', $reservation) }}"
@@ -539,35 +539,35 @@
 
     {{-- Early Check-in / Late Check-out Modal --}}
     <div id="modal-early-late" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-md shadow-xl">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl">
             <form action="{{ route('hotel.reservations.request-early-late', $reservation) }}" method="POST">
                 @csrf
 
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4" id="early-late-title">Request
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4" id="early-late-title">Request
                     </h3>
 
                     <input type="hidden" name="request_type" id="request-type-input">
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Requested
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Requested
                                 Time *</label>
                             <input type="datetime-local" name="requested_time" required
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Reason</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Reason</label>
                             <textarea name="reason" rows="2"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Reason for this request..."></textarea>
                         </div>
 
                         <div
-                            class="p-3 rounded-xl bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20">
-                            <p class="text-xs text-yellow-800 dark:text-yellow-200">
+                            class="p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+                            <p class="text-xs text-yellow-800">
                                 <strong>Note:</strong> This request requires approval. Additional charges may apply
                                 based on hotel policy.
                             </p>
@@ -578,7 +578,7 @@
                 <div class="flex justify-end gap-3 px-6 pb-6">
                     <button type="button"
                         onclick="document.getElementById('modal-early-late').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
                         Cancel
                     </button>
                     <button type="submit"
@@ -592,26 +592,26 @@
 
     {{-- Cancel Modal --}}
     <div id="modal-cancel" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Cancel Reservation</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Cancel Reservation</h3>
                 <button onclick="document.getElementById('modal-cancel').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('hotel.reservations.cancel', $reservation) }}"
                 class="p-6 space-y-4">
                 @csrf @method('PATCH')
-                <p class="text-sm text-gray-600 dark:text-slate-400">Cancel reservation
+                <p class="text-sm text-gray-600">Cancel reservation
                     {{ $reservation->reservation_number }}?</p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Cancellation
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Cancellation
                         Reason</label>
                     <textarea name="cancel_reason" rows="3" placeholder="Optional reason..."
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('modal-cancel').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Back</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Back</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Cancel
                         Reservation</button>

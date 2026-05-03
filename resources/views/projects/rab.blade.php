@@ -1,14 +1,14 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">RAB — {{ $project->name }}</x-slot>
 
     @if (session('success'))
         <div
-            class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">
+            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
     @if (session('error'))
         <div
-            class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-700 dark:text-red-400">
+            class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
             {{ session('error') }}</div>
     @endif
 
@@ -18,10 +18,10 @@
             Proyek</a>
         <div class="flex items-center gap-2">
             <a href="{{ route('projects.rab.export', $project) }}"
-                class="px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">📥
+                class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">📥
                 Export CSV</a>
             <button onclick="document.getElementById('importModal').classList.remove('hidden')"
-                class="px-3 py-1.5 text-xs border border-gray-200 dark:border-white/10 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">Import
+                class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">Import
                 CSV</button>
             <button onclick="document.getElementById('addModal').classList.remove('hidden')"
                 class="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">+ Tambah
@@ -31,44 +31,44 @@
 
     {{-- Summary KPI --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total RAB</p>
-            <p class="text-lg font-bold text-blue-600 dark:text-blue-400">Rp
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total RAB</p>
+            <p class="text-lg font-bold text-blue-600">Rp
                 {{ number_format($summary['total_rab'], 0, ',', '.') }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Realisasi</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Realisasi</p>
             <p
-                class="text-lg font-bold {{ $summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400' }}">
+                class="text-lg font-bold {{ $summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600' }}">
                 Rp {{ number_format($summary['total_actual'], 0, ',', '.') }}
             </p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Selisih</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Selisih</p>
             @php $variance = $summary['total_rab'] - $summary['total_actual']; @endphp
             <p
-                class="text-lg font-bold {{ $variance < 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400' }}">
+                class="text-lg font-bold {{ $variance < 0 ? 'text-red-500' : 'text-emerald-600' }}">
                 {{ $variance < 0 ? '-' : '' }}Rp {{ number_format(abs($variance), 0, ',', '.') }}
             </p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Item Pekerjaan</p>
-            <p class="text-lg font-bold text-gray-900 dark:text-white">{{ $summary['item_count'] }} <span
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Item Pekerjaan</p>
+            <p class="text-lg font-bold text-gray-900">{{ $summary['item_count'] }} <span
                     class="text-xs font-normal text-gray-400">item</span></p>
         </div>
     </div>
 
     {{-- Category Breakdown --}}
     @if ($byCategory->isNotEmpty())
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4 mb-6">
-            <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Breakdown
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+            <p class="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">Breakdown
                 per Kategori</p>
             <div class="flex flex-wrap gap-3">
                 @foreach ($byCategory as $cat)
                     @php $pct = $summary['total_rab'] > 0 ? round($cat->total_rab / $summary['total_rab'] * 100, 1) : 0; @endphp
-                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-white/5 text-xs">
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 text-xs">
                         <span
-                            class="font-medium text-gray-700 dark:text-slate-300 capitalize">{{ $cat->cat }}</span>
+                            class="font-medium text-gray-700 capitalize">{{ $cat->cat }}</span>
                         <span class="text-gray-400">Rp {{ number_format($cat->total_rab, 0, ',', '.') }}</span>
                         <span class="text-gray-300">({{ $pct }}%)</span>
                     </div>
@@ -78,29 +78,29 @@
     @endif
 
     {{-- RAB Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-left">
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 w-16">Kode</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">Uraian Pekerjaan
+                    <tr class="border-b border-gray-200 bg-gray-50 text-left">
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 w-16">Kode</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500">Uraian Pekerjaan
                         </th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Volume
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Volume
                         </th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">Satuan</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Harga
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500">Satuan</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Harga
                             Satuan</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Koef
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Koef
                         </th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">Jumlah
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Jumlah
                             (RAB)</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 text-right">
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 text-right">
                             Realisasi</th>
-                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 w-20">Aksi</th>
+                        <th class="px-4 py-3 text-xs font-semibold text-gray-500 w-20">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($tree as $group)
                         @include('projects._rab_row', ['item' => $group, 'depth' => 0])
                         @foreach ($group->children as $child)
@@ -111,7 +111,7 @@
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                            <td colspan="9" class="px-4 py-12 text-center text-gray-400">
                                 Belum ada item RAB. Klik "Tambah Item" atau "Import CSV" untuk memulai.
                             </td>
                         </tr>
@@ -119,14 +119,14 @@
 
                     {{-- Grand Total --}}
                     @if ($tree->isNotEmpty())
-                        <tr class="bg-gray-50 dark:bg-white/5 font-bold">
+                        <tr class="bg-gray-50 font-bold">
                             <td class="px-4 py-3" colspan="6">
-                                <span class="text-gray-900 dark:text-white">GRAND TOTAL</span>
+                                <span class="text-gray-900">GRAND TOTAL</span>
                             </td>
-                            <td class="px-4 py-3 text-right text-blue-600 dark:text-blue-400">Rp
+                            <td class="px-4 py-3 text-right text-blue-600">Rp
                                 {{ number_format($summary['total_rab'], 0, ',', '.') }}</td>
                             <td
-                                class="px-4 py-3 text-right {{ $summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400' }}">
+                                class="px-4 py-3 text-right {{ $summary['total_actual'] > $summary['total_rab'] ? 'text-red-500' : 'text-emerald-600' }}">
                                 Rp {{ number_format($summary['total_actual'], 0, ',', '.') }}
                             </td>
                             <td></td>
@@ -141,40 +141,40 @@
     <div id="addModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg p-6">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Tambah Item RAB</h3>
+                <h3 class="text-base font-semibold text-gray-900">Tambah Item RAB</h3>
                 <button onclick="document.getElementById('addModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('projects.rab.store', $project) }}" class="space-y-4">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipe</label>
                         <select name="type" id="rab-type" onchange="toggleItemFields()"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                             <option value="group">Grup / Header</option>
                             <option value="item" selected>Item Pekerjaan</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kode</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kode</label>
                         <input type="text" name="code" placeholder="I.1.a"
-                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Uraian Pekerjaan
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Uraian Pekerjaan
                         *</label>
                     <input type="text" name="name" required placeholder="Pengecoran Lantai 1"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Parent
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Parent
                         (Grup)</label>
                     <select name="parent_id"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">— Tanpa parent (root) —</option>
                         @foreach (\App\Models\RabItem::where('project_id', $project->id)->where('type', 'group')->orderBy('sort_order')->get() as $g)
                             <option value="{{ $g->id }}">
@@ -186,9 +186,9 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                             <select name="category"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                                 <option value="">—</option>
                                 <option value="material">Material</option>
                                 <option value="labor">Upah / Tenaga</option>
@@ -199,40 +199,40 @@
                         </div>
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Satuan</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Satuan</label>
                             <input type="text" name="unit" placeholder="m3, m2, kg, ls"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-4 mt-4">
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Volume</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Volume</label>
                             <input type="number" name="volume" step="0.001" placeholder="0"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Harga
                                 Satuan</label>
                             <input type="number" name="unit_price" step="1" placeholder="0"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
                         <div>
                             <label
-                                class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Koefisien</label>
+                                class="block text-xs font-medium text-gray-600 mb-1">Koefisien</label>
                             <input type="number" name="coefficient" step="0.0001" value="1"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                     <textarea name="notes" rows="2"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900"></textarea>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')"
-                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700 hover:bg-gray-50">Batal</button>
                     <button type="submit"
                         class="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium">Simpan</button>
                 </div>
@@ -244,23 +244,23 @@
     <div id="importModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-md p-6">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-md p-6">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Import RAB dari CSV</h3>
+                <h3 class="text-base font-semibold text-gray-900">Import RAB dari CSV</h3>
                 <button onclick="document.getElementById('importModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('projects.rab.import', $project) }}" enctype="multipart/form-data"
                 class="space-y-4">
                 @csrf
-                <p class="text-xs text-gray-500 dark:text-slate-400">Format kolom: <code
-                        class="bg-gray-100 dark:bg-white/10 px-1 rounded">Kode, Uraian Pekerjaan, Tipe, Kategori,
+                <p class="text-xs text-gray-500">Format kolom: <code
+                        class="bg-gray-100 px-1 rounded">Kode, Uraian Pekerjaan, Tipe, Kategori,
                         Volume, Satuan, Harga Satuan, Koefisien</code></p>
                 <input type="file" name="file" accept=".csv,.txt" required
-                    class="w-full text-sm text-gray-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 dark:file:bg-white/10 file:text-gray-700 dark:file:text-white">
+                    class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700">
                 <div class="flex gap-3">
                     <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
-                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
+                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700">Batal</button>
                     <button type="submit"
                         class="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium">Import</button>
                 </div>
@@ -289,30 +289,30 @@
     <div id="actualModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-sm p-6">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-sm p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Catat Realisasi</h3>
+                <h3 class="text-base font-semibold text-gray-900">Catat Realisasi</h3>
                 <button onclick="document.getElementById('actualModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
-            <p class="text-sm text-gray-500 dark:text-slate-400 mb-4" id="actual-item-name"></p>
+            <p class="text-sm text-gray-500 mb-4" id="actual-item-name"></p>
             <form method="POST" id="actual-form" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Realisasi Biaya
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Realisasi Biaya
                         (Rp)</label>
                     <input type="number" name="actual_cost" id="actual-cost-input" step="1"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Realisasi
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Realisasi
                         Volume</label>
                     <input type="number" name="actual_volume" id="actual-volume-input" step="0.001"
-                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                 </div>
                 <div class="flex gap-3">
                     <button type="button" onclick="document.getElementById('actualModal').classList.add('hidden')"
-                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300">Batal</button>
+                        class="flex-1 px-4 py-2 rounded-lg text-sm border border-gray-200 text-gray-700">Batal</button>
                     <button type="submit"
                         class="flex-1 px-4 py-2 rounded-lg text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium">Simpan</button>
                 </div>

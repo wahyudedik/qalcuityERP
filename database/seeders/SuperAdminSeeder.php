@@ -17,7 +17,7 @@ class SuperAdminSeeder extends Seeder
                 'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', \Illuminate\Support\Str::random(32))),
                 'role' => 'super_admin',
                 'tenant_id' => null, 
-                'is_active' => true,
+                'is_active' => true, 
                 'email_verified_at' => now(),
             ]
         );

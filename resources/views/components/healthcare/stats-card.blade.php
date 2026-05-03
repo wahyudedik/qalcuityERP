@@ -1,4 +1,4 @@
-{{-- 
+﻿{{-- 
     Healthcare Stats Card Component
     Usage: <x-healthcare.stats-card label="Total Pasien" value="1,234" color="blue" icon="users" />
 --}}
@@ -15,34 +15,34 @@
 @php
     $colorClasses = [
         'blue' => [
-            'text' => 'text-blue-600 dark:text-blue-400',
-            'bg' => 'bg-blue-100 dark:bg-blue-900/30',
-            'icon' => 'text-blue-600 dark:text-blue-400',
+            'text' => 'text-blue-600',
+            'bg' => 'bg-blue-100',
+            'icon' => 'text-blue-600',
         ],
         'green' => [
-            'text' => 'text-green-600 dark:text-green-400',
-            'bg' => 'bg-green-100 dark:bg-green-900/30',
-            'icon' => 'text-green-600 dark:text-green-400',
+            'text' => 'text-green-600',
+            'bg' => 'bg-green-100',
+            'icon' => 'text-green-600',
         ],
         'amber' => [
-            'text' => 'text-amber-600 dark:text-amber-400',
-            'bg' => 'bg-amber-100 dark:bg-amber-900/30',
-            'icon' => 'text-amber-600 dark:text-amber-400',
+            'text' => 'text-amber-600',
+            'bg' => 'bg-amber-100',
+            'icon' => 'text-amber-600',
         ],
         'red' => [
-            'text' => 'text-red-600 dark:text-red-400',
-            'bg' => 'bg-red-100 dark:bg-red-900/30',
-            'icon' => 'text-red-600 dark:text-red-400',
+            'text' => 'text-red-600',
+            'bg' => 'bg-red-100',
+            'icon' => 'text-red-600',
         ],
         'purple' => [
-            'text' => 'text-purple-600 dark:text-purple-400',
-            'bg' => 'bg-purple-100 dark:bg-purple-900/30',
-            'icon' => 'text-purple-600 dark:text-purple-400',
+            'text' => 'text-purple-600',
+            'bg' => 'bg-purple-100',
+            'icon' => 'text-purple-600',
         ],
         'orange' => [
-            'text' => 'text-orange-600 dark:text-orange-400',
-            'bg' => 'bg-orange-100 dark:bg-orange-900/30',
-            'icon' => 'text-orange-600 dark:text-orange-400',
+            'text' => 'text-orange-600',
+            'bg' => 'bg-orange-100',
+            'icon' => 'text-orange-600',
         ],
     ];
 
@@ -50,15 +50,15 @@
 @endphp
 
 <div
-    class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10 hover:shadow-lg transition-shadow">
+    class="bg-white rounded-2xl p-4 border border-gray-200 hover:shadow-lg transition-shadow">
     <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
-            <p class="text-xs text-gray-500 dark:text-slate-400 truncate">{{ $label }}</p>
+            <p class="text-xs text-gray-500 truncate">{{ $label }}</p>
             <p class="text-2xl font-bold {{ $colors['text'] }} mt-1">{{ $value }}</p>
 
             @if ($trend)
                 <p
-                    class="text-xs mt-1 {{ $trendUp ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                    class="text-xs mt-1 {{ $trendUp ? 'text-green-600' : 'text-red-600' }}">
                     {{ $trendUp ? '↑' : '↓' }} {{ $trend }} from last period
                 </p>
             @endif

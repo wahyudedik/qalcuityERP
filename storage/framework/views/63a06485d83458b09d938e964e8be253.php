@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -13,26 +13,26 @@
     <div class="space-y-6">
 
         
-        <a href="<?php echo e(route('approvals.index')); ?>" class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition">
+        <a href="<?php echo e(route('approvals.index')); ?>" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             Kembali ke Persetujuan
         </a>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h2 class="font-semibold text-gray-900 dark:text-white mb-5">Buat Workflow Baru</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="font-semibold text-gray-900 mb-5">Buat Workflow Baru</h2>
             <form method="POST" action="<?php echo e(route('approvals.workflows.store')); ?>"
                   class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <?php echo csrf_field(); ?>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Nama Workflow *</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Nama Workflow *</label>
                     <input type="text" name="name" required placeholder="cth: Persetujuan Pembelian > 5 Juta"
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Tipe Dokumen</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tipe Dokumen</label>
                     <select name="model_type"
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                         <option value="">Umum (semua)</option>
                         <option value="App\Models\Invoice">Invoice</option>
                         <option value="App\Models\PurchaseOrder">Purchase Order</option>
@@ -42,25 +42,25 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Jumlah Minimum (Rp)</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Jumlah Minimum (Rp)</label>
                     <input type="number" name="min_amount" min="0" step="1000" placeholder="0"
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Jumlah Maksimum (Rp, kosongkan = tidak terbatas)</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Jumlah Maksimum (Rp, kosongkan = tidak terbatas)</label>
                     <input type="number" name="max_amount" min="0" step="1000" placeholder="Tidak terbatas"
-                        class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Role yang Bisa Menyetujui *</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-2">Role yang Bisa Menyetujui *</label>
                     <div class="flex flex-wrap gap-3">
                         <?php $__currentLoopData = ['admin' => 'Admin', 'manager' => 'Manajer', 'staff' => 'Staff', 'kasir' => 'Kasir', 'gudang' => 'Gudang']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="approver_roles[]" value="<?php echo e($role); ?>"
                                 <?php echo e(in_array($role, ['admin','manager']) ? 'checked' : ''); ?>
 
-                                class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700 dark:text-slate-300"><?php echo e($label); ?></span>
+                                class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700"><?php echo e($label); ?></span>
                         </label>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
@@ -75,28 +75,28 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10">
-                <h2 class="font-semibold text-gray-900 dark:text-white">Daftar Workflow</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="font-semibold text-gray-900">Daftar Workflow</h2>
             </div>
             <?php if($workflows->isEmpty()): ?>
-                <div class="px-6 py-12 text-center text-gray-400 dark:text-slate-500 text-sm">Belum ada workflow. Buat workflow pertama di atas.</div>
+                <div class="px-6 py-12 text-center text-gray-400 text-sm">Belum ada workflow. Buat workflow pertama di atas.</div>
             <?php else: ?>
-            <div class="divide-y divide-gray-100 dark:divide-white/5">
+            <div class="divide-y divide-gray-100">
                 <?php $__currentLoopData = $workflows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wf): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="px-6 py-4" x-data="{ editing: false }">
                     
                     <div x-show="!editing" class="flex flex-col sm:flex-row sm:items-center gap-4">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <p class="font-medium text-gray-900 dark:text-white text-sm"><?php echo e($wf->name); ?></p>
+                                <p class="font-medium text-gray-900 text-sm"><?php echo e($wf->name); ?></p>
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium
                                     <?php echo e($wf->is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'); ?>">
                                     <?php echo e($wf->is_active ? 'Aktif' : 'Nonaktif'); ?>
 
                                 </span>
                             </div>
-                            <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-400 dark:text-slate-500">
+                            <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-gray-400">
                                 <?php if($wf->model_type): ?>
                                 <span>📄 <?php echo e(class_basename($wf->model_type)); ?></span>
                                 <?php endif; ?>
@@ -110,9 +110,9 @@
                             <div class="flex items-center gap-1 mt-2 flex-wrap">
                                 <?php $__currentLoopData = $wf->approver_roles ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <?php if($i > 0): ?>
-                                <svg class="w-3 h-3 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 <?php endif; ?>
-                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium">
+                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded-full text-xs font-medium">
                                     <?php echo e(ucfirst($role)); ?>
 
                                 </span>
@@ -121,7 +121,7 @@
                         </div>
                         <div class="flex gap-2 sm:shrink-0">
                             <button @click="editing = true"
-                                class="px-3 py-1.5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 text-xs font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition">
+                                class="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-100 transition">
                                 Edit
                             </button>
                             <form method="POST" action="<?php echo e(route('approvals.workflows.destroy', $wf)); ?>"
@@ -141,14 +141,14 @@
                               class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Nama *</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Nama *</label>
                                 <input type="text" name="name" required value="<?php echo e($wf->name); ?>"
-                                    class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Tipe Dokumen</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Tipe Dokumen</label>
                                 <select name="model_type"
-                                    class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                                     <option value="" <?php echo e(!$wf->model_type ? 'selected' : ''); ?>>Umum</option>
                                     <option value="App\Models\Invoice" <?php echo e($wf->model_type === 'App\Models\Invoice' ? 'selected' : ''); ?>>Invoice</option>
                                     <option value="App\Models\PurchaseOrder" <?php echo e($wf->model_type === 'App\Models\PurchaseOrder' ? 'selected' : ''); ?>>Purchase Order</option>
@@ -158,25 +158,25 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Min Amount</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Min Amount</label>
                                 <input type="number" name="min_amount" min="0" step="1000" value="<?php echo e($wf->min_amount); ?>"
-                                    class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1">Max Amount</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Max Amount</label>
                                 <input type="number" name="max_amount" min="0" step="1000" value="<?php echo e($wf->max_amount); ?>"
-                                    class="w-full bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Role Approver *</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-2">Role Approver *</label>
                                 <div class="flex flex-wrap gap-3">
                                     <?php $__currentLoopData = ['admin' => 'Admin', 'manager' => 'Manajer', 'staff' => 'Staff', 'kasir' => 'Kasir', 'gudang' => 'Gudang']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" name="approver_roles[]" value="<?php echo e($role); ?>"
                                             <?php echo e(in_array($role, $wf->approver_roles ?? []) ? 'checked' : ''); ?>
 
-                                            class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-600 focus:ring-blue-500">
-                                        <span class="text-sm text-gray-700 dark:text-slate-300"><?php echo e($label); ?></span>
+                                            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700"><?php echo e($label); ?></span>
                                     </label>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
@@ -186,12 +186,12 @@
                                     <input type="checkbox" name="is_active" value="1"
                                         <?php echo e($wf->is_active ? 'checked' : ''); ?>
 
-                                        class="w-4 h-4 rounded border-gray-300 dark:border-white/20 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-sm text-gray-700 dark:text-slate-300">Aktif</span>
+                                        class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm text-gray-700">Aktif</span>
                                 </label>
                                 <div class="flex gap-2">
                                     <button type="button" @click="editing = false"
-                                        class="px-4 py-2 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 text-sm font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition">
+                                        class="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-100 transition">
                                         Batal
                                     </button>
                                     <button type="submit"

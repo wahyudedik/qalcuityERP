@@ -1,4 +1,4 @@
-
+﻿
 
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
@@ -47,14 +47,14 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php
     // Type-based styling
     $typeClasses = [
-        'primary' => 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 dark:focus:ring-offset-gray-800',
+        'primary' => 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
         'secondary' =>
-            'bg-transparent border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5 focus:ring-gray-400',
-        'success' => 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 dark:focus:ring-offset-gray-800',
-        'danger' => 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:focus:ring-offset-gray-800',
-        'warning' => 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500 dark:focus:ring-offset-gray-800',
+            'bg-transparent border border-gray-200 text-gray-600 hover:bg-gray-50 focus:ring-gray-400',
+        'success' => 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
+        'danger' => 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+        'warning' => 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500',
         'ghost' =>
-            'bg-transparent border-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20',
+            'bg-transparent border-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50',
     ];
 
     // Size-based styling

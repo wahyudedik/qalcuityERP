@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Manajemen Aset</x-slot>
 
     {{-- Stats --}}
@@ -8,22 +8,22 @@
             $totalAssets = \App\Models\Asset::where('tenant_id', $tid)->count();
             $activeAssets = \App\Models\Asset::where('tenant_id', $tid)->where('status', 'active')->count();
         @endphp
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Aset</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $totalAssets }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Total Aset</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $totalAssets }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Aset Aktif</p>
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $activeAssets }}</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Aset Aktif</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">{{ $activeAssets }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Nilai Buku</p>
-            <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">Rp
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Nilai Buku</p>
+            <p class="text-lg font-bold text-blue-600 mt-1">Rp
                 {{ number_format($totalValue / 1000000, 1) }}jt</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Harga Perolehan</p>
-            <p class="text-lg font-bold text-gray-900 dark:text-white mt-1">Rp
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Harga Perolehan</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">Rp
                 {{ number_format($totalCost / 1000000, 1) }}jt</p>
         </div>
     </div>
@@ -32,16 +32,16 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
         <form method="GET" class="flex flex-col sm:flex-row gap-2 flex-1">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama / kode aset..."
-                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <select name="category"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Kategori</option>
                 @foreach (['vehicle' => 'Kendaraan', 'machine' => 'Mesin', 'equipment' => 'Peralatan', 'furniture' => 'Furnitur', 'building' => 'Bangunan'] as $v => $l)
                     <option value="{{ $v }}" @selected(request('category') === $v)>{{ $l }}</option>
                 @endforeach
             </select>
             <select name="status"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
                 <option value="active" @selected(request('status') === 'active')>Aktif</option>
                 <option value="maintenance" @selected(request('status') === 'maintenance')>Maintenance</option>
@@ -52,9 +52,9 @@
         </form>
         <div class="flex gap-2">
             <a href="{{ route('assets.maintenance') }}"
-                class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Maintenance</a>
+                class="px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Maintenance</a>
             <button onclick="document.getElementById('modal-depreciate').classList.remove('hidden')"
-                class="px-3 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Depresiasi</button>
+                class="px-3 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Depresiasi</button>
             @canmodule('assets', 'create')
             <button onclick="document.getElementById('modal-add-asset').classList.remove('hidden')"
                 class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">+ Aset</button>
@@ -71,10 +71,10 @@
     </div>
 
     {{-- Table --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Aset</th>
                         <th class="px-4 py-3 text-left hidden sm:table-cell">Kode</th>
@@ -86,9 +86,9 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($assets as $asset)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-asset-id="{{ $asset->id }}">
+                        <tr class="hover:bg-gray-50" data-asset-id="{{ $asset->id }}">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox"
@@ -96,14 +96,14 @@
                                         value="{{ $asset->id }}" data-asset-code="{{ $asset->asset_code }}"
                                         onchange="updateBatchCount()">
                                     <div>
-                                        <p class="font-medium text-gray-900 dark:text-white">{{ $asset->name }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-slate-400">{{ $asset->brand ?? '' }}
+                                        <p class="font-medium text-gray-900">{{ $asset->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $asset->brand ?? '' }}
                                             {{ $asset->model ?? '' }}</p>
                                     </div>
                                 </div>
                             </td>
                             <td
-                                class="px-4 py-3 hidden sm:table-cell font-mono text-xs text-gray-500 dark:text-slate-400">
+                                class="px-4 py-3 hidden sm:table-cell font-mono text-xs text-gray-500">
                                 {{ $asset->asset_code }}
                                 <a href="{{ route('assets.barcode.show', $asset) }}" target="_blank"
                                     class="ml-1.5 inline-block text-blue-600 hover:text-blue-700" title="Lihat Barcode">
@@ -113,18 +113,18 @@
                                     </svg>
                                 </a>
                             </td>
-                            <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400 capitalize">
+                            <td class="px-4 py-3 hidden md:table-cell text-gray-500 capitalize">
                                 {{ $asset->category }}</td>
-                            <td class="px-4 py-3 text-right hidden sm:table-cell text-gray-700 dark:text-slate-300">Rp
+                            <td class="px-4 py-3 text-right hidden sm:table-cell text-gray-700">Rp
                                 {{ number_format($asset->purchase_price, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">Rp
+                            <td class="px-4 py-3 text-right font-medium text-gray-900">Rp
                                 {{ number_format($asset->current_value, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-right hidden md:table-cell text-gray-500 dark:text-slate-400">Rp
+                            <td class="px-4 py-3 text-right hidden md:table-cell text-gray-500">Rp
                                 {{ number_format($asset->monthlyDepreciation(), 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center">
                                 @php $sc = ['active'=>'green','maintenance'=>'yellow','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 dark:bg-{{ $sc }}-500/20 dark:text-{{ $sc }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                                     {{ ucfirst($asset->status) }}
                                 </span>
                             </td>
@@ -132,7 +132,7 @@
                                 @canmodule('assets', 'edit')
                                 <button
                                     onclick="openEditAsset({{ $asset->id }}, '{{ addslashes($asset->name) }}', '{{ addslashes($asset->location ?? '') }}', '{{ $asset->status }}')"
-                                    class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
                                     title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -141,7 +141,7 @@
                                 </button>
                                 @endcanmodule
                                 <a href="{{ route('assets.schedule', $asset) }}"
-                                    class="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-white/10 inline-flex"
+                                    class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 inline-flex"
                                     title="Jadwal Depresiasi">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -153,7 +153,7 @@
                                     onsubmit="return confirm('Hapus aset {{ addslashes($asset->name) }}? Jika ada riwayat depresiasi, aset akan ditandai disposed.')">
                                     @csrf @method('DELETE')
                                     <button type="submit"
-                                        class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                        class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                         title="Hapus Aset">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -167,7 +167,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum
+                            <td colspan="8" class="px-4 py-12 text-center text-gray-400">Belum
                                 ada aset terdaftar.</td>
                         </tr>
                     @endforelse
@@ -175,33 +175,33 @@
             </table>
         </div>
         @if ($assets->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $assets->links() }}</div>
+            <div class="px-4 py-3 border-t border-gray-100">{{ $assets->links() }}</div>
         @endif
     </div>
 
     {{-- Modal Tambah Aset --}}
     <div id="modal-add-asset" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Daftarkan Aset Baru</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Daftarkan Aset Baru</h3>
                 <button onclick="document.getElementById('modal-add-asset').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('assets.store') }}" class="p-6 space-y-4">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama Aset
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama Aset
                             *</label>
                         <input type="text" name="name" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kategori
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori
                             *</label>
                         <select name="category" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="equipment">Peralatan</option>
                             <option value="vehicle">Kendaraan</option>
                             <option value="machine">Mesin</option>
@@ -210,51 +210,51 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Lokasi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi</label>
                         <input type="text" name="location"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Merek</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Merek</label>
                         <input type="text" name="brand"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
                         <label
-                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Model/Tipe</label>
+                            class="block text-xs font-medium text-gray-600 mb-1">Model/Tipe</label>
                         <input type="text" name="model"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tanggal Beli
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Beli
                             *</label>
                         <input type="date" name="purchase_date" value="{{ today()->format('Y-m-d') }}" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Harga Perolehan
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Harga Perolehan
                             (Rp) *</label>
                         <input type="number" name="purchase_price" min="0" step="100000" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nilai Sisa
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nilai Sisa
                             (Rp)</label>
                         <input type="number" name="salvage_value" value="0" min="0" step="100000"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Umur Ekonomis
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Umur Ekonomis
                             (tahun) *</label>
                         <input type="number" name="useful_life_years" value="5" min="1" max="50"
                             required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Metode
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Metode
                             Depresiasi *</label>
                         <select name="depreciation_method"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="straight_line">Garis Lurus</option>
                             <option value="declining_balance">Saldo Menurun</option>
                         </select>
@@ -263,7 +263,7 @@
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button"
                         onclick="document.getElementById('modal-add-asset').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
@@ -273,28 +273,28 @@
 
     {{-- Modal Edit Aset --}}
     <div id="modal-edit-asset" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Edit Aset</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Edit Aset</h3>
                 <button onclick="document.getElementById('modal-edit-asset').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form id="form-edit-asset" method="POST" class="p-6 space-y-4">
                 @csrf @method('PUT')
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama *</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Nama *</label>
                     <input type="text" id="ea-name" name="name" required
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Lokasi</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi</label>
                     <input type="text" id="ea-location" name="location"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Status</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                     <select id="ea-status" name="status"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="active">Aktif</option>
                         <option value="maintenance">Maintenance</option>
                         <option value="disposed">Disposed</option>
@@ -302,14 +302,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                     <textarea name="notes" rows="2"
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button"
                         onclick="document.getElementById('modal-edit-asset').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan</button>
                 </div>
@@ -348,25 +348,25 @@
 
     {{-- Modal Depresiasi --}}
     <div id="modal-depreciate" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-xl">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Hitung Depresiasi</h3>
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900">Hitung Depresiasi</h3>
                 <button onclick="document.getElementById('modal-depreciate').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="{{ route('assets.depreciate') }}" class="p-6 space-y-4">
                 @csrf
-                <p class="text-sm text-gray-600 dark:text-slate-400">Hitung dan catat depresiasi semua aset aktif untuk
+                <p class="text-sm text-gray-600">Hitung dan catat depresiasi semua aset aktif untuk
                     periode yang dipilih.</p>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Periode *</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Periode *</label>
                     <input type="month" name="period" value="{{ now()->format('Y-m') }}" required
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button"
                         onclick="document.getElementById('modal-depreciate').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Hitung</button>
                 </div>

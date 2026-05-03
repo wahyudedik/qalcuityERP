@@ -427,7 +427,7 @@ class TelemedicineService
     {
         // For WebRTC implementation
         $meetingId = 'TEL-' . uniqid();
-        $meetingUrl = route('telemedicine.join', ['meetingId' => $meetingId]);
+        $meetingUrl = route('healthcare.telemedicine.video-room', ['id' => $consultation->id]);
 
         $consultation->update([
             'meeting_id' => $meetingId,

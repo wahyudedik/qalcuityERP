@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TenantApiSetting;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -15,10 +16,15 @@ class CctvIntegrationService
 
     public function __construct(protected ?int $tenantId = null)
     {
+        // Resolve tenant ID from authenticated user if not provided
+        if ($this->tenantId === null && auth()->check()) {
+            $this->tenantId = auth()->user()->tenant_id;
+        }
+
         // Read CCTV settings from tenant DB, fallback to config/.env
-        $this->nvrUrl = ($tenantId ? TenantApiSetting::get($tenantId, 'cctv_nvr_url') : null)
+        $this->nvrUrl = ($this->tenantId ? TenantApiSetting::get($this->tenantId, 'cctv_nvr_url') : null)
             ?? config('services.cctv.nvr_url', 'http://192.168.1.100:8000');
-        $this->apiKey = ($tenantId ? TenantApiSetting::get($tenantId, 'cctv_api_key') : null)
+        $this->apiKey = ($this->tenantId ? TenantApiSetting::get($this->tenantId, 'cctv_api_key') : null)
             ?? config('services.cctv.api_key', '');
         $this->cameras = config('services.cctv.cameras', []);
     }
@@ -45,7 +51,6 @@ class CctvIntegrationService
                 'location' => $camera['location'] ?? null,
                 'resolution' => $camera['resolution'] ?? '1920x1080',
             ];
-
         } catch (\Exception $e) {
             Log::error('CCTV Stream Error', [
                 'camera_id' => $cameraId,
@@ -92,7 +97,6 @@ class CctvIntegrationService
                 'recordings' => $recordings,
                 'total' => count($recordings),
             ];
-
         } catch (\Exception $e) {
             Log::error('CCTV Recording Error', [
                 'camera_id' => $cameraId,
@@ -140,7 +144,6 @@ class CctvIntegrationService
                 'snapshot_url' => Storage::url($filename),
                 'timestamp' => now()->toDateTimeString(),
             ];
-
         } catch (\Exception $e) {
             Log::error('CCTV Snapshot Error', [
                 'camera_id' => $cameraId,
@@ -187,7 +190,6 @@ class CctvIntegrationService
                 'regions' => $result['regions'] ?? [],
                 'timestamp' => now()->toDateTimeString(),
             ];
-
         } catch (\Exception $e) {
             Log::error('Motion Detection Error', [
                 'camera_id' => $cameraId,
@@ -234,7 +236,6 @@ class CctvIntegrationService
                 'storage_used' => $status['storage_used'] ?? null,
                 'last_motion' => $status['last_motion'] ?? null,
             ];
-
         } catch (\Exception $e) {
             Log::error('Camera Status Error', [
                 'camera_id' => $cameraId,
@@ -272,7 +273,6 @@ class CctvIntegrationService
                 'cameras' => $cameras,
                 'total' => count($cameras),
             ];
-
         } catch (\Exception $e) {
             Log::error('Get Cameras Error', ['error' => $e->getMessage()]);
 
@@ -312,7 +312,6 @@ class CctvIntegrationService
                 ]);
 
             return $response->successful();
-
         } catch (\Exception $e) {
             Log::error('PTZ Control Error', [
                 'camera_id' => $cameraId,
@@ -348,7 +347,6 @@ class CctvIntegrationService
                 ]);
 
             return $response->successful();
-
         } catch (\Exception $e) {
             Log::error('Motion Alert Setup Error', [
                 'camera_id' => $cameraId,
@@ -394,7 +392,6 @@ class CctvIntegrationService
                 'file_size' => $result['file_size'] ?? null,
                 'duration' => $result['duration'] ?? null,
             ];
-
         } catch (\Exception $e) {
             Log::error('Footage Export Error', [
                 'camera_id' => $cameraId,

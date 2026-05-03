@@ -1,18 +1,18 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Manajemen Lembur</x-slot>
 
     {{-- Summary cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Menunggu Persetujuan</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Menunggu Persetujuan</p>
             <p class="text-2xl font-bold text-amber-500 mt-1">{{ $summary['pending'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Disetujui Bulan Ini</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Disetujui Bulan Ini</p>
             <p class="text-2xl font-bold text-green-500 mt-1">{{ $summary['approved'] }}</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl p-4 border border-gray-200 dark:border-white/10">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Upah Lembur Belum Dibayar</p>
+        <div class="bg-white rounded-2xl p-4 border border-gray-200">
+            <p class="text-xs text-gray-500">Upah Lembur Belum Dibayar</p>
             <p class="text-xl font-bold text-blue-500 mt-1">Rp {{ number_format($summary['total_pay'], 0, ',', '.') }}
             </p>
         </div>
@@ -22,15 +22,15 @@
 
         {{-- ── Sidebar: Form Pengajuan ──────────────────────────── --}}
         <div class="lg:w-72 shrink-0 space-y-4">
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-sm">Ajukan Lembur</h3>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-900 mb-4 text-sm">Ajukan Lembur</h3>
                 <form method="POST" action="{{ route('hrm.overtime.store') }}" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Karyawan
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Karyawan
                             *</label>
                         <select name="employee_id" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih karyawan...</option>
                             @foreach ($employees as $emp)
                                 <option value="{{ $emp->id }}">{{ $emp->name }}</option>
@@ -38,29 +38,29 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tanggal
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal
                             *</label>
                         <input type="date" name="date" required value="{{ today()->format('Y-m-d') }}"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Mulai
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Mulai
                                 *</label>
                             <input type="time" name="start_time" required value="17:00"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Selesai
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Selesai
                                 *</label>
                             <input type="time" name="end_time" required value="20:00"
-                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Alasan</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Alasan</label>
                         <textarea name="reason" rows="2" placeholder="Keterangan pekerjaan lembur..."
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </div>
                     <button type="submit"
                         class="w-full py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">
@@ -85,9 +85,9 @@
             {{-- Filter --}}
             <form method="GET" class="flex flex-wrap items-center gap-2 mb-4">
                 <input type="month" name="month" value="{{ $month }}"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="status"
-                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="all" @selected($status === 'all')>Semua Status</option>
                     <option value="pending" @selected($status === 'pending')>Menunggu</option>
                     <option value="approved" @selected($status === 'approved')>Disetujui</option>
@@ -99,10 +99,10 @@
 
             {{-- Table --}}
             <div
-                class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+                class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
                                 <th class="px-4 py-3 text-left">Karyawan</th>
                                 <th class="px-4 py-3 text-left">Tanggal</th>
@@ -113,44 +113,44 @@
                                 <th class="px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-100">
                             @forelse($requests as $ot)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
-                                        <p class="font-medium text-gray-900 dark:text-white">
+                                        <p class="font-medium text-gray-900">
                                             {{ $ot->employee->name ?? '-' }}</p>
-                                        <p class="text-xs text-gray-400 dark:text-slate-500">
+                                        <p class="text-xs text-gray-400">
                                             {{ $ot->employee->department ?? ($ot->employee->position ?? '') }}</p>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300 whitespace-nowrap">
+                                    <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
                                         {{ $ot->date->format('d M Y') }}
                                     </td>
                                     <td
-                                        class="px-4 py-3 text-center text-gray-600 dark:text-slate-400 whitespace-nowrap text-xs">
+                                        class="px-4 py-3 text-center text-gray-600 whitespace-nowrap text-xs">
                                         {{ $ot->start_time }} – {{ $ot->end_time }}
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <span
-                                            class="text-sm font-medium text-gray-900 dark:text-white">{{ $ot->durationLabel() }}</span>
+                                            class="text-sm font-medium text-gray-900">{{ $ot->durationLabel() }}</span>
                                     </td>
                                     <td class="px-4 py-3 text-right hidden sm:table-cell">
                                         @if ($ot->status === 'approved')
-                                            <span class="text-green-600 dark:text-green-400 font-medium">Rp
+                                            <span class="text-green-600 font-medium">Rp
                                                 {{ number_format($ot->overtime_pay, 0, ',', '.') }}</span>
                                         @else
-                                            <span class="text-gray-400 dark:text-slate-500 text-xs">—</span>
+                                            <span class="text-gray-400 text-xs">—</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($ot->status === 'pending')
                                             <span
-                                                class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">Menunggu</span>
+                                                class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">Menunggu</span>
                                         @elseif($ot->status === 'approved')
                                             <div>
                                                 <span
-                                                    class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Disetujui</span>
+                                                    class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Disetujui</span>
                                                 @if ($ot->included_in_payroll)
-                                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Payroll
+                                                    <p class="text-xs text-gray-400 mt-0.5">Payroll
                                                         {{ $ot->payroll_period }}</p>
                                                 @else
                                                     <p class="text-xs text-blue-400 mt-0.5">Belum dibayar</p>
@@ -159,9 +159,9 @@
                                         @else
                                             <div>
                                                 <span
-                                                    class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Ditolak</span>
+                                                    class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">Ditolak</span>
                                                 @if ($ot->rejection_reason)
-                                                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 max-w-[120px] truncate"
+                                                    <p class="text-xs text-gray-400 mt-0.5 max-w-[120px] truncate"
                                                         title="{{ $ot->rejection_reason }}">
                                                         {{ $ot->rejection_reason }}</p>
                                                 @endif
@@ -188,14 +188,14 @@
                                                     class="text-xs text-gray-400 hover:text-red-400">Hapus</button>
                                             </form>
                                         @else
-                                            <span class="text-xs text-gray-300 dark:text-slate-600">—</span>
+                                            <span class="text-xs text-gray-300">—</span>
                                         @endif
                                     </td>
                                 </tr>
                                 @if ($ot->reason && $ot->status !== 'rejected')
-                                    <tr class="bg-gray-50/50 dark:bg-white/[0.02]">
+                                    <tr class="bg-gray-50/50">
                                         <td colspan="7"
-                                            class="px-4 py-1.5 text-xs text-gray-400 dark:text-slate-500 italic">
+                                            class="px-4 py-1.5 text-xs text-gray-400 italic">
                                             Alasan: {{ $ot->reason }}
                                         </td>
                                     </tr>
@@ -203,7 +203,7 @@
                             @empty
                                 <tr>
                                     <td colspan="7"
-                                        class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                                        class="px-4 py-12 text-center text-gray-400">
                                         Tidak ada pengajuan lembur untuk filter ini.
                                     </td>
                                 </tr>
@@ -212,7 +212,7 @@
                     </table>
                 </div>
                 @if ($requests->hasPages())
-                    <div class="px-4 py-3 border-t border-gray-100 dark:border-white/10">
+                    <div class="px-4 py-3 border-t border-gray-100">
                         {{ $requests->links() }}
                     </div>
                 @endif
@@ -224,23 +224,23 @@
     <div id="modal-reject"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-sm shadow-2xl">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
-                <p class="font-semibold text-gray-900 dark:text-white text-sm">Tolak Pengajuan Lembur</p>
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-sm shadow-2xl">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <p class="font-semibold text-gray-900 text-sm">Tolak Pengajuan Lembur</p>
                 <button onclick="document.getElementById('modal-reject').classList.add('hidden')"
                     class="text-gray-400 hover:text-white">✕</button>
             </div>
             <form id="form-reject" method="POST" class="p-5 space-y-4">
                 @csrf @method('PATCH')
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Alasan Penolakan
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Alasan Penolakan
                         (opsional)</label>
                     <textarea name="rejection_reason" rows="3" placeholder="Masukkan alasan penolakan..."
-                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                        class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="document.getElementById('modal-reject').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700">Tolak</button>
                 </div>

@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Goods Receipt — Qalcuity ERP</x-slot>
     <x-slot name="header">Goods Receipt (GR)</x-slot>
     <x-slot name="pageHeader">
@@ -14,10 +14,10 @@
     </x-slot>
 
     {{-- GR List --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Nomor GR</th>
                         <th class="px-4 py-3 text-left">PO / Supplier</th>
@@ -27,35 +27,35 @@
                         <th class="px-4 py-3 text-center">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($receipts as $gr)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+                                <p class="font-mono text-xs font-semibold text-gray-900">
                                     {{ $gr->number }}</p>
                             </td>
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900 dark:text-white text-xs">
+                                <p class="font-medium text-gray-900 text-xs">
                                     {{ $gr->purchaseOrder->number }}</p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     {{ $gr->purchaseOrder->supplier->name }}</p>
                             </td>
-                            <td class="px-4 py-3 hidden md:table-cell text-gray-500 dark:text-slate-400">
+                            <td class="px-4 py-3 hidden md:table-cell text-gray-500">
                                 {{ $gr->warehouse->name }}</td>
-                            <td class="px-4 py-3 hidden lg:table-cell text-gray-500 dark:text-slate-400 text-xs">
+                            <td class="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
                                 {{ $gr->delivery_note ?? '—' }}</td>
-                            <td class="px-4 py-3 text-center text-xs text-gray-500 dark:text-slate-400">
+                            <td class="px-4 py-3 text-center text-xs text-gray-500">
                                 {{ $gr->receipt_date->format('d M Y') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs {{ $gr->status === 'confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-slate-400' }}">
+                                    class="px-2 py-0.5 rounded-full text-xs {{ $gr->status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                                     {{ $gr->status === 'confirmed' ? 'Dikonfirmasi' : 'Draft' }}
                                 </span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">Belum
+                            <td colspan="6" class="px-4 py-12 text-center text-gray-400">Belum
                                 ada Goods Receipt.</td>
                         </tr>
                     @endforelse
@@ -63,16 +63,16 @@
             </table>
         </div>
         @if ($receipts->hasPages())
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-white/5">{{ $receipts->links() }}</div>
+            <div class="px-4 py-3 border-t border-gray-100">{{ $receipts->links() }}</div>
         @endif
     </div>
 
     {{-- Modal Catat GR --}}
     <div id="modal-add-gr" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-3xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div
-                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/10 sticky top-0 bg-white dark:bg-[#1e293b]">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Catat Penerimaan Barang</h3>
+                class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+                <h3 class="font-semibold text-gray-900">Catat Penerimaan Barang</h3>
                 <button onclick="document.getElementById('modal-add-gr').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -81,10 +81,10 @@
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Purchase Order
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Purchase Order
                             *</label>
                         <select name="purchase_order_id" id="gr-po-select" required onchange="loadPoItems()"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                             <option value="">Pilih PO...</option>
                             @foreach ($openPos as $po)
                                 <option value="{{ $po->id }}"
@@ -95,9 +95,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Gudang *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Gudang *</label>
                         <select name="warehouse_id" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                             <option value="">Pilih gudang...</option>
                             @foreach ($warehouses as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
@@ -105,39 +105,39 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tanggal Terima
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Terima
                             *</label>
                         <input type="date" name="receipt_date" value="{{ today()->format('Y-m-d') }}" required
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">No. Surat
+                        <label class="block text-xs font-medium text-gray-600 mb-1">No. Surat
                             Jalan</label>
                         <input type="text" name="delivery_note"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                         <input type="text" name="notes"
-                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                            class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
                 </div>
 
                 {{-- Barcode Scanner Section --}}
                 <div id="gr-scanner-wrap" class="hidden">
                     <div
-                        class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                        class="p-4 bg-blue-50 rounded-xl border border-blue-200">
                         <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-semibold text-blue-900 dark:text-blue-200">Scan Barcode Barang Masuk
+                            <p class="text-sm font-semibold text-blue-900">Scan Barcode Barang Masuk
                             </p>
                             <span id="gr-scan-counter"
-                                class="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full">0
+                                class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">0
                                 item discan</span>
                         </div>
                         <div class="flex gap-2">
                             <input type="text" id="gr-barcode-input"
                                 placeholder="Scan barcode atau ketik SKU, lalu Enter..."
-                                class="flex-1 px-3 py-2 text-sm rounded-xl border border-blue-200 dark:border-blue-700 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                class="flex-1 px-3 py-2 text-sm rounded-xl border border-blue-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 autocomplete="off">
                             <button type="button" onclick="openGrScanner()"
                                 class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm flex items-center gap-1.5 transition">
@@ -148,18 +148,18 @@
                                 Kamera
                             </button>
                         </div>
-                        <p id="gr-scan-feedback" class="text-xs mt-1.5 text-blue-600 dark:text-blue-300 min-h-[16px]">
+                        <p id="gr-scan-feedback" class="text-xs mt-1.5 text-blue-600 min-h-[16px]">
                         </p>
                     </div>
                 </div>
 
                 {{-- Dynamic items table --}}
                 <div id="gr-items-wrap" class="hidden">
-                    <p class="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-2">
+                    <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
                         Detail Penerimaan</p>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400">
+                            <thead class="bg-gray-50 text-xs text-gray-500">
                                 <tr>
                                     <th class="px-3 py-2 text-left">Produk</th>
                                     <th class="px-3 py-2 text-center">Dipesan</th>
@@ -169,14 +169,14 @@
                                     <th class="px-3 py-2 text-center">Ditolak</th>
                                 </tr>
                             </thead>
-                            <tbody id="gr-items-body" class="divide-y divide-gray-100 dark:divide-white/5"></tbody>
+                            <tbody id="gr-items-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="document.getElementById('modal-add-gr').classList.add('hidden')"
-                        class="px-4 py-2 text-sm border border-gray-200 dark:border-white/10 rounded-xl text-gray-600 dark:text-slate-300">Batal</button>
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-xl text-gray-600">Batal</button>
                     <button type="submit"
                         class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Simpan
                         GR</button>
@@ -187,10 +187,10 @@
 
     {{-- Camera scanner modal for GR --}}
     <div id="gr-scanner-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80">
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
-                <h3 class="font-semibold text-gray-900 dark:text-white text-sm">Scan Barang Masuk</h3>
-                <button onclick="closeGrScanner()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900 text-sm">Scan Barang Masuk</h3>
+                <button onclick="closeGrScanner()" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -199,13 +199,13 @@
             </div>
             <div class="p-4">
                 <video id="gr-barcode-video" class="w-full rounded-xl bg-black aspect-video"></video>
-                <p class="text-xs text-center text-gray-500 dark:text-slate-400 mt-3">Arahkan kamera ke barcode produk
+                <p class="text-xs text-center text-gray-500 mt-3">Arahkan kamera ke barcode produk
                 </p>
-                <div class="mt-3 border-t border-gray-100 dark:border-white/10 pt-3">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Atau ketik manual:</p>
+                <div class="mt-3 border-t border-gray-100 pt-3">
+                    <p class="text-xs text-gray-500 mb-1">Atau ketik manual:</p>
                     <div class="flex gap-2">
                         <input type="text" id="gr-manual-barcode" placeholder="Barcode / SKU"
-                            class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button onclick="grSubmitManual()"
                             class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
                     </div>
@@ -247,25 +247,25 @@
 
                     tbody.innerHTML += `
             <tr id="gr-row-${i}" data-product-id="${item.product_id}">
-                <td class="px-3 py-2 text-gray-900 dark:text-white">${item.product}
+                <td class="px-3 py-2 text-gray-900">${item.product}
                     <input type="hidden" name="items[${i}][purchase_order_item_id]" value="${item.id}">
                     <input type="hidden" name="items[${i}][product_id]" value="${item.product_id}">
                 </td>
-                <td class="px-3 py-2 text-center text-gray-500 dark:text-slate-400">${item.qty_ordered}</td>
+                <td class="px-3 py-2 text-center text-gray-500">${item.qty_ordered}</td>
                 <td class="px-3 py-2 text-center font-semibold ${remaining > 0 ? 'text-amber-600' : 'text-green-600'}">${remaining}</td>
                 <td class="px-3 py-2 text-center">
                     <input type="number" id="recv-${i}" name="items[${i}][quantity_received]" value="${remaining}" min="0" max="${remaining}" step="0.01"
                         oninput="syncAccepted(this, ${i})"
-                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                 </td>
                 <td class="px-3 py-2 text-center">
                     <input type="number" id="accepted-${i}" name="items[${i}][quantity_accepted]" value="${remaining}" min="0" step="0.01"
                         oninput="syncRejected(this, ${i})"
-                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                 </td>
                 <td class="px-3 py-2 text-center">
                     <input type="number" id="rejected-${i}" name="items[${i}][quantity_rejected]" value="0" min="0" step="0.01" readonly
-                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-red-500 dark:text-red-400">
+                        class="w-20 px-2 py-1 text-sm text-center rounded-lg border border-gray-200 bg-gray-50 text-red-500">
                 </td>
             </tr>`;
                 });
@@ -305,8 +305,8 @@
                         if (!row || !recvInput) return;
 
                         // Highlight row
-                        row.classList.add('bg-green-50', 'dark:bg-green-500/10');
-                        setTimeout(() => row.classList.remove('bg-green-50', 'dark:bg-green-500/10'), 1500);
+                        row.classList.add('bg-green-50');
+                        setTimeout(() => row.classList.remove('bg-green-50'), 1500);
 
                         // Increment quantity_received by 1 (up to max)
                         const max = parseFloat(recvInput.max) || Infinity;
@@ -320,7 +320,7 @@
                         updateGrScanCounter();
 
                         feedback.textContent = `Scan: ${data.data.name} (${newVal} / ${max})`;
-                        feedback.className = 'text-xs mt-1.5 text-green-600 dark:text-green-400 min-h-[16px]';
+                        feedback.className = 'text-xs mt-1.5 text-green-600 min-h-[16px]';
 
                         // Scroll to row
                         row.scrollIntoView({
@@ -480,15 +480,15 @@
                     feedback = document.createElement('div');
                     feedback.id = 'gr-validation-feedback';
                     feedback.className =
-                        'mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg';
+                        'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg';
                     document.getElementById('modal-add-gr').querySelector('form').prepend(feedback);
                 }
                 feedback.innerHTML = `
                     <div class="flex items-start gap-2">
-                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <p class="text-sm text-red-800 dark:text-red-300">${message}</p>
+                        <p class="text-sm text-red-800">${message}</p>
                     </div>
                 `;
             }

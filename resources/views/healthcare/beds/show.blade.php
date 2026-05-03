@@ -1,21 +1,17 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Bed Details') }} - {{ $bed->bed_number }}
-            </h2>
-            <div class="flex space-x-3">
-                <a href="{{ route('healthcare.beds.edit', $bed) }}"
+    <x-slot name="header">{{ __('Bed Details') }} - {{ $bed->bed_number }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('healthcare.beds.edit', $bed) }}"
                     class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
                     <i class="fas fa-edit mr-2"></i>Edit
                 </a>
-                <a href="{{ route('healthcare.beds.index') }}"
+        <a href="{{ route('healthcare.beds.index') }}"
                     class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                     <i class="fas fa-arrow-left mr-2"></i>Back to List
                 </a>
-            </div>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

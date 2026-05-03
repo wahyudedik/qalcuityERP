@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Reservation Calendar</x-slot>
 
     <x-slot name="pageHeader">
         <a href="{{ route('hotel.reservations.index') }}"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white text-sm font-medium hover:bg-gray-200 dark:hover:bg-white/20 transition">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -31,16 +31,16 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
             <a href="{{ route('hotel.reservations.calendar', ['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}"
-                class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 class="text-xl font-bold text-gray-900">
                 {{ $currentMonth->format('F Y') }}
             </h2>
             <a href="{{ route('hotel.reservations.calendar', ['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}"
-                class="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/5">
+                class="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -51,35 +51,35 @@
         <div class="flex flex-wrap items-center gap-4 text-xs">
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-green-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Confirmed</span>
+                <span class="text-gray-600">Confirmed</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-blue-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Checked In</span>
+                <span class="text-gray-600">Checked In</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-yellow-500"></span>
-                <span class="text-gray-600 dark:text-slate-400">Pending</span>
+                <span class="text-gray-600">Pending</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-gray-400"></span>
-                <span class="text-gray-600 dark:text-slate-400">Checked Out</span>
+                <span class="text-gray-600">Checked Out</span>
             </div>
         </div>
     </div>
 
     {{-- Calendar Grid --}}
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {{-- Day Headers --}}
         <div
-            class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
+            class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 border-b border-gray-200">
             <div
-                class="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase sticky left-0 bg-gray-50 dark:bg-white/5">
+                class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50">
                 Room</div>
             @foreach ($days as $day)
                 @php $date = $currentMonth->copy()->day($day); @endphp
                 <div
-                    class="px-1 py-3 text-center text-xs {{ $date->isWeekend() ? 'text-red-400' : 'text-gray-500 dark:text-slate-400' }} font-medium">
+                    class="px-1 py-3 text-center text-xs {{ $date->isWeekend() ? 'text-red-400' : 'text-gray-500' }} font-medium">
                     <div>{{ $date->format('D') }}</div>
                     <div class="text-sm {{ $date->isToday() ? 'text-blue-600 font-bold' : '' }}">{{ $day }}
                     </div>
@@ -88,18 +88,18 @@
         </div>
 
         {{-- Room Rows --}}
-        <div x-data="{ expandedTypes: {} }" class="divide-y divide-gray-100 dark:divide-white/5">
+        <div x-data="{ expandedTypes: {} }" class="divide-y divide-gray-100">
             @forelse($roomTypes as $roomType)
                 {{-- Room Type Header --}}
                 <div @click="expandedTypes['{{ $roomType->id }}'] = !expandedTypes['{{ $roomType->id }}']"
-                    class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10">
-                    <div class="px-4 py-3 flex items-center gap-2 sticky left-0 bg-gray-50 dark:bg-white/5">
+                    class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] bg-gray-50 cursor-pointer hover:bg-gray-100">
+                    <div class="px-4 py-3 flex items-center gap-2 sticky left-0 bg-gray-50">
                         <svg class="w-4 h-4 text-gray-400 transition-transform"
                             :class="{ 'rotate-90': expandedTypes['{{ $roomType->id }}'] }" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
-                        <span class="font-medium text-gray-900 dark:text-white text-sm">{{ $roomType->name }}</span>
+                        <span class="font-medium text-gray-900 text-sm">{{ $roomType->name }}</span>
                         <span class="text-xs text-gray-400">({{ $roomType->rooms->count() }} rooms)</span>
                     </div>
                     @foreach ($days as $day)
@@ -109,7 +109,7 @@
 
                 {{-- Rooms under this type --}}
                 <template x-if="expandedTypes['{{ $roomType->id }}']">
-                    <div class="divide-y divide-gray-50 dark:divide-white/5">
+                    <div class="divide-y divide-gray-50">
                         @php $currentRoomType = $roomType; @endphp
                         @foreach ($roomType->rooms as $room)
                             @php
@@ -120,9 +120,9 @@
                                 });
                             @endphp
                             <div
-                                class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] hover:bg-gray-50 dark:hover:bg-white/5">
-                                <div class="px-4 py-2 flex items-center gap-2 sticky left-0 bg-white dark:bg-[#1e293b]">
-                                    <span class="text-sm text-gray-700 dark:text-slate-300">{{ $room->number }}</span>
+                                class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] hover:bg-gray-50">
+                                <div class="px-4 py-2 flex items-center gap-2 sticky left-0 bg-white">
+                                    <span class="text-sm text-gray-700">{{ $room->number }}</span>
                                     @if ($room->floor)
                                         <span class="text-xs text-gray-400">Floor {{ $room->floor }}</span>
                                     @endif
@@ -175,7 +175,7 @@
             {{-- Fallback when not expanded: show compact view --}}
             <div x-show="!expandedTypes['{{ $roomType->id }}']"
                 class="grid grid-cols-[180px_repeat(31,minmax(32px,1fr))] h-10">
-                <div class="px-4 py-2 sticky left-0 bg-white dark:bg-[#1e293b] flex items-center">
+                <div class="px-4 py-2 sticky left-0 bg-white flex items-center">
                     <span class="text-xs text-gray-400">Click to expand rooms</span>
                 </div>
                 @foreach ($days as $day)
@@ -206,7 +206,7 @@
                 @endforeach
             </div>
         @empty
-            <div class="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+            <div class="px-4 py-12 text-center text-gray-400">
                 No room types configured. <a href="{{ route('hotel.room-types.index') }}"
                     class="text-blue-500 hover:underline">Configure room types</a>
             </div>
@@ -216,18 +216,18 @@
 
 {{-- Quick Info Cards --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Total Reservations This Month</p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $reservations->count() }}</p>
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Total Reservations This Month</p>
+        <p class="text-2xl font-bold text-gray-900">{{ $reservations->count() }}</p>
     </div>
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Currently Checked In</p>
-        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Currently Checked In</p>
+        <p class="text-2xl font-bold text-blue-600">
             {{ $reservations->where('status', 'checked_in')->count() }}</p>
     </div>
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
-        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Arrivals Today</p>
-        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+    <div class="bg-white rounded-2xl border border-gray-200 p-4">
+        <p class="text-xs text-gray-500 mb-1">Arrivals Today</p>
+        <p class="text-2xl font-bold text-green-600">
             {{ $reservations->filter(fn($r) => \Carbon\Carbon::parse($r->check_in_date)->isToday())->count() }}
         </p>
     </div>

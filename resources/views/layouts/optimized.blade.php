@@ -44,9 +44,9 @@
     @stack('styles')
 </head>
 
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+<body class="font-sans antialiased bg-gray-50 text-gray-900">
     <!-- Loading indicator -->
-    <div id="page-loader" class="loader fixed inset-0 bg-white dark:bg-gray-900 z-50 transition-opacity duration-300">
+    <div id="page-loader" class="loader fixed inset-0 bg-white z-50 transition-opacity duration-300">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
     </div>
 

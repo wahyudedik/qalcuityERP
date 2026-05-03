@@ -1,4 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+﻿<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['number', 'title' => '']));
@@ -34,9 +34,9 @@ unset($__defined_vars, $__key, $__value); ?>
     <?php if($number == 1): ?> style="display: block;" <?php else: ?> style="display: none;" <?php endif; ?>>
     <?php if($title): ?>
         <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white"><?php echo e($title); ?></h3>
+            <h3 class="text-lg font-semibold text-gray-900"><?php echo e($title); ?></h3>
             <?php if(isset($description)): ?>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"><?php echo e($description); ?></p>
+                <p class="mt-1 text-sm text-gray-500"><?php echo e($description); ?></p>
             <?php endif; ?>
         </div>
     <?php endif; ?>

@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -25,11 +25,11 @@
         <?php endif; ?>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Nomor SO</p>
-                    <p class="text-xl font-bold font-mono text-gray-900 dark:text-white"><?php echo e($salesOrder->number); ?></p>
+                    <p class="text-xs text-gray-500 mb-1">Nomor SO</p>
+                    <p class="text-xl font-bold font-mono text-gray-900"><?php echo e($salesOrder->number); ?></p>
                     <?php
                         $statusColors = [
                             'pending' => 'bg-yellow-500/20 text-yellow-400',
@@ -51,7 +51,7 @@
                         <form method="POST" action="<?php echo e(route('sales.status', $salesOrder)); ?>" class="flex gap-2">
                             <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
                             <select name="status"
-                                class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
+                                class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                                 <?php
                                     // BUG-SALES-001 FIX: Only show valid transitions
                                     $validTransitions = [
@@ -85,16 +85,16 @@
                     <?php else: ?>
                         <?php $inv = $salesOrder->invoices()->where('status', '!=', 'cancelled')->first(); ?>
                         <a href="<?php echo e(route('invoices.show', $inv)); ?>"
-                            class="px-3 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">
+                            class="px-3 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm hover:bg-gray-200 transition">
                             Lihat Invoice
                         </a>
                     <?php endif; ?>
                     <a href="<?php echo e(route('sales.index')); ?>"
-                        class="px-3 py-2 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">
+                        class="px-3 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm hover:bg-gray-200 transition">
                         ← Kembali
                     </a>
                     <a href="<?php echo e(route('sign.pad', ['SalesOrder', $salesOrder->id])); ?>"
-                        class="px-3 py-2 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-sm hover:bg-indigo-200 dark:hover:bg-indigo-500/30 transition flex items-center gap-1.5">
+                        class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-xl text-sm hover:bg-indigo-200 transition flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -104,25 +104,25 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-white/10">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-100">
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Customer</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                    <p class="text-xs text-gray-500">Customer</p>
+                    <p class="text-sm font-medium text-gray-900 mt-0.5">
                         <?php echo e($salesOrder->customer->name ?? '-'); ?></p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Tanggal</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                    <p class="text-xs text-gray-500">Tanggal</p>
+                    <p class="text-sm font-medium text-gray-900 mt-0.5">
                         <?php echo e($salesOrder->date->format('d/m/Y')); ?></p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Pengiriman</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                    <p class="text-xs text-gray-500">Pengiriman</p>
+                    <p class="text-sm font-medium text-gray-900 mt-0.5">
                         <?php echo e($salesOrder->delivery_date?->format('d/m/Y') ?? '-'); ?></p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-500 dark:text-slate-400">Pembayaran</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                    <p class="text-xs text-gray-500">Pembayaran</p>
+                    <p class="text-sm font-medium text-gray-900 mt-0.5">
                         <?php echo e($salesOrder->payment_type === 'credit' ? 'Kredit' : 'Tunai'); ?>
 
                         <?php if($salesOrder->due_date): ?>
@@ -133,30 +133,30 @@
                 </div>
                 <?php if($salesOrder->quotation): ?>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Dari Quotation</p>
+                        <p class="text-xs text-gray-500">Dari Quotation</p>
                         <p class="text-sm font-medium text-blue-400 mt-0.5"><?php echo e($salesOrder->quotation->number); ?></p>
                     </div>
                 <?php endif; ?>
                 <?php if($salesOrder->currency_code && $salesOrder->currency_code !== 'IDR'): ?>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Mata Uang</p>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                        <p class="text-xs text-gray-500">Mata Uang</p>
+                        <p class="text-sm font-medium text-gray-900 mt-0.5">
                             <?php echo e($salesOrder->currency_code); ?>
 
-                            <span class="text-xs text-gray-400 dark:text-slate-500">(Kurs: Rp
+                            <span class="text-xs text-gray-400">(Kurs: Rp
                                 <?php echo e(number_format($salesOrder->currency_rate, 0, ',', '.')); ?>)</span>
                         </p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Ekuivalen IDR</p>
-                        <p class="text-sm font-medium text-green-600 dark:text-green-400 mt-0.5">Rp
+                        <p class="text-xs text-gray-500">Ekuivalen IDR</p>
+                        <p class="text-sm font-medium text-green-600 mt-0.5">Rp
                             <?php echo e(number_format($salesOrder->total * $salesOrder->currency_rate, 0, ',', '.')); ?></p>
                     </div>
                 <?php endif; ?>
                 <?php if($salesOrder->shipping_address): ?>
                     <div class="col-span-2">
-                        <p class="text-xs text-gray-500 dark:text-slate-400">Alamat Pengiriman</p>
-                        <p class="text-sm text-gray-700 dark:text-slate-300 mt-0.5"><?php echo e($salesOrder->shipping_address); ?>
+                        <p class="text-xs text-gray-500">Alamat Pengiriman</p>
+                        <p class="text-sm text-gray-700 mt-0.5"><?php echo e($salesOrder->shipping_address); ?>
 
                         </p>
                     </div>
@@ -165,13 +165,13 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10">
-                <h2 class="font-semibold text-gray-900 dark:text-white">Item Produk</h2>
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="font-semibold text-gray-900">Item Produk</h2>
             </div>
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-gray-100 dark:border-white/5 text-xs text-gray-500 dark:text-slate-400">
+                    <tr class="border-b border-gray-100 text-xs text-gray-500">
                         <th class="px-4 py-3 text-left">Produk</th>
                         <th class="px-4 py-3 text-right">Qty</th>
                         <th class="px-4 py-3 text-right">Harga</th>
@@ -179,10 +179,10 @@
                         <th class="px-4 py-3 text-right">Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-50">
                     <?php $__currentLoopData = $salesOrder->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td class="px-4 py-3 text-gray-700 dark:text-slate-300"><?php echo e($item->product->name ?? '-'); ?>
+                            <td class="px-4 py-3 text-gray-700"><?php echo e($item->product->name ?? '-'); ?>
 
                             </td>
                             <td class="px-4 py-3 text-right"><?php echo e($item->quantity); ?> <?php echo e($item->product->unit ?? ''); ?>
@@ -193,15 +193,15 @@
                                 <?php echo e($item->discount > 0 ? '-Rp ' . number_format($item->discount, 0, ',', '.') : '-'); ?>
 
                             </td>
-                            <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">Rp
+                            <td class="px-4 py-3 text-right font-medium text-gray-900">Rp
                                 <?php echo e(number_format($item->total, 0, ',', '.')); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
-                <tfoot class="border-t border-gray-100 dark:border-white/10 text-sm">
+                <tfoot class="border-t border-gray-100 text-sm">
                     <tr>
-                        <td colspan="4" class="px-4 py-2 text-right text-gray-500 dark:text-slate-400">Subtotal</td>
-                        <td class="px-4 py-2 text-right font-medium text-gray-900 dark:text-white">Rp
+                        <td colspan="4" class="px-4 py-2 text-right text-gray-500">Subtotal</td>
+                        <td class="px-4 py-2 text-right font-medium text-gray-900">Rp
                             <?php echo e(number_format($salesOrder->subtotal, 0, ',', '.')); ?></td>
                     </tr>
                     <?php if($salesOrder->discount > 0): ?>
@@ -213,13 +213,13 @@
                     <?php endif; ?>
                     <?php if($salesOrder->tax_amount > 0): ?>
                         <tr>
-                            <td colspan="4" class="px-4 py-2 text-right text-gray-500 dark:text-slate-400">Pajak</td>
-                            <td class="px-4 py-2 text-right text-gray-700 dark:text-slate-300">Rp
+                            <td colspan="4" class="px-4 py-2 text-right text-gray-500">Pajak</td>
+                            <td class="px-4 py-2 text-right text-gray-700">Rp
                                 <?php echo e(number_format($salesOrder->tax_amount, 0, ',', '.')); ?></td>
                         </tr>
                     <?php endif; ?>
                     <tr class="font-bold">
-                        <td colspan="4" class="px-4 py-3 text-right text-gray-900 dark:text-white">Total</td>
+                        <td colspan="4" class="px-4 py-3 text-right text-gray-900">Total</td>
                         <td class="px-4 py-3 text-right text-blue-400 text-base">Rp
                             <?php echo e(number_format($salesOrder->total, 0, ',', '.')); ?></td>
                     </tr>
@@ -228,9 +228,9 @@
         </div>
 
         <?php if($salesOrder->notes): ?>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Catatan</p>
-                <p class="text-sm text-gray-700 dark:text-slate-300"><?php echo e($salesOrder->notes); ?></p>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <p class="text-xs text-gray-500 mb-1">Catatan</p>
+                <p class="text-sm text-gray-700"><?php echo e($salesOrder->notes); ?></p>
             </div>
         <?php endif; ?>
 
@@ -243,20 +243,20 @@
                 ->get();
         ?>
         <?php if($signatures->isNotEmpty()): ?>
-            <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-                <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase mb-3">Tanda Tangan Digital
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Tanda Tangan Digital
                 </p>
                 <div class="flex flex-wrap gap-4">
                     <?php $__currentLoopData = $signatures; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sig): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div
-                            class="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+                            class="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
                             <img src="<?php echo e($sig->signature_data); ?>" alt="TTD"
-                                class="h-10 border border-gray-200 dark:border-white/10 rounded-lg bg-white">
+                                class="h-10 border border-gray-200 rounded-lg bg-white">
                             <div>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white"><?php echo e($sig->user?->name); ?>
+                                <p class="text-sm font-medium text-gray-900"><?php echo e($sig->user?->name); ?>
 
                                 </p>
-                                <p class="text-xs text-gray-400 dark:text-slate-500">
+                                <p class="text-xs text-gray-400">
                                     <?php echo e($sig->signed_at?->format('d M Y H:i')); ?></p>
                             </div>
                         </div>

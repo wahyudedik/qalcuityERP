@@ -1,6 +1,6 @@
-<div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5 h-full">
+﻿<div class="bg-white rounded-2xl border border-gray-200 p-5 h-full">
     <div class="flex items-center justify-between mb-4">
-        <p class="text-sm font-semibold text-gray-900 dark:text-white">Stok Menipis</p>
+        <p class="text-sm font-semibold text-gray-900">Stok Menipis</p>
         <span
             class="text-xs bg-red-500/20 text-red-400 font-medium px-2 py-0.5 rounded-full"><?php echo e($data['low_stock_count'] ?? 0); ?>
 
@@ -31,7 +31,7 @@
             (is_countable($lowStockItems) && count($lowStockItems) === 0);
     ?>
     <?php if($isEmpty): ?>
-        <div class="flex flex-col items-center py-6 text-gray-400 dark:text-slate-500">
+        <div class="flex flex-col items-center py-6 text-gray-400">
             <svg class="w-10 h-10 mb-2 text-green-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -42,18 +42,18 @@
         <div class="space-y-0">
             <?php $__currentLoopData = $lowStockItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div
-                    class="flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+                    class="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
                     <div>
-                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        <p class="text-sm font-medium text-gray-900">
                             <?php echo e($item->product->name ?? 'Unknown Product'); ?></p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">
+                        <p class="text-xs text-gray-400">
                             <?php echo e($item->warehouse->name ?? 'Unknown Warehouse'); ?></p>
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-red-400"><?php echo e($item->quantity ?? 0); ?>
 
                             <?php echo e($item->product->unit ?? ''); ?></p>
-                        <p class="text-xs text-gray-400 dark:text-slate-500">min: <?php echo e($item->product->stock_min ?? 0); ?>
+                        <p class="text-xs text-gray-400">min: <?php echo e($item->product->stock_min ?? 0); ?>
 
                         </p>
                     </div>

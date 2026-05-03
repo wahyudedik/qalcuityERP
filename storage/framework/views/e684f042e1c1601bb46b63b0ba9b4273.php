@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -9,7 +9,7 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             <?php echo e(__('Karir')); ?>
 
         </h2>
@@ -17,21 +17,21 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
                     <h1 class="text-3xl font-bold mb-6">Karir di Qalcuity</h1>
                     <p class="text-lg mb-6">Bergabunglah dengan tim kami untuk membangun masa depan ERP Indonesia.</p>
 
                     <div class="space-y-4">
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div class="p-4 border border-gray-200 rounded-lg">
                             <h3 class="text-xl font-semibold mb-2">🚀 Senior Laravel Developer</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-3">Full-time • Remote OK</p>
+                            <p class="text-gray-600 mb-3">Full-time • Remote OK</p>
                             <a href="#" class="text-blue-600 hover:text-blue-700">Apply Now →</a>
                         </div>
 
-                        <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div class="p-4 border border-gray-200 rounded-lg">
                             <h3 class="text-xl font-semibold mb-2">🎨 UI/UX Designer</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-3">Full-time • Jakarta</p>
+                            <p class="text-gray-600 mb-3">Full-time • Jakarta</p>
                             <a href="#" class="text-blue-600 hover:text-blue-700">Apply Now →</a>
                         </div>
                     </div>

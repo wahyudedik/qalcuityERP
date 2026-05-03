@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -12,26 +12,26 @@
 
     <?php if(session('success')): ?>
         <div
-            class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-sm text-green-700 dark:text-green-400">
+            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             <?php echo e(session('success')); ?></div>
     <?php endif; ?>
 
     
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Total Kolam</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Total Kolam</p>
             <p class="text-2xl font-bold text-cyan-600"><?php echo e($stats['total_ponds'] ?? 0); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Kolam Aktif</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Kolam Aktif</p>
             <p class="text-2xl font-bold text-emerald-600"><?php echo e($stats['active_ponds'] ?? 0); ?></p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">Utilisasi Rata-rata</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">Utilisasi Rata-rata</p>
             <p class="text-2xl font-bold text-blue-600"><?php echo e(number_format($stats['avg_utilization'] ?? 0, 1)); ?>%</p>
         </div>
-        <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 p-4">
-            <p class="text-xs text-gray-500 dark:text-slate-400">FCR Rata-rata</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4">
+            <p class="text-xs text-gray-500">FCR Rata-rata</p>
             <p class="text-2xl font-bold text-purple-600"><?php echo e(number_format($stats['avg_fcr'] ?? 0, 2)); ?></p>
         </div>
     </div>
@@ -40,11 +40,11 @@
     <div class="flex items-center justify-between mb-4">
         <form class="flex items-center gap-2">
             <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari kolam..."
-                class="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white w-48">
+                class="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 w-48">
             <select name="status" onchange="this.form.submit()"
-                class="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                class="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Status</option>
-                <?php $__currentLoopData = \App\Models\AquaculturePond::STATUS_LABELS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = \App\Models\AquaculturePond::STATUSES; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v => $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($v); ?>" <?php if(request('status') === $v): echo 'selected'; endif; ?>><?php echo e($l); ?></option>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
@@ -58,9 +58,9 @@
     
     <?php if(empty($ponds) || count($ponds) === 0): ?>
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-12 text-center">
+            class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p class="text-4xl mb-3">🐠</p>
-            <p class="text-sm text-gray-500 dark:text-slate-400">Belum ada kolam budidaya. Tambahkan kolam pertama Anda.
+            <p class="text-sm text-gray-500">Belum ada kolam budidaya. Tambahkan kolam pertama Anda.
             </p>
         </div>
     <?php else: ?>
@@ -75,25 +75,25 @@
                         default => 'gray',
                     };
                 ?>
-                <div class="bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden hover:shadow-lg transition group"
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition group"
                     x-data="{ showWaterForm: false, showFeedingForm: false }">
 
                     
                     <div
-                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100 dark:border-white/5">
+                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-gray-900 dark:text-white"><?php echo e($pond->code); ?></span>
+                                <span class="text-lg font-bold text-gray-900"><?php echo e($pond->code); ?></span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-<?php echo e($sc); ?>-100 text-<?php echo e($sc); ?>-700 dark:bg-<?php echo e($sc); ?>-500/20 dark:text-<?php echo e($sc); ?>-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-<?php echo e($sc); ?>-100 text-<?php echo e($sc); ?>-700 $sc }}-500/20 $sc }}-400">
                                     <?php echo e($pond->status_label); ?>
 
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5"><?php echo e($pond->name); ?></p>
+                            <p class="text-sm text-gray-500 mt-0.5"><?php echo e($pond->name); ?></p>
                         </div>
                         <span
-                            class="text-xs text-gray-400 dark:text-slate-500"><?php echo e(number_format($pond->area_size, 1)); ?>
+                            class="text-xs text-gray-400"><?php echo e(number_format($pond->area_size, 1)); ?>
 
                             m²</span>
                     </div>
@@ -104,11 +104,11 @@
                         <?php if($pond->utilization_percentage > 0): ?>
                             <div class="mb-3">
                                 <div class="flex items-center justify-between text-xs mb-1">
-                                    <span class="text-gray-500 dark:text-slate-400">Utilisasi</span>
+                                    <span class="text-gray-500">Utilisasi</span>
                                     <span
-                                        class="font-medium text-gray-700 dark:text-slate-300"><?php echo e(number_format($pond->utilization_percentage, 1)); ?>%</span>
+                                        class="font-medium text-gray-700"><?php echo e(number_format($pond->utilization_percentage, 1)); ?>%</span>
                                 </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
                                     <div class="bg-cyan-600 h-2 rounded-full transition-all"
                                         style="width: <?php echo e(min($pond->utilization_percentage, 100)); ?>%"></div>
                                 </div>
@@ -117,14 +117,14 @@
 
                         
                         <?php if($pond->current_stock_species): ?>
-                            <div class="mb-3 p-3 bg-cyan-50 dark:bg-cyan-500/10 rounded-lg">
-                                <p class="text-xs text-gray-500 dark:text-slate-400 mb-1">Stok Saat Ini</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            <div class="mb-3 p-3 bg-cyan-50 rounded-lg">
+                                <p class="text-xs text-gray-500 mb-1">Stok Saat Ini</p>
+                                <p class="text-sm font-medium text-gray-900">
                                     🐟 <?php echo e($pond->current_stock_species); ?> -
                                     <?php echo e(number_format($pond->current_stock_count, 0)); ?> ekor
                                 </p>
                                 <?php if($pond->stocked_at): ?>
-                                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    <p class="text-xs text-gray-500 mt-1">
                                         Dit stocking: <?php echo e($pond->stocked_at->format('d M Y')); ?>
 
                                         (<?php echo e($pond->stocked_at->diffInDays(now())); ?> hari lalu)
@@ -135,25 +135,25 @@
 
                         
                         <?php if($pond->latest_water_quality): ?>
-                            <div class="mb-3 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg">
-                                <p class="text-xs text-gray-500 dark:text-slate-400 mb-2">Kualitas Air Terakhir</p>
+                            <div class="mb-3 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-xs text-gray-500 mb-2">Kualitas Air Terakhir</p>
                                 <div class="grid grid-cols-3 gap-2 text-xs">
                                     <div>
                                         <span class="text-gray-400 block">pH</span>
                                         <span
-                                            class="font-medium text-gray-700 dark:text-slate-300"><?php echo e(number_format($pond->latest_water_quality->ph, 1)); ?></span>
+                                            class="font-medium text-gray-700"><?php echo e(number_format($pond->latest_water_quality->ph, 1)); ?></span>
                                     </div>
                                     <div>
                                         <span class="text-gray-400 block">Oksigen</span>
                                         <span
-                                            class="font-medium text-gray-700 dark:text-slate-300"><?php echo e(number_format($pond->latest_water_quality->dissolved_oxygen, 1)); ?>
+                                            class="font-medium text-gray-700"><?php echo e(number_format($pond->latest_water_quality->dissolved_oxygen, 1)); ?>
 
                                             mg/L</span>
                                     </div>
                                     <div>
                                         <span class="text-gray-400 block">Suhu</span>
                                         <span
-                                            class="font-medium text-gray-700 dark:text-slate-300"><?php echo e(number_format($pond->latest_water_quality->temperature, 1)); ?>°C</span>
+                                            class="font-medium text-gray-700"><?php echo e(number_format($pond->latest_water_quality->temperature, 1)); ?>°C</span>
                                     </div>
                                 </div>
                             </div>
@@ -173,52 +173,52 @@
 
                         
                         <div x-show="showWaterForm" x-transition
-                            class="mt-3 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
+                            class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                             <form :action="'<?php echo e(route('fisheries.aquaculture.log-water-quality', $pond->id)); ?>'"
                                 method="POST" class="space-y-2">
                                 <?php echo csrf_field(); ?>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">pH
+                                            class="block text-xs font-medium text-gray-600 mb-1">pH
                                             *</label>
                                         <input type="number" name="ph" required step="0.1" min="0"
                                             max="14" placeholder="7.0"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Oksigen
+                                            class="block text-xs font-medium text-gray-600 mb-1">Oksigen
                                             Terlarut (mg/L) *</label>
                                         <input type="number" name="dissolved_oxygen" required step="0.1"
                                             min="0" placeholder="6.5"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Suhu
+                                            class="block text-xs font-medium text-gray-600 mb-1">Suhu
                                             Air (°C)</label>
                                         <input type="number" name="temperature" step="0.1" placeholder="28.5"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Amonia
+                                            class="block text-xs font-medium text-gray-600 mb-1">Amonia
                                             (mg/L)</label>
                                         <input type="number" name="ammonia" step="0.01" min="0"
                                             placeholder="0.02"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                 </div>
                                 <div>
                                     <label
-                                        class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Salinitas
+                                        class="block text-xs font-medium text-gray-600 mb-1">Salinitas
                                         (ppt)</label>
                                     <input type="number" name="salinity" step="0.1" min="0"
                                         placeholder="15.0"
-                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                 </div>
                                 <div class="flex gap-2">
                                     <button type="submit"
@@ -226,7 +226,7 @@
                                         Simpan
                                     </button>
                                     <button type="button" @click="showWaterForm = false"
-                                        class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition">
+                                        class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg transition">
                                         Batal
                                     </button>
                                 </div>
@@ -235,40 +235,40 @@
 
                         
                         <div x-show="showFeedingForm" x-transition
-                            class="mt-3 p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
+                            class="mt-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                             <form :action="'<?php echo e(route('fisheries.aquaculture.log-feeding', $pond->id)); ?>'"
                                 method="POST" class="space-y-2">
                                 <?php echo csrf_field(); ?>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Jumlah
+                                            class="block text-xs font-medium text-gray-600 mb-1">Jumlah
                                             Pakan (kg) *</label>
                                         <input type="number" name="feed_quantity" required step="0.01"
                                             min="0" placeholder="5.5"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
                                         <label
-                                            class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Biaya
+                                            class="block text-xs font-medium text-gray-600 mb-1">Biaya
                                             Pakan (Rp)</label>
                                         <input type="number" name="feed_cost" step="100" min="0"
                                             placeholder="50000"
-                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                            class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                 </div>
                                 <div>
                                     <label
-                                        class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Jenis
+                                        class="block text-xs font-medium text-gray-600 mb-1">Jenis
                                         Pakan</label>
                                     <input type="text" name="feed_type" placeholder="Pelet 781-2"
-                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white">
+                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                 </div>
                                 <div>
                                     <label
-                                        class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Catatan</label>
+                                        class="block text-xs font-medium text-gray-600 mb-1">Catatan</label>
                                     <textarea name="notes" rows="2" placeholder="Waktu pemberian, kondisi ikan, dll."
-                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1e293b] text-gray-900 dark:text-white"></textarea>
+                                        class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900"></textarea>
                                 </div>
                                 <div class="flex gap-2">
                                     <button type="submit"
@@ -276,7 +276,7 @@
                                         Simpan
                                     </button>
                                     <button type="button" @click="showFeedingForm = false"
-                                        class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition">
+                                        class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg transition">
                                         Batal
                                     </button>
                                 </div>
@@ -289,14 +289,14 @@
                                 <div>
                                     <span class="text-gray-400">Tipe:</span>
                                     <span
-                                        class="text-gray-700 dark:text-slate-300"><?php echo e(ucfirst(str_replace('_', ' ', $pond->pond_type))); ?></span>
+                                        class="text-gray-700"><?php echo e(ucfirst(str_replace('_', ' ', $pond->pond_type))); ?></span>
                                 </div>
                             <?php endif; ?>
                             <?php if($pond->water_source): ?>
                                 <div>
                                     <span class="text-gray-400">Sumber Air:</span>
                                     <span
-                                        class="text-gray-700 dark:text-slate-300"><?php echo e(ucfirst($pond->water_source)); ?></span>
+                                        class="text-gray-700"><?php echo e(ucfirst($pond->water_source)); ?></span>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -304,8 +304,8 @@
 
                     
                     <div
-                        class="px-5 py-3 bg-gray-50 dark:bg-[#0f172a] border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs">
-                        <span class="text-gray-500 dark:text-slate-400">
+                        class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs">
+                        <span class="text-gray-500">
                             <?php if($pond->last_feeding_at): ?>
                                 Terakhir pakan: <?php echo e($pond->last_feeding_at->diffForHumans()); ?>
 
@@ -314,7 +314,7 @@
                             <?php endif; ?>
                         </span>
                         <a href="<?php echo e(route('fisheries.aquaculture.show', $pond->id)); ?>"
-                            class="text-cyan-600 dark:text-cyan-400 hover:underline">
+                            class="text-cyan-600 hover:underline">
                             Detail →
                         </a>
                     </div>
@@ -328,25 +328,25 @@
     <div id="addPondModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div
-            class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">🏊 Tambah Kolam Budidaya</h3>
+                <h3 class="text-base font-semibold text-gray-900">🏊 Tambah Kolam Budidaya</h3>
                 <button onclick="document.getElementById('addPondModal').classList.add('hidden')"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-white">✕</button>
+                    class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form method="POST" action="<?php echo e(route('fisheries.aquaculture.store-pond')); ?>" class="space-y-4">
                 <?php echo csrf_field(); ?>
-                <?php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white'; ?>
+                <?php $cls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900'; ?>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kode Kolam
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kode Kolam
                             *</label>
                         <input type="text" name="code" required placeholder="POND-001"
                             class="<?php echo e($cls); ?>">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Nama *</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Nama *</label>
                         <input type="text" name="name" required placeholder="Kolam A1"
                             class="<?php echo e($cls); ?>">
                     </div>
@@ -354,13 +354,13 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Luas (m²)
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Luas (m²)
                             *</label>
                         <input type="number" name="area_size" required step="0.01" placeholder="500"
                             class="<?php echo e($cls); ?>">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Kedalaman
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kedalaman
                             (m)</label>
                         <input type="number" name="depth" step="0.1" placeholder="1.5"
                             class="<?php echo e($cls); ?>">
@@ -369,7 +369,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Tipe
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipe
                             Kolam</label>
                         <select name="pond_type" class="<?php echo e($cls); ?>">
                             <option value="earthen">Kolam Tanah</option>
@@ -379,7 +379,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Sumber
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Sumber
                             Air</label>
                         <select name="water_source" class="<?php echo e($cls); ?>">
                             <option value="river">Sungai</option>
@@ -391,12 +391,12 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Lokasi</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi</label>
                     <input type="text" name="location" placeholder="Area A, Blok 1" class="<?php echo e($cls); ?>">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1">Deskripsi</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                     <textarea name="description" rows="2" placeholder="Spesifikasi dan catatan tambahan"
                         class="<?php echo e($cls); ?>"></textarea>
                 </div>
@@ -407,7 +407,7 @@
                         💾 Simpan Kolam
                     </button>
                     <button type="button" onclick="document.getElementById('addPondModal').classList.add('hidden')"
-                        class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition">
+                        class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg transition">
                         Batal
                     </button>
                 </div>

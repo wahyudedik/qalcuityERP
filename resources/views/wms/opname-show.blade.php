@@ -1,10 +1,10 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Opname — {{ $stockOpnameSession->number }}</x-slot>
 
     @php $s = $stockOpnameSession; @endphp
     <div class="flex items-center justify-between mb-4">
         <div>
-            <p class="text-sm text-gray-500 dark:text-slate-400">{{ $s->warehouse->name ?? '-' }} ·
+            <p class="text-sm text-gray-500">{{ $s->warehouse->name ?? '-' }} ·
                 {{ $s->opname_date->format('d/m/Y') }}</p>
         </div>
         @if ($s->status !== 'completed')
@@ -20,10 +20,10 @@
         @endif
     </div>
 
-    <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-white/5 text-xs text-gray-500 dark:text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Produk</th>
                         <th class="px-4 py-3 text-left">Bin</th>
@@ -35,17 +35,17 @@
                         @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @foreach ($s->items as $item)
                         @php $diff = $item->difference ?? 0; @endphp
                         <tr
-                            class="{{ $diff != 0 ? ($diff > 0 ? 'bg-green-50/50 dark:bg-green-500/5' : 'bg-red-50/50 dark:bg-red-500/5') : '' }}">
-                            <td class="px-4 py-3 text-gray-900 dark:text-white">{{ $item->product->name ?? '-' }}</td>
-                            <td class="px-4 py-3 font-mono text-xs text-gray-500 dark:text-slate-400">
+                            class="{{ $diff != 0 ? ($diff > 0 ? 'bg-green-50/50' : 'bg-red-50/50') : '' }}">
+                            <td class="px-4 py-3 text-gray-900">{{ $item->product->name ?? '-' }}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-500">
                                 {{ $item->bin->code ?? '-' }}</td>
-                            <td class="px-4 py-3 text-right text-gray-700 dark:text-slate-300">
+                            <td class="px-4 py-3 text-right text-gray-700">
                                 {{ number_format($item->system_qty, 0) }}</td>
-                            <td class="px-4 py-3 text-right text-gray-900 dark:text-white">
+                            <td class="px-4 py-3 text-right text-gray-900">
                                 {{ $item->actual_qty !== null ? number_format($item->actual_qty, 0) : '-' }}</td>
                             <td
                                 class="px-4 py-3 text-right font-medium {{ $diff > 0 ? 'text-green-500' : ($diff < 0 ? 'text-red-500' : 'text-gray-400') }}">
@@ -59,7 +59,7 @@
                                         <input type="number" name="actual_qty"
                                             value="{{ $item->actual_qty ?? $item->system_qty }}" min="0"
                                             step="1"
-                                            class="w-20 px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0f172a] text-gray-900 dark:text-white">
+                                            class="w-20 px-2 py-1 text-xs rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                                         <button type="submit"
                                             class="text-xs px-2 py-1 bg-blue-600 text-white rounded-lg">Confirm</button>
                                     </form>

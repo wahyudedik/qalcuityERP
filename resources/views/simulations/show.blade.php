@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">{{ $simulation->name }}</x-slot>
 
     @push('head')
@@ -23,17 +23,17 @@
             <span class="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 text-sm rounded-full border border-indigo-500/20 font-medium">
                 {{ $labels[$simulation->scenario_type] ?? $simulation->scenario_type }}
             </span>
-            <span class="text-xs text-gray-400 dark:text-slate-500">{{ $simulation->created_at->translatedFormat('d M Y H:i') }}</span>
+            <span class="text-xs text-gray-400">{{ $simulation->created_at->translatedFormat('d M Y H:i') }}</span>
         </div>
 
         <!-- AI Narrative -->
         @if($simulation->ai_narrative)
-            <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-2xl p-5">
+            <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
                 <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center text-lg shrink-0">🤖</div>
                     <div>
-                        <p class="font-semibold text-indigo-800 dark:text-indigo-300 text-sm mb-1">Analisis AI</p>
-                        <p class="text-sm text-indigo-700 dark:text-indigo-300/80 leading-relaxed whitespace-pre-line">{{ $simulation->ai_narrative }}</p>
+                        <p class="font-semibold text-indigo-800 text-sm mb-1">Analisis AI</p>
+                        <p class="text-sm text-indigo-700 leading-relaxed whitespace-pre-line">{{ $simulation->ai_narrative }}</p>
                     </div>
                 </div>
             </div>
@@ -70,8 +70,8 @@
         @endphp
 
         @if(!empty($chartLabels))
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-5">
-            <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-4">Perbandingan Sebelum vs Sesudah</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">Perbandingan Sebelum vs Sesudah</h3>
             <div class="h-64">
                 <canvas id="comparison-chart"></canvas>
             </div>
@@ -79,25 +79,25 @@
         @endif
 
         <!-- Detail Results -->
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Detail Hasil Simulasi</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Detail Hasil Simulasi</h3>
 
             @if($simulation->scenario_type === 'price_increase')
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Pendapatan Saat Ini</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Pendapatan Saat Ini</span>
                         <span class="font-medium">{{ $fmt($results['current_revenue'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Proyeksi (tanpa elastisitas)</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Proyeksi (tanpa elastisitas)</span>
                         <span class="font-medium text-green-600">{{ $fmt($results['projected_revenue_no_elasticity'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Proyeksi (dengan elastisitas harga)</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Proyeksi (dengan elastisitas harga)</span>
                         <span class="font-medium text-blue-600">{{ $fmt($results['projected_revenue_with_elasticity'] ?? 0) }}</span>
                     </div>
                     <div class="flex justify-between py-2">
-                        <span class="text-gray-600 dark:text-gray-400">Estimasi Perubahan Demand</span>
+                        <span class="text-gray-600">Estimasi Perubahan Demand</span>
                         <span class="font-medium {{ ($results['demand_change_pct'] ?? 0) < 0 ? 'text-red-500' : 'text-green-500' }}">
                             {{ $results['demand_change_pct'] ?? 0 }}%
                         </span>
@@ -106,48 +106,48 @@
 
             @elseif($simulation->scenario_type === 'new_branch')
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Biaya Tetap/Bulan</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Biaya Tetap/Bulan</span>
                         <span class="font-medium">{{ $fmt($results['fixed_cost_monthly'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Proyeksi Omzet/Bulan</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Proyeksi Omzet/Bulan</span>
                         <span class="font-medium">{{ $fmt($results['revenue_projection'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Laba Bersih ({{ $results['months'] ?? 12 }} bulan)</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Laba Bersih ({{ $results['months'] ?? 12 }} bulan)</span>
                         <span class="font-medium {{ ($results['net_profit'] ?? 0) >= 0 ? 'text-green-600' : 'text-red-500' }}">
                             {{ ($results['net_profit'] ?? 0) >= 0 ? '+' : '-' }}{{ $fmt($results['net_profit'] ?? 0) }}
                         </span>
                     </div>
                     <div class="flex justify-between py-2">
-                        <span class="text-gray-600 dark:text-gray-400">Break-even</span>
+                        <span class="text-gray-600">Break-even</span>
                         <span class="font-medium">{{ $results['break_even_months'] ?? '-' }} bulan</span>
                     </div>
                 </div>
 
             @elseif($simulation->scenario_type === 'stock_out')
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Total Potensi Kehilangan Omzet</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Total Potensi Kehilangan Omzet</span>
                         <span class="font-medium text-red-500">{{ $fmt($results['total_lost_revenue'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Rata-rata Kehilangan/Hari</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Rata-rata Kehilangan/Hari</span>
                         <span class="font-medium">{{ $fmt($results['daily_lost'] ?? 0) }}</span>
                     </div>
                     @if(!empty($results['products']))
                         <div class="mt-3">
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Produk yang Terdampak:</p>
+                            <p class="text-xs font-medium text-gray-500 mb-2">Produk yang Terdampak:</p>
                             <table class="w-full text-xs">
-                                <thead><tr class="text-gray-500 dark:text-gray-400">
+                                <thead><tr class="text-gray-500">
                                     <th class="text-left py-1">Produk</th>
                                     <th class="text-right py-1">Qty</th>
                                     <th class="text-right py-1">Omzet</th>
                                 </tr></thead>
                                 <tbody>
                                     @foreach($results['products'] as $p)
-                                        <tr class="border-t border-gray-100 dark:border-gray-700">
+                                        <tr class="border-t border-gray-100">
                                             <td class="py-1">{{ $p['name'] }}</td>
                                             <td class="text-right py-1">{{ number_format($p['qty']) }}</td>
                                             <td class="text-right py-1">{{ $fmt($p['revenue']) }}</td>
@@ -161,22 +161,22 @@
 
             @elseif($simulation->scenario_type === 'cost_reduction')
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Total Pengeluaran</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Total Pengeluaran</span>
                         <span class="font-medium">{{ $fmt($results['total_expense'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Penghematan Biaya</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Penghematan Biaya</span>
                         <span class="font-medium text-green-600">{{ $fmt($results['saved_cost'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Laba Sebelum Efisiensi</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Laba Sebelum Efisiensi</span>
                         <span class="font-medium {{ ($results['current_profit'] ?? 0) >= 0 ? 'text-green-600' : 'text-red-500' }}">
                             {{ $fmt($results['current_profit'] ?? 0) }}
                         </span>
                     </div>
                     <div class="flex justify-between py-2">
-                        <span class="text-gray-600 dark:text-gray-400">Laba Setelah Efisiensi</span>
+                        <span class="text-gray-600">Laba Setelah Efisiensi</span>
                         <span class="font-medium {{ ($results['new_profit'] ?? 0) >= 0 ? 'text-green-600' : 'text-red-500' }}">
                             {{ $fmt($results['new_profit'] ?? 0) }}
                         </span>
@@ -185,26 +185,26 @@
 
             @elseif($simulation->scenario_type === 'demand_change')
                 <div class="space-y-3 text-sm">
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Pendapatan Saat Ini</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Pendapatan Saat Ini</span>
                         <span class="font-medium">{{ $fmt($results['current_revenue'] ?? 0) }}</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Proyeksi Pendapatan</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Proyeksi Pendapatan</span>
                         <span class="font-medium {{ ($results['projected_revenue'] ?? 0) >= ($results['current_revenue'] ?? 0) ? 'text-green-600' : 'text-red-500' }}">
                             {{ $fmt($results['projected_revenue'] ?? 0) }}
                         </span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                        <span class="text-gray-600 dark:text-gray-400">Order Saat Ini</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="text-gray-600">Order Saat Ini</span>
                         <span class="font-medium">{{ number_format($results['current_orders'] ?? 0) }}</span>
                     </div>
                     <div class="flex justify-between py-2">
-                        <span class="text-gray-600 dark:text-gray-400">Proyeksi Order</span>
+                        <span class="text-gray-600">Proyeksi Order</span>
                         <span class="font-medium">{{ number_format($results['projected_orders'] ?? 0) }}</span>
                     </div>
                     @if(!empty($results['stock_note']))
-                        <div class="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg text-xs text-yellow-700 dark:text-yellow-300">
+                        <div class="mt-2 p-3 bg-yellow-50 rounded-lg text-xs text-yellow-700">
                             📦 {{ $results['stock_note'] }}
                         </div>
                     @endif
@@ -213,20 +213,20 @@
         </div>
 
         <!-- Parameters -->
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-6">
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-3 text-sm">Parameter Input</h3>
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="font-semibold text-gray-900 mb-3 text-sm">Parameter Input</h3>
             <div class="grid grid-cols-2 gap-2 text-sm">
                 @foreach($simulation->parameters as $key => $val)
-                    <div class="flex justify-between py-1.5 border-b border-gray-100 dark:border-white/5">
-                        <span class="text-gray-500 dark:text-slate-400 capitalize">{{ str_replace('_', ' ', $key) }}</span>
-                        <span class="font-medium text-gray-900 dark:text-white">{{ is_array($val) ? implode(', ', $val) : $val }}</span>
+                    <div class="flex justify-between py-1.5 border-b border-gray-100">
+                        <span class="text-gray-500 capitalize">{{ str_replace('_', ' ', $key) }}</span>
+                        <span class="font-medium text-gray-900">{{ is_array($val) ? implode(', ', $val) : $val }}</span>
                     </div>
                 @endforeach
             </div>
         </div>
 
         <div class="flex justify-between">
-            <a href="{{ route('simulations.index') }}" class="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-white">← Kembali ke daftar</a>
+            <a href="{{ route('simulations.index') }}" class="text-sm text-gray-400 hover:text-gray-600">← Kembali ke daftar</a>
             <form method="POST" action="{{ route('simulations.destroy', $simulation) }}" onsubmit="return confirm('Hapus simulasi ini?')">
                 @csrf @method('DELETE')
                 <button class="text-sm text-red-400 hover:text-red-600">Hapus simulasi</button>

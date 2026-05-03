@@ -1,12 +1,11 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Ministry Report #' . $report->id) }}
-            </h2>
-            <a href="{{ route('healthcare.ministry-reports.index') }}" class="text-blue-600 hover:text-blue-900"><i
+    <x-slot name="header">{{ __('Ministry Report #' . $report->id) }}</x-slot>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
+        <a href="{{ route('healthcare.ministry-reports.index') }}" class="text-blue-600 hover:text-blue-900"><i
                     class="fas fa-arrow-left mr-2"></i>Back to List</a>
-        </div>
-    </x-slot>
+    </div>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">

@@ -22,7 +22,14 @@ class TelemedicineReminderNotification extends Notification
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add broadcast channel for push notifications if available
+        if (method_exists($notifiable, 'routeNotificationForBroadcast')) {
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
     }
 
     public function toMail($notifiable): MailMessage
@@ -68,5 +75,18 @@ class TelemedicineReminderNotification extends Notification
                 ? 'Consultation with patient in 30 minutes'
                 : 'Your consultation with doctor in 30 minutes',
         ];
+    }
+
+    public function toBroadcast($notifiable): \Illuminate\Notifications\Messages\BroadcastMessage
+    {
+        return new \Illuminate\Notifications\Messages\BroadcastMessage([
+            'consultation_id' => $this->consultation->id,
+            'consultation_number' => $this->consultation->consultation_number,
+            'scheduled_time' => $this->consultation->scheduled_time->toISOString(),
+            'recipient_type' => $this->recipientType,
+            'message' => $this->recipientType === 'doctor'
+                ? 'Consultation with patient in 30 minutes'
+                : 'Your consultation with doctor in 30 minutes',
+        ]);
     }
 }

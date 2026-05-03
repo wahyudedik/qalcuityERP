@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'QC Laboratory')
 
@@ -8,8 +8,8 @@
         <div class="mb-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">QC Laboratory</h1>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Quality control testing and certificates</p>
+                    <h1 class="text-3xl font-bold text-gray-900">QC Laboratory</h1>
+                    <p class="mt-1 text-sm text-gray-500">Quality control testing and certificates</p>
                 </div>
                 <div class="flex gap-2">
                     <a href="{{ route('cosmetic.qc.coa') }}"
@@ -30,40 +30,40 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tests</div>
-                <div class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_tests'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Total Tests</div>
+                <div class="mt-2 text-2xl font-bold text-gray-900">{{ $stats['total_tests'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending</div>
-                <div class="mt-2 text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $stats['pending_tests'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Pending</div>
+                <div class="mt-2 text-2xl font-bold text-yellow-600">{{ $stats['pending_tests'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Passed</div>
-                <div class="mt-2 text-2xl font-bold text-green-600 dark:text-green-400">{{ $stats['passed_tests'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Passed</div>
+                <div class="mt-2 text-2xl font-bold text-green-600">{{ $stats['passed_tests'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Failed</div>
-                <div class="mt-2 text-2xl font-bold text-red-600 dark:text-red-400">{{ $stats['failed_tests'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Failed</div>
+                <div class="mt-2 text-2xl font-bold text-red-600">{{ $stats['failed_tests'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Open OOS</div>
-                <div class="mt-2 text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $stats['open_oos'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Open OOS</div>
+                <div class="mt-2 text-2xl font-bold text-orange-600">{{ $stats['open_oos'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Templates</div>
-                <div class="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $stats['active_templates'] }}</div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm font-medium text-gray-500">Templates</div>
+                <div class="mt-2 text-2xl font-bold text-blue-600">{{ $stats['active_templates'] }}</div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
             <form method="GET" action="{{ route('cosmetic.qc.tests') }}" class="flex gap-4">
                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}"
-                        placeholder="Search by test code..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                        placeholder="Search by test code..." class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                 </div>
-                <select name="category" class="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                <select name="category" class="px-3 py-2 border border-gray-300 rounded-lg">
                     <option value="">All Categories</option>
                     <option value="microbial" {{ request('category') == 'microbial' ? 'selected' : '' }}>Microbial</option>
                     <option value="heavy_metal" {{ request('category') == 'heavy_metal' ? 'selected' : '' }}>Heavy Metal
@@ -75,47 +75,47 @@
                     <option value="physical" {{ request('category') == 'physical' ? 'selected' : '' }}>Physical</option>
                     <option value="chemical" {{ request('category') == 'chemical' ? 'selected' : '' }}>Chemical</option>
                 </select>
-                <select name="result" class="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                <select name="result" class="px-3 py-2 border border-gray-300 rounded-lg">
                     <option value="">All Results</option>
                     <option value="pass" {{ request('result') == 'pass' ? 'selected' : '' }}>Passed</option>
                     <option value="fail" {{ request('result') == 'fail' ? 'selected' : '' }}>Failed</option>
                     <option value="pending" {{ request('result') == 'pending' ? 'selected' : '' }}>Pending</option>
                 </select>
-                <button type="submit" class="px-4 py-2 bg-gray-600 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-lg">
+                <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg">
                     Filter
                 </button>
             </form>
         </div>
 
         <!-- Tests Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Test Code</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Batch</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Result</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Test Date</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Result</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Test Date</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $test->test_code }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $test->test_name }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $test->test_code }}</div>
+                                <div class="text-xs text-gray-500">{{ $test->test_name }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-sm text-gray-900 dark:text-gray-100">{{ $test->category_label }}</span>
+                                <span class="text-sm text-gray-900">{{ $test->category_label }}</span>
                             </td>
                             <td class="px-6 py-4">
                                 @if ($test->batch)
-                                    <div class="text-sm text-gray-900 dark:text-gray-100">{{ $test->batch->batch_number }}</div>
+                                    <div class="text-sm text-gray-900">{{ $test->batch->batch_number }}</div>
                                 @else
-                                    <span class="text-sm text-gray-400 dark:text-gray-500">-</span>
+                                    <span class="text-sm text-gray-400">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -174,7 +174,7 @@
 
     <!-- Add Test Modal -->
     <div id="add-test-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-[700px] shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="relative top-20 mx-auto p-5 border w-[700px] shadow-lg rounded-md bg-white">
             <h3 class="text-lg font-semibold mb-4">Add QC Test</h3>
             <form method="POST" action="{{ route('cosmetic.qc.tests.store') }}">
                 @csrf

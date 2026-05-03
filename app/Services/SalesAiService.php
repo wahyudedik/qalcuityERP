@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AiUseCase;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\DB;
  * 1. suggestPrice()         — suggest harga berdasarkan histori transaksi customer
  * 2. predictLatePayment()   — prediksi kemungkinan invoice telat dibayar
  * 3. draftItemDescription() — auto-draft deskripsi item dari nama produk
+ *
+ * Use Cases:
+ * - draftItemDescription() uses AiUseCase::CRUD_AI
+ * - predictLatePayment() and suggestPrice() use AiUseCase::FORECASTING
  */
 class SalesAiService
 {
@@ -21,6 +26,9 @@ class SalesAiService
 
     /**
      * Suggest harga untuk produk berdasarkan histori transaksi customer.
+     *
+     * Use Case: AiUseCase::FORECASTING
+     * When AI provider is integrated, pass: AiUseCase::FORECASTING->value
      *
      * Return:
      * [
@@ -34,6 +42,8 @@ class SalesAiService
      *   'last_price'       => float|null,
      *   'default_price'    => float,
      * ]
+     *
+     * Requirements: 8.4
      */
     public function suggestPrice(int $tenantId, int $customerId, int $productId, float $qty = 1): array
     {
@@ -139,6 +149,9 @@ class SalesAiService
     /**
      * Prediksi kemungkinan invoice telat dibayar berdasarkan pola customer.
      *
+     * Use Case: AiUseCase::FORECASTING
+     * When AI provider is integrated, pass: AiUseCase::FORECASTING->value
+     *
      * Return:
      * [
      *   'risk'          => 'high'|'medium'|'low',
@@ -149,6 +162,8 @@ class SalesAiService
      *   'total_invoices'=> int,
      *   'tips'          => string[],
      * ]
+     *
+     * Requirements: 8.4
      */
     public function predictLatePayment(int $tenantId, int $customerId): array
     {
@@ -252,6 +267,11 @@ class SalesAiService
     /**
      * Generate deskripsi item dari nama produk + konteks.
      * Menggunakan template berbasis kategori produk (tanpa API call).
+     *
+     * Use Case: AiUseCase::CRUD_AI
+     * When AI provider is integrated, pass: AiUseCase::CRUD_AI->value
+     *
+     * Requirements: 8.4
      */
     public function draftItemDescription(int $tenantId, int $productId): array
     {
@@ -274,7 +294,7 @@ class SalesAiService
         return [
             'description' => $desc,
             'source'      => 'generated',
-            'product_name'=> $product->name,
+            'product_name' => $product->name,
             'category'    => $product->category,
             'unit'        => $product->unit,
             'sku'         => $product->sku,

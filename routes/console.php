@@ -65,6 +65,23 @@ Schedule::call(function () {
     });
 })->dailyAt('08:00')->name('send-ai-digest-daily')->withoutOverlapping();
 
+// ─── AI Use-Case Routing Monitoring ──────────────────────────────────────────
+
+// Cek threshold biaya AI per tenant — setiap hari jam 09:00
+Schedule::job(new \App\Jobs\CheckAiCostThresholds())
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('check-ai-cost-thresholds');
+
+// Cek persentase fallback event per use case — setiap jam
+Schedule::job(new \App\Jobs\CheckAiFallbackRates())
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('check-ai-fallback-rates');
+
+
 // ─── Proactive Insights (ERP AI Agent) ───────────────────────────────────────
 
 // Generate proactive insights untuk semua tenant aktif — setiap 6 jam
@@ -320,7 +337,7 @@ Schedule::command('audit:purge --no-interaction')
     ->appendOutputTo(storage_path('logs/audit-purge.log'))
     ->name('audit-purge-daily');
 
-//  AI User Pattern Analysis 
+//  AI User Pattern Analysis
 
 // Analisis pola perilaku user dari data transaksi  setiap hari jam 03:00
 Schedule::job(new AnalyzeUserPatterns())

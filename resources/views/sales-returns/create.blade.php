@@ -1,28 +1,28 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center gap-3">
-        <a href="{{ route('sales-returns.index') }}" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+        <a href="{{ route('sales-returns.index') }}" class="text-slate-400 hover:text-slate-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Buat Retur Penjualan</h1>
+        <h1 class="text-2xl font-bold text-slate-800">Buat Retur Penjualan</h1>
     </div>
 
     @if($errors->any())
-    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-sm text-red-700 dark:text-red-400">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
         <ul class="list-disc list-inside space-y-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
     </div>
     @endif
 
     <form method="POST" action="{{ route('sales-returns.store') }}" id="returnForm">
         @csrf
-        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Invoice Asal</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Invoice Asal</label>
                     <select name="invoice_id" id="invoiceSelect"
-                            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Pilih Invoice (opsional) --</option>
                         @foreach($invoices as $inv)
                         <option value="{{ $inv->id }}" data-customer="{{ $inv->customer_id }}"
@@ -33,9 +33,9 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Customer <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Customer <span class="text-red-500">*</span></label>
                     <select name="customer_id" id="customerSelect" required
-                            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Pilih Customer --</option>
                         @foreach($customers as $c)
                         <option value="{{ $c->id }}" {{ old('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
@@ -43,23 +43,23 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Gudang <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Gudang <span class="text-red-500">*</span></label>
                     <select name="warehouse_id" required
-                            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         @foreach($warehouses as $w)
                         <option value="{{ $w->id }}" {{ old('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tanggal Retur <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Retur <span class="text-red-500">*</span></label>
                     <input type="date" name="return_date" value="{{ old('return_date', today()->toDateString()) }}" required
-                           class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                           class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Metode Refund <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Metode Refund <span class="text-red-500">*</span></label>
                     <select name="refund_method" required
-                            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="credit_note" {{ old('refund_method') === 'credit_note' ? 'selected' : '' }}>Credit Note</option>
                         <option value="customer_balance" {{ old('refund_method') === 'customer_balance' ? 'selected' : '' }}>Saldo Customer</option>
                         <option value="cash" {{ old('refund_method') === 'cash' ? 'selected' : '' }}>Tunai</option>
@@ -67,9 +67,9 @@
                     </select>
                 </div>
                 <div class="col-span-2">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Alasan Retur <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Alasan Retur <span class="text-red-500">*</span></label>
                     <textarea name="reason" rows="2" required
-                              class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                              class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                               placeholder="Jelaskan alasan retur...">{{ old('reason') }}</textarea>
                 </div>
             </div>
@@ -77,9 +77,9 @@
             {{-- Items --}}
             <div>
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Item Retur</h3>
+                    <h3 class="text-sm font-semibold text-slate-700">Item Retur</h3>
                     <button type="button" id="addItemBtn"
-                            class="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg">
+                            class="text-xs px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">
                         + Tambah Item
                     </button>
                 </div>
@@ -88,19 +88,19 @@
                         <div class="col-span-5">
                             <label class="block text-xs text-slate-500 mb-1">Produk</label>
                             <select name="items[0][product_id]" required
-                                    class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                    class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                                 <option value="">-- Pilih Produk --</option>
                             </select>
                         </div>
                         <div class="col-span-2">
                             <label class="block text-xs text-slate-500 mb-1">Qty</label>
                             <input type="number" name="items[0][quantity]" min="0.001" step="0.001" required
-                                   class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                   class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="col-span-3">
                             <label class="block text-xs text-slate-500 mb-1">Harga</label>
                             <input type="number" name="items[0][price]" min="0" step="1" required
-                                   class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                   class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="col-span-2 flex justify-end">
                             <button type="button" class="remove-item text-red-400 hover:text-red-600 p-1.5">
@@ -113,7 +113,7 @@
 
             <div class="flex justify-end gap-3 pt-2">
                 <a href="{{ route('sales-returns.index') }}"
-                   class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-lg">
+                   class="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-300 rounded-lg">
                     Batal
                 </a>
                 <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
@@ -145,17 +145,17 @@ document.getElementById('addItemBtn').addEventListener('click', () => {
     div.innerHTML = `
         <div class="col-span-5">
             <select name="items[${rowIndex}][product_id]" required
-                    class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                    class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                 ${buildProductOptions()}
             </select>
         </div>
         <div class="col-span-2">
             <input type="number" name="items[${rowIndex}][quantity]" min="0.001" step="0.001" required placeholder="Qty"
-                   class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                   class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
         <div class="col-span-3">
             <input type="number" name="items[${rowIndex}][price]" min="0" step="1" required placeholder="Harga"
-                   class="w-full px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                   class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
         <div class="col-span-2 flex justify-end">
             <button type="button" class="remove-item text-red-400 hover:text-red-600 p-1.5">

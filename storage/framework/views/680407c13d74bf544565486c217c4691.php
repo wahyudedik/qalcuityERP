@@ -1,4 +1,4 @@
-<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+﻿<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
 <?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('app-layout'); ?>
@@ -28,29 +28,29 @@
                 ];
             ?>
             <?php $__currentLoopData = $statCards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $card): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4 <?php echo e(($card['wide'] ?? false) ? 'col-span-2 sm:col-span-1' : ''); ?>">
-                    <p class="text-xs text-gray-500 dark:text-slate-400"><?php echo e($card['label']); ?></p>
-                    <p class="text-xl font-bold text-gray-900 dark:text-white mt-1"><?php echo e($card['value']); ?></p>
+                <div class="bg-white rounded-2xl border border-gray-200 p-4 <?php echo e(($card['wide'] ?? false) ? 'col-span-2 sm:col-span-1' : ''); ?>">
+                    <p class="text-xs text-gray-500"><?php echo e($card['label']); ?></p>
+                    <p class="text-xl font-bold text-gray-900 mt-1"><?php echo e($card['value']); ?></p>
                 </div>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 p-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4">
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Cari nomor / customer..."
-                    class="flex-1 min-w-[180px] bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <select name="status" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
+                    class="flex-1 min-w-[180px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="status" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <option value="">Semua Status</option>
                     <?php $__currentLoopData = ['pending','confirmed','processing','shipped','completed','cancelled']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($s); ?>" <?php echo e(request('status') === $s ? 'selected' : ''); ?>><?php echo e(ucfirst($s)); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
                 <input type="date" name="date_from" value="<?php echo e(request('date_from')); ?>"
-                    class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
+                    class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                 <input type="date" name="date_to" value="<?php echo e(request('date_to')); ?>"
-                    class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none">
-                <button type="submit" class="px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm hover:bg-gray-200 dark:hover:bg-white/20 transition">Filter</button>
+                    class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
+                <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm hover:bg-gray-200 transition">Filter</button>
                 <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'sales', 'create')): ?>
                 <a href="<?php echo e(route('sales.create')); ?>" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">+ Buat SO</a>
                 <?php endif; ?>
@@ -58,14 +58,14 @@
         </div>
 
         
-        <div class="bg-white dark:bg-[#1e293b] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <?php if($orders->isEmpty()): ?>
-                <div class="px-6 py-16 text-center text-gray-400 dark:text-slate-500 text-sm">Belum ada Sales Order.</div>
+                <div class="px-6 py-16 text-center text-gray-400 text-sm">Belum ada Sales Order.</div>
             <?php else: ?>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
-                            <tr class="border-b border-gray-100 dark:border-white/5 text-xs text-gray-500 dark:text-slate-400">
+                            <tr class="border-b border-gray-100 text-xs text-gray-500">
                                 <th class="px-4 py-3 text-left">Nomor</th>
                                 <th class="px-4 py-3 text-left">Customer</th>
                                 <th class="px-4 py-3 text-left">Tanggal</th>
@@ -75,7 +75,7 @@
                                 <th class="px-4 py-3 text-left">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50 dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-50">
                             <?php $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <?php
                                     $statusColors = [
@@ -87,13 +87,13 @@
                                         'cancelled'  => 'bg-red-500/20 text-red-400',
                                     ];
                                 ?>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                                <tr class="hover:bg-gray-50 transition">
                                     <td class="px-4 py-3 font-mono text-xs text-blue-400">
                                         <a href="<?php echo e(route('sales.show', $order)); ?>"><?php echo e($order->number); ?></a>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-700 dark:text-slate-300"><?php echo e($order->customer->name ?? '-'); ?></td>
-                                    <td class="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs"><?php echo e($order->date->format('d/m/Y')); ?></td>
-                                    <td class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                                    <td class="px-4 py-3 text-gray-700"><?php echo e($order->customer->name ?? '-'); ?></td>
+                                    <td class="px-4 py-3 text-gray-500 text-xs"><?php echo e($order->date->format('d/m/Y')); ?></td>
+                                    <td class="px-4 py-3 text-right font-medium text-gray-900">
                                         Rp <?php echo e(number_format($order->total, 0, ',', '.')); ?>
 
                                     </td>
@@ -103,7 +103,7 @@
 
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                    <td class="px-4 py-3 text-xs text-gray-500">
                                         <?php echo e($order->payment_type === 'credit' ? 'Kredit' : 'Tunai'); ?>
 
                                         <?php if($order->due_date && $order->payment_type === 'credit'): ?>
@@ -116,7 +116,7 @@
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2">
                                             <a href="<?php echo e(route('sales.show', $order)); ?>"
-                                                class="text-xs px-2 py-1 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20 transition">
+                                                class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition">
                                                 Detail
                                             </a>
                                             <?php if(auth()->check() && app(\App\Services\PermissionService::class)->check(auth()->user(), 'sales', 'edit')): ?>
@@ -124,7 +124,7 @@
                                                 <form method="POST" action="<?php echo e(route('sales.status', $order)); ?>">
                                                     <?php echo csrf_field(); ?> <?php echo method_field('PATCH'); ?>
                                                     <select name="status" onchange="this.form.submit()"
-                                                        class="text-xs bg-gray-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1 text-gray-700 dark:text-slate-300 cursor-pointer">
+                                                        class="text-xs bg-gray-100 border-0 rounded-lg px-2 py-1 text-gray-700 cursor-pointer">
                                                         <option value="">Ubah status...</option>
                                                         <?php $__currentLoopData = ['pending','confirmed','processing','shipped','completed','cancelled']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                             <?php if($s !== $order->status): ?>
@@ -143,7 +143,7 @@
                     </table>
                 </div>
                 <?php if($orders->hasPages()): ?>
-                    <div class="px-6 py-4 border-t border-gray-100 dark:border-white/5"><?php echo e($orders->links()); ?></div>
+                    <div class="px-6 py-4 border-t border-gray-100"><?php echo e($orders->links()); ?></div>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
