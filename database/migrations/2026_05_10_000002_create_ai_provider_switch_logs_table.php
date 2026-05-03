@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('from_provider', 50);                  // 'gemini', 'anthropic'
             $table->string('to_provider', 50);
             $table->string('reason', 100);                        // 'rate_limit', 'server_error', 'quota_exceeded'
+            $table->string('use_case', 100)->nullable();          // use case yang sedang diproses saat fallback terjadi
             $table->text('error_message')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
