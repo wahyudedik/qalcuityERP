@@ -9,7 +9,9 @@ return new class extends Migration {
     {
         Schema::table('expense_categories', function (Blueprint $table) {
             // Kode akun COA yang digunakan saat auto-posting GL
-            $table->string('coa_account_code', 20)->nullable()->after('type');
+            if (!Schema::hasColumn('expense_categories', 'coa_account_code')) {
+                $table->string('coa_account_code', 20)->nullable()->after('type');
+            }
         });
     }
 

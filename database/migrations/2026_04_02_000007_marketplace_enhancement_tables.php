@@ -55,27 +55,29 @@ return new class extends Migration
         }
 
         // c) Create product_price_history table
-        Schema::create('product_price_history', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('tenant_id')->index();
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('channel_id')->nullable();
-            $table->decimal('old_price', 18, 2);
-            $table->decimal('new_price', 18, 2);
-            $table->string('source')->default('manual'); // 'manual', 'sync', 'bulk_update'
-            $table->unsignedBigInteger('changed_by')->nullable();
-            $table->integer('orders_before_7d')->default(0);
-            $table->integer('orders_after_7d')->default(0);
-            $table->decimal('revenue_before_7d', 18, 2)->default(0);
-            $table->decimal('revenue_after_7d', 18, 2)->default(0);
-            $table->timestamps();
-
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('channel_id')->references('id')->on('ecommerce_channels')->onDelete('set null');
-            $table->foreign('changed_by')->references('id')->on('users')->onDelete('set null');
-            $table->index(['product_id', 'created_at'], 'price_hist_prod_date');
-            $table->index(['tenant_id', 'created_at'], 'price_hist_tenant_date');
-        });
+        if (!Schema::hasTable('product_price_history')) {
+            Schema::create('product_price_history', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('tenant_id')->index();
+                $table->unsignedBigInteger('product_id');
+                $table->unsignedBigInteger('channel_id')->nullable();
+                $table->decimal('old_price', 18, 2);
+                $table->decimal('new_price', 18, 2);
+                $table->string('source')->default('manual'); // 'manual', 'sync', 'bulk_update'
+                $table->unsignedBigInteger('changed_by')->nullable();
+                $table->integer('orders_before_7d')->default(0);
+                $table->integer('orders_after_7d')->default(0);
+                $table->decimal('revenue_before_7d', 18, 2)->default(0);
+                $table->decimal('revenue_after_7d', 18, 2)->default(0);
+                $table->timestamps();
+    
+                $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+                $table->foreign('channel_id')->references('id')->on('ecommerce_channels')->onDelete('set null');
+                $table->foreign('changed_by')->references('id')->on('users')->onDelete('set null');
+                $table->index(['product_id', 'created_at'], 'price_hist_prod_date');
+                $table->index(['tenant_id', 'created_at'], 'price_hist_tenant_date');
+            });
+        }
 
         // d) Alter ecommerce_product_mappings - add unique index
         Schema::table('ecommerce_product_mappings', function (Blueprint $table) {
@@ -84,8 +86,12 @@ return new class extends Migration
 
         // e) Alter ecommerce_channels - add webhook columns
         Schema::table('ecommerce_channels', function (Blueprint $table) {
-            $table->string('webhook_secret')->nullable()->after('sync_errors');
-            $table->boolean('webhook_enabled')->default(false)->after('webhook_secret');
+            if (!Schema::hasColumn('ecommerce_channels', 'webhook_secret')) {
+                $table->string('webhook_secret')->nullable()->after('sync_errors');
+            }
+            if (!Schema::hasColumn('ecommerce_channels', 'webhook_enabled')) {
+                $table->boolean('webhook_enabled')->default(false)->after('webhook_secret');
+            }
         });
     }
 

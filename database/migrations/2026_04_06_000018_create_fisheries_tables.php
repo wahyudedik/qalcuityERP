@@ -345,121 +345,131 @@ return new class extends Migration {
             });
         }
 
-        Schema::create('mortality_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->foreignId('pond_id')->nullable()->constrained('aquaculture_ponds')->onDelete('cascade');
-            $table->foreignId('fishing_trip_id')->nullable()->constrained('fishing_trips')->onDelete('cascade');
-            $table->integer('count')->comment('Number of deaths');
-            $table->decimal('total_weight', 10, 2)->nullable()->comment('Total weight in kg');
-            $table->string('cause_of_death')->nullable()->comment('disease, predation, oxygen_depletion, etc.');
-            $table->text('symptoms')->nullable();
-            $table->text('action_taken')->nullable();
-            $table->foreignId('reported_by_user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('reported_at');
-            $table->timestamps();
-
-            $table->index(['tenant_id', 'reported_at']);
-            $table->index(['pond_id', 'reported_at']);
-        });
+        if (!Schema::hasTable('mortality_logs')) {
+            Schema::create('mortality_logs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                $table->foreignId('pond_id')->nullable()->constrained('aquaculture_ponds')->onDelete('cascade');
+                $table->foreignId('fishing_trip_id')->nullable()->constrained('fishing_trips')->onDelete('cascade');
+                $table->integer('count')->comment('Number of deaths');
+                $table->decimal('total_weight', 10, 2)->nullable()->comment('Total weight in kg');
+                $table->string('cause_of_death')->nullable()->comment('disease, predation, oxygen_depletion, etc.');
+                $table->text('symptoms')->nullable();
+                $table->text('action_taken')->nullable();
+                $table->foreignId('reported_by_user_id')->nullable()->constrained('users')->onDelete('set null');
+                $table->timestamp('reported_at');
+                $table->timestamps();
+    
+                $table->index(['tenant_id', 'reported_at']);
+                $table->index(['pond_id', 'reported_at']);
+            });
+        }
 
         // ==========================================
         // EXPORT DOCUMENTATION
         // ==========================================
 
-        Schema::create('export_permits', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->string('permit_number')->unique();
-            $table->string('permit_type')->default('general'); // general, species_specific, seasonal
-            $table->string('destination_country');
-            $table->text('destination_address')->nullable();
-            $table->date('issue_date');
-            $table->date('expiry_date');
-            $table->string('issuing_authority');
-            $table->decimal('authorized_quantity', 12, 2)->nullable()->comment('Authorized export quantity in kg');
-            $table->json('authorized_species')->nullable()->comment('Array of authorized species IDs');
-            $table->string('status')->default('active'); // active, expired, revoked, suspended
-            $table->text('conditions')->nullable();
-            $table->string('document_path')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('export_permits')) {
+            Schema::create('export_permits', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                $table->string('permit_number')->unique();
+                $table->string('permit_type')->default('general'); // general, species_specific, seasonal
+                $table->string('destination_country');
+                $table->text('destination_address')->nullable();
+                $table->date('issue_date');
+                $table->date('expiry_date');
+                $table->string('issuing_authority');
+                $table->decimal('authorized_quantity', 12, 2)->nullable()->comment('Authorized export quantity in kg');
+                $table->json('authorized_species')->nullable()->comment('Array of authorized species IDs');
+                $table->string('status')->default('active'); // active, expired, revoked, suspended
+                $table->text('conditions')->nullable();
+                $table->string('document_path')->nullable();
+                $table->timestamps();
+    
+                $table->index(['tenant_id', 'status']);
+                $table->index(['expiry_date']);
+            });
+        }
 
-            $table->index(['tenant_id', 'status']);
-            $table->index(['expiry_date']);
-        });
+        if (!Schema::hasTable('health_certificates')) {
+            Schema::create('health_certificates', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                $table->string('certificate_number')->unique();
+                $table->foreignId('product_batch_id')->nullable()->constrained('product_batches')->onDelete('set null');
+                $table->foreignId('catch_log_id')->nullable()->constrained('catch_logs')->onDelete('set null');
+                $table->string('certificate_type')->default('health'); // health, sanitary, veterinary
+                $table->date('inspection_date');
+                $table->date('issue_date');
+                $table->date('expiry_date');
+                $table->string('issued_by');
+                $table->string('issuing_authority');
+                $table->text('inspection_results')->nullable();
+                $table->text('certifications')->nullable();
+                $table->string('status')->default('valid'); // valid, expired, revoked
+                $table->string('document_path')->nullable();
+                $table->timestamps();
+    
+                $table->index(['tenant_id', 'status']);
+                $table->index(['expiry_date']);
+            });
+        }
 
-        Schema::create('health_certificates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->string('certificate_number')->unique();
-            $table->foreignId('product_batch_id')->nullable()->constrained('product_batches')->onDelete('set null');
-            $table->foreignId('catch_log_id')->nullable()->constrained('catch_logs')->onDelete('set null');
-            $table->string('certificate_type')->default('health'); // health, sanitary, veterinary
-            $table->date('inspection_date');
-            $table->date('issue_date');
-            $table->date('expiry_date');
-            $table->string('issued_by');
-            $table->string('issuing_authority');
-            $table->text('inspection_results')->nullable();
-            $table->text('certifications')->nullable();
-            $table->string('status')->default('valid'); // valid, expired, revoked
-            $table->string('document_path')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('customs_declarations')) {
+            Schema::create('customs_declarations', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                $table->string('declaration_number')->unique();
+                $table->foreignId('shipment_id')->nullable()->constrained('shipments')->onDelete('set null');
+                $table->foreignId('export_permit_id')->nullable()->constrained('export_permits')->onDelete('set null');
+                $table->string('hs_code')->comment('Harmonized System code');
+                $table->string('country_of_origin');
+                $table->string('destination_country');
+                $table->decimal('declared_value', 15, 2)->comment('Declared value in IDR');
+                $table->string('currency')->default('IDR');
+                $table->decimal('total_weight', 12, 2)->comment('Total weight in kg');
+                $table->integer('package_count')->default(0);
+                $table->string('package_type')->nullable();
+                $table->text('goods_description');
+                $table->date('declaration_date');
+                $table->string('status')->default('draft'); // draft, submitted, approved, rejected, cleared
+                $table->string('customs_office')->nullable();
+                $table->text('rejection_reason')->nullable();
+                $table->timestamp('cleared_at')->nullable();
+                $table->string('document_path')->nullable();
+                $table->timestamps();
+    
+                $table->index(['tenant_id', 'status']);
+                $table->index(['declaration_date']);
+            });
+        }
 
-            $table->index(['tenant_id', 'status']);
-            $table->index(['expiry_date']);
-        });
-
-        Schema::create('customs_declarations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->string('declaration_number')->unique();
-            $table->foreignId('shipment_id')->nullable()->constrained('shipments')->onDelete('set null');
-            $table->foreignId('export_permit_id')->nullable()->constrained('export_permits')->onDelete('set null');
-            $table->string('hs_code')->comment('Harmonized System code');
-            $table->string('country_of_origin');
-            $table->string('destination_country');
-            $table->decimal('declared_value', 15, 2)->comment('Declared value in IDR');
-            $table->string('currency')->default('IDR');
-            $table->decimal('total_weight', 12, 2)->comment('Total weight in kg');
-            $table->integer('package_count')->default(0);
-            $table->string('package_type')->nullable();
-            $table->text('goods_description');
-            $table->date('declaration_date');
-            $table->string('status')->default('draft'); // draft, submitted, approved, rejected, cleared
-            $table->string('customs_office')->nullable();
-            $table->text('rejection_reason')->nullable();
-            $table->timestamp('cleared_at')->nullable();
-            $table->string('document_path')->nullable();
-            $table->timestamps();
-
-            $table->index(['tenant_id', 'status']);
-            $table->index(['declaration_date']);
-        });
-
-        Schema::create('export_shipments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
-            $table->string('shipment_number')->unique();
-            $table->foreignId('customs_declaration_id')->nullable()->constrained('customs_declarations')->onDelete('set null');
-            $table->foreignId('transport_id')->nullable()->constrained('refrigerated_transports')->onDelete('set null');
-            $table->date('shipment_date');
-            $table->date('estimated_arrival')->nullable();
-            $table->date('actual_arrival')->nullable();
-            $table->string('origin_port');
-            $table->string('destination_port');
-            $table->string('shipping_method')->default('sea'); // sea, air, land
-            $table->string('carrier_name')->nullable();
-            $table->string('tracking_number')->nullable();
-            $table->decimal('total_value', 15, 2)->nullable();
-            $table->string('incoterm')->nullable()->comment('FOB, CIF, etc.');
-            $table->string('status')->default('preparing'); // preparing, in_transit, arrived, delivered, cancelled
-            $table->text('shipping_documents')->nullable()->comment('JSON array of document paths');
-            $table->timestamps();
-
-            $table->index(['tenant_id', 'status']);
-            $table->index(['shipment_date']);
-        });
+        if (!Schema::hasTable('export_shipments')) {
+            Schema::create('export_shipments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
+                $table->string('shipment_number')->unique();
+                $table->foreignId('customs_declaration_id')->nullable()->constrained('customs_declarations')->onDelete('set null');
+                $table->foreignId('transport_id')->nullable()->constrained('refrigerated_transports')->onDelete('set null');
+                $table->date('shipment_date');
+                $table->date('estimated_arrival')->nullable();
+                $table->date('actual_arrival')->nullable();
+                $table->string('origin_port');
+                $table->string('destination_port');
+                $table->string('shipping_method')->default('sea'); // sea, air, land
+                $table->string('carrier_name')->nullable();
+                $table->string('tracking_number')->nullable();
+                $table->decimal('total_value', 15, 2)->nullable();
+                $table->string('incoterm')->nullable()->comment('FOB, CIF, etc.');
+                $table->string('status')->default('preparing'); // preparing, in_transit, arrived, delivered, cancelled
+                $table->text('shipping_documents')->nullable()->comment('JSON array of document paths');
+                $table->timestamps();
+    
+                $table->index(['tenant_id', 'status']);
+                $table->index(['shipment_date']);
+            });
+        }
     }
 
     /**

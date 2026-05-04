@@ -11,7 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('onboarding_profiles', function (Blueprint $table) {
-            $table->boolean('skipped')->default(false)->after('completed_at');
+            if (!Schema::hasColumn('onboarding_profiles', 'skipped')) {
+                $table->boolean('skipped')->default(false)->after('completed_at');
+            }
         });
     }
 

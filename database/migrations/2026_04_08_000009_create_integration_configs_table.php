@@ -10,19 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('integration_configs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
-            $table->foreignId('integration_id')->constrained()->onDelete('cascade');
-            $table->string('key'); // api_key, webhook_secret, etc.
-            $table->text('value')->nullable(); // Encrypted value
-            $table->string('category')->default('general'); // api, sync, webhook, mapping
-            $table->boolean('is_encrypted')->default(false);
-            $table->timestamps();
-
-            $table->unique(['integration_id', 'key']);
-            $table->index(['tenant_id', 'category']);
-        });
+        if (!Schema::hasTable('integration_configs')) {
+            Schema::create('integration_configs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
+                $table->foreignId('integration_id')->constrained()->onDelete('cascade');
+                $table->string('key'); // api_key, webhook_secret, etc.
+                $table->text('value')->nullable(); // Encrypted value
+                $table->string('category')->default('general'); // api, sync, webhook, mapping
+                $table->boolean('is_encrypted')->default(false);
+                $table->timestamps();
+    
+                $table->unique(['integration_id', 'key']);
+                $table->index(['tenant_id', 'category']);
+            });
+        }
     }
 
     /**

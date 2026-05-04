@@ -13,10 +13,12 @@ return new class extends Migration {
         // Check if column doesn't exist before adding
         if (!Schema::hasColumn('appointments', 'tenant_id')) {
             Schema::table('appointments', function (Blueprint $table) {
-                $table->foreignId('tenant_id')
-                    ->after('id')
-                    ->constrained('tenants')
-                    ->onDelete('cascade');
+                if (!Schema::hasColumn('appointments', 'tenant_id')) {
+                    $table->foreignId('tenant_id')
+                        ->after('id')
+                        ->constrained('tenants')
+                        ->onDelete('cascade');
+                }
 
                 // Add index for tenant isolation
                 $table->index('tenant_id');

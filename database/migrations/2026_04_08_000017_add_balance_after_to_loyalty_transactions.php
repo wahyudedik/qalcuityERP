@@ -12,8 +12,10 @@ return new class extends Migration {
     {
         if (!Schema::hasColumn('loyalty_transactions', 'balance_after')) {
             Schema::table('loyalty_transactions', function (Blueprint $table) {
-                $table->integer('balance_after')->nullable()->after('points')
-                    ->comment('Balance after this transaction');
+                if (!Schema::hasColumn('loyalty_transactions', 'balance_after')) {
+                    $table->integer('balance_after')->nullable()->after('points')
+                        ->comment('Balance after this transaction');
+                }
             });
         }
     }

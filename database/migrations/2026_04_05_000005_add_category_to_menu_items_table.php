@@ -12,8 +12,10 @@ return new class extends Migration {
     {
         if (Schema::hasTable('menu_items') && !Schema::hasColumn('menu_items', 'category')) {
             Schema::table('menu_items', function (Blueprint $table) {
-                $table->string('category')->nullable()->after('cost'); // Menu category name (e.g., "Set Menu", "Sandwiches")
-            });
+                if (!Schema::hasColumn('menu_items', 'category')) {
+                    $table->string('category')->nullable()->after('cost'); // Menu category name (e.g., "Set Menu", "Sandwiches")
+                
+                }});
         }
     }
 

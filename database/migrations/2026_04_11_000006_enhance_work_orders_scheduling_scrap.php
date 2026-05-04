@@ -14,28 +14,52 @@ return new class extends Migration {
     {
         Schema::table('work_orders', function (Blueprint $table) {
             // Production scheduling fields
-            $table->date('planned_start_date')->nullable()->after('notes');
-            $table->date('planned_end_date')->nullable()->after('planned_start_date');
-            $table->date('actual_start_date')->nullable()->after('planned_end_date');
-            $table->date('actual_end_date')->nullable()->after('actual_start_date');
-            $table->integer('priority')->default(3)->after('actual_end_date'); // 1=Urgent, 2=High, 3=Normal, 4=Low
-            $table->string('production_line')->nullable()->after('priority');
+            if (!Schema::hasColumn('work_orders', 'planned_start_date')) {
+                $table->date('planned_start_date')->nullable()->after('notes');
+            }
+            if (!Schema::hasColumn('work_orders', 'planned_end_date')) {
+                $table->date('planned_end_date')->nullable()->after('planned_start_date');
+            }
+            if (!Schema::hasColumn('work_orders', 'actual_start_date')) {
+                $table->date('actual_start_date')->nullable()->after('planned_end_date');
+            }
+            if (!Schema::hasColumn('work_orders', 'actual_end_date')) {
+                $table->date('actual_end_date')->nullable()->after('actual_start_date');
+            }
+            if (!Schema::hasColumn('work_orders', 'priority')) {
+                $table->integer('priority')->default(3)->after('actual_end_date'); // 1=Urgent, 2=High, 3=Normal, 4=Low
+                $table->string('production_line')->nullable()->after('priority');
+            }
 
             // Scrap/Waste tracking
-            $table->decimal('scrap_quantity', 10, 3)->default(0)->after('total_cost');
-            $table->decimal('scrap_cost', 12, 2)->default(0)->after('scrap_quantity');
-            $table->string('scrap_reason')->nullable()->after('scrap_cost');
-            $table->decimal('rework_quantity', 10, 3)->default(0)->after('scrap_reason');
-            $table->decimal('rework_cost', 12, 2)->default(0)->after('rework_quantity');
+            if (!Schema::hasColumn('work_orders', 'scrap_quantity')) {
+                $table->decimal('scrap_quantity', 10, 3)->default(0)->after('total_cost');
+            }
+            if (!Schema::hasColumn('work_orders', 'scrap_cost')) {
+                $table->decimal('scrap_cost', 12, 2)->default(0)->after('scrap_quantity');
+            }
+            if (!Schema::hasColumn('work_orders', 'scrap_reason')) {
+                $table->string('scrap_reason')->nullable()->after('scrap_cost');
+            }
+            if (!Schema::hasColumn('work_orders', 'rework_quantity')) {
+                $table->decimal('rework_quantity', 10, 3)->default(0)->after('scrap_reason');
+            }
+            if (!Schema::hasColumn('work_orders', 'rework_cost')) {
+                $table->decimal('rework_cost', 12, 2)->default(0)->after('rework_quantity');
+            }
 
             // Progress tracking
-            $table->decimal('progress_percent', 5, 2)->default(0)->after('rework_cost');
-            $table->string('progress_stage')->nullable()->after('progress_percent'); // setup, processing, finishing, qc
-
-            // Additional metrics
-            $table->decimal('efficiency_rate', 5, 2)->nullable()->after('progress_stage'); // actual vs planned
-            $table->decimal('schedule_variance', 5, 2)->nullable()->after('efficiency_rate'); // days ahead/behind
-        });
+            if (!Schema::hasColumn('work_orders', 'progress_percent')) {
+                $table->decimal('progress_percent', 5, 2)->default(0)->after('rework_cost');
+            }
+            if (!Schema::hasColumn('work_orders', 'progress_stage')) {
+                $table->string('progress_stage')->nullable()->after('progress_percent'); // setup, processing, finishing, qc
+    
+                // Additional metrics
+                $table->decimal('efficiency_rate', 5, 2)->nullable()->after('progress_stage'); // actual vs planned
+                $table->decimal('schedule_variance', 5, 2)->nullable()->after('efficiency_rate'); // days ahead/behind
+            
+            }});
     }
 
     /**

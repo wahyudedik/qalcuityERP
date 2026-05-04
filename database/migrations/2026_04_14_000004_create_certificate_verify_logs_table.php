@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('certificate_verify_logs', function (Blueprint $table) {
-            $table->id();
-            $table->string('certificate_number', 50)->index();
-            $table->string('ip_address', 45);
-            $table->enum('result', ['valid', 'invalid', 'not_found', 'revoked']);
-            $table->timestamp('verified_at');
-        });
+        if (!Schema::hasTable('certificate_verify_logs')) {
+            Schema::create('certificate_verify_logs', function (Blueprint $table) {
+                $table->id();
+                $table->string('certificate_number', 50)->index();
+                $table->string('ip_address', 45);
+                $table->enum('result', ['valid', 'invalid', 'not_found', 'revoked']);
+                $table->timestamp('verified_at');
+            });
+        }
     }
 
     public function down(): void

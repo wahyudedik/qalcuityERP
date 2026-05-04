@@ -14,14 +14,26 @@ return new class extends Migration {
     {
         Schema::table('night_audit_batches', function (Blueprint $table) {
             // Track which steps have been completed
-            $table->boolean('room_charges_posted')->default(false)->after('total_room_revenue');
-            $table->timestamp('room_charges_posted_at')->nullable()->after('room_charges_posted');
+            if (!Schema::hasColumn('night_audit_batches', 'room_charges_posted')) {
+                $table->boolean('room_charges_posted')->default(false)->after('total_room_revenue');
+            }
+            if (!Schema::hasColumn('night_audit_batches', 'room_charges_posted_at')) {
+                $table->timestamp('room_charges_posted_at')->nullable()->after('room_charges_posted');
+            }
 
-            $table->boolean('fb_revenue_posted')->default(false)->after('total_fb_revenue');
-            $table->timestamp('fb_revenue_posted_at')->nullable()->after('fb_revenue_posted');
+            if (!Schema::hasColumn('night_audit_batches', 'fb_revenue_posted')) {
+                $table->boolean('fb_revenue_posted')->default(false)->after('total_fb_revenue');
+            }
+            if (!Schema::hasColumn('night_audit_batches', 'fb_revenue_posted_at')) {
+                $table->timestamp('fb_revenue_posted_at')->nullable()->after('fb_revenue_posted');
+            }
 
-            $table->boolean('minibar_charges_posted')->default(false)->after('total_other_revenue');
-            $table->timestamp('minibar_charges_posted_at')->nullable()->after('minibar_charges_posted');
+            if (!Schema::hasColumn('night_audit_batches', 'minibar_charges_posted')) {
+                $table->boolean('minibar_charges_posted')->default(false)->after('total_other_revenue');
+            }
+            if (!Schema::hasColumn('night_audit_batches', 'minibar_charges_posted_at')) {
+                $table->timestamp('minibar_charges_posted_at')->nullable()->after('minibar_charges_posted');
+            }
         });
     }
 

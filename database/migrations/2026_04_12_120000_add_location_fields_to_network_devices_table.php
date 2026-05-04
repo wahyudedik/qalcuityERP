@@ -12,18 +12,26 @@ return new class extends Migration {
     {
         Schema::table('network_devices', function (Blueprint $table) {
             // Add location name field
-            $table->string('location')->nullable()->after('notes')
-                ->comment('Location name (e.g., "Tower A - Jakarta Selatan")');
+            if (!Schema::hasColumn('network_devices', 'location')) {
+                $table->string('location')->nullable()->after('notes')
+                    ->comment('Location name (e.g., "Tower A - Jakarta Selatan")');
+            }
 
             // Add GPS coordinates
-            $table->decimal('latitude', 10, 7)->nullable()->after('location')
-                ->comment('Latitude coordinate (-90 to 90)');
-            $table->decimal('longitude', 10, 7)->nullable()->after('latitude')
-                ->comment('Longitude coordinate (-180 to 180)');
+            if (!Schema::hasColumn('network_devices', 'latitude')) {
+                $table->decimal('latitude', 10, 7)->nullable()->after('location')
+                    ->comment('Latitude coordinate (-90 to 90)');
+            }
+            if (!Schema::hasColumn('network_devices', 'longitude')) {
+                $table->decimal('longitude', 10, 7)->nullable()->after('latitude')
+                    ->comment('Longitude coordinate (-180 to 180)');
+            }
 
             // Add coverage radius in meters
-            $table->integer('coverage_radius')->nullable()->after('longitude')
-                ->comment('Coverage radius in meters (1-50000)');
+            if (!Schema::hasColumn('network_devices', 'coverage_radius')) {
+                $table->integer('coverage_radius')->nullable()->after('longitude')
+                    ->comment('Coverage radius in meters (1-50000)');
+            }
 
             // Add indexes for performance
             $table->index(['latitude', 'longitude'], 'idx_coordinates');

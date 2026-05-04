@@ -40,7 +40,9 @@ return new class extends Migration {
             // Add resolution tracking - check constraint carefully
             if (!Schema::hasColumn('error_logs', 'resolved_by')) {
                 try {
-                    $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete()->after('resolved_at');
+                    if (!Schema::hasColumn('error_logs', 'resolved_by')) {
+                        $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete()->after('resolved_at');
+                    }
                 } catch (\Exception $e) {
                     // Constraint might already exist, skip
                     \Log::warning('Could not add resolved_by constraint: ' . $e->getMessage());

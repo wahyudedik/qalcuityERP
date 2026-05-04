@@ -10,34 +10,52 @@ return new class extends Migration
     {
         // Add retention config
         Schema::table('project_billing_configs', function (Blueprint $table) {
-            $table->decimal('retention_pct', 5, 2)->default(0)->after('fixed_price');       // 5%, 10%
-            $table->decimal('contract_value', 15, 2)->default(0)->after('retention_pct');    // nilai kontrak
-            $table->unsignedSmallInteger('retention_release_days')->default(90)->after('contract_value'); // hari setelah selesai
-        });
+            if (!Schema::hasColumn('project_billing_configs', 'retention_pct')) {
+                $table->decimal('retention_pct', 5, 2)->default(0)->after('fixed_price');       // 5%, 10%
+                $table->decimal('contract_value', 15, 2)->default(0)->after('retention_pct');    // nilai kontrak
+                $table->unsignedSmallInteger('retention_release_days')->default(90)->after('contract_value'); // hari setelah selesai
+            
+            }});
 
         // Extend billing_type enum to include 'termin'
         // MySQL doesn't support ALTER ENUM easily, so we use string
         Schema::table('project_billing_configs', function (Blueprint $table) {
-            $table->string('billing_type', 30)->default('time_material')->change();
+            if (!Schema::hasColumn('project_billing_configs', 'billing_type')) {
+                $table->string('billing_type', 30)->default('time_material')->change();
+            }
         });
 
         // Add retention tracking to project_invoices
         Schema::table('project_invoices', function (Blueprint $table) {
-            $table->string('billing_type', 30)->default('time_material')->change();
-            $table->decimal('gross_amount', 15, 2)->default(0)->after('total_amount');       // before retention
-            $table->decimal('retention_amount', 15, 2)->default(0)->after('gross_amount');    // held back
-            $table->decimal('retention_released', 15, 2)->default(0)->after('retention_amount');
-            $table->boolean('retention_released_flag')->default(false)->after('retention_released');
-            $table->date('retention_release_date')->nullable()->after('retention_released_flag');
+            if (!Schema::hasColumn('project_invoices', 'billing_type')) {
+                $table->string('billing_type', 30)->default('time_material')->change();
+            }
+            if (!Schema::hasColumn('project_invoices', 'gross_amount')) {
+                $table->decimal('gross_amount', 15, 2)->default(0)->after('total_amount');       // before retention
+                $table->decimal('retention_amount', 15, 2)->default(0)->after('gross_amount');    // held back
+                $table->decimal('retention_released', 15, 2)->default(0)->after('retention_amount');
+            }
+            if (!Schema::hasColumn('project_invoices', 'retention_released_flag')) {
+                $table->boolean('retention_released_flag')->default(false)->after('retention_released');
+            }
+            if (!Schema::hasColumn('project_invoices', 'retention_release_date')) {
+                $table->date('retention_release_date')->nullable()->after('retention_released_flag');
+            }
             $table->unsignedSmallInteger('termin_number')->nullable()->after('retention_release_date');
-            $table->decimal('progress_pct', 5, 2)->default(0)->after('termin_number');       // progress at billing time
-        });
+            if (!Schema::hasColumn('project_invoices', 'progress_pct')) {
+                $table->decimal('progress_pct', 5, 2)->default(0)->after('termin_number');       // progress at billing time
+            
+            }});
 
         // Add retention fields to milestones
         Schema::table('project_milestones', function (Blueprint $table) {
-            $table->decimal('retention_amount', 15, 2)->default(0)->after('percentage');
-            $table->decimal('billed_amount', 15, 2)->default(0)->after('retention_amount');   // amount - retention
-        });
+            if (!Schema::hasColumn('project_milestones', 'retention_amount')) {
+                $table->decimal('retention_amount', 15, 2)->default(0)->after('percentage');
+            }
+            if (!Schema::hasColumn('project_milestones', 'billed_amount')) {
+                $table->decimal('billed_amount', 15, 2)->default(0)->after('retention_amount');   // amount - retention
+            
+            }});
     }
 
     public function down(): void

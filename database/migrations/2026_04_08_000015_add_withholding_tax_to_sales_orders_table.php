@@ -14,10 +14,14 @@ return new class extends Migration {
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             // BUG-FIN-004: Store withholding tax amount (PPh 23, PPh 21)
-            $table->decimal('withholding_tax_amount', 18, 2)->default(0)->after('tax_amount');
+            if (!Schema::hasColumn('sales_orders', 'withholding_tax_amount')) {
+                $table->decimal('withholding_tax_amount', 18, 2)->default(0)->after('tax_amount');
+            }
 
             // BUG-FIN-004: Flag for tax-inclusive pricing
-            $table->boolean('tax_inclusive')->default(false)->after('withholding_tax_amount');
+            if (!Schema::hasColumn('sales_orders', 'tax_inclusive')) {
+                $table->boolean('tax_inclusive')->default(false)->after('withholding_tax_amount');
+            }
 
             // Index for tax queries
             $table->index('withholding_tax_amount');

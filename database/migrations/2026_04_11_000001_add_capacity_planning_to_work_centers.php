@@ -15,24 +15,44 @@ return new class extends Migration {
         // Add capacity planning columns to work_centers table
         Schema::table('work_centers', function (Blueprint $table) {
             // Scheduling
-            $table->time('start_time')->default('08:00:00')->after('capacity_per_day');
-            $table->time('end_time')->default('17:00:00')->after('start_time');
-            $table->integer('break_minutes')->default(60)->after('end_time');
+            if (!Schema::hasColumn('work_centers', 'start_time')) {
+                $table->time('start_time')->default('08:00:00')->after('capacity_per_day');
+            }
+            if (!Schema::hasColumn('work_centers', 'end_time')) {
+                $table->time('end_time')->default('17:00:00')->after('start_time');
+            }
+            if (!Schema::hasColumn('work_centers', 'break_minutes')) {
+                $table->integer('break_minutes')->default(60)->after('end_time');
+            }
 
             // Efficiency
-            $table->decimal('efficiency_percent', 5, 2)->default(100.00)->after('break_minutes')
-                ->comment('Work center efficiency percentage');
+            if (!Schema::hasColumn('work_centers', 'efficiency_percent')) {
+                $table->decimal('efficiency_percent', 5, 2)->default(100.00)->after('break_minutes')
+                    ->comment('Work center efficiency percentage');
+            }
 
             // Utilization tracking
-            $table->decimal('current_utilization', 5, 2)->default(0.00)->after('efficiency_percent')
-                ->comment('Current utilization percentage');
-            $table->decimal('planned_hours_today', 8, 2)->default(0.00)->after('current_utilization');
-            $table->decimal('actual_hours_today', 8, 2)->default(0.00)->after('planned_hours_today');
+            if (!Schema::hasColumn('work_centers', 'current_utilization')) {
+                $table->decimal('current_utilization', 5, 2)->default(0.00)->after('efficiency_percent')
+                    ->comment('Current utilization percentage');
+            }
+            if (!Schema::hasColumn('work_centers', 'planned_hours_today')) {
+                $table->decimal('planned_hours_today', 8, 2)->default(0.00)->after('current_utilization');
+            }
+            if (!Schema::hasColumn('work_centers', 'actual_hours_today')) {
+                $table->decimal('actual_hours_today', 8, 2)->default(0.00)->after('planned_hours_today');
+            }
 
             // Maintenance
-            $table->date('last_maintenance_date')->nullable()->after('actual_hours_today');
-            $table->date('next_maintenance_date')->nullable()->after('last_maintenance_date');
-            $table->integer('maintenance_interval_days')->default(90)->after('next_maintenance_date');
+            if (!Schema::hasColumn('work_centers', 'last_maintenance_date')) {
+                $table->date('last_maintenance_date')->nullable()->after('actual_hours_today');
+            }
+            if (!Schema::hasColumn('work_centers', 'next_maintenance_date')) {
+                $table->date('next_maintenance_date')->nullable()->after('last_maintenance_date');
+            }
+            if (!Schema::hasColumn('work_centers', 'maintenance_interval_days')) {
+                $table->integer('maintenance_interval_days')->default(90)->after('next_maintenance_date');
+            }
 
             // Indexes
             $table->index(['tenant_id', 'is_active']);

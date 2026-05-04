@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('user_dashboard_configs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->json('widgets');
-            $table->timestamps();
-            $table->unique('user_id');
-        });
+        if (!Schema::hasTable('user_dashboard_configs')) {
+            Schema::create('user_dashboard_configs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->json('widgets');
+                $table->timestamps();
+                $table->unique('user_id');
+            });
+        }
     }
 
     public function down(): void

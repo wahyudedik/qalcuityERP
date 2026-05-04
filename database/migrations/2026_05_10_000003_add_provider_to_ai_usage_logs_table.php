@@ -16,7 +16,9 @@ return new class extends Migration
         // Gunakan Schema::hasColumn() untuk menghindari error jika kolom sudah ada
         if (!Schema::hasColumn('ai_usage_logs', 'provider')) {
             Schema::table('ai_usage_logs', function (Blueprint $table) {
-                $table->string('provider', 50)->nullable()->default(null)->after('token_count');
+                if (!Schema::hasColumn('ai_usage_logs', 'provider')) {
+                    $table->string('provider', 50)->nullable()->default(null)->after('token_count');
+                }
             });
         }
     }

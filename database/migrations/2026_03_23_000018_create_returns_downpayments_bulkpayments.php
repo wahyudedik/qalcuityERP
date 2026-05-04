@@ -239,7 +239,9 @@ return new class extends Migration {
         // Tambah kolom customer_balance ke customers
         if (Schema::hasTable('customers') && !Schema::hasColumn('customers', 'credit_balance')) {
             Schema::table('customers', function (Blueprint $table) {
-                $table->decimal('credit_balance', 15, 2)->default(0)->after('credit_limit');
+                if (!Schema::hasColumn('customers', 'credit_balance')) {
+                    $table->decimal('credit_balance', 15, 2)->default(0)->after('credit_limit');
+                }
             });
         }
     }

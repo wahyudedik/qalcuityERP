@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('activity_logs', function (Blueprint $table) {
-            $table->boolean('is_ai_action')->default(false)->after('user_agent');
-            $table->string('ai_tool_name')->nullable()->after('is_ai_action');
+            if (!Schema::hasColumn('activity_logs', 'is_ai_action')) {
+                $table->boolean('is_ai_action')->default(false)->after('user_agent');
+            }
+            if (!Schema::hasColumn('activity_logs', 'ai_tool_name')) {
+                $table->string('ai_tool_name')->nullable()->after('is_ai_action');
+            }
         });
     }
 

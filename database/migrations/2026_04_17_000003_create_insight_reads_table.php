@@ -7,14 +7,16 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('insight_reads', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('insight_id')->index();
-            $table->unsignedBigInteger('user_id')->index();
-            $table->string('status');                // read | dismissed | handled
-            $table->timestamp('read_at')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('insight_reads')) {
+            Schema::create('insight_reads', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('insight_id')->index();
+                $table->unsignedBigInteger('user_id')->index();
+                $table->string('status');                // read | dismissed | handled
+                $table->timestamp('read_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

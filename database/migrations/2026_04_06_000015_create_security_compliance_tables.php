@@ -55,15 +55,17 @@ return new class extends Migration {
                 });
             } else {
                 // Create table without foreign key if roles table doesn't exist
-                Schema::create('role_permission', function (Blueprint $table) {
-                    $table->id();
-                    $table->unsignedBigInteger('role_id');
-                    $table->foreignId('permission_id')->constrained()->onDelete('cascade');
-                    $table->timestamps();
-
-                    $table->unique(['role_id', 'permission_id']);
-                    $table->index('role_id');
-                });
+                if (!Schema::hasTable('role_permission')) {
+                    Schema::create('role_permission', function (Blueprint $table) {
+                        $table->id();
+                        $table->unsignedBigInteger('role_id');
+                        $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+                        $table->timestamps();
+    
+                        $table->unique(['role_id', 'permission_id']);
+                        $table->index('role_id');
+                    });
+                }
             }
         }
 

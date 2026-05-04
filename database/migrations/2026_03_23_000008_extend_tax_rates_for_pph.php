@@ -10,10 +10,14 @@ return new class extends Migration
     {
         Schema::table('tax_rates', function (Blueprint $table) {
             // tax_type: ppn, pph21, pph23, pph4ayat2, custom
-            $table->string('tax_type', 20)->default('ppn')->after('type');
-            $table->boolean('is_withholding')->default(false)->after('tax_type'); // PPh = withholding
-            $table->string('account_code', 20)->nullable()->after('is_withholding'); // GL account code
-        });
+            if (!Schema::hasColumn('tax_rates', 'tax_type')) {
+                $table->string('tax_type', 20)->default('ppn')->after('type');
+            }
+            if (!Schema::hasColumn('tax_rates', 'is_withholding')) {
+                $table->boolean('is_withholding')->default(false)->after('tax_type'); // PPh = withholding
+                $table->string('account_code', 20)->nullable()->after('is_withholding'); // GL account code
+            
+            }});
     }
 
     public function down(): void

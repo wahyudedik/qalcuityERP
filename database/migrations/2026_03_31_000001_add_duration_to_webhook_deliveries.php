@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('webhook_deliveries', function (Blueprint $table) {
-            $table->unsignedInteger('duration_ms')->nullable()->after('attempt');
+            if (!Schema::hasColumn('webhook_deliveries', 'duration_ms')) {
+                $table->unsignedInteger('duration_ms')->nullable()->after('attempt');
+            }
         });
     }
 

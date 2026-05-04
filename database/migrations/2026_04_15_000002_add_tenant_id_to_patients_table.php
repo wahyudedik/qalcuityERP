@@ -16,7 +16,9 @@ return new class extends Migration {
     {
         if (!Schema::hasColumn('patients', 'tenant_id')) {
             Schema::table('patients', function (Blueprint $table) {
-                $table->foreignId('tenant_id')->after('id')->constrained('tenants')->onDelete('cascade');
+                if (!Schema::hasColumn('patients', 'tenant_id')) {
+                    $table->foreignId('tenant_id')->after('id')->constrained('tenants')->onDelete('cascade');
+                }
                 $table->index('tenant_id');
             });
 

@@ -11,12 +11,24 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('failed_login_attempts')->default(0)->after('password');
-            $table->timestamp('locked_until')->nullable()->after('failed_login_attempts');
-            $table->timestamp('last_failed_login')->nullable()->after('locked_until');
-            $table->timestamp('password_changed_at')->nullable()->after('password');
-            $table->timestamp('last_login_at')->nullable()->after('locked_until');
-            $table->string('last_login_ip')->nullable()->after('last_login_at');
+            if (!Schema::hasColumn('users', 'failed_login_attempts')) {
+                $table->integer('failed_login_attempts')->default(0)->after('password');
+            }
+            if (!Schema::hasColumn('users', 'locked_until')) {
+                $table->timestamp('locked_until')->nullable()->after('failed_login_attempts');
+            }
+            if (!Schema::hasColumn('users', 'last_failed_login')) {
+                $table->timestamp('last_failed_login')->nullable()->after('locked_until');
+            }
+            if (!Schema::hasColumn('users', 'password_changed_at')) {
+                $table->timestamp('password_changed_at')->nullable()->after('password');
+            }
+            if (!Schema::hasColumn('users', 'last_login_at')) {
+                $table->timestamp('last_login_at')->nullable()->after('locked_until');
+            }
+            if (!Schema::hasColumn('users', 'last_login_ip')) {
+                $table->string('last_login_ip')->nullable()->after('last_login_at');
+            }
         });
     }
 

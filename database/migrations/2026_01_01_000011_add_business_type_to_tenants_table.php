@@ -9,9 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tenants', function (Blueprint $table) {
-            $table->string('business_type')->nullable()->after('address')
-                ->comment('warung_makan, kafe, toko_retail, konveksi, distributor, jasa, lainnya');
-            $table->string('business_description')->nullable()->after('business_type');
+            if (!Schema::hasColumn('tenants', 'business_type')) {
+                $table->string('business_type')->nullable()->after('address')
+                    ->comment('warung_makan, kafe, toko_retail, konveksi, distributor, jasa, lainnya');
+            }
+            if (!Schema::hasColumn('tenants', 'business_description')) {
+                $table->string('business_description')->nullable()->after('business_type');
+            }
         });
     }
 

@@ -15,18 +15,30 @@ return new class extends Migration {
     {
         Schema::table('notification_preferences', function (Blueprint $table) {
             // Add WhatsApp channel
-            $table->boolean('whatsapp')->default(true)->after('push');
+            if (!Schema::hasColumn('notification_preferences', 'whatsapp')) {
+                $table->boolean('whatsapp')->default(true)->after('push');
+            }
 
             // Digest email frequency: daily, weekly, never
-            $table->string('digest_frequency')->default('daily')->after('whatsapp');
+            if (!Schema::hasColumn('notification_preferences', 'digest_frequency')) {
+                $table->string('digest_frequency')->default('daily')->after('whatsapp');
+            }
 
             // Quiet hours (Do Not Disturb)
-            $table->time('quiet_hours_start')->nullable()->after('digest_frequency');
-            $table->time('quiet_hours_end')->nullable()->after('quiet_hours_start');
-            $table->boolean('is_dnd')->default(false)->after('quiet_hours_end');
+            if (!Schema::hasColumn('notification_preferences', 'quiet_hours_start')) {
+                $table->time('quiet_hours_start')->nullable()->after('digest_frequency');
+            }
+            if (!Schema::hasColumn('notification_preferences', 'quiet_hours_end')) {
+                $table->time('quiet_hours_end')->nullable()->after('quiet_hours_start');
+            }
+            if (!Schema::hasColumn('notification_preferences', 'is_dnd')) {
+                $table->boolean('is_dnd')->default(false)->after('quiet_hours_end');
+            }
 
             // Per-module toggles (JSON for flexibility)
-            $table->json('module_preferences')->nullable()->after('is_dnd');
+            if (!Schema::hasColumn('notification_preferences', 'module_preferences')) {
+                $table->json('module_preferences')->nullable()->after('is_dnd');
+            }
         });
     }
 

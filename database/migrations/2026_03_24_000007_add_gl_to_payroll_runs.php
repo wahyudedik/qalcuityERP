@@ -8,7 +8,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('payroll_runs', function (Blueprint $table) {
-            $table->unsignedBigInteger('journal_entry_id')->nullable()->after('processed_at');
+            if (!Schema::hasColumn('payroll_runs', 'journal_entry_id')) {
+                $table->unsignedBigInteger('journal_entry_id')->nullable()->after('processed_at');
+            }
             $table->foreign('journal_entry_id')->references('id')->on('journal_entries')->nullOnDelete();
         });
     }

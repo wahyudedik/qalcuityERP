@@ -31,8 +31,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. Complete Demo Data (all modules included)
-        // $this->call([
-        //     TenantDemoSeeder::class,
-        // ]);
+        $this->call([
+            TenantDemoSeeder::class,
+        ]);
     }
 }

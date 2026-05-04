@@ -11,10 +11,12 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            $table->string('fingerprint_uid')->nullable()->after('employee_id'); // UID fingerprint untuk karyawan
-            $table->boolean('fingerprint_registered')->default(false)->after('fingerprint_uid'); // Status registrasi fingerprint
-
-            $table->index(['tenant_id', 'fingerprint_uid']);
+            if (!Schema::hasColumn('employees', 'fingerprint_uid')) {
+                $table->string('fingerprint_uid')->nullable()->after('employee_id'); // UID fingerprint untuk karyawan
+                $table->boolean('fingerprint_registered')->default(false)->after('fingerprint_uid'); // Status registrasi fingerprint
+    
+                $table->index(['tenant_id', 'fingerprint_uid']);
+            }
         });
     }
 

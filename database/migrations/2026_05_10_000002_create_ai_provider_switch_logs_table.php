@@ -13,24 +13,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ai_provider_switch_logs', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('tenant_id')->nullable();  // NULL = system-level switch
-            $table->string('from_provider', 50);                  // 'gemini', 'anthropic'
-            $table->string('to_provider', 50);
-            $table->string('reason', 100);                        // 'rate_limit', 'server_error', 'quota_exceeded'
-            $table->string('use_case', 100)->nullable();          // use case yang sedang diproses saat fallback terjadi
-            $table->text('error_message')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-
-            $table->index('tenant_id');
-            $table->index('created_at');
-
-            $table->foreign('tenant_id')
-                ->references('id')
-                ->on('tenants')
-                ->onDelete('set null');
-        });
+        if (!Schema::hasTable('ai_provider_switch_logs')) {
+            Schema::create('ai_provider_switch_logs', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('tenant_id')->nullable();  // NULL = system-level switch
+                $table->string('from_provider', 50);                  // 'gemini', 'anthropic'
+                $table->string('to_provider', 50);
+                $table->string('reason', 100);                        // 'rate_limit', 'server_error', 'quota_exceeded'
+                $table->string('use_case', 100)->nullable();          // use case yang sedang diproses saat fallback terjadi
+                $table->text('error_message')->nullable();
+                $table->timestamp('created_at')->useCurrent();
+    
+                $table->index('tenant_id');
+                $table->index('created_at');
+    
+                $table->foreign('tenant_id')
+                    ->references('id')
+                    ->on('tenants')
+                    ->onDelete('set null');
+            });
+        }
     }
 
     public function down(): void

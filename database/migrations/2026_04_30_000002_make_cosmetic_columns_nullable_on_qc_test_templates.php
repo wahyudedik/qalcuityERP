@@ -16,9 +16,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('qc_test_templates', function (Blueprint $table) {
-            $table->string('template_name')->nullable()->change();
-            $table->string('template_code')->nullable()->change();
-            $table->string('test_category')->nullable()->change();
+            if (!Schema::hasColumn('qc_test_templates', 'template_name')) {
+                $table->string('template_name')->nullable()->change();
+            }
+            if (!Schema::hasColumn('qc_test_templates', 'template_code')) {
+                $table->string('template_code')->nullable()->change();
+            }
+            if (!Schema::hasColumn('qc_test_templates', 'test_category')) {
+                $table->string('test_category')->nullable()->change();
+            }
         });
     }
 

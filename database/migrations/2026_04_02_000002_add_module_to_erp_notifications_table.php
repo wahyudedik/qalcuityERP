@@ -9,7 +9,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('erp_notifications', function (Blueprint $table) {
-            $table->string('module', 50)->nullable()->after('type')->index();
+            if (!Schema::hasColumn('erp_notifications', 'module')) {
+                $table->string('module', 50)->nullable()->after('type')->index();
+            }
         });
 
         // Backfill existing notifications

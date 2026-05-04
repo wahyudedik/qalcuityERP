@@ -10,14 +10,20 @@ return new class extends Migration
     {
         Schema::table('payroll_runs', function (Blueprint $table) {
             // Journal for payroll payment (Dr Hutang Gaji / Cr Bank)
-            $table->foreignId('payment_journal_entry_id')
-                ->nullable()
-                ->after('journal_entry_id')
-                ->constrained('journal_entries')
-                ->nullOnDelete();
+            if (!Schema::hasColumn('payroll_runs', 'payment_journal_entry_id')) {
+                $table->foreignId('payment_journal_entry_id')
+                    ->nullable()
+                    ->after('journal_entry_id')
+                    ->constrained('journal_entries')
+                    ->nullOnDelete();
+            }
 
-            $table->timestamp('paid_at')->nullable()->after('processed_at');
-            $table->foreignId('paid_by')->nullable()->after('paid_at')->constrained('users')->nullOnDelete();
+            if (!Schema::hasColumn('payroll_runs', 'paid_at')) {
+                $table->timestamp('paid_at')->nullable()->after('processed_at');
+            }
+            if (!Schema::hasColumn('payroll_runs', 'paid_by')) {
+                $table->foreignId('paid_by')->nullable()->after('paid_at')->constrained('users')->nullOnDelete();
+            }
         });
     }
 

@@ -12,9 +12,11 @@ return new class extends Migration {
     {
         if (!Schema::hasColumn('work_orders', 'materials_reserved')) {
             Schema::table('work_orders', function (Blueprint $table) {
-                $table->boolean('materials_reserved')->default(false)
-                    ->after('materials_consumed')
-                    ->comment('Whether materials have been reserved for this WO');
+                if (!Schema::hasColumn('work_orders', 'materials_reserved')) {
+                    $table->boolean('materials_reserved')->default(false)
+                        ->after('materials_consumed')
+                        ->comment('Whether materials have been reserved for this WO');
+                }
             });
         }
     }

@@ -53,8 +53,12 @@ return new class extends Migration {
         // Add additional charges column to reservations if not exists
         if (!Schema::hasColumn('reservations', 'additional_charges')) {
             Schema::table('reservations', function (Blueprint $table) {
-                $table->decimal('additional_charges', 10, 2)->default(0)->after('discount');
-                $table->json('charge_breakdown')->nullable()->after('additional_charges');
+                if (!Schema::hasColumn('reservations', 'additional_charges')) {
+                    $table->decimal('additional_charges', 10, 2)->default(0)->after('discount');
+                }
+                if (!Schema::hasColumn('reservations', 'charge_breakdown')) {
+                    $table->json('charge_breakdown')->nullable()->after('additional_charges');
+                }
             });
         }
     }

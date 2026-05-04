@@ -11,7 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('chat_sessions', function (Blueprint $table) {
-            $table->json('metadata')->nullable()->after('is_active');
+            if (!Schema::hasColumn('chat_sessions', 'metadata')) {
+                $table->json('metadata')->nullable()->after('is_active');
+            }
         });
     }
 

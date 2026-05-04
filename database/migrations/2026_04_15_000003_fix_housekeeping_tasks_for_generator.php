@@ -23,7 +23,9 @@ return new class extends Migration {
         // Add actual_duration column if missing
         if (!Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
             Schema::table('housekeeping_tasks', function (Blueprint $table) {
-                $table->integer('actual_duration')->nullable()->after('estimated_duration');
+                if (!Schema::hasColumn('housekeeping_tasks', 'actual_duration')) {
+                    $table->integer('actual_duration')->nullable()->after('estimated_duration');
+                }
             });
         }
 

@@ -11,7 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->string('qr_code_path')->nullable()->after('barcode');
+            if (!Schema::hasColumn('products', 'qr_code_path')) {
+                $table->string('qr_code_path')->nullable()->after('barcode');
+            }
         });
     }
 
