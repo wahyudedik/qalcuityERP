@@ -52,7 +52,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($report as $row)
+                    @foreach($report ?? [] as $row)
                     @php $margin = $row['revenue'] > 0 ? round($row['profit'] / $row['revenue'] * 100, 1) : 0; @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-3 font-medium text-gray-900">{{ $row['label'] }}</td>

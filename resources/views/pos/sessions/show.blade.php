@@ -176,7 +176,7 @@
             </div>
             @if($session->closedByUser)
             <p class="text-xs text-gray-500 mt-3">
-                Ditutup oleh <span class="font-medium text-gray-700">{{ $session->closedByUser->name }}</span>
+                Ditutup oleh <span class="font-medium text-gray-700">{{ $session->closedByUser?->name }}</span>
                 pada {{ $session->closed_at?->format('d/m/Y H:i') }}
             </p>
             @endif

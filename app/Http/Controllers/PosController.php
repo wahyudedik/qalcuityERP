@@ -237,6 +237,11 @@ class PosController extends Controller
                 return $order;
             });
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('POS Checkout Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -365,7 +370,6 @@ class PosController extends Controller
                     'items_count' => $order->items->count(),
                 ],
             ]);
-
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -469,7 +473,6 @@ class PosController extends Controller
                 'order_number' => $order->number,
                 'message' => 'Payment completed successfully',
             ]);
-
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -553,7 +556,6 @@ class PosController extends Controller
                 'success' => false,
                 'message' => $result['message'] ?? 'Gagal mengirim WhatsApp',
             ], 500);
-
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -659,7 +661,7 @@ class PosController extends Controller
                 ->where('is_active', true)
                 ->where(function ($q) use ($barcode) {
                     $q->where('barcode', $barcode)
-                      ->orWhere('sku', $barcode);
+                        ->orWhere('sku', $barcode);
                 })
                 ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image', 'unit')
                 ->withSum('productStocks', 'quantity')
@@ -704,10 +706,10 @@ class PosController extends Controller
                 ->where('is_active', true)
                 ->where(function ($q) use ($query) {
                     $q->where('barcode', $query)          // exact barcode match (fast, indexed)
-                      ->orWhere('sku', $query)             // exact SKU match (fast, indexed)
-                      ->orWhere('name', 'like', "%{$query}%")    // text search on name
-                      ->orWhere('sku', 'like', "%{$query}%")     // partial SKU
-                      ->orWhere('barcode', 'like', "%{$query}%"); // partial barcode
+                        ->orWhere('sku', $query)             // exact SKU match (fast, indexed)
+                        ->orWhere('name', 'like', "%{$query}%")    // text search on name
+                        ->orWhere('sku', 'like', "%{$query}%")     // partial SKU
+                        ->orWhere('barcode', 'like', "%{$query}%"); // partial barcode
                 })
                 ->select('id', 'name', 'sku', 'barcode', 'price_sell', 'stock_min', 'category', 'image', 'unit')
                 ->withSum('productStocks', 'quantity')

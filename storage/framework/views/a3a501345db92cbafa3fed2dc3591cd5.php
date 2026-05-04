@@ -45,15 +45,15 @@
                     class="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
                     <div>
                         <p class="text-sm font-medium text-gray-900">
-                            <?php echo e($item->product->name ?? 'Unknown Product'); ?></p>
+                            <?php echo e($item->product?->name ?? 'Unknown Product'); ?></p>
                         <p class="text-xs text-gray-400">
-                            <?php echo e($item->warehouse->name ?? 'Unknown Warehouse'); ?></p>
+                            <?php echo e($item->warehouse?->name ?? 'Unknown Warehouse'); ?></p>
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-red-400"><?php echo e($item->quantity ?? 0); ?>
 
-                            <?php echo e($item->product->unit ?? ''); ?></p>
-                        <p class="text-xs text-gray-400">min: <?php echo e($item->product->stock_min ?? 0); ?>
+                            <?php echo e($item->product?->unit ?? ''); ?></p>
+                        <p class="text-xs text-gray-400">min: <?php echo e($item->product?->stock_min ?? 0); ?>
 
                         </p>
                     </div>

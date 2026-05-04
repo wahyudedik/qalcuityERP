@@ -88,7 +88,7 @@
                         @endif
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Initiated By</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $backup->initiatedBy->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $backup->initiatedBy?->name ?? 'N/A' }}</dd>
                         </div>
                     </dl>
                 </div>

@@ -92,7 +92,7 @@
                             <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <div class="min-w-0">
                                 <p class="text-sm font-medium text-green-800">Jurnal Beban Gaji ✓</p>
-                                <p class="text-xs text-green-600 truncate">{{ $run->journalEntry->number }} · Dr Beban Gaji Rp {{ number_format($run->total_gross,0,',','.') }} · Cr Hutang Gaji + PPh21 + BPJS</p>
+                                <p class="text-xs text-green-600 truncate">{{ $run->journalEntry?->number }} · Dr Beban Gaji Rp {{ number_format($run->total_gross,0,',','.') }} · Cr Hutang Gaji + PPh21 + BPJS</p>
                             </div>
                         @else
                             <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
@@ -123,7 +123,7 @@
                             <svg class="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <div class="min-w-0">
                                 <p class="text-sm font-medium text-green-800">Jurnal Pembayaran Gaji ✓</p>
-                                <p class="text-xs text-green-600 truncate">{{ $run->paymentJournalEntry->number }} · Dr Hutang Gaji Rp {{ number_format($run->total_net,0,',','.') }} · Cr Bank</p>
+                                <p class="text-xs text-green-600 truncate">{{ $run->paymentJournalEntry?->number }} · Dr Hutang Gaji Rp {{ number_format($run->total_net,0,',','.') }} · Cr Bank</p>
                             </div>
                         @else
                             <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
@@ -188,8 +188,8 @@
                             @forelse($items as $item)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900">{{ $item->employee->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-500">{{ $item->employee->position ?? '' }}</p>
+                                    <p class="font-medium text-gray-900">{{ $item->employee?->name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $item->employee?->position ?? '' }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-right hidden sm:table-cell text-gray-700">Rp {{ number_format($item->base_salary,0,',','.') }}</td>
                                 <td class="px-4 py-3 text-center hidden md:table-cell text-gray-700">{{ $item->present_days }}h</td>

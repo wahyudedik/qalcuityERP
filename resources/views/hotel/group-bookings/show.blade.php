@@ -64,9 +64,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <p class="text-xs text-gray-500">Organizer</p>
-                    <p class="font-medium text-gray-900">{{ $groupBooking->organizer->name }}</p>
+                    <p class="font-medium text-gray-900">{{ $groupBooking->organizer?->name }}</p>
                     <p class="text-sm text-gray-600">
-                        {{ $groupBooking->organizer->email ?? $groupBooking->organizer->phone }}</p>
+                        {{ $groupBooking->organizer?->email ?? $groupBooking->organizer?->phone }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Group Type</p>
@@ -150,12 +150,12 @@
                             <tr class="border-b border-gray-100">
                                 <td class="py-3 px-2">
                                     <p class="font-medium text-gray-900">
-                                        {{ $reservation->guest->name }}</p>
+                                        {{ $reservation->guest?->name }}</p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $reservation->guest->email ?? $reservation->guest->phone }}</p>
+                                        {{ $reservation->guest?->email ?? $reservation->guest?->phone }}</p>
                                 </td>
                                 <td class="py-3 px-2 text-gray-600">
-                                    {{ $reservation->roomType->name }}</td>
+                                    {{ $reservation->roomType?->name }}</td>
                                 <td class="py-3 px-2 text-gray-600 hidden sm:table-cell">
                                     {{ \Carbon\Carbon::parse($reservation->check_in_date)->format('d M') }}
                                 </td>

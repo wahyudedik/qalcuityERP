@@ -89,12 +89,12 @@
                     </svg>
                 </a>
                 <p class="font-mono text-xs font-bold text-gray-900 mt-3">{{ $bin->code }}</p>
-                <p class="text-[10px] text-gray-400">{{ $bin->zone->name ?? '-' }}</p>
+                <p class="text-[10px] text-gray-400">{{ $bin->zone?->name ?? '-' }}</p>
                 @if ($occupied)
                     <div class="mt-1 space-y-0.5">
                         @foreach ($bin->stocks->where('quantity', '>', 0)->take(3) as $bs)
                             <p class="text-[10px] text-gray-600 truncate">
-                                {{ $bs->product->name ?? '?' }}: {{ number_format($bs->quantity, 0) }}</p>
+                                {{ $bs->product?->name ?? '?' }}: {{ number_format($bs->quantity, 0) }}</p>
                         @endforeach
                         @if ($bin->stocks->where('quantity', '>', 0)->count() > 3)
                             <p class="text-[10px] text-gray-400">

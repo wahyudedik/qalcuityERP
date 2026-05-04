@@ -34,7 +34,7 @@
                     @forelse($boms as $bom)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 font-medium text-gray-900">{{ $bom->name }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ $bom->product->name ?? '-' }}
+                            <td class="px-4 py-3 text-gray-700">{{ $bom->product?->name ?? '-' }}
                             </td>
                             <td class="px-4 py-3 text-right text-gray-900">
                                 {{ number_format($bom->batch_size, 0, ',', '.') }} {{ $bom->batch_unit }}</td>
@@ -118,7 +118,7 @@
                 <div class="p-6">
                     <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
                         <div><span class="text-gray-500">Produk:</span> <span
-                                class="text-gray-900">{{ $bom->product->name ?? '-' }}</span></div>
+                                class="text-gray-900">{{ $bom->product?->name ?? '-' }}</span></div>
                         <div><span class="text-gray-500">Batch:</span> <span
                                 class="text-gray-900">{{ $bom->batch_size }}
                                 {{ $bom->batch_unit }}</span></div>
@@ -136,7 +136,7 @@
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($bom->lines as $line)
                                 <tr>
-                                    <td class="py-1.5 text-gray-900">{{ $line->product->name ?? '-' }}
+                                    <td class="py-1.5 text-gray-900">{{ $line->product?->name ?? '-' }}
                                     </td>
                                     <td class="py-1.5 text-right text-gray-900">
                                         {{ number_format($line->quantity_per_batch, 3) }}</td>
@@ -144,7 +144,7 @@
                                     <td class="py-1.5">
                                         @if ($line->childBom)
                                             <span
-                                                class="px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700">{{ $line->childBom->name }}</span>
+                                                class="px-1.5 py-0.5 rounded text-xs bg-purple-100 text-purple-700">{{ $line->childBom?->name }}</span>
                                         @else
                                             <span class="text-xs text-gray-400">—</span>
                                         @endif

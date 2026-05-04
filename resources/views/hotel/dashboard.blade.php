@@ -128,7 +128,7 @@
                             @if ($dep->room)
                                 <span
                                     class="px-2 py-0.5 text-xs bg-gray-100 rounded-full text-gray-700">
-                                    {{ $dep->room->number }}
+                                    {{ $dep->room?->number }}
                                 </span>
                             @endif
                         @endforeach

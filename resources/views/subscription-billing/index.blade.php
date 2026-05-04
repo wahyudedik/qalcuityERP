@@ -97,17 +97,17 @@
                                 <a href="{{ route('subscription-billing.show', $s) }}"
                                     class="hover:text-blue-500">{{ $s->subscription_number }}</a>
                             </td>
-                            <td class="px-4 py-3 text-gray-700">{{ $s->customer->name ?? '-' }}
+                            <td class="px-4 py-3 text-gray-700">{{ $s->customer?->name ?? '-' }}
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell text-gray-500 text-xs">
-                                {{ $s->plan->name ?? '-' }} ({{ $s->plan->cycleLabel() ?? '' }})</td>
+                                {{ $s->plan?->name ?? '-' }} ({{ $s->plan?->cycleLabel() ?? '' }})</td>
                             <td class="px-4 py-3 text-right hidden md:table-cell text-gray-900">Rp
                                 {{ number_format($s->effectivePrice(), 0, ',', '.') }}</td>
                             <td
                                 class="px-4 py-3 text-center hidden md:table-cell text-xs {{ $s->next_billing_date->isPast() ? 'text-red-500 font-semibold' : 'text-gray-500' }}">
                                 {{ $s->next_billing_date->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-center"><span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">

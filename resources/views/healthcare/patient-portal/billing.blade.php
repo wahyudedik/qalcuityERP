@@ -105,7 +105,7 @@
                                     <p class="text-gray-900">
                                         {{ Str::limit($bill->description ?? 'Medical Services', 40) }}</p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $bill->visit ? $bill->visit->visit_date->format('d M Y') : '' }}
+                                        {{ $bill->visit ? $bill->visit?->visit_date->format('d M Y') : '' }}
                                     </p>
                                 </td>
                                 <td class="px-4 py-3 text-right hidden lg:table-cell">

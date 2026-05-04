@@ -121,9 +121,9 @@
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900">{{ $scorecard->supplier->name }}</p>
-                                @if($scorecard->supplier->company)
-                                    <p class="text-xs text-gray-400">{{ $scorecard->supplier->company }}</p>
+                                <p class="font-medium text-gray-900">{{ $scorecard->supplier?->name }}</p>
+                                @if($scorecard->supplier?->company)
+                                    <p class="text-xs text-gray-400">{{ $scorecard->supplier?->company }}</p>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">

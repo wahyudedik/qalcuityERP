@@ -47,7 +47,7 @@
             <span><strong>Tanggal:</strong> {{ $order->date ? \Carbon\Carbon::parse($order->date)->format('d M Y, H:i') : now()->format('d M Y, H:i') }}</span>
             <span><strong>Kasir:</strong> {{ $order->user?->name ?? '-' }}</span>
             @if($order->customer)
-                <span><strong>Pelanggan:</strong> {{ $order->customer->name }}</span>
+                <span><strong>Pelanggan:</strong> {{ $order->customer?->name }}</span>
             @endif
         </div>
 

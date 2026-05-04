@@ -14,7 +14,7 @@
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 class="font-semibold text-white mb-3">Tanda Tangan Sebelumnya</h3>
             <div class="space-y-3">
-                @foreach($existing as $sig)
+                @foreach($existing ?? [] as $sig)
                 <div class="flex items-center gap-3 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
                     <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
                         <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

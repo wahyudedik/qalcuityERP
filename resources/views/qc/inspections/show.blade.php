@@ -58,7 +58,7 @@
                             <div>
                                 <label class="text-sm text-gray-600">Work Order</label>
                                 <p class="text-sm font-medium text-gray-900">
-                                    {{ $inspection->workOrder->number ?? 'N/A' }}</p>
+                                    {{ $inspection->workOrder?->number ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-600">Stage</label>
@@ -71,12 +71,12 @@
                             <div>
                                 <label class="text-sm text-gray-600">Template</label>
                                 <p class="text-sm font-medium text-gray-900">
-                                    {{ $inspection->template->name ?? 'Manual Inspection' }}</p>
+                                    {{ $inspection->template?->name ?? 'Manual Inspection' }}</p>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-600">Inspector</label>
                                 <p class="text-sm font-medium text-gray-900">
-                                    {{ $inspection->inspector->name ?? 'N/A' }}</p>
+                                    {{ $inspection->inspector?->name ?? 'N/A' }}</p>
                             </div>
                         </div>
 

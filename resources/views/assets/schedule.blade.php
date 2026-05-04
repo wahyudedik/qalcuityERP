@@ -38,7 +38,7 @@
             <div>
                 <p class="text-xs text-gray-500">Status</p>
                 @php $sc = ['active'=>'green','maintenance'=>'yellow','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
-                <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst($asset->status) }}
                 </span>
             </div>
@@ -67,7 +67,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($depreciations as $dep)
+                            @foreach($depreciations ?? [] as $dep)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-2.5 font-mono text-xs text-gray-700">{{ $dep->period }}</td>
                                 <td class="px-4 py-2.5 text-right text-red-600">
@@ -80,7 +80,7 @@
                                     @if($dep->journal_entry_id)
                                         <a href="{{ route('journals.show', $dep->journalEntry) }}"
                                             class="text-xs text-green-600 hover:underline font-mono">
-                                            {{ $dep->journalEntry->number }}
+                                            {{ $dep->journalEntry?->number }}
                                         </a>
                                     @else
                                         <span class="text-xs text-amber-500" title="Jurnal GL belum dibuat untuk periode ini">⚠ Belum</span>
@@ -135,7 +135,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($projected as $proj)
+                            @foreach($projected ?? [] as $proj)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-2.5 font-mono text-xs text-gray-500">{{ $proj['period'] }}</td>
                                 <td class="px-4 py-2.5 text-right text-orange-600">

@@ -262,7 +262,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-lg font-bold text-gray-400">#{{ $index + 1 }}</span>
                                 <div>
-                                    <div class="font-medium text-gray-900">{{ $item->product->name ?? 'Unknown' }}</div>
+                                    <div class="font-medium text-gray-900">{{ $item->product?->name ?? 'Unknown' }}</div>
                                     <div class="text-sm text-gray-500">{{ number_format($item->total_qty) }} units</div>
                                 </div>
                             </div>

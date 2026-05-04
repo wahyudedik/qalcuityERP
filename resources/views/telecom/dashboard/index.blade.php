@@ -289,7 +289,7 @@
                                             {{ Str::limit($alert->message, 60) }}</p>
                                         @if ($alert->device)
                                             <p class="text-xs text-blue-600 mt-1">
-                                                {{ $alert->device->name }}</p>
+                                                {{ $alert->device?->name }}</p>
                                         @endif
                                     </div>
                                     <span

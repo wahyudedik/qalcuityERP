@@ -479,7 +479,7 @@
             <a href="{{ route('mobile.picking') }}" class="mob-back-btn">←</a>
             <div class="mob-topbar-info">
                 <div class="mob-topbar-title">{{ $pickingList->number }}</div>
-                <div class="mob-topbar-sub">{{ $pickingList->warehouse->name ?? '-' }}</div>
+                <div class="mob-topbar-sub">{{ $pickingList->warehouse?->name ?? '-' }}</div>
             </div>
             <span class="mob-status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
         </div>
@@ -525,21 +525,21 @@
                     $badgeLabel =
                         ['pending' => 'Pending', 'picked' => 'Picked', 'short' => 'Kurang'][$item->status] ??
                         ucfirst($item->status);
-                    $sku = $item->product->sku ?? ($item->product->barcode ?? '-');
+                    $sku = $item->product?->sku ?? ($item->product?->barcode ?? '-');
                 @endphp
 
                 <div class="mob-item-card {{ $isDone ? 'done-card' : '' }}" id="item-card-{{ $item->id }}"
-                    data-barcode="{{ $item->product->barcode ?? '' }}" data-sku="{{ $item->product->sku ?? '' }}">
+                    data-barcode="{{ $item->product?->barcode ?? '' }}" data-sku="{{ $item->product?->sku ?? '' }}">
 
                     <div class="mob-item-top">
-                        <div class="mob-item-name">{{ $item->product->name ?? 'Produk Tidak Diketahui' }}</div>
+                        <div class="mob-item-name">{{ $item->product?->name ?? 'Produk Tidak Diketahui' }}</div>
                         <span class="mob-item-badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
                     </div>
 
                     <div class="mob-item-meta">
                         <span class="mob-item-meta-chip">SKU <span>{{ $sku }}</span></span>
                         @if ($item->bin)
-                            <span class="mob-item-meta-chip">🗃 Bin <span>{{ $item->bin->code }}</span></span>
+                            <span class="mob-item-meta-chip">🗃 Bin <span>{{ $item->bin?->code }}</span></span>
                         @endif
                         <span class="mob-item-meta-chip">Diminta
                             <span>{{ number_format($item->quantity_requested, 0) }}</span></span>

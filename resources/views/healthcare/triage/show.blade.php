@@ -38,7 +38,7 @@
                             <div class="ml-4">
                                 <h3 class="text-xl font-bold text-gray-900">{{ ucfirst($assessment->priority_level) }}
                                     Priority</h3>
-                                <p class="text-sm text-gray-600">{{ $assessment->patient->name ?? 'Unknown Patient' }}
+                                <p class="text-sm text-gray-600">{{ $assessment->patient?->name ?? 'Unknown Patient' }}
                                 </p>
                             </div>
                         </div>
@@ -64,12 +64,12 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Patient Name</dt>
                                 <dd class="mt-1 text-lg font-semibold text-gray-900">
-                                    {{ $assessment->patient->name ?? 'N/A' }}</dd>
+                                    {{ $assessment->patient?->name ?? 'N/A' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Medical Record Number</dt>
                                 <dd class="mt-1 text-sm text-gray-900">
-                                    {{ $assessment->patient->medical_record_number ?? 'N/A' }}</dd>
+                                    {{ $assessment->patient?->medical_record_number ?? 'N/A' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Assessment Time</dt>
@@ -79,7 +79,7 @@
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Triage Nurse</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $assessment->nurse->name ?? 'N/A' }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $assessment->nurse?->name ?? 'N/A' }}</dd>
                             </div>
                         </dl>
                     </div>

@@ -106,12 +106,12 @@
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $batch->batch_number }}</div>
                                     @if ($batch->producer)
-                                        <div class="text-xs text-gray-500">By: {{ $batch->producer->name }}</div>
+                                        <div class="text-xs text-gray-500">By: {{ $batch->producer?->name }}</div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ $batch->formula->formula_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $batch->formula->formula_code }}</div>
+                                    <div class="text-sm text-gray-900">{{ $batch->formula?->formula_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $batch->formula?->formula_code }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span

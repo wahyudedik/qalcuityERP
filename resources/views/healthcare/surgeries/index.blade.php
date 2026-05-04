@@ -92,10 +92,10 @@
                                     {{ $surgery->surgery_id }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">
-                                        {{ $surgery->patient->name ?? 'N/A' }}</div>
+                                        {{ $surgery->patient?->name ?? 'N/A' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $surgery->surgeon->name ?? 'N/A' }}</td>
+                                    {{ $surgery->surgeon?->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ Str::limit($surgery->procedure_name, 30) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

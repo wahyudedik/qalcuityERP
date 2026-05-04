@@ -68,14 +68,14 @@
                     @endphp
                     <tr class="hover:bg-gray-50 {{ $overdue ? 'bg-red-50/50' : '' }}">
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">{{ $inv->number }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $inv->customer->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $inv->customer?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($inv->total_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right font-semibold {{ $inv->remaining_amount > 0 ? 'text-red-500' : 'text-green-500' }}">
                             Rp {{ number_format($inv->remaining_amount, 0, ',', '.') }}
                         </td>
                         <td class="px-4 py-3 text-center">
                             @php $colors = ['unpaid'=>'red','partial'=>'amber','paid'=>'green']; $c = $colors[$inv->status] ?? 'gray'; @endphp
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                 {{ ['unpaid'=>'Belum Bayar','partial'=>'Sebagian','paid'=>'Lunas'][$inv->status] ?? $inv->status }}
                             </span>
                         </td>

@@ -64,9 +64,9 @@
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <h3 class="text-lg font-bold text-gray-900 mb-1">
-                                {{ $consultation->patient ? $consultation->patient->full_name : '-' }}</h3>
+                                {{ $consultation->patient ? $consultation->patient?->full_name : '-' }}</h3>
                             <p class="text-sm text-gray-500">Dokter:
-                                {{ $consultation->doctor ? $consultation->doctor->name : '-' }}</p>
+                                {{ $consultation->doctor ? $consultation->doctor?->name : '-' }}</p>
                         </div>
                         <div>
                             @if ($consultation->status === 'scheduled')

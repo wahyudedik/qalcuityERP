@@ -118,9 +118,9 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <p class="font-medium text-gray-900">
-                                            {{ $ot->employee->name ?? '-' }}</p>
+                                            {{ $ot->employee?->name ?? '-' }}</p>
                                         <p class="text-xs text-gray-400">
-                                            {{ $ot->employee->department ?? ($ot->employee->position ?? '') }}</p>
+                                            {{ $ot->employee?->department ?? ($ot->employee?->position ?? '') }}</p>
                                     </td>
                                     <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
                                         {{ $ot->date->format('d M Y') }}

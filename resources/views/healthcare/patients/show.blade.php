@@ -110,7 +110,7 @@
                                         <p class="text-sm font-medium text-gray-900">
                                             {{ $visit->visit_type_label ?? $visit->visit_type ?? 'Kunjungan' }}</p>
                                         <p class="text-xs text-gray-500">
-                                            {{ $visit->doctor ? $visit->doctor->name : '-' }}</p>
+                                            {{ $visit->doctor ? $visit->doctor?->name : '-' }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
@@ -154,7 +154,7 @@
                                             {{ $appointment->appointment_date ? \Carbon\Carbon::parse($appointment->appointment_date)->format('d M Y H:i') : '-' }}
                                         </td>
                                         <td class="px-4 py-3">
-                                            {{ $appointment->doctor ? $appointment->doctor->name : '-' }}
+                                            {{ $appointment->doctor ? $appointment->doctor?->name : '-' }}
                                         </td>
                                         <td class="px-4 py-3">{{ $appointment->service_type ?? '-' }}</td>
                                         <td class="px-4 py-3 text-center">

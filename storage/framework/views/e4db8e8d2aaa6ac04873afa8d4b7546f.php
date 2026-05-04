@@ -167,8 +167,7 @@
         $pct = $totalSteps > 0 ? round(($doneCount / $totalSteps) * 100) : 0;
     ?>
     <?php if(!$allDone && $tenant): ?>
-        <div class="mb-6 bg-white rounded-2xl border border-gray-200 p-5"
-            id="setup-checklist">
+        <div class="mb-6 bg-white rounded-2xl border border-gray-200 p-5" id="setup-checklist">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-lg">🚀</div>
@@ -180,8 +179,7 @@
                     </div>
                 </div>
                 <button onclick="document.getElementById('setup-checklist').remove()"
-                    class="text-xs text-gray-400 hover:text-gray-600"
-                    title="Sembunyikan">✕</button>
+                    class="text-xs text-gray-400 hover:text-gray-600" title="Sembunyikan">✕</button>
             </div>
             <div class="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500 <?php echo e($pct >= 100 ? 'bg-green-500' : ($pct >= 50 ? 'bg-blue-500' : 'bg-amber-500')); ?>"
@@ -201,8 +199,8 @@
 
                         </span>
                         <?php if(!$step['done']): ?>
-                            <svg class="w-4 h-4 ml-auto text-gray-400 shrink-0" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 ml-auto text-gray-400 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
                             </svg>
@@ -234,10 +232,8 @@
                     
                     <div
                         class="widget-handle absolute -top-1.5 left-1/2 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <div
-                            class="flex items-center gap-0.5 bg-gray-200 rounded-full px-2.5 py-0.5 shadow-sm">
-                            <svg class="w-3 h-3 text-gray-400" viewBox="0 0 24 24"
-                                fill="currentColor">
+                        <div class="flex items-center gap-0.5 bg-gray-200 rounded-full px-2.5 py-0.5 shadow-sm">
+                            <svg class="w-3 h-3 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                                 <circle cx="9" cy="6" r="1.5" />
                                 <circle cx="15" cy="6" r="1.5" />
                                 <circle cx="9" cy="12" r="1.5" />
@@ -258,8 +254,7 @@
     
     <div id="widgetModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg max-h-[85vh] flex flex-col">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg max-h-[85vh] flex flex-col">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <div>
                     <h3 class="text-base font-semibold text-gray-900">Kustomisasi Dashboard</h3>
@@ -388,8 +383,7 @@
                         <p class="text-xs text-gray-400 mt-0.5">Kartu metrik kustom berbasis data
                             ERP</p>
                     </div>
-                    <button onclick="closeWidgetBuilder()"
-                        class="text-gray-400 hover:text-gray-600">
+                    <button onclick="closeWidgetBuilder()" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -468,8 +462,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         
                         <div id="builder-date-wrap">
-                            <label
-                                class="block text-xs font-medium text-gray-600 mb-1">Periode</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Periode</label>
                             <select id="builder-date-scope"
                                 class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="this_month">Bulan Ini</option>
@@ -512,8 +505,7 @@
                     <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
                         <span class="text-xs text-gray-500">Preview nilai:</span>
                         <div class="flex items-center gap-2">
-                            <span id="builder-preview-value"
-                                class="text-lg font-bold text-gray-900">—</span>
+                            <span id="builder-preview-value" class="text-lg font-bold text-gray-900">—</span>
                             <button onclick="previewWidget()"
                                 class="text-xs text-blue-500 hover:text-blue-400 underline">Hitung</button>
                         </div>
@@ -971,13 +963,14 @@
                 btn.disabled = true;
                 btn.textContent = '...';
                 try {
-                    await fetch(`${ACK_URL_BASE}/${id}/acknowledge`, {
+                    const res = await fetch(`${ACK_URL_BASE}/${id}/acknowledge`, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': CSRF,
                             'Accept': 'application/json'
                         },
                     });
+                    if (!res.ok) throw new Error(`Server returned ${res.status}`);
                     const el = document.getElementById(`anomaly-${id}`);
                     if (el) {
                         el.style.opacity = '0';
@@ -1084,8 +1077,7 @@
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
-            <div
-                class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-gray-200">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-gray-200">
                 
                 <?php if($popupAd->image_path): ?>
                     <div class="relative">

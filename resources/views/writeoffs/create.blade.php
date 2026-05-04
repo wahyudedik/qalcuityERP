@@ -23,11 +23,11 @@
                 <select name="reference_id" required id="ref-select" onchange="updateAmount(this)"
                     class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Pilih --</option>
-                    @foreach($items as $item)
+                    @foreach($items ?? [] as $item)
                     @php
                         $label = $type === 'receivable'
-                            ? "{$item->number} - {$item->customer->name} (Sisa: Rp " . number_format($item->remaining_amount,0,',','.') . ")"
-                            : "{$item->number} - {$item->supplier->name} (Sisa: Rp " . number_format($item->remaining_amount,0,',','.') . ")";
+                            ? "{$item->number} - {$item->customer?->name} (Sisa: Rp " . number_format($item->remaining_amount,0,',','.') . ")"
+                            : "{$item->number} - {$item->supplier?->name} (Sisa: Rp " . number_format($item->remaining_amount,0,',','.') . ")";
                     @endphp
                     <option value="{{ $item->id }}" data-remaining="{{ $item->remaining_amount }}" {{ old('reference_id') == $item->id ? 'selected' : '' }}>
                         {{ $label }}

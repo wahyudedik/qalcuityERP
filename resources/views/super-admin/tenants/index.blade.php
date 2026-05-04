@@ -12,7 +12,7 @@
             ['label' => 'Trial',        'value' => $stats['trial'],    'color' => 'text-amber-400', 'bg' => 'bg-amber-500/10'],
         ];
         @endphp
-        @foreach($statCards as $sc)
+        @foreach($statCards ?? [] as $sc)
         <div class="bg-white rounded-2xl border border-gray-200 p-5 text-center">
             <p class="text-2xl font-bold {{ $sc['color'] }}">{{ $sc['value'] }}</p>
             <p class="text-xs text-gray-400 mt-1">{{ $sc['label'] }}</p>

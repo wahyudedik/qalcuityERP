@@ -119,10 +119,10 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            @if ($subscription->package->quota_bytes)
+                                            @if ($subscription->package?->quota_bytes)
                                                 @php
                                                     $used = $subscription->current_usage_bytes ?? 0;
-                                                    $total = $subscription->package->quota_bytes;
+                                                    $total = $subscription->package?->quota_bytes;
                                                     $percent = min(100, round(($used / $total) * 100, 2));
                                                     $color =
                                                         $percent > 90 ? 'red' : ($percent > 70 ? 'yellow' : 'green');
@@ -137,7 +137,7 @@
                                                             GB</span>
                                                     </div>
                                                     <div class="w-full bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-{{ $color }}-600 h-2 rounded-full"
+                                                        <div class="bg-{{ $color  }}-600 h-2 rounded-full"
                                                             style="width: {{ $percent }}%"></div>
                                                     </div>
                                                     <div class="text-xs text-gray-500 mt-1">

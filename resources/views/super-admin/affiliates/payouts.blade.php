@@ -4,14 +4,14 @@
     <div class="flex gap-2 mb-4">
         @foreach (['' => 'Semua', 'pending' => 'Pending', 'completed' => 'Completed', 'rejected' => 'Rejected'] as $v => $l)
             <a href="?status={{ $v }}"
-                class="px-3 py-1.5 text-xs rounded-xl {{ request('status') === $v ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10' }}">{{ $l }}</a>
+                class="px-3 py-1.5 text-xs rounded-xl {{ request('status') === $v ? 'bg-blue-600 text-white' : 'bg-gray-100 border border-gray-200 text-gray-600 hover:bg-gray-200' }}">{{ $l }}</a>
         @endforeach
     </div>
 
-    <div class="bg-[#1e293b] border border-white/10 rounded-2xl overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-white/5 text-xs text-slate-400 uppercase">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">Affiliate</th>
                         <th class="px-4 py-3 text-right">Jumlah</th>
@@ -21,7 +21,7 @@
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($payouts as $p)
                         @php
                             $sc =
@@ -29,24 +29,24 @@
                                 'gray';
                             $aff = $p->affiliate;
                         @endphp
-                        <tr class="hover:bg-white/5">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="text-white">{{ $aff->user->name ?? '-' }}</p>
-                                <p class="text-xs text-slate-500">{{ $aff->user->email ?? '' }}</p>
+                                <p class="text-gray-900">{{ $aff->user?->name ?? '-' }}</p>
+                                <p class="text-xs text-gray-400">{{ $aff->user?->email ?? '' }}</p>
                             </td>
-                            <td class="px-4 py-3 text-right text-amber-400 font-bold">Rp
+                            <td class="px-4 py-3 text-right text-amber-600 font-bold">Rp
                                 {{ number_format($p->amount, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-xs text-slate-400">
+                            <td class="px-4 py-3 text-xs text-gray-500">
                                 {{ $aff->bank_name ?? '-' }} {{ $aff->bank_account ?? '' }}<br>
                                 a/n {{ $aff->bank_holder ?? '-' }}
                             </td>
-                            <td class="px-4 py-3 text-center text-xs text-slate-400">
+                            <td class="px-4 py-3 text-center text-xs text-gray-500">
                                 {{ $p->requested_at?->format('d/m/Y H:i') ?? $p->created_at->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-500/20 text-{{ $sc }}-400">{{ ucfirst($p->status) }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700">{{ ucfirst($p->status) }}</span>
                                 @if ($p->reject_reason)
-                                    <p class="text-xs text-red-400 mt-1">{{ $p->reject_reason }}</p>
+                                    <p class="text-xs text-red-500 mt-1">{{ $p->reject_reason }}</p>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center">
@@ -70,20 +70,20 @@
                                         </form>
                                     </div>
                                 @elseif($p->processor)
-                                    <span class="text-xs text-slate-500">{{ $p->processor->name ?? '' }}</span>
+                                    <span class="text-xs text-gray-400">{{ $p->processor?->name ?? '' }}</span>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center text-slate-500">Belum ada withdraw.</td>
+                            <td colspan="6" class="px-4 py-12 text-center text-gray-400">Belum ada withdraw.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
         @if ($payouts->hasPages())
-            <div class="px-4 py-3 border-t border-white/5">{{ $payouts->links() }}</div>
+            <div class="px-4 py-3 border-t border-gray-200">{{ $payouts->links() }}</div>
         @endif
     </div>
 </x-app-layout>

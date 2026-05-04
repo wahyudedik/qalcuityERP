@@ -36,7 +36,7 @@
                     class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="category" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Kategori</option>
-                    @foreach($categories as $cat)
+                    @foreach($categories ?? [] as $cat)
                         <option value="{{ $cat }}" @selected(request('category')===$cat)>{{ $cat }}</option>
                     @endforeach
                 </select>
@@ -174,7 +174,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                         <input type="text" name="category" list="cat-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <datalist id="cat-list">@foreach($categories as $c)<option value="{{ $c }}">@endforeach</datalist>
+                        <datalist id="cat-list">@foreach($categories ?? [] as $c)<option value="{{ $c }}">@endforeach</datalist>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Satuan *</label>
@@ -200,7 +200,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Gudang (untuk stok awal)</label>
                         <select name="warehouse_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Gudang --</option>
-                            @foreach($warehouses as $wh)<option value="{{ $wh->id }}">{{ $wh->name }}</option>@endforeach
+                            @foreach($warehouses ?? [] as $wh)<option value="{{ $wh->id }}">{{ $wh->name }}</option>@endforeach
                         </select>
                     </div>
                 </div>
@@ -286,7 +286,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Gudang *</label>
                     <select name="warehouse_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach($warehouses as $wh)<option value="{{ $wh->id }}">{{ $wh->name }}</option>@endforeach
+                        @foreach($warehouses ?? [] as $wh)<option value="{{ $wh->id }}">{{ $wh->name }}</option>@endforeach
                     </select>
                 </div>
                 <div>

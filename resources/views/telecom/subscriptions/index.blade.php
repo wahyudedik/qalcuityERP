@@ -238,9 +238,9 @@
                                         <!-- Device -->
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900">
-                                                {{ $sub->device->name ?? 'N/A' }}</div>
+                                                {{ $sub->device?->name ?? 'N/A' }}</div>
                                             <div class="text-sm text-gray-500">
-                                                {{ $sub->device->ip_address ?? '-' }}</div>
+                                                {{ $sub->device?->ip_address ?? '-' }}</div>
                                         </td>
 
                                         <!-- Status -->
@@ -266,7 +266,7 @@
                                         <!-- Usage -->
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @php
-                                                $quotaBytes = $sub->package->quota_bytes;
+                                                $quotaBytes = $sub->package?->quota_bytes;
                                                 $usedBytes = $sub->current_usage_bytes ?? 0;
                                                 $percentage =
                                                     $quotaBytes > 0 ? round(($usedBytes / $quotaBytes) * 100, 1) : 0;

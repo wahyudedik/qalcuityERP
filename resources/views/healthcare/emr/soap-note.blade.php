@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="header">SOAP Note - {{ $visit->patient->full_name }}</x-slot>
+    <x-slot name="header">SOAP Note - {{ $visit->patient?->full_name }}</x-slot>
 
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
@@ -24,11 +24,11 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-lg font-bold">{{ $visit->patient->full_name }}</h3>
+                        <h3 class="text-lg font-bold">{{ $visit->patient?->full_name }}</h3>
                         <p class="text-sm text-white/80">
-                            MRN: {{ $visit->patient->medical_record_number }} |
-                            Age: {{ $visit->patient->birth_date ? $visit->patient->birth_date->age : 'N/A' }} |
-                            Gender: {{ ucfirst($visit->patient->gender) }}
+                            MRN: {{ $visit->patient?->medical_record_number }} |
+                            Age: {{ $visit->patient?->birth_date ? $visit->patient?->birth_date->age : 'N/A' }} |
+                            Gender: {{ ucfirst($visit->patient?->gender) }}
                         </p>
                     </div>
                     <div id="autoSaveStatus" class="text-xs text-white/60">

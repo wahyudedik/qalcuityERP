@@ -1,30 +1,27 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Audit Trail')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-shield-alt text-primary"></i> Audit Trail
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-shield-alt text-blue-600"></i> Audit Trail
             </h1>
-            <p class="text-muted mb-0">System activity and compliance logs</p>
+            <p class="text-gray-500">System activity and compliance logs</p>
         </div>
         <div>
-            <button class="btn btn-success" onclick="window.print()">
+            <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition" onclick="window.print()">
                 <i class="fas fa-print"></i> Export
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('compliance.audit-trail.index') }}" class="row g-3">
-                        <div class="col-md-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <form method="GET" action="{{ route('compliance.audit-trail.index') }}" class="grid grid-cols-1 md:grid-cols-2 gap-6 g-3">
+                        <div class="w-full md:w-1/4">
                             <label class="form-label">Date Range</label>
                             <select name="period" class="form-select">
                                 <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Today</option>
@@ -35,7 +32,7 @@
                                 <option value="custom" {{ request('period') == 'custom' ? 'selected' : '' }}>Custom</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="w-full md:w-1/6">
                             <label class="form-label">Action Type</label>
                             <select name="action_type" class="form-select">
                                 <option value="">All Actions</option>
@@ -51,7 +48,7 @@
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="w-full md:w-1/6">
                             <label class="form-label">User</label>
                             <select name="user_id" class="form-select">
                                 <option value="">All Users</option>
@@ -63,7 +60,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="w-full md:w-1/6">
                             <label class="form-label">Module</label>
                             <select name="module" class="form-select">
                                 <option value="">All Modules</option>
@@ -78,16 +75,16 @@
                                     Inventory</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="w-full md:w-1/4">
                             <label class="form-label">Search</label>
                             <input type="text" name="search" class="form-control" placeholder="Search description..."
                                 value="{{ request('search') }}">
                         </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="w-full">
+                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                                 <i class="fas fa-filter"></i> Apply Filters
                             </button>
-                            <a href="{{ route('compliance.audit-trail.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('compliance.audit-trail.index') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition">
                                 <i class="fas fa-redo"></i> Reset
                             </a>
                         </div>
@@ -97,15 +94,15 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Audit Logs</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Timestamp</th>
@@ -122,17 +119,17 @@
                                     <tr>
                                         <td>
                                             <small>{{ $log->created_at->format('d/m/Y H:i:s') }}</small>
-                                            <br><small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
+                                            <br><small class="text-gray-500">{{ $log->created_at->diffForHumans() }}</small>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                            <div class="flex items-center">
+                                                <div class="rounded-full bg-primary text-white flex items-center justify-center mr-2"
                                                     style="width: 30px; height: 30px;">
                                                     <i class="fas fa-user fa-xs"></i>
                                                 </div>
                                                 <div>
-                                                    <strong>{{ $log->user->name ?? 'System' }}</strong>
-                                                    <br><small class="text-muted">{{ $log->user->email ?? '-' }}</small>
+                                                    <strong>{{ $log->user?->name ?? 'System' }}</strong>
+                                                    <br><small class="text-gray-500">{{ $log->user?->email ?? '-' }}</small>
                                                 </div>
                                             </div>
                                         </td>
@@ -147,22 +144,22 @@
                                                 ];
                                                 $color = $colors[$log->action_type] ?? 'primary';
                                             @endphp
-                                            <span class="badge bg-{{ $color }}">
+                                            <span class="badge bg-{{ $color  }}">
                                                 {{ ucfirst($log->action_type) }}
                                             </span>
                                         </td>
                                         <td>
                                             <span
-                                                class="badge bg-light text-dark">{{ ucfirst($log->module ?? 'General') }}</span>
+                                                class="badge bg-gray-50 text-dark">{{ ucfirst($log->module ?? 'General') }}</span>
                                         </td>
                                         <td>
                                             <small>{{ Str::limit($log->description, 100) }}</small>
                                         </td>
                                         <td>
-                                            <small class="text-muted">{{ $log->ip_address ?? '-' }}</small>
+                                            <small class="text-gray-500">{{ $log->ip_address ?? '-' }}</small>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                            <button class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs transition" data-bs-toggle="modal"
                                                 data-bs-target="#detailModal{{ $log->id }}">
                                                 <i class="fas fa-eye"></i>
                                             </button>
@@ -175,28 +172,28 @@
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title">Audit Log Details</h5>
-                                                    <button type="button" class="btn-close"
+                                                    <button type="button" class="text-gray-400 hover:text-gray-600"
                                                         data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Timestamp:</strong>
                                                             <p>{{ $log->created_at->format('d/m/Y H:i:s') }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>User:</strong>
-                                                            <p>{{ $log->user->name ?? 'System' }}</p>
+                                                            <p>{{ $log->user?->name ?? 'System' }}</p>
                                                         </div>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Action Type:</strong>
                                                             <p><span
-                                                                    class="badge bg-{{ $color }}">{{ ucfirst($log->action_type) }}</span>
+                                                                    class="badge bg-{{ $color  }}">{{ ucfirst($log->action_type) }}</span>
                                                             </p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Module:</strong>
                                                             <p>{{ ucfirst($log->module ?? 'General') }}</p>
                                                         </div>
@@ -205,36 +202,36 @@
                                                         <strong>Description:</strong>
                                                         <p>{{ $log->description }}</p>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>IP Address:</strong>
                                                             <p>{{ $log->ip_address ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>User Agent:</strong>
                                                             <p><small>{{ Str::limit($log->user_agent ?? '-', 100) }}</small>
                                                             </p>
                                                         </div>
                                                     </div>
                                                     @if ($log->old_values || $log->new_values)
-                                                        <div class="row">
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                             @if ($log->old_values)
-                                                                <div class="col-md-6">
+                                                                <div class="w-full md:w-1/2">
                                                                     <strong>Old Values:</strong>
-                                                                    <pre class="bg-light p-2 rounded"><code>{{ json_encode($log->old_values, JSON_PRETTY_PRINT) }}</code></pre>
+                                                                    <pre class="bg-gray-50 p-2 rounded"><code>{{ json_encode($log->old_values, JSON_PRETTY_PRINT) }}</code></pre>
                                                                 </div>
                                                             @endif
                                                             @if ($log->new_values)
-                                                                <div class="col-md-6">
+                                                                <div class="w-full md:w-1/2">
                                                                     <strong>New Values:</strong>
-                                                                    <pre class="bg-light p-2 rounded"><code>{{ json_encode($log->new_values, JSON_PRETTY_PRINT) }}</code></pre>
+                                                                    <pre class="bg-gray-50 p-2 rounded"><code>{{ json_encode($log->new_values, JSON_PRETTY_PRINT) }}</code></pre>
                                                                 </div>
                                                             @endif
                                                         </div>
                                                     @endif
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
+                                                    <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition"
                                                         data-bs-dismiss="modal">Close</button>
                                                 </div>
                                             </div>
@@ -242,9 +239,9 @@
                                     </div>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
-                                            <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">No audit logs found</p>
+                                        <td colspan="7" class="text-center py-10">
+                                            <i class="fas fa-shield-alt fa-3x text-gray-500 mb-3"></i>
+                                            <p class="text-gray-500">No audit logs found</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -253,8 +250,8 @@
                     </div>
 
                     @if (isset($auditLogs) && $auditLogs->hasPages())
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <p class="text-muted mb-0">
+                        <div class="flex items-center justify-between mt-3">
+                            <p class="text-gray-500">
                                 Showing {{ $auditLogs->firstItem() }} to {{ $auditLogs->lastItem() }} of
                                 {{ $auditLogs->total() }} entries
                             </p>
@@ -266,8 +263,8 @@
         </div>
     </div>
 
-    <div class="row mt-3">
-        <div class="col-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+        <div class="w-full">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong>Compliance Notice:</strong> Audit logs are retained for {{ $retentionPeriod ?? '7 years' }} as per
@@ -276,4 +273,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

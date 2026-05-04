@@ -269,7 +269,7 @@
                                 <p class="text-sm text-gray-600 mb-1">{{ __('Parent Device') }}</p>
                                 <a href="{{ route('telecom.devices.show', $device->parentDevice) }}"
                                     class="text-blue-600 hover:underline">
-                                    {{ $device->parentDevice->name }}
+                                    {{ $device->parentDevice?->name }}
                                 </a>
                             </div>
                         @endif

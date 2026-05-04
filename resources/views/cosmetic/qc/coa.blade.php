@@ -72,8 +72,8 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $coa->coa_number }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">{{ $coa->batch->batch_number }}</div>
-                                <div class="text-xs text-gray-500">{{ $coa->batch->formula->formula_name }}</div>
+                                <div class="text-sm text-gray-900">{{ $coa->batch?->batch_number }}</div>
+                                <div class="text-xs text-gray-500">{{ $coa->batch?->formula->formula_name }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 {{ $coa->issue_date->format('d M Y') }}
@@ -141,7 +141,7 @@
                             <option value="">Select Batch</option>
                             @foreach ($batches as $batch)
                                 <option value="{{ $batch->id }}">{{ $batch->batch_number }} -
-                                    {{ $batch->formula->formula_name }}</option>
+                                    {{ $batch->formula?->formula_name }}</option>
                             @endforeach
                         </select>
                         <p class="mt-1 text-xs text-gray-500">Batch must have approved QC tests</p>

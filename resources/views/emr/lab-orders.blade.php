@@ -1,65 +1,62 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Lab Orders')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-flask text-primary"></i> Laboratory Orders
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-flask text-blue-600"></i> Laboratory Orders
             </h1>
-            <p class="text-muted mb-0">Manage lab test orders and track results</p>
+            <p class="text-gray-500">Manage lab test orders and track results</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addOrderModal">
                 <i class="fas fa-plus"></i> New Lab Order
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $orders->where('status', 'pending')->count() }}</h3>
-                    <small class="text-muted">Pending</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $orders->where('status', 'pending')->count() }}</h3>
+                    <small class="text-gray-500">Pending</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $orders->where('status', 'in_progress')->count() }}</h3>
-                    <small class="text-muted">In Progress</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $orders->where('status', 'in_progress')->count() }}</h3>
+                    <small class="text-gray-500">In Progress</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $orders->where('status', 'completed')->count() }}</h3>
-                    <small class="text-muted">Completed</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $orders->where('status', 'completed')->count() }}</h3>
+                    <small class="text-gray-500">Completed</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">{{ $orders->where('status', 'cancelled')->count() }}</h3>
-                    <small class="text-muted">Cancelled</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-red-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-red-600">{{ $orders->where('status', 'cancelled')->count() }}</h3>
+                    <small class="text-gray-500">Cancelled</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Order #</th>
@@ -79,17 +76,17 @@
                                         <td>{{ $order->order_date?->format('d/m/Y H:i') ?? '-' }}</td>
                                         <td>
                                             <a href="{{ route('healthcare.patients.show', $order->patient) }}">
-                                                {{ $order->patient->name ?? '-' }}
+                                                {{ $order->patient?->name ?? '-' }}
                                             </a>
                                         </td>
                                         <td>{{ $order->test_type ?? '-' }}</td>
                                         <td>
                                             @if ($order->priority == 'stat')
-                                                <span class="badge bg-danger">STAT</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">STAT</span>
                                             @elseif($order->priority == 'urgent')
-                                                <span class="badge bg-warning">Urgent</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Urgent</span>
                                             @else
-                                                <span class="badge bg-secondary">Routine</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Routine</span>
                                             @endif
                                         </td>
                                         <td>{{ $order->ordered_by?->name ?? '-' }}</td>
@@ -102,18 +99,18 @@
                                                     'cancelled' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$order->status] ?? 'secondary'  }}">
                                                 {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
+                                            <div class="flex gap-1">
                                                 <a href="{{ route('healthcare.emr.lab-orders.show', $order) }}"
-                                                    class="btn btn-outline-primary btn-sm">
+                                                    class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @if ($order->status == 'pending')
-                                                    <button class="btn btn-outline-success btn-sm"
+                                                    <button class="px-3 py-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition"
                                                         onclick="processOrder({{ $order->id }})">
                                                         <i class="fas fa-play"></i>
                                                     </button>
@@ -123,7 +120,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No lab orders found</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No lab orders found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -143,11 +140,11 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">New Laboratory Order</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Patient</label>
                                 <select name="patient_id" class="form-select" required>
                                     <option value="">Select patient</option>
@@ -156,14 +153,14 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Test Type</label>
                                 <input type="text" name="test_type" class="form-control"
                                     placeholder="e.g., Complete Blood Count" required>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Priority</label>
                                 <select name="priority" class="form-select" required>
                                     <option value="routine">Routine</option>
@@ -171,7 +168,7 @@
                                     <option value="stat">STAT (Immediate)</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Order Date</label>
                                 <input type="datetime-local" name="order_date" class="form-control" required>
                             </div>
@@ -182,8 +179,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Order</button>
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Create Order</button>
                     </div>
                 </form>
             </div>
@@ -200,4 +197,4 @@
             }
         </script>
     @endpush
-@endsection
+</x-app-layout>

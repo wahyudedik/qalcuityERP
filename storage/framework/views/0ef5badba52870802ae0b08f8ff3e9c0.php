@@ -744,6 +744,21 @@
                     </div>
 
                     
+                    <button onclick="toggleFullscreen()" id="btn-fullscreen-main" title="Layar penuh (F11)"
+                        class="p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
+                        <svg id="icon-fs-enter" class="w-5 h-5" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2" />
+                        </svg>
+                        <svg id="icon-fs-exit" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
+                        </svg>
+                    </button>
+
+                    
                     <?php
                         // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
                         $unreadCount = $sidebarBadges['notifications'] ?? 0;
@@ -2802,6 +2817,92 @@
     </div>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
+
+    <script>
+        // ── Fullscreen (global, persisten antar halaman) ──────────────────────────
+        const FS_KEY = 'qalcuity_fullscreen';
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                localStorage.setItem(FS_KEY, '1');
+            } else {
+                document.exitFullscreen().catch(() => {});
+                localStorage.removeItem(FS_KEY);
+            }
+        }
+
+        function _updateFsIcon() {
+            const isFs = !!document.fullscreenElement;
+            const enter = document.getElementById('icon-fs-enter');
+            const exit = document.getElementById('icon-fs-exit');
+            const btn = document.getElementById('btn-fullscreen-main');
+            if (enter) enter.classList.toggle('hidden', isFs);
+            if (exit) exit.classList.toggle('hidden', !isFs);
+            if (btn) btn.title = isFs ? 'Keluar layar penuh (Esc)' : 'Layar penuh (F11)';
+        }
+
+        // Saat user keluar fullscreen manual (Esc / tombol browser), hapus preferensi
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                localStorage.removeItem(FS_KEY);
+                _hideFsOverlay();
+            }
+            _updateFsIcon();
+        });
+
+        // Shortcut F11
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+        });
+
+        // ── Overlay "klik untuk fullscreen" ──────────────────────────────────────
+        function _showFsOverlay() {
+            const el = document.getElementById('fs-restore-overlay');
+            if (el) el.classList.remove('hidden');
+        }
+
+        function _hideFsOverlay() {
+            const el = document.getElementById('fs-restore-overlay');
+            if (el) el.classList.add('hidden');
+        }
+
+        function _doRestoreFs() {
+            _hideFsOverlay();
+            document.documentElement.requestFullscreen().catch(function() {
+                localStorage.removeItem(FS_KEY);
+            });
+        }
+
+        // Auto-restore: tampilkan overlay jika preferensi aktif, restore saat diklik
+        if (localStorage.getItem(FS_KEY) === '1' && !document.fullscreenElement) {
+            // Tampilkan overlay setelah DOM siap
+            document.addEventListener('DOMContentLoaded', _showFsOverlay);
+            // Fallback jika DOMContentLoaded sudah lewat
+            if (document.readyState !== 'loading') _showFsOverlay();
+        }
+    </script>
+
+    
+    <div id="fs-restore-overlay" onclick="_doRestoreFs()" class="hidden fixed inset-0 z-[9999] cursor-pointer"
+        style="background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);">
+        <div
+            style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#fff;pointer-events:none;">
+            <div
+                style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2" />
+                </svg>
+            </div>
+            <p style="font-size:16px;font-weight:600;margin-bottom:6px;">Klik untuk melanjutkan layar penuh</p>
+            <p style="font-size:13px;opacity:0.6;">atau tekan tombol mana saja</p>
+        </div>
+    </div>
 </body>
 
 </html>

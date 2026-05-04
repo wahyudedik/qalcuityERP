@@ -125,9 +125,9 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="font-medium text-gray-900">
-                                        {{ $report->patient ? $report->patient->full_name : '-' }}</p>
+                                        {{ $report->patient ? $report->patient?->full_name : '-' }}</p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $report->patient ? $report->patient->medical_record_number : '-' }}</p>
+                                        {{ $report->patient ? $report->patient?->medical_record_number : '-' }}</p>
                                 </td>
                                 <td class="px-4 py-3 hidden md:table-cell">
                                     <span

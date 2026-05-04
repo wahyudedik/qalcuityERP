@@ -24,7 +24,7 @@
                 <div class="px-6 py-10 text-center text-gray-400 text-sm">Tidak ada permintaan yang menunggu persetujuan.</div>
             @else
             <div class="divide-y divide-gray-100">
-                @foreach($pending as $req)
+                @foreach($pending ?? [] as $req)
                 <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-start gap-4">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@
                         {{-- Chain visualization --}}
                         @if($req->workflow?->approver_roles)
                         <div class="flex items-center gap-1 mt-2 flex-wrap">
-                            @foreach($req->workflow->approver_roles as $i => $role)
+                            @foreach($req->workflow?->approver_roles as $i => $role)
                             @if($i > 0)
                             <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             @endif
@@ -96,7 +96,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @foreach($history as $req)
+                        @foreach($history ?? [] as $req)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $req->workflow?->name ?? '-' }}</td>
                             <td class="px-6 py-3 text-gray-500 hidden sm:table-cell">{{ $req->requester?->name }}</td>

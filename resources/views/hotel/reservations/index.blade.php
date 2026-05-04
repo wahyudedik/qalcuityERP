@@ -55,16 +55,14 @@
             <input type="text" name="search" value="{{ request('search') }}"
                 placeholder="Search guest name or reservation #..."
                 class="flex-1 min-w-[200px] px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <select name="status"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
+            <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">All Statuses</option>
                 @foreach ($statuses as $s)
                     <option value="{{ $s }}" @selected(request('status') === $s)>
                         {{ ucfirst(str_replace('_', ' ', $s)) }}</option>
                 @endforeach
             </select>
-            <select name="source"
-                class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
+            <select name="source" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">All Sources</option>
                 @foreach ($sources as $src)
                     <option value="{{ $src }}" @selected(request('source') === $src)>
@@ -148,11 +146,9 @@
                                 {{ $rsv->roomType?->name ?? '—' }}</td>
                             <td class="px-4 py-3 hidden lg:table-cell text-gray-700">
                                 {{ $rsv->room?->number ?? '—' }}</td>
-                            <td
-                                class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
+                            <td class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($rsv->check_in_date)->format('d M Y') }}</td>
-                            <td
-                                class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
+                            <td class="px-4 py-3 hidden sm:table-cell text-gray-600 whitespace-nowrap">
                                 {{ \Carbon\Carbon::parse($rsv->check_out_date)->format('d M Y') }}</td>
                             <td class="px-4 py-3 text-center hidden lg:table-cell text-gray-700">
                                 {{ $nights }}</td>
@@ -172,8 +168,7 @@
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
                                     <a href="{{ route('hotel.reservations.show', $rsv) }}"
-                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50"
-                                        title="View">
+                                        class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50" title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -183,8 +178,7 @@
                                         </svg>
                                     </a>
                                     <a href="{{ route('hotel.reservations.edit', $rsv) }}"
-                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
-                                        title="Edit">
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100" title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -195,6 +189,7 @@
                                         <form method="POST"
                                             action="{{ route('hotel.reservations.confirm', $rsv) }}">
                                             @csrf
+                                            @method('PATCH')
                                             <button type="submit"
                                                 class="p-1.5 rounded-lg text-green-500 hover:bg-green-50"
                                                 title="Confirm">
@@ -240,8 +235,7 @@
                                     @if (!in_array($rsv->status, ['cancelled', 'checked_out']))
                                         <button
                                             onclick="openCancelModal({{ $rsv->id }}, '{{ $rsv->reservation_number }}')"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
-                                            title="Cancel">
+                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50" title="Cancel">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

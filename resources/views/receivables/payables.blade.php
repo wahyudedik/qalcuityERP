@@ -64,10 +64,10 @@
                     @php $overdue = in_array($pay->status, ['unpaid','partial']) && $pay->due_date < today(); @endphp
                     <tr class="hover:bg-gray-50 {{ $overdue ? 'bg-red-50/50' : '' }}">
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">{{ $pay->number }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $pay->supplier->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $pay->supplier?->name ?? '-' }}</td>
                         <td class="px-4 py-3 hidden md:table-cell">
                             @if($pay->purchaseOrder)
-                            <span class="font-mono text-xs text-blue-600">{{ $pay->purchaseOrder->number }}</span>
+                            <span class="font-mono text-xs text-blue-600">{{ $pay->purchaseOrder?->number }}</span>
                             @else
                             <span class="text-xs text-gray-400">-</span>
                             @endif
@@ -78,7 +78,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @php $colors = ['unpaid'=>'red','partial'=>'amber','paid'=>'green']; $c = $colors[$pay->status] ?? 'gray'; @endphp
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                 {{ ['unpaid'=>'Belum Bayar','partial'=>'Sebagian','paid'=>'Lunas'][$pay->status] ?? $pay->status }}
                             </span>
                         </td>

@@ -10,7 +10,7 @@
             ['label' => 'Pengeluaran Bulan Ini', 'value' => 'Rp ' . number_format($data['finance']['expense'] ?? 0, 0, ',', '.'),          'color' => 'text-red-400'],
         ];
         @endphp
-        @foreach($stats as $stat)
+        @foreach($stats ?? [] as $stat)
         <div class="flex items-center justify-between">
             <span class="text-sm text-gray-500">{{ $stat['label'] }}</span>
             <span class="text-sm font-semibold {{ $stat['color'] }}">{{ $stat['value'] }}</span>

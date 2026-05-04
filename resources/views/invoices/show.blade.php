@@ -101,7 +101,7 @@
                     @if($invoice->salesOrder)
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">Sales Order</p>
-                        <p class="font-medium text-gray-900">{{ $invoice->salesOrder->number }}</p>
+                        <p class="font-medium text-gray-900">{{ $invoice->salesOrder?->number }}</p>
                     </div>
                     @endif
                     @if($invoice->currency_code && $invoice->currency_code !== 'IDR')
@@ -121,7 +121,7 @@
             </div>
 
             {{-- Items --}}
-            @if($invoice->salesOrder && $invoice->salesOrder->items->count())
+            @if($invoice->salesOrder && $invoice->salesOrder?->items->count())
             <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100">
                     <p class="font-semibold text-gray-900 text-sm">Item Pesanan</p>
@@ -137,7 +137,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($invoice->salesOrder->items as $item)
+                            @foreach($invoice->salesOrder?->items as $item)
                             <tr>
                                 <td class="px-4 py-3 text-gray-900">
                                     {{ $item->product?->name ?? '-' }}
@@ -152,14 +152,14 @@
                     </table>
                 </div>
                 <div class="px-6 py-4 border-t border-gray-100 space-y-1.5">
-                    @if($invoice->salesOrder->discount > 0)
+                    @if($invoice->salesOrder?->discount > 0)
                     <div class="flex justify-between text-sm text-gray-500">
-                        <span>Diskon</span><span>- Rp {{ number_format($invoice->salesOrder->discount, 0, ',', '.') }}</span>
+                        <span>Diskon</span><span>- Rp {{ number_format($invoice->salesOrder?->discount, 0, ',', '.') }}</span>
                     </div>
                     @endif
-                    @if($invoice->salesOrder->tax > 0)
+                    @if($invoice->salesOrder?->tax > 0)
                     <div class="flex justify-between text-sm text-gray-500">
-                        <span>Pajak</span><span>Rp {{ number_format($invoice->salesOrder->tax, 0, ',', '.') }}</span>
+                        <span>Pajak</span><span>Rp {{ number_format($invoice->salesOrder?->tax, 0, ',', '.') }}</span>
                     </div>
                     @endif
                     <div class="flex justify-between text-base font-bold text-gray-900 pt-1 border-t border-gray-100">
@@ -223,7 +223,7 @@
             <div class="rounded-2xl border border-gray-200 bg-white p-4">
                 <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Tanda Tangan Digital</p>
                 <div class="space-y-3">
-                    @foreach($invoiceSigs as $sig)
+                    @foreach($invoiceSigs ?? [] as $sig)
                     <div class="flex items-center gap-3">
                         <img src="{{ $sig->signature_data }}" alt="TTD" class="h-10 border border-gray-200 rounded-lg bg-white">
                         <div>

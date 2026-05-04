@@ -1,44 +1,41 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Patient Satisfaction')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-smile text-primary"></i> Patient Satisfaction Score
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-smile text-blue-600"></i> Patient Satisfaction Score
             </h1>
-            <p class="text-muted mb-0">Patient experience and satisfaction metrics</p>
+            <p class="text-gray-500">Patient experience and satisfaction metrics</p>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h2 class="text-warning">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-amber-600">
                                 @for ($i = 1; $i <= 5; $i++)
                                     <i
-                                        class="fas fa-star {{ $i <= ($stats['avg_rating'] ?? 0) ? 'text-warning' : 'text-muted' }}"></i>
+                                        class="fas fa-star {{ $i <= ($stats['avg_rating'] ?? 0) ? 'text-amber-600' : 'text-gray-500' }}"></i>
                                 @endfor
                             </h2>
-                            <small class="text-muted">Average Rating</small>
+                            <small class="text-gray-500">Average Rating</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-success">{{ $stats['satisfaction_rate'] ?? 0 }}%</h2>
-                            <small class="text-muted">Satisfaction Rate</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-emerald-600">{{ $stats['satisfaction_rate'] ?? 0 }}%</h2>
+                            <small class="text-gray-500">Satisfaction Rate</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-primary">{{ $stats['total_surveys'] ?? 0 }}</h2>
-                            <small class="text-muted">Total Surveys</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-blue-600">{{ $stats['total_surveys'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Total Surveys</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-info">{{ $stats['response_rate'] ?? 0 }}%</h2>
-                            <small class="text-muted">Response Rate</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-sky-600">{{ $stats['response_rate'] ?? 0 }}%</h2>
+                            <small class="text-gray-500">Response Rate</small>
                         </div>
                     </div>
                 </div>
@@ -46,41 +43,41 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Satisfaction by Category</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-5">
                     @forelse($categoryScores ?? [] as $category)
                         <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
+                            <div class="flex justify-between mb-1">
                                 <strong>{{ $category['name'] }}</strong>
                                 <span>{{ $category['score'] }}/5.0</span>
                             </div>
-                            <div class="progress" style="height: 25px;">
-                                <div class="progress-bar bg-{{ $category['score'] >= 4 ? 'success' : ($category['score'] >= 3 ? 'warning' : 'danger') }}"
+                            <div class="w-full bg-gray-200 rounded-full overflow-hidden" style="height: 25px;">
+                                <div class="h-full rounded-full bg-{{ $category['score'] >= 4 ? 'emerald-500' : ($category['score'] >= 3 ? 'amber-500' : 'red-500')   }}"
                                     style="width: {{ ($category['score'] / 5) * 100 }}%">
                                     {{ $category['score'] }}/5.0
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <p class="text-muted text-center">No category data available</p>
+                        <p class="text-gray-500 text-center">No category data available</p>
                     @endforelse
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Satisfaction Trend</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Period</th>
@@ -99,19 +96,19 @@
                                         <td>{{ $period['surveys'] }}</td>
                                         <td>
                                             @if ($period['trend'] > 0)
-                                                <span class="text-success"><i class="fas fa-arrow-up"></i>
+                                                <span class="text-emerald-600"><i class="fas fa-argrid grid-cols-1 md:grid-cols-2 gap-6-up"></i>
                                                     +{{ $period['trend'] }}%</span>
                                             @elseif($period['trend'] < 0)
-                                                <span class="text-danger"><i class="fas fa-arrow-down"></i>
+                                                <span class="text-red-600"><i class="fas fa-argrid grid-cols-1 md:grid-cols-2 gap-6-down"></i>
                                                     {{ $period['trend'] }}%</span>
                                             @else
-                                                <span class="text-muted"><i class="fas fa-minus"></i> 0%</span>
+                                                <span class="text-gray-500"><i class="fas fa-minus"></i> 0%</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">No trend data</td>
+                                        <td colspan="4" class="text-center text-gray-400">No trend data</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -122,34 +119,34 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Recent Feedback</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-5">
                     @forelse($recentFeedback ?? [] as $feedback)
-                        <div class="mb-3 p-3 bg-light rounded">
-                            <div class="d-flex justify-content-between mb-2">
+                        <div class="mb-3 p-3 bg-gray-50 rounded">
+                            <div class="flex justify-between mb-2">
                                 <div>
                                     <strong>{{ $feedback['patient_name'] ?? 'Anonymous' }}</strong>
-                                    <br><small class="text-muted">{{ $feedback['created_at'] ?? '-' }}</small>
+                                    <br><small class="text-gray-500">{{ $feedback['created_at'] ?? '-' }}</small>
                                 </div>
                                 <div>
                                     @for ($i = 1; $i <= 5; $i++)
                                         <i
-                                            class="fas fa-star {{ $i <= ($feedback['rating'] ?? 0) ? 'text-warning' : 'text-muted' }}"></i>
+                                            class="fas fa-star {{ $i <= ($feedback['rating'] ?? 0) ? 'text-amber-600' : 'text-gray-500' }}"></i>
                                     @endfor
                                 </div>
                             </div>
                             <p class="mb-0">{{ $feedback['comment'] ?? 'No comment' }}</p>
                         </div>
                     @empty
-                        <p class="text-muted text-center">No recent feedback</p>
+                        <p class="text-gray-500 text-center">No recent feedback</p>
                     @endforelse
                 </div>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

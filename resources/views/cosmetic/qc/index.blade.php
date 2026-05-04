@@ -113,7 +113,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if ($test->batch)
-                                    <div class="text-sm text-gray-900">{{ $test->batch->batch_number }}</div>
+                                    <div class="text-sm text-gray-900">{{ $test->batch?->batch_number }}</div>
                                 @else
                                     <span class="text-sm text-gray-400">-</span>
                                 @endif

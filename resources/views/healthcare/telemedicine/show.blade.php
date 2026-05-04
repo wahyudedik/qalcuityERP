@@ -172,12 +172,12 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4"><i
                             class="fas fa-star mr-2 text-yellow-500"></i>Feedback Pasien</h3>
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="text-2xl text-yellow-400">{{ $telemedicine->feedback->getRatingStars() }}</span>
+                        <span class="text-2xl text-yellow-400">{{ $telemedicine->feedback?->getRatingStars() }}</span>
                         <span
-                            class="text-sm text-gray-600">({{ $telemedicine->feedback->rating }}/5)</span>
+                            class="text-sm text-gray-600">({{ $telemedicine->feedback?->rating }}/5)</span>
                     </div>
-                    @if ($telemedicine->feedback->feedback)
-                        <p class="text-sm text-gray-700">{{ $telemedicine->feedback->feedback }}</p>
+                    @if ($telemedicine->feedback?->feedback)
+                        <p class="text-sm text-gray-700">{{ $telemedicine->feedback?->feedback }}</p>
                     @endif
                 </div>
             @elseif($telemedicine->status === 'completed')

@@ -91,7 +91,7 @@
                 <h3 class="font-semibold text-gray-900 mb-3">Info</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between"><span class="text-gray-500">Lahan</span><span class="font-medium">{{ $harvestLog->plot?->code }} — {{ $harvestLog->plot?->name }}</span></div>
-                    @if($harvestLog->cropCycle)<div class="flex justify-between"><span class="text-gray-500">Siklus</span><span>{{ $harvestLog->cropCycle->number }}</span></div>@endif
+                    @if($harvestLog->cropCycle)<div class="flex justify-between"><span class="text-gray-500">Siklus</span><span>{{ $harvestLog->cropCycle?->number }}</span></div>@endif
                     <div class="flex justify-between"><span class="text-gray-500">Upah Panen</span><span>Rp {{ number_format($harvestLog->labor_cost, 0, ',', '.') }}</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">Biaya Angkut</span><span>Rp {{ number_format($harvestLog->transport_cost, 0, ',', '.') }}</span></div>
                     @if($harvestLog->notes)<div class="pt-2 border-t border-gray-100"><p class="text-xs text-gray-500">{{ $harvestLog->notes }}</p></div>@endif

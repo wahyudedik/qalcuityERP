@@ -135,24 +135,24 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
-                                <p class="text-gray-900">{{ $bed->ward ? $bed->ward->name : '-' }}</p>
+                                <p class="text-gray-900">{{ $bed->ward ? $bed->ward?->name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $bed->ward ? $bed->ward->floor : '' }}</p>
+                                    {{ $bed->ward ? $bed->ward?->floor : '' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell">
                                 <span
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-purple-100 text-purple-700">
-                                    {{ $bed->ward ? $bed->ward->ward_type : '-' }}
+                                    {{ $bed->ward ? $bed->ward?->ward_type : '-' }}
                                 </span>
                             </td>
                             @if (request('status') === 'occupied' || !request('status'))
                                 <td class="px-4 py-3 hidden md:table-cell">
                                     @if ($bed->status === 'occupied' && $bed->admission)
                                         <p class="text-gray-900 font-medium">
-                                            {{ $bed->admission->patient ? $bed->admission->patient->full_name : '-' }}
+                                            {{ $bed->admission?->patient ? $bed->admission?->patient->full_name : '-' }}
                                         </p>
                                         <p class="text-xs text-gray-500">Sejak
-                                            {{ $bed->admission->admission_date ? \Carbon\Carbon::parse($bed->admission->admission_date)->format('d M') : '-' }}
+                                            {{ $bed->admission?->admission_date ? \Carbon\Carbon::parse($bed->admission?->admission_date)->format('d M') : '-' }}
                                         </p>
                                     @else
                                         <span class="text-gray-400">-</span>

@@ -84,7 +84,7 @@
                     <select name="from_bin_id" required class="mob-select from-bin-select">
                         <option value="">-- Pilih Bin Asal --</option>
                         @foreach ($bins as $bin)
-                            <option value="{{ $bin->id }}">{{ $bin->code }} ({{ $bin->warehouse->name ?? '-' }})
+                            <option value="{{ $bin->id }}">{{ $bin->code }} ({{ $bin->warehouse?->name ?? '-' }})
                             </option>
                         @endforeach
                     </select>
@@ -97,7 +97,7 @@
                         <option value="">-- Pilih Bin Tujuan --</option>
                         @foreach ($bins as $bin)
                             <option value="{{ $bin->id }}">{{ $bin->code }}
-                                ({{ $bin->warehouse->name ?? '-' }})</option>
+                                ({{ $bin->warehouse?->name ?? '-' }})</option>
                         @endforeach
                     </select>
                 </div>

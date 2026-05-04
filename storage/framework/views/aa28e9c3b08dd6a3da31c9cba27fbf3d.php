@@ -38,7 +38,7 @@
     
     <?php if($targets->isNotEmpty()): ?>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <?php $__currentLoopData = $targets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kpi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php $__currentLoopData = $targets ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kpi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php
             $pct    = $kpi->achievementPercent();
             $color  = $kpi->statusColor();
@@ -103,7 +103,7 @@
             <h2 class="text-sm font-semibold text-gray-700">Semua Metrik — <?php echo e(\Carbon\Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y')); ?></h2>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
-            <?php $__currentLoopData = $kpis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $kpi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php $__currentLoopData = $kpis ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $kpi): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                  onclick="loadDrilldown('<?php echo e($key); ?>', '<?php echo e($kpi['label']); ?>')">
                 <p class="text-xs text-gray-500"><?php echo e($kpi['label']); ?></p>
@@ -161,7 +161,7 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1">Metrik</label>
                 <select name="metric" required
                         class="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <?php $__currentLoopData = $metrics; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $__currentLoopData = $metrics ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <option value="<?php echo e($key); ?>"><?php echo e($meta['label']); ?> (<?php echo e($meta['unit']); ?>)</option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>

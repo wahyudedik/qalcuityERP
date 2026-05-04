@@ -53,7 +53,7 @@
             <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
                     <a href="{{ route('projects.show', $project) }}" class="font-semibold text-gray-900 hover:text-blue-600 line-clamp-1">{{ $project->name }}</a>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ $project->number }} {{ $project->customer ? '· '.$project->customer->name : '' }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ $project->number }} {{ $project->customer ? '· '.$project->customer?->name : '' }}</p>
                 </div>
                 <span class="shrink-0 px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                     {{ $statusLabels[$project->status] ?? $project->status }}
@@ -128,7 +128,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Klien</label>
                         <select name="customer_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Tanpa klien --</option>
-                            @foreach($customers as $c)
+                            @foreach($customers ?? [] as $c)
                             <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>

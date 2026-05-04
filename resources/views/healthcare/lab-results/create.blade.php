@@ -17,7 +17,7 @@
                                 @foreach ($orders as $order)
                                     <option value="{{ $order->id }}"
                                         {{ old('lab_order_id') == $order->id ? 'selected' : '' }}>
-                                        {{ $order->order_number }} - {{ $order->patient->name }}
+                                        {{ $order->order_number }} - {{ $order->patient?->name }}
                                     </option>
                                 @endforeach
                             </select>

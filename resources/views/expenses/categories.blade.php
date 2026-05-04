@@ -64,7 +64,7 @@
                 <div class="px-6 py-10 text-center text-gray-400 text-sm">Belum ada kategori.</div>
             @else
                 <div class="divide-y divide-gray-100">
-                    @foreach($categories as $cat)
+                    @foreach($categories ?? [] as $cat)
                         <div class="px-6 py-4 flex items-center gap-4">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">

@@ -3,190 +3,199 @@
 @section('title', 'Tutup Sesi Kasir')
 
 @section('content')
-<div class="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
+    <div class="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
 
-    {{-- Header --}}
-    <div>
-        <a href="{{ route('pos.sessions.show', $session) }}"
-            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            Kembali ke Detail Sesi
-        </a>
-        <h1 class="text-xl font-semibold text-gray-900">Tutup Sesi Kasir</h1>
-        <p class="text-sm text-gray-500 mt-0.5">
-            Kasir: <span class="font-medium text-gray-700">{{ $session->cashier?->name }}</span>
-            &bull; Dibuka: {{ $session->opened_at?->format('d/m/Y H:i') }}
-        </p>
-    </div>
-
-    {{-- Rekap Transaksi --}}
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-        <h2 class="text-base font-semibold text-gray-900">Rekap Transaksi Sesi Ini</h2>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {{-- Total Transaksi --}}
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs text-gray-500 mb-1">Jumlah Transaksi</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($recap['total_transactions']) }}</p>
-            </div>
-
-            {{-- Total Penjualan --}}
-            <div class="bg-blue-50 rounded-xl p-4">
-                <p class="text-xs text-blue-600 mb-1">Total Penjualan</p>
-                <p class="text-lg font-bold text-blue-700">Rp {{ number_format($recap['total_sales'], 0, ',', '.') }}</p>
-            </div>
-
-            {{-- Modal Awal --}}
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs text-gray-500 mb-1">Modal Awal</p>
-                <p class="text-lg font-bold text-gray-900">Rp {{ number_format($session->opening_balance, 0, ',', '.') }}</p>
-            </div>
-        </div>
-
-        {{-- Rincian per metode pembayaran --}}
-        <div class="border-t border-gray-100 pt-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">Rincian per Metode Pembayaran</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-green-500 rounded-full"></span> Tunai (Cash)
-                    </span>
-                    <span class="font-medium text-gray-900">Rp {{ number_format($recap['total_cash'], 0, ',', '.') }}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Kartu Debit/Kredit
-                    </span>
-                    <span class="font-medium text-gray-900">Rp {{ number_format($recap['total_card'], 0, ',', '.') }}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-purple-500 rounded-full"></span> QRIS
-                    </span>
-                    <span class="font-medium text-gray-900">Rp {{ number_format($recap['total_qris'], 0, ',', '.') }}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-orange-500 rounded-full"></span> Transfer Bank
-                    </span>
-                    <span class="font-medium text-gray-900">Rp {{ number_format($recap['total_transfer'], 0, ',', '.') }}</span>
-                </div>
-                <div class="border-t border-gray-100 pt-2 flex justify-between items-center text-sm">
-                    <span class="text-gray-600">Total Diskon</span>
-                    <span class="font-medium text-red-600">- Rp {{ number_format($recap['total_discount'], 0, ',', '.') }}</span>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600">Total Pajak</span>
-                    <span class="font-medium text-gray-900">Rp {{ number_format($recap['total_tax'], 0, ',', '.') }}</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Kas yang diharapkan --}}
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-sm font-medium text-amber-800">Kas yang Diharapkan di Laci</p>
-                    <p class="text-xs text-amber-600 mt-0.5">Modal awal + total penjualan tunai</p>
-                </div>
-                <p class="text-xl font-bold text-amber-800">
-                    Rp {{ number_format($recap['expected_balance'], 0, ',', '.') }}
-                </p>
-            </div>
-        </div>
-    </div>
-
-    {{-- Form Tutup Sesi --}}
-    <form method="POST" action="{{ route('pos.sessions.close', $session) }}"
-        class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5"
-        x-data="{ closingBalance: {{ (int) $recap['expected_balance'] }}, expectedBalance: {{ (int) $recap['expected_balance'] }} }">
-        @csrf
-
-        <h2 class="text-base font-semibold text-gray-900">Input Kas Aktual</h2>
-
-        {{-- Kas Aktual --}}
+        {{-- Header --}}
         <div>
-            <label for="closing_balance" class="block text-sm font-medium text-gray-700 mb-1.5">
-                Jumlah Kas di Laci (Aktual) <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Rp</span>
-                <input type="number" id="closing_balance" name="closing_balance"
-                    x-model="closingBalance"
-                    value="{{ old('closing_balance', (int) $recap['expected_balance']) }}"
-                    min="0" step="1000" required
-                    class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-            </div>
-            @error('closing_balance')
-                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-            @enderror
+            <a href="{{ route('pos.sessions.show', $session) }}"
+                class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali ke Detail Sesi
+            </a>
+            <h1 class="text-xl font-semibold text-gray-900">Tutup Sesi Kasir</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+                Kasir: <span class="font-medium text-gray-700">{{ $session->cashier?->name }}</span>
+                &bull; Dibuka: {{ $session->opened_at?->format('d/m/Y H:i') }}
+            </p>
         </div>
 
-        {{-- Selisih (dihitung otomatis) --}}
-        <div class="rounded-xl p-4 transition"
-            :class="(closingBalance - expectedBalance) === 0
-                ? 'bg-green-50 border border-green-200'
-                : (closingBalance - expectedBalance) > 0
-                    ? 'bg-blue-50 border border-blue-200'
-                    : 'bg-red-50 border border-red-200'">
-            <div class="flex justify-between items-center">
-                <p class="text-sm font-medium"
-                    :class="(closingBalance - expectedBalance) === 0
-                        ? 'text-green-800'
-                        : (closingBalance - expectedBalance) > 0
-                            ? 'text-blue-800'
-                            : 'text-red-800'">
-                    Selisih Kas
-                </p>
-                <p class="text-lg font-bold"
-                    :class="(closingBalance - expectedBalance) === 0
-                        ? 'text-green-800'
-                        : (closingBalance - expectedBalance) > 0
-                            ? 'text-blue-800'
-                            : 'text-red-800'">
-                    <span x-text="(closingBalance - expectedBalance) >= 0 ? '+' : ''"></span>
-                    Rp <span x-text="new Intl.NumberFormat('id-ID').format(closingBalance - expectedBalance)"></span>
-                </p>
+        {{-- Rekap Transaksi --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+            <h2 class="text-base font-semibold text-gray-900">Rekap Transaksi Sesi Ini</h2>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {{-- Total Transaksi --}}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">Jumlah Transaksi</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($recap['total_transactions']) }}</p>
+                </div>
+
+                {{-- Total Penjualan --}}
+                <div class="bg-blue-50 rounded-xl p-4">
+                    <p class="text-xs text-blue-600 mb-1">Total Penjualan</p>
+                    <p class="text-lg font-bold text-blue-700">Rp {{ number_format($recap['total_sales'], 0, ',', '.') }}
+                    </p>
+                </div>
+
+                {{-- Modal Awal --}}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <p class="text-xs text-gray-500 mb-1">Modal Awal</p>
+                    <p class="text-lg font-bold text-gray-900">Rp
+                        {{ number_format($session->opening_balance, 0, ',', '.') }}</p>
+                </div>
             </div>
-            <p class="text-xs mt-1"
+
+            {{-- Rincian per metode pembayaran --}}
+            <div class="border-t border-gray-100 pt-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Rincian per Metode Pembayaran</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span> Tunai (Cash)
+                        </span>
+                        <span class="font-medium text-gray-900">Rp
+                            {{ number_format($recap['total_cash'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Kartu Debit/Kredit
+                        </span>
+                        <span class="font-medium text-gray-900">Rp
+                            {{ number_format($recap['total_card'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span> QRIS
+                        </span>
+                        <span class="font-medium text-gray-900">Rp
+                            {{ number_format($recap['total_qris'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full"></span> Transfer Bank
+                        </span>
+                        <span class="font-medium text-gray-900">Rp
+                            {{ number_format($recap['total_transfer'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="border-t border-gray-100 pt-2 flex justify-between items-center text-sm">
+                        <span class="text-gray-600">Total Diskon</span>
+                        <span class="font-medium text-red-600">- Rp
+                            {{ number_format($recap['total_discount'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">Total Pajak</span>
+                        <span class="font-medium text-gray-900">Rp
+                            {{ number_format($recap['total_tax'], 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Kas yang diharapkan --}}
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-medium text-amber-800">Kas yang Diharapkan di Laci</p>
+                        <p class="text-xs text-amber-600 mt-0.5">Modal awal + total penjualan tunai</p>
+                    </div>
+                    <p class="text-xl font-bold text-amber-800">
+                        Rp {{ number_format($recap['expected_balance'], 0, ',', '.') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Form Tutup Sesi --}}
+        <form method="POST" action="{{ route('pos.sessions.close', $session) }}"
+            class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5" x-data="{ closingBalance: @js((int) $recap['expected_balance']), expectedBalance: @js((int) $recap['expected_balance']) }">
+            @csrf
+
+            <h2 class="text-base font-semibold text-gray-900">Input Kas Aktual</h2>
+
+            {{-- Kas Aktual --}}
+            <div>
+                <label for="closing_balance" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Jumlah Kas di Laci (Aktual) <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">Rp</span>
+                    <input type="number" id="closing_balance" name="closing_balance" x-model="closingBalance"
+                        value="{{ old('closing_balance', (int) $recap['expected_balance']) }}" min="0"
+                        step="1000" required
+                        class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                @error('closing_balance')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Selisih (dihitung otomatis) --}}
+            <div class="rounded-xl p-4 transition"
                 :class="(closingBalance - expectedBalance) === 0
-                    ? 'text-green-600'
-                    : (closingBalance - expectedBalance) > 0
-                        ? 'text-blue-600'
-                        : 'text-red-600'"
-                x-text="(closingBalance - expectedBalance) === 0
+                    ?
+                    'bg-green-50 border border-green-200' :
+                    (closingBalance - expectedBalance) > 0 ?
+                    'bg-blue-50 border border-blue-200' :
+                    'bg-red-50 border border-red-200'">
+                <div class="flex justify-between items-center">
+                    <p class="text-sm font-medium"
+                        :class="(closingBalance - expectedBalance) === 0
+                            ?
+                            'text-green-800' :
+                            (closingBalance - expectedBalance) > 0 ?
+                            'text-blue-800' :
+                            'text-red-800'">
+                        Selisih Kas
+                    </p>
+                    <p class="text-lg font-bold"
+                        :class="(closingBalance - expectedBalance) === 0
+                            ?
+                            'text-green-800' :
+                            (closingBalance - expectedBalance) > 0 ?
+                            'text-blue-800' :
+                            'text-red-800'">
+                        <span x-text="(closingBalance - expectedBalance) >= 0 ? '+' : ''"></span>
+                        Rp <span x-text="new Intl.NumberFormat('id-ID').format(closingBalance - expectedBalance)"></span>
+                    </p>
+                </div>
+                <p class="text-xs mt-1"
+                    :class="(closingBalance - expectedBalance) === 0
+                        ?
+                        'text-green-600' :
+                        (closingBalance - expectedBalance) > 0 ?
+                        'text-blue-600' :
+                        'text-red-600'"
+                    x-text="(closingBalance - expectedBalance) === 0
                     ? 'Kas sesuai — tidak ada selisih'
                     : (closingBalance - expectedBalance) > 0
                         ? 'Kelebihan kas'
                         : 'Kekurangan kas'">
-            </p>
-        </div>
+                </p>
+            </div>
 
-        {{-- Catatan --}}
-        <div>
-            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1.5">
-                Catatan Penutupan (opsional)
-            </label>
-            <textarea id="notes" name="notes" rows="2"
-                placeholder="Catatan untuk sesi ini..."
-                class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none">{{ old('notes', $session->notes) }}</textarea>
-        </div>
+            {{-- Catatan --}}
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Catatan Penutupan (opsional)
+                </label>
+                <textarea id="notes" name="notes" rows="2" placeholder="Catatan untuk sesi ini..."
+                    class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none">{{ old('notes', $session->notes) }}</textarea>
+            </div>
 
-        {{-- Tombol --}}
-        <div class="flex gap-3 pt-2">
-            <a href="{{ route('pos.sessions.show', $session) }}"
-                class="flex-1 text-center px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition">
-                Batal
-            </a>
-            <button type="submit"
-                onclick="return confirm('Yakin ingin menutup sesi kasir ini? Tindakan ini tidak dapat dibatalkan.')"
-                class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition">
-                Tutup Sesi Kasir
-            </button>
-        </div>
-    </form>
+            {{-- Tombol --}}
+            <div class="flex gap-3 pt-2">
+                <a href="{{ route('pos.sessions.show', $session) }}"
+                    class="flex-1 text-center px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition">
+                    Batal
+                </a>
+                <button type="submit"
+                    onclick="return confirm('Yakin ingin menutup sesi kasir ini? Tindakan ini tidak dapat dibatalkan.')"
+                    class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-xl transition">
+                    Tutup Sesi Kasir
+                </button>
+            </div>
+        </form>
 
-</div>
+    </div>
 @endsection

@@ -14,7 +14,7 @@
                         $sc = ['draft'=>'gray','active'=>'green','expired'=>'red','terminated'=>'red','renewed'=>'purple'][$contract->status] ?? 'gray';
                         $sl = ['draft'=>'Draft','active'=>'Aktif','expired'=>'Expired','terminated'=>'Terminasi','renewed'=>'Renewed'][$contract->status] ?? $contract->status;
                     @endphp
-                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                     @canmodule('contracts', 'edit')
                     @if($contract->status === 'draft')
                     <form method="POST" action="{{ route('contracts.activate', $contract) }}">@csrf @method('PATCH')
@@ -45,7 +45,7 @@
                 <div><p class="text-xs text-gray-500">Next Billing</p><p class="text-gray-900">{{ $contract->next_billing_date?->format('d/m/Y') ?? '-' }}</p></div>
                 <div><p class="text-xs text-gray-500">Auto Renew</p><p class="text-gray-900">{{ $contract->auto_renew ? '✅ Ya' : '❌ Tidak' }}</p></div>
                 <div><p class="text-xs text-gray-500">Kategori</p><p class="text-gray-900">{{ ['service'=>'Jasa','lease'=>'Sewa','supply'=>'Supply','maintenance'=>'Maintenance','subscription'=>'Langganan'][$contract->category] ?? $contract->category }}</p></div>
-                <div><p class="text-xs text-gray-500">Dibuat oleh</p><p class="text-gray-900">{{ $contract->user->name ?? '-' }}</p></div>
+                <div><p class="text-xs text-gray-500">Dibuat oleh</p><p class="text-gray-900">{{ $contract->user?->name ?? '-' }}</p></div>
             </div>
 
             {{-- SLA --}}
@@ -103,8 +103,8 @@
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $b->billing_date->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-xs text-gray-700">{{ $b->period_start->format('d/m') }} — {{ $b->period_end->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($b->amount, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $bc }}-100 text-{{ $bc }}-700 $bc }}-500/20 $bc }}-400">{{ ucfirst($b->status) }}</span></td>
-                            <td class="px-4 py-3 text-xs text-gray-500">{{ $b->invoice->invoice_number ?? '-' }}</td>
+                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $bc  }}-100 text-{{ $bc }}-700 $bc }}-500/20 $bc }}-400">{{ ucfirst($b->status) }}</span></td>
+                            <td class="px-4 py-3 text-xs text-gray-500">{{ $b->invoice?->invoice_number ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>

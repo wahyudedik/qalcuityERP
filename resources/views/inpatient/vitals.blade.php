@@ -1,30 +1,27 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Vital Signs Monitoring')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-heartbeat text-primary"></i> Vital Signs Monitoring
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-heartbeat text-blue-600"></i> Vital Signs Monitoring
             </h1>
-            <p class="text-muted mb-0">Track patient vital signs over time</p>
+            <p class="text-gray-500">Track patient vital signs over time</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVitalsModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addVitalsModal">
                 <i class="fas fa-plus"></i> Record Vitals
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="GET" class="row g-2">
-                        <div class="col-md-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <form method="GET" class="grid grid-cols-1 md:grid-cols-2 gap-6 g-2">
+                        <div class="w-full md:w-1/3">
                             <select name="patient_id" class="form-select">
                                 <option value="">All Patients</option>
                                 @foreach ($patients ?? [] as $patient)
@@ -35,12 +32,12 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="w-full md:w-1/4">
                             <input type="date" name="date" class="form-control"
                                 value="{{ request('date', today()->format('Y-m-d')) }}">
                         </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
+                        <div class="w-full md:w-1/6">
+                            <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                                 <i class="fas fa-search"></i> Filter
                             </button>
                         </div>
@@ -50,12 +47,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Time</th>
@@ -75,12 +72,12 @@
                                         <td>{{ $vital->recorded_at?->format('H:i') ?? '-' }}</td>
                                         <td>
                                             <a href="{{ route('healthcare.patients.show', $vital->patient) }}">
-                                                {{ $vital->patient->name ?? '-' }}
+                                                {{ $vital->patient?->name ?? '-' }}
                                             </a>
                                         </td>
                                         <td>
                                             @if ($vital->temperature)
-                                                <span class="{{ $vital->temperature > 37.5 ? 'text-danger fw-bold' : '' }}">
+                                                <span class="{{ $vital->temperature > 37.5 ? 'text-red-600 font-bold' : '' }}">
                                                     {{ $vital->temperature }}°C
                                                 </span>
                                             @else
@@ -90,7 +87,7 @@
                                         <td>
                                             @if ($vital->heart_rate)
                                                 <span
-                                                    class="{{ $vital->heart_rate > 100 || $vital->heart_rate < 60 ? 'text-danger fw-bold' : '' }}">
+                                                    class="{{ $vital->heart_rate > 100 || $vital->heart_rate < 60 ? 'text-red-600 font-bold' : '' }}">
                                                     {{ $vital->heart_rate }}
                                                 </span>
                                             @else
@@ -100,7 +97,7 @@
                                         <td>
                                             @if ($vital->blood_pressure)
                                                 <span
-                                                    class="{{ explode('/', $vital->blood_pressure)[0] > 140 ? 'text-danger fw-bold' : '' }}">
+                                                    class="{{ explode('/', $vital->blood_pressure)[0] > 140 ? 'text-red-600 font-bold' : '' }}">
                                                     {{ $vital->blood_pressure }}
                                                 </span>
                                             @else
@@ -111,7 +108,7 @@
                                         <td>
                                             @if ($vital->spo2)
                                                 <span
-                                                    class="{{ $vital->spo2 < 95 ? 'text-danger fw-bold' : 'text-success' }}">
+                                                    class="{{ $vital->spo2 < 95 ? 'text-red-600 font-bold' : 'text-emerald-600' }}">
                                                     {{ $vital->spo2 }}%
                                                 </span>
                                             @else
@@ -120,11 +117,11 @@
                                         </td>
                                         <td><small>{{ Str::limit($vital->notes, 30) }}</small></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-warning btn-sm">
+                                                <button class="px-3 py-1.5 border border-amber-500 text-amber-600 hover:bg-amber-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -132,7 +129,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4 text-muted">No vital signs recorded</td>
+                                        <td colspan="9" class="text-center py-6 text-gray-400">No vital signs recorded</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -152,7 +149,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Record Vital Signs</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -164,36 +161,36 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Temperature (°C)</label>
                                 <input type="number" name="temperature" class="form-control" step="0.1" min="30"
                                     max="45" placeholder="36.5">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Heart Rate (bpm)</label>
                                 <input type="number" name="heart_rate" class="form-control" min="30" max="250"
                                     placeholder="72">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Blood Pressure</label>
                                 <input type="text" name="blood_pressure" class="form-control" placeholder="120/80">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Respiratory Rate</label>
                                 <input type="number" name="respiratory_rate" class="form-control" min="5"
                                     max="60" placeholder="16">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">SpO2 (%)</label>
                                 <input type="number" name="spo2" class="form-control" min="50" max="100"
                                     placeholder="98">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Recorded At</label>
                                 <input type="time" name="recorded_at" class="form-control"
                                     value="{{ now()->format('H:i') }}" required>
@@ -205,11 +202,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Vitals</button>
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Save Vitals</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

@@ -62,9 +62,9 @@
                 @forelse($orders as $do)
                 <tr class="hover:bg-slate-50">
                     <td class="px-4 py-3 font-mono font-medium text-slate-800">{{ $do->number }}</td>
-                    <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $do->salesOrder->number ?? '-' }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $do->salesOrder?->number ?? '-' }}</td>
                     <td class="px-4 py-3 text-slate-600">{{ $do->salesOrder?->customer?->name ?? '-' }}</td>
-                    <td class="px-4 py-3 text-slate-500">{{ $do->warehouse->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-slate-500">{{ $do->warehouse?->name ?? '-' }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ $do->delivery_date->format('d/m/Y') }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ $do->courier ?? '-' }}</td>
                     <td class="px-4 py-3">

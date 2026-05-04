@@ -170,7 +170,7 @@
                         @if ($voucher->package?->quota_bytes)
                             <div class="detail-row">
                                 <span class="label">Quota:</span>
-                                <span class="value">{{ round($voucher->package->quota_bytes / 1073741824, 2) }}
+                                <span class="value">{{ round($voucher->package?->quota_bytes / 1073741824, 2) }}
                                     GB</span>
                             </div>
                         @else

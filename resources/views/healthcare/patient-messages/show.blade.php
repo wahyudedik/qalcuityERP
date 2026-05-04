@@ -16,9 +16,9 @@
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $message->subject }}</h3>
                         <div class="flex items-center space-x-4 text-sm text-gray-600">
                             <span><i class="fas fa-user mr-1"></i>From:
-                                <strong>{{ $message->sender->name ?? 'Unknown' }}</strong></span>
+                                <strong>{{ $message->sender?->name ?? 'Unknown' }}</strong></span>
                             <span><i class="fas fa-user mr-1"></i>To:
-                                <strong>{{ $message->recipient->name ?? 'Unknown' }}</strong></span>
+                                <strong>{{ $message->recipient?->name ?? 'Unknown' }}</strong></span>
                             <span><i
                                     class="fas fa-calendar mr-1"></i>{{ $message->created_at->format('d/m/Y H:i') }}</span>
                         </div>
@@ -57,7 +57,7 @@
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center space-x-2">
                                         <span
-                                            class="font-semibold text-gray-900">{{ $reply->sender->name ?? 'Unknown' }}</span>
+                                            class="font-semibold text-gray-900">{{ $reply->sender?->name ?? 'Unknown' }}</span>
                                         @if ($reply->sender_id === auth()->id())
                                             <span class="text-xs text-gray-500">(You)</span>
                                         @endif

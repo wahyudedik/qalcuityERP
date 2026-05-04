@@ -155,7 +155,7 @@
                                             {{ $reg->product_name }}</div>
                                         @if ($reg->formula)
                                             <div class="text-xs text-gray-500">
-                                                {{ $reg->formula->formula_code }}</div>
+                                                {{ $reg->formula?->formula_code }}</div>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">

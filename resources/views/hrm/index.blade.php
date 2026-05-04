@@ -36,7 +36,7 @@
                     class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <select name="department" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Departemen</option>
-                    @foreach($departments as $dep)<option value="{{ $dep }}" @selected(request('department')===$dep)>{{ $dep }}</option>@endforeach
+                    @foreach($departments ?? [] as $dep)<option value="{{ $dep }}" @selected(request('department')===$dep)>{{ $dep }}</option>@endforeach
                 </select>
                 <select name="status" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                     <option value="">Semua Status</option>
@@ -173,7 +173,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Departemen</label>
                         <input type="text" name="department" list="dept-list" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <datalist id="dept-list">@foreach($departments as $d)<option value="{{ $d }}">@endforeach</datalist>
+                        <datalist id="dept-list">@foreach($departments ?? [] as $d)<option value="{{ $d }}">@endforeach</datalist>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Gaji Pokok</label>

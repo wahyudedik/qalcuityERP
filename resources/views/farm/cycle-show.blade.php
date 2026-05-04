@@ -7,7 +7,7 @@
 
     <div class="flex items-center justify-between mb-4">
         <a href="{{ route('farm.cycles') }}" class="text-sm text-blue-500 hover:text-blue-600">← Daftar Siklus</a>
-        <a href="{{ route('farm.plots.show', $cropCycle->plot) }}" class="text-sm text-gray-500 hover:text-gray-700">Lahan {{ $cropCycle->plot->code }} →</a>
+        <a href="{{ route('farm.plots.show', $cropCycle->plot) }}" class="text-sm text-gray-500 hover:text-gray-700">Lahan {{ $cropCycle->plot?->code }} →</a>
     </div>
 
     {{-- Phase Timeline --}}
@@ -36,7 +36,7 @@
         {{-- Phase progress --}}
         @php $phases = ['planning','land_prep','planting','vegetative','generative','harvest','post_harvest','completed']; @endphp
         <div class="flex gap-1 mb-1">
-            @foreach($phases as $p)
+            @foreach($phases ?? [] as $p)
             @php
                 $idx = \App\Models\CropCycle::PHASE_ORDER[$p];
                 $currentIdx = $cropCycle->phaseIndex();
@@ -48,7 +48,7 @@
             @endforeach
         </div>
         <div class="flex justify-between text-[9px] text-gray-400 mt-1 px-0.5">
-            @foreach($phases as $p)
+            @foreach($phases ?? [] as $p)
             <span class="{{ $cropCycle->phase === $p ? 'text-emerald-600 font-bold' : '' }}">
                 {{ explode(' ', \App\Models\CropCycle::PHASE_LABELS[$p])[0] }}
             </span>
@@ -120,8 +120,8 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-900 mb-3">Jadwal</h3>
                 <div class="space-y-2 text-sm">
-                    <div class="flex justify-between"><span class="text-gray-500">Lahan</span><span class="text-gray-900 font-medium">{{ $cropCycle->plot->code }} — {{ $cropCycle->plot->name }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Luas</span><span>{{ $cropCycle->plot->area_size }} {{ $cropCycle->plot->area_unit }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Lahan</span><span class="text-gray-900 font-medium">{{ $cropCycle->plot?->code }} — {{ $cropCycle->plot?->name }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Luas</span><span>{{ $cropCycle->plot?->area_size }} {{ $cropCycle->plot?->area_unit }}</span></div>
                     @if($cropCycle->plan_prep_start)
                     <div class="flex justify-between"><span class="text-gray-500">Renc. Olah Tanah</span><span>{{ $cropCycle->plan_prep_start->format('d M Y') }}</span></div>
                     @endif
@@ -150,7 +150,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-900 mb-3">Breakdown Biaya</h3>
                 <div class="space-y-2">
-                    @foreach($costByType as $ct)
+                    @foreach($costByType ?? [] as $ct)
                     <div class="flex justify-between text-xs">
                         <span class="text-gray-600">{{ \App\Models\FarmPlotActivity::ACTIVITY_TYPES[$ct->activity_type] ?? $ct->activity_type }}</span>
                         <span class="font-mono text-gray-900">Rp {{ number_format($ct->total_cost, 0, ',', '.') }}</span>

@@ -132,7 +132,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                             {{ $log->created_at->format('d/m/Y H:i:s') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $log->user->name ?? 'N/A' }}</td>
+                                            {{ $log->user?->name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
                                                 class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ $log->module }}</span>

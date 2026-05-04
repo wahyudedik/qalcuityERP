@@ -62,7 +62,7 @@
                 <div class="p-8 text-center text-gray-500 text-sm">Belum ada riwayat input.</div>
             @else
                 <div class="divide-y divide-gray-100">
-                    @foreach($logs as $log)
+                    @foreach($logs ?? [] as $log)
                         @php
                             $channelIcon = match($log->channel) {
                                 'photo' => '📷', 'voice' => '🎤', 'whatsapp' => '💬', default => '📝'

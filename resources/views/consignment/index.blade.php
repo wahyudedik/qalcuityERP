@@ -67,11 +67,11 @@
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">
                             <a href="{{ route('consignment.shipments.show', $s) }}" class="hover:text-blue-500">{{ $s->number }}</a>
                         </td>
-                        <td class="px-4 py-3 text-gray-700">{{ $s->partner->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $s->partner?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center hidden sm:table-cell text-xs text-gray-500">{{ $s->ship_date->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 text-right hidden md:table-cell text-gray-900">Rp {{ number_format($s->total_retail, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <a href="{{ route('consignment.shipments.show', $s) }}" class="text-xs px-2 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Detail</a>
@@ -99,12 +99,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Partner *</label>
                         <select name="partner_id" required class="{{ $cls }}"><option value="">-- Pilih --</option>
-                            @foreach($partners as $p)<option value="{{ $p->id }}">{{ $p->name }} ({{ $p->commission_pct }}%)</option>@endforeach
+                            @foreach($partners ?? [] as $p)<option value="{{ $p->id }}">{{ $p->name }} ({{ $p->commission_pct }}%)</option>@endforeach
                         </select>
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Gudang Asal *</label>
                         <select name="warehouse_id" required class="{{ $cls }}"><option value="">-- Pilih --</option>
-                            @foreach($warehouses as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach
+                            @foreach($warehouses ?? [] as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach
                         </select>
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Kirim *</label>

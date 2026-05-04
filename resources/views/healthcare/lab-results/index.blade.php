@@ -117,12 +117,12 @@
                         @forelse($results as $result)
                             <tr class="{{ $result->is_critical ? 'bg-red-50' : '' }}">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $result->patient->name ?? 'N/A' }}
+                                    <div class="text-sm font-medium text-gray-900">{{ $result->patient?->name ?? 'N/A' }}
                                     </div>
-                                    <div class="text-sm text-gray-500">{{ $result->order->order_number ?? '' }}</div>
+                                    <div class="text-sm text-gray-500">{{ $result->order?->order_number ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $result->test->name ?? 'N/A' }}</td>
+                                    {{ $result->test?->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="text-lg font-bold {{ $result->is_critical ? 'text-red-600' : 'text-gray-900' }}">
@@ -150,7 +150,7 @@
                                             <i class="fas fa-check mr-1"></i>Verified
                                         </span>
                                         <div class="text-xs text-gray-500 mt-1">By:
-                                            {{ $result->verifiedBy->name ?? 'N/A' }}</div>
+                                            {{ $result->verifiedBy?->name ?? 'N/A' }}</div>
                                     @else
                                         <span
                                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">

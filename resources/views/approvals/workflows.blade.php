@@ -73,7 +73,7 @@
                 <div class="px-6 py-12 text-center text-gray-400 text-sm">Belum ada workflow. Buat workflow pertama di atas.</div>
             @else
             <div class="divide-y divide-gray-100">
-                @foreach($workflows as $wf)
+                @foreach($workflows ?? [] as $wf)
                 <div class="px-6 py-4" x-data="{ editing: false }">
                     {{-- View mode --}}
                     <div x-show="!editing" class="flex flex-col sm:flex-row sm:items-center gap-4">

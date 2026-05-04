@@ -1,60 +1,57 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Data Anonymization')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-user-secret text-primary"></i> Data Anonymization
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-user-secret text-blue-600"></i> Data Anonymization
             </h1>
-            <p class="text-muted mb-0">Patient data privacy and anonymization tools</p>
+            <p class="text-gray-500">Patient data privacy and anonymization tools</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#anonymizeModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#anonymizeModal">
                 <i class="fas fa-user-secret"></i> Anonymize Data
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $stats['anonymized_records'] ?? 0 }}</h3>
-                    <small class="text-muted">Anonymized Records</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $stats['anonymized_records'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Anonymized Records</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $stats['pending_anonymization'] ?? 0 }}</h3>
-                    <small class="text-muted">Pending Anonymization</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $stats['pending_anonymization'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Pending Anonymization</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $stats['retention_days'] ?? 0 }}</h3>
-                    <small class="text-muted">Days Until Auto-Anonymize</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $stats['retention_days'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Days Until Auto-Anonymize</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Anonymization Rules</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Rule Name</th>
@@ -70,39 +67,39 @@
                                     <tr>
                                         <td><strong>{{ $rule['name'] ?? '-' }}</strong></td>
                                         <td>
-                                            <span class="badge bg-info">{{ $rule['data_type'] ?? '-' }}</span>
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">{{ $rule['data_type'] ?? '-' }}</span>
                                         </td>
                                         <td>{{ $rule['trigger'] ?? '-' }}</td>
                                         <td>
                                             @if ($rule['method'] == 'pseudonymization')
-                                                <span class="badge bg-primary">Pseudonymization</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Pseudonymization</span>
                                             @elseif($rule['method'] == 'generalization')
-                                                <span class="badge bg-success">Generalization</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Generalization</span>
                                             @elseif($rule['method'] == 'suppression')
-                                                <span class="badge bg-warning">Suppression</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Suppression</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ ucfirst($rule['method']) }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ ucfirst($rule['method']) }}</span>
                                             @endif
                                         </td>
                                         <td>
                                             @if ($rule['is_active'])
-                                                <span class="badge bg-success">Active</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
                                             @else
-                                                <span class="badge bg-secondary">Inactive</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Inactive</span>
                                             @endif
                                         </td>
                                         <td>
                                             @if ($rule['last_run'])
                                                 <small>{{ $rule['last_run'] }}</small>
-                                                <br><small class="text-muted">{{ $rule['last_run_diff'] ?? '-' }}</small>
+                                                <br><small class="text-gray-500">{{ $rule['last_run_diff'] ?? '-' }}</small>
                                             @else
-                                                <span class="text-muted">Never</span>
+                                                <span class="text-gray-500">Never</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">No anonymization rules configured
+                                        <td colspan="6" class="text-center text-gray-400">No anonymization rules configured
                                         </td>
                                     </tr>
                                 @endforelse
@@ -114,15 +111,15 @@
         </div>
     </div>
 
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Recent Anonymization Activity</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -147,19 +144,19 @@
                                         <td>{{ $activity['triggered_by'] ?? 'System' }}</td>
                                         <td>
                                             @if ($activity['status'] == 'completed')
-                                                <span class="badge bg-success">Completed</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Completed</span>
                                             @elseif($activity['status'] == 'in_progress')
-                                                <span class="badge bg-warning">In Progress</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">In Progress</span>
                                             @else
-                                                <span class="badge bg-danger">Failed</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Failed</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
                                         <td colspan="6" class="text-center py-4">
-                                            <i class="fas fa-user-secret fa-2x text-muted mb-2"></i>
-                                            <p class="text-muted">No anonymization activity</p>
+                                            <i class="fas fa-user-secret fa-2x text-gray-500 mb-2"></i>
+                                            <p class="text-gray-500">No anonymization activity</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -177,7 +174,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Anonymize Patient Data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('compliance.anonymization.store') }}" method="POST">
                     @csrf
@@ -189,7 +186,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Data Scope <span class="text-danger">*</span></label>
+                            <label class="form-label">Data Scope <span class="text-red-600">*</span></label>
                             <select name="scope" class="form-select" required>
                                 <option value="">Select Scope</option>
                                 <option value="discharged">Discharged Patients (> 90 days)</option>
@@ -200,7 +197,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Anonymization Method <span class="text-danger">*</span></label>
+                            <label class="form-label">Anonymization Method <span class="text-red-600">*</span></label>
                             <select name="method" class="form-select" required>
                                 <option value="">Select Method</option>
                                 <option value="pseudonymization">Pseudonymization (Replace identifiers)</option>
@@ -212,8 +209,8 @@
 
                         <div class="mb-3">
                             <label class="form-label">Data Fields to Anonymize</label>
-                            <div class="row">
-                                <div class="col-md-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="w-full md:w-1/3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="fields[]" value="name"
                                             id="field_name" checked>
@@ -230,7 +227,7 @@
                                         <label class="form-check-label" for="field_email">Email</label>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="w-full md:w-1/3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="fields[]" value="address"
                                             id="field_address" checked>
@@ -247,7 +244,7 @@
                                         <label class="form-check-label" for="field_insurance">Insurance Details</label>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="w-full md:w-1/3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="fields[]" value="notes"
                                             id="field_notes">
@@ -263,7 +260,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Reason for Anonymization <span class="text-danger">*</span></label>
+                            <label class="form-label">Reason for Anonymization <span class="text-red-600">*</span></label>
                             <textarea name="reason" class="form-control" rows="3" required
                                 placeholder="Explain why this data needs to be anonymized..."></textarea>
                         </div>
@@ -276,8 +273,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                             <i class="fas fa-user-secret"></i> Anonymize Data
                         </button>
                     </div>
@@ -286,8 +283,8 @@
         </div>
     </div>
 
-    <div class="row mt-3">
-        <div class="col-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+        <div class="w-full">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong>Privacy Compliance:</strong> Patient data anonymization is performed in accordance with HIPAA and
@@ -297,4 +294,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

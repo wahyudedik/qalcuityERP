@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="header">Input Diagnosa - {{ $visit->patient->full_name ?? 'Pasien' }}</x-slot>
+    <x-slot name="header">Input Diagnosa - {{ $visit->patient?->full_name ?? 'Pasien' }}</x-slot>
 
     <div class="max-w-4xl mx-auto">
         {{-- Patient Info Banner --}}
@@ -13,8 +13,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-lg font-bold">{{ $visit->patient->full_name ?? '-' }}</h2>
-                    <p class="text-sm text-white/80">RM: {{ $visit->patient->medical_record_number ?? '-' }} |
+                    <h2 class="text-lg font-bold">{{ $visit->patient?->full_name ?? '-' }}</h2>
+                    <p class="text-sm text-white/80">RM: {{ $visit->patient?->medical_record_number ?? '-' }} |
                         {{ $visit->chief_complaint ?? 'Tidak ada keluhan' }}</p>
                 </div>
             </div>

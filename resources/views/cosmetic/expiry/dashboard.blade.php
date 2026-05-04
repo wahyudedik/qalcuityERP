@@ -98,7 +98,7 @@
                                         <span class="text-sm font-medium text-gray-900">{{ $alert->type_label }}</span>
                                     </div>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        {{ $alert->batch->batch_number ?? 'N/A' }} -
+                                        {{ $alert->batch?->batch_number ?? 'N/A' }} -
                                         {{ $alert->days_until_expiry < 0 ? 'Expired ' . abs($alert->days_until_expiry) . ' days ago' : $alert->days_until_expiry . ' days remaining' }}
                                     </p>
                                 </div>
@@ -152,7 +152,7 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900">{{ $batch->batch_number }}</p>
-                                    <p class="text-xs text-gray-600">{{ $batch->formula->formula_name ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-600">{{ $batch->formula?->formula_name ?? 'N/A' }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p

@@ -58,7 +58,7 @@
         ];
         @endphp
 
-        @foreach($reports as $r)
+        @foreach($reports ?? [] as $r)
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-11 h-11 rounded-2xl {{ $r['bg'] }} flex items-center justify-center shrink-0">

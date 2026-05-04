@@ -60,7 +60,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @foreach ($invoice->salesOrder->items as $item)
+                                @foreach ($invoice->salesOrder?->items as $item)
                                     <tr>
                                         <td class="px-4 py-3 text-gray-900">
                                             {{ $item->product?->name ?? '-' }}</td>
@@ -96,7 +96,7 @@
                                 </div>
                                 @php $pc = ($payment->status ?? 'pending') === 'confirmed' ? 'green' : 'amber'; @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($payment->status ?? 'pending') }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($payment->status ?? 'pending') }}</span>
                             </div>
                         @endforeach
                     </div>

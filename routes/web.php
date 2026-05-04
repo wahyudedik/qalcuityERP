@@ -984,6 +984,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/suppliers/{supplier}', fn() => redirect()->route('suppliers.index'))->name('suppliers.update');
         Route::get('/orders', [PurchasingController::class, 'orders'])->name('orders');
         Route::post('/orders', [PurchasingController::class, 'storeOrder'])->name('orders.store');
+        Route::get('/orders/{order}', [PurchasingController::class, 'showOrder'])->name('orders.show');
         Route::patch('/orders/{order}/status', [PurchasingController::class, 'updateOrderStatus'])->name('orders.status');
         Route::delete('/orders/{order}', [PurchasingController::class, 'destroyOrder'])->name('orders.destroy');
         // Task 35: State machine actions

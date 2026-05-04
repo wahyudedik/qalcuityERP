@@ -19,9 +19,9 @@
                     @php $sc = ['draft'=>'gray','in_progress'=>'amber','completed'=>'green'][$s->status] ?? 'gray'; @endphp
                     <tr>
                         <td class="px-4 py-3 font-mono text-xs text-gray-900">{{ $s->number }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $s->warehouse->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $s->warehouse?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $s->opname_date->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($s->status) }}</span></td>
+                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($s->status) }}</span></td>
                         <td class="px-4 py-3 text-center"><a href="{{ route('wms.opname.show', $s) }}" class="text-xs px-2 py-1 border border-gray-200 rounded-lg text-gray-600">Detail</a></td>
                     </tr>
                     @empty
@@ -42,7 +42,7 @@
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900'; @endphp
                 <div><label class="block text-xs text-gray-600 mb-1">Gudang *</label>
-                    <select name="warehouse_id" required class="{{ $cls }}">@foreach($warehouses as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach</select>
+                    <select name="warehouse_id" required class="{{ $cls }}">@foreach($warehouses ?? [] as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach</select>
                 </div>
                 <div><label class="block text-xs text-gray-600 mb-1">Tanggal *</label><input type="date" name="opname_date" required value="{{ date('Y-m-d') }}" class="{{ $cls }}"></div>
                 <button type="submit" class="w-full py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Buat & Auto-populate</button>

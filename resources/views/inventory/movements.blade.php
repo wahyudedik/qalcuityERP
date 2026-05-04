@@ -23,8 +23,8 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($movements as $m)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ $m->product->name ?? '-' }}</td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500">{{ $m->warehouse->name ?? '-' }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $m->product?->name ?? '-' }}</td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500">{{ $m->warehouse?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center">
                             <span class="px-2 py-0.5 rounded-full text-xs {{ $m->type === 'in' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ $m->type === 'in' ? 'Masuk' : 'Keluar' }}

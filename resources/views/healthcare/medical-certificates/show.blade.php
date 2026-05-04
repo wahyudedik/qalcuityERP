@@ -29,7 +29,7 @@
                     <dl class="space-y-4">
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Patient</dt>
-                            <dd class="mt-1 text-lg text-gray-900">{{ $certificate->patient->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-lg text-gray-900">{{ $certificate->patient?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Status</dt>

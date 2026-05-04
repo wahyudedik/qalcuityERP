@@ -177,7 +177,7 @@
                                         </a>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ $inspection->workOrder->number ?? 'N/A' }}</td>
+                                        {{ $inspection->workOrder?->number ?? 'N/A' }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ $inspection->stage_label ?? $inspection->stage }}</td>
                                     <td class="px-4 py-3 text-sm">

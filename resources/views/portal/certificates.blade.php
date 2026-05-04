@@ -1,60 +1,57 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Medical Certificates')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-certificate text-primary"></i> My Medical Certificates
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-certificate text-blue-600"></i> My Medical Certificates
             </h1>
-            <p class="text-muted mb-0">Download your medical certificates and documents</p>
+            <p class="text-gray-500">Download your medical certificates and documents</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestCertificateModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#requestCertificateModal">
                 <i class="fas fa-plus"></i> Request Certificate
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">{{ $stats['total_certificates'] ?? 0 }}</h3>
-                    <small class="text-muted">Total Certificates</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-blue-400">
+                <div class="p-5 text-center">
+                    <h3 class="text-blue-600">{{ $stats['total_certificates'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Total Certificates</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $stats['approved'] ?? 0 }}</h3>
-                    <small class="text-muted">Approved</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $stats['approved'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Approved</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $stats['pending'] ?? 0 }}</h3>
-                    <small class="text-muted">Pending</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $stats['pending'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Pending</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Certificate List</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Certificate #</th>
@@ -74,15 +71,15 @@
                                         </td>
                                         <td>
                                             @if ($cert->type == 'sick_leave')
-                                                <span class="badge bg-danger">Sick Leave</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Sick Leave</span>
                                             @elseif($cert->type == 'fitness')
-                                                <span class="badge bg-success">Fitness Certificate</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Fitness Certificate</span>
                                             @elseif($cert->type == 'medical_report')
-                                                <span class="badge bg-primary">Medical Report</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Medical Report</span>
                                             @elseif($cert->type == 'vaccination')
-                                                <span class="badge bg-info">Vaccination Certificate</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">Vaccination Certificate</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ ucfirst($cert->type ?? '-') }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ ucfirst($cert->type ?? '-') }}</span>
                                             @endif
                                         </td>
                                         <td>
@@ -92,15 +89,15 @@
                                             @if ($cert->valid_until)
                                                 <small>{{ $cert->valid_until->format('d/m/Y') }}</small>
                                                 @if ($cert->valid_until->isPast())
-                                                    <br><span class="badge bg-danger">Expired</span>
+                                                    <br><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Expired</span>
                                                 @endif
                                             @else
-                                                <small class="text-muted">No Expiry</small>
+                                                <small class="text-gray-500">No Expiry</small>
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                            <div class="flex items-center">
+                                                <div class="rounded-full bg-primary text-white flex items-center justify-center mr-2"
                                                     style="width: 30px; height: 30px;">
                                                     <i class="fas fa-user-md fa-xs"></i>
                                                 </div>
@@ -109,29 +106,29 @@
                                         </td>
                                         <td>
                                             @if ($cert->status == 'approved')
-                                                <span class="badge bg-success">Approved</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Approved</span>
                                             @elseif($cert->status == 'pending')
-                                                <span class="badge bg-warning">Pending</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Pending</span>
                                             @elseif($cert->status == 'rejected')
-                                                <span class="badge bg-danger">Rejected</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Rejected</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ ucfirst($cert->status) }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ ucfirst($cert->status) }}</span>
                                             @endif
                                         </td>
                                         <td>
                                             @if ($cert->status == 'approved')
-                                                <div class="btn-group">
-                                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                                <div class="flex gap-1">
+                                                    <button class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs transition" data-bs-toggle="modal"
                                                         data-bs-target="#viewCertModal{{ $cert->id }}">
                                                         <i class="fas fa-eye"></i> View
                                                     </button>
-                                                    <button class="btn btn-sm btn-success" title="Download"
+                                                    <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs transition" title="Download"
                                                         onclick="window.print()">
                                                         <i class="fas fa-download"></i> Download
                                                     </button>
                                                 </div>
                                             @else
-                                                <span class="text-muted">-</span>
+                                                <span class="text-gray-500">-</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -142,33 +139,33 @@
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title">Medical Certificate</h5>
-                                                    <button type="button" class="btn-close"
+                                                    <button type="button" class="text-gray-400 hover:text-gray-600"
                                                         data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="text-center mb-4">
                                                         <h4>
-                                                            <i class="fas fa-hospital text-primary"></i>
+                                                            <i class="fas fa-hospital text-blue-600"></i>
                                                             Qalcuity Medical Center
                                                         </h4>
-                                                        <p class="text-muted">Medical Certificate</p>
+                                                        <p class="text-gray-500">Medical Certificate</p>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Certificate Number:</strong>
                                                             <p>{{ $cert->certificate_number ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Type:</strong>
                                                             <p>{{ ucfirst(str_replace('_', ' ', $cert->type ?? '-')) }}</p>
                                                         </div>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Patient Name:</strong>
                                                             <p>{{ $cert->patient_name ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Issue Date:</strong>
                                                             <p>{{ $cert->issue_date->format('d/m/Y') ?? '-' }}</p>
                                                         </div>
@@ -179,17 +176,17 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <strong>Medical Notes:</strong>
-                                                        <p class="bg-light p-3 rounded" style="white-space: pre-wrap;">
+                                                        <p class="bg-gray-50 p-3 rounded" style="white-space: pre-wrap;">
                                                             {{ $cert->notes ?? 'N/A' }}</p>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Issued By:</strong>
                                                             <p>{{ $cert->doctor_name ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Doctor's Signature:</strong>
-                                                            <p class="text-muted">[Digital Signature]</p>
+                                                            <p class="text-gray-500">[Digital Signature]</p>
                                                         </div>
                                                     </div>
                                                     <div class="alert alert-info">
@@ -198,9 +195,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
+                                                    <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition"
                                                         data-bs-dismiss="modal">Close</button>
-                                                    <button class="btn btn-success" onclick="window.print()">
+                                                    <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition" onclick="window.print()">
                                                         <i class="fas fa-print"></i> Print Certificate
                                                     </button>
                                                 </div>
@@ -209,9 +206,9 @@
                                     </div>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
-                                            <i class="fas fa-certificate fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">No medical certificates found</p>
+                                        <td colspan="7" class="text-center py-10">
+                                            <i class="fas fa-certificate fa-3x text-gray-500 mb-3"></i>
+                                            <p class="text-gray-500">No medical certificates found</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -229,13 +226,13 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Request Medical Certificate</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ route('portal.certificates.request') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Certificate Type <span class="text-danger">*</span></label>
+                            <label class="form-label">Certificate Type <span class="text-red-600">*</span></label>
                             <select name="type" class="form-select" required>
                                 <option value="">Select Type</option>
                                 <option value="sick_leave">Sick Leave Certificate</option>
@@ -245,7 +242,7 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Purpose <span class="text-danger">*</span></label>
+                            <label class="form-label">Purpose <span class="text-red-600">*</span></label>
                             <input type="text" name="purpose" class="form-control" required
                                 placeholder="e.g., Work requirement, Insurance claim">
                         </div>
@@ -255,8 +252,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                             <i class="fas fa-paper-plane"></i> Submit Request
                         </button>
                     </div>
@@ -264,4 +261,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

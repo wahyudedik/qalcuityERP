@@ -32,8 +32,8 @@
                         <h3 class="text-lg font-bold text-gray-900">Exam:
                             {{ $exam->exam_number ?? '-' }}</h3>
                         <p class="text-sm text-gray-600 mt-1">
-                            {{ $exam->patient ? $exam->patient->full_name : '-' }} |
-                            {{ $exam->patient ? $exam->patient->medical_record_number : '-' }}</p>
+                            {{ $exam->patient ? $exam->patient?->full_name : '-' }} |
+                            {{ $exam->patient ? $exam->patient?->medical_record_number : '-' }}</p>
                     </div>
                     <a href="{{ route('healthcare.radiology.exams') }}"
                         class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50">
@@ -55,7 +55,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Dokter</p>
                     <p class="text-sm font-semibold text-gray-900 mt-1">
-                        {{ $exam->doctor ? $exam->doctor->name : '-' }}</p>
+                        {{ $exam->doctor ? $exam->doctor?->name : '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Tanggal Exam</p>

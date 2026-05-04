@@ -178,7 +178,7 @@
                                     <td class="px-4 py-3">
                                         @if ($eval->purchaseOrder)
                                             <a href="#"
-                                                class="text-blue-600 hover:underline">{{ $eval->purchaseOrder->number }}</a>
+                                                class="text-blue-600 hover:underline">{{ $eval->purchaseOrder?->number }}</a>
                                         @else
                                             <span class="text-gray-400">Manual</span>
                                         @endif

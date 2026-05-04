@@ -66,7 +66,7 @@
                     @php $sc = ['draft'=>'gray','submitted'=>'amber','approved'=>'blue','rejected'=>'red','paid'=>'green'][$r->status] ?? 'gray'; @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs text-gray-900">{{ $r->number }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $r->employee->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $r->employee?->name ?? '-' }}</td>
                         <td class="px-4 py-3 hidden sm:table-cell text-xs text-gray-500">{{ $r->categoryLabel() }}</td>
                         <td class="px-4 py-3 text-gray-900">
                             {{ Str::limit($r->description, 30) }}
@@ -74,7 +74,7 @@
                         </td>
                         <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($r->amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($r->status) }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($r->status) }}</span>
                             @if($r->reject_reason)<p class="text-xs text-red-400 mt-0.5">{{ Str::limit($r->reject_reason, 20) }}</p>@endif
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -130,7 +130,7 @@
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900'; @endphp
                 <div><label class="block text-xs font-medium text-gray-600 mb-1">Karyawan *</label>
                     <select name="employee_id" required class="{{ $cls }}"><option value="">-- Pilih --</option>
-                        @foreach($employees as $e)<option value="{{ $e->id }}">{{ $e->name }} ({{ $e->employee_id }})</option>@endforeach
+                        @foreach($employees ?? [] as $e)<option value="{{ $e->id }}">{{ $e->name }} ({{ $e->employee_id }})</option>@endforeach
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">

@@ -14,7 +14,7 @@
                 ['label' => 'Jatuh Tempo', 'value' => $stats['overdue'], 'color' => 'text-rose-600',   'bg' => 'bg-rose-50'],
             ];
             @endphp
-            @foreach($statCards as $card)
+            @foreach($statCards ?? [] as $card)
             <div class="rounded-xl border border-gray-200 p-4 {{ $card['bg'] }}">
                 <p class="text-xs text-gray-500">{{ $card['label'] }}</p>
                 <p class="text-2xl font-bold mt-1 {{ $card['color'] }}">{{ $card['value'] }}</p>
@@ -80,7 +80,7 @@
                             <td class="px-4 py-3 text-gray-900">
                                 {{ $invoice->customer?->name ?? '-' }}
                                 @if($invoice->customer?->company)
-                                <span class="block text-xs text-gray-400">{{ $invoice->customer->company }}</span>
+                                <span class="block text-xs text-gray-400">{{ $invoice->customer?->company }}</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell {{ $isOverdue ? 'text-red-600 font-medium' : 'text-gray-600' }}">

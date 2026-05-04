@@ -15,7 +15,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Modul</label>
                         <select name="module" class="w-full rounded-lg border-gray-300 text-sm">
-                            @foreach($modules as $key => $label)
+                            @foreach($modules ?? [] as $key => $label)
                                 <option value="{{ $key }}" {{ $module === $key ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -28,7 +28,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tipe</label>
                         <select name="type" x-model="type" class="w-full rounded-lg border-gray-300 text-sm">
-                            @foreach($types as $key => $label)
+                            @foreach($types ?? [] as $key => $label)
                                 <option value="{{ $key }}">{{ $label }}</option>
                             @endforeach
                         </select>
@@ -59,7 +59,7 @@
             <div class="lg:col-span-2 space-y-4">
                 <!-- Module Tabs -->
                 <div class="flex flex-wrap gap-2">
-                    @foreach($modules as $key => $label)
+                    @foreach($modules ?? [] as $key => $label)
                         <a href="{{ route('custom-fields.index', ['module' => $key]) }}"
                            class="px-3 py-1.5 rounded-full text-xs font-medium transition
                                {{ $module === $key
@@ -76,7 +76,7 @@
                     </div>
                 @else
                     <div class="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
-                        @foreach($fields as $field)
+                        @foreach($fields ?? [] as $field)
                             <div class="p-4 flex items-center justify-between gap-4" x-data="{ editing: false }">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2">

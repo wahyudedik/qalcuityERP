@@ -55,7 +55,7 @@
         <div class="p-8 text-center text-sm text-gray-400">Belum ada token API.</div>
         @else
         <div class="divide-y divide-gray-100">
-            @foreach($tokens as $token)
+            @foreach($tokens ?? [] as $token)
             <div class="px-5 py-4 flex items-center justify-between gap-4">
                 <div class="min-w-0">
                     <div class="flex items-center gap-2">
@@ -109,7 +109,7 @@
         <div class="p-8 text-center text-sm text-gray-400">Belum ada webhook subscription.</div>
         @else
         <div class="divide-y divide-gray-100">
-            @foreach($webhooks as $wh)
+            @foreach($webhooks ?? [] as $wh)
             <div class="px-5 py-4">
                 <div class="flex items-start justify-between gap-4">
                     <div class="min-w-0">
@@ -224,11 +224,11 @@
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-2">Events</label>
                 <div class="space-y-3 max-h-64 overflow-y-auto">
-                    @foreach($availableEvents as $group => $events)
+                    @foreach($availableEvents ?? [] as $group => $events)
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">{{ $group }}</p>
                         <div class="space-y-1">
-                            @foreach($events as $ev)
+                            @foreach($events ?? [] as $ev)
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="events[]" value="{{ $ev }}"
                                        class="rounded border-gray-300 text-blue-600">

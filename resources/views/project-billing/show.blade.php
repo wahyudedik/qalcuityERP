@@ -168,7 +168,7 @@
                 <h3 class="font-semibold text-amber-800">Retensi Belum Dirilis</h3>
             </div>
             <div class="divide-y divide-gray-100">
-                @foreach($retentionInvoices as $ri)
+                @foreach($retentionInvoices ?? [] as $ri)
                 <div class="px-6 py-4 flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-900">
@@ -214,7 +214,7 @@
                             <td class="px-4 py-3 text-gray-900">{{ $ms->name }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($ms->amount, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $ms->due_date?->format('d/m/Y') ?? '-' }}</td>
-                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">{{ ucfirst($ms->status) }}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc  }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">{{ ucfirst($ms->status) }}</span></td>
                             <td class="px-4 py-3 text-center">
                                 @canmodule('project_billing', 'edit')
                                 @if($ms->status === 'pending')
@@ -248,10 +248,10 @@
                         <tr><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-left">Staff</th><th class="px-4 py-3 text-left">Deskripsi</th><th class="px-4 py-3 text-right">Jam</th><th class="px-4 py-3 text-right">Rate</th><th class="px-4 py-3 text-right">Total</th></tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @foreach($unbilledTimesheets as $ts)
+                        @foreach($unbilledTimesheets ?? [] as $ts)
                         <tr>
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $ts->date->format('d/m/Y') }}</td>
-                            <td class="px-4 py-3 text-gray-900">{{ $ts->user->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-900">{{ $ts->user?->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-gray-500 text-xs">{{ Str::limit($ts->description, 40) }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">{{ $ts->hours }}h</td>
                             <td class="px-4 py-3 text-right text-gray-500">Rp {{ number_format($ts->hourly_rate ?: ($config->hourly_rate ?? 0), 0, ',', '.') }}</td>
@@ -280,7 +280,7 @@
                         @php $ic = ['draft'=>'gray','invoiced'=>'blue','paid'=>'green'][$pi->status] ?? 'gray'; @endphp
                         <tr>
                             <td class="px-4 py-3">
-                                <span class="text-gray-900 font-mono text-xs">{{ $pi->invoice->number ?? '-' }}</span>
+                                <span class="text-gray-900 font-mono text-xs">{{ $pi->invoice?->number ?? '-' }}</span>
                                 @if($pi->termin_number)<span class="ml-1 text-[10px] text-blue-500">T#{{ $pi->termin_number }}</span>@endif
                                 @if($pi->billing_type === 'retention_release')<span class="ml-1 text-[10px] text-amber-500">Rilis Retensi</span>@endif
                             </td>
@@ -288,7 +288,7 @@
                             <td class="px-4 py-3 text-right text-xs text-gray-500 font-mono">{{ $pi->gross_amount > 0 ? 'Rp '.number_format($pi->gross_amount, 0, ',', '.') : '-' }}</td>
                             <td class="px-4 py-3 text-right text-xs {{ $pi->retention_amount > 0 ? 'text-amber-500' : 'text-gray-400' }} font-mono">{{ $pi->retention_amount > 0 ? 'Rp '.number_format($pi->retention_amount, 0, ',', '.') : '-' }}</td>
                             <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($pi->total_amount, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($pi->status) }}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($pi->status) }}</span></td>
                         </tr>
                         @endforeach
                     </tbody>

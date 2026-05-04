@@ -61,7 +61,7 @@
                             <p class="font-mono text-xs font-semibold text-gray-900">{{ $pr->number }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $pr->created_at->format('d M Y') }}</p>
                         </td>
-                        <td class="px-4 py-3 hidden md:table-cell text-gray-700">{{ $pr->requester->name }}</td>
+                        <td class="px-4 py-3 hidden md:table-cell text-gray-700">{{ $pr->requester?->name }}</td>
                         <td class="px-4 py-3 hidden md:table-cell text-gray-500">{{ $pr->department ?? '—' }}</td>
                         <td class="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
                             {{ $pr->required_date?->format('d M Y') ?? '—' }}

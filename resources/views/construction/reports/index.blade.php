@@ -179,7 +179,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         {{ $report->report_date->format('d M Y') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        {{ $report->reportedBy->name ?? 'N/A' }}</td>
+                                        {{ $report->reportedBy?->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

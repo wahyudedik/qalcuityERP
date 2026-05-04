@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Sample Data - Onboarding')
 
@@ -45,7 +45,7 @@
                     <p class="text-gray-600 mb-8">Select a pre-built dataset to populate your workspace, or skip to start fresh.</p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        @foreach($templates as $template)
+                        @foreach($templates ?? [] as $template)
                             <button @click="selectTemplate({{ $template['id'] }})"
                                 :class="selectedTemplate === {{ $template['id'] }} ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'"
                                 class="border-2 rounded-xl p-6 text-left transition-all w-full">

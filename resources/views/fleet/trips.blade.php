@@ -70,7 +70,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ $tl }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc  }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ $tl }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if ($t->status === 'in_progress')

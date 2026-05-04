@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="title">Langganan — Qalcuity ERP</x-slot>
+    <x-slot name="title">Langganan � Qalcuity ERP</x-slot>
     <x-slot name="header">Langganan</x-slot>
 
     @php
@@ -36,8 +36,8 @@
                         </span>
                     </div>
                     @if($tenant?->subscriptionPlan)
-                        <p class="text-sm text-gray-500 mt-1">{{ $tenant->subscriptionPlan->name }} —
-                            Rp {{ number_format($tenant->subscriptionPlan->price_monthly, 0, ',', '.') }}/bulan
+                        <p class="text-sm text-gray-500 mt-1">{{ $tenant->subscriptionPlan?->name }} �
+                            Rp {{ number_format($tenant->subscriptionPlan?->price_monthly, 0, ',', '.') }}/bulan
                         </p>
                     @endif
                 </div>
@@ -72,7 +72,7 @@
                     @php $maxUsers = $tenant?->maxUsers() ?? 3; @endphp
                     <p class="text-sm font-semibold text-gray-900">
                         {{ $tenant?->users()->count() ?? 0 }}
-                        <span class="font-normal text-gray-500">/ {{ $maxUsers === -1 ? '∞' : $maxUsers }}</span>
+                        <span class="font-normal text-gray-500">/ {{ $maxUsers === -1 ? '8' : $maxUsers }}</span>
                     </p>
                     @if($maxUsers !== -1)
                     <div class="mt-1.5 h-1.5 bg-[#f8f8f8] rounded-full overflow-hidden">
@@ -89,7 +89,7 @@
                     @endphp
                     <p class="text-sm font-semibold text-gray-900">
                         {{ $usedAi }}
-                        <span class="font-normal text-gray-500">/ {{ $maxAi === -1 ? '∞' : $maxAi }}</span>
+                        <span class="font-normal text-gray-500">/ {{ $maxAi === -1 ? '8' : $maxAi }}</span>
                     </p>
                     @if($maxAi !== -1)
                     <div class="mt-1.5 h-1.5 bg-[#f8f8f8] rounded-full overflow-hidden">
@@ -119,7 +119,7 @@
                         Hubungi tim kami untuk upgrade ke paket berbayar dan nikmati semua fitur tanpa batas.
                     </p>
                 </div>
-                   <a href="https://wa.me/6281654932383?text=Halo,%20saya%20ingin%20upgrade%20paket%20untuk%20{{ urlencode($tenant?->name ?? 'tenant saya') }}"
+                   <a href="https://wa.me/6281529211963?text=Halo,%20saya%20ingin%20upgrade%20paket%20untuk%20{{ urlencode($tenant?->name ?? 'tenant saya') }}"
                    target="_blank"
                    class="shrink-0 bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition">
                     Hubungi Kami
@@ -133,7 +133,7 @@
         <div>
             <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Pilihan Paket</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                @foreach($plans as $plan)
+                @foreach($plans ?? [] as $plan)
                 @php $isCurrent = $tenant?->subscription_plan_id == $plan->id; @endphp
                 <div class="bg-white rounded-2xl border shadow-sm p-5 flex flex-col relative
                     {{ $isCurrent ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-200' }}">
@@ -192,7 +192,7 @@
                         @endif
                     </div>
                     @else
-                    <a href="https://wa.me/6281654932383?text=Halo,%20saya%20ingin%20upgrade%20ke%20paket%20{{ urlencode($plan->name) }}"
+                    <a href="https://wa.me/6281529211963?text=Halo,%20saya%20ingin%20upgrade%20ke%20paket%20{{ urlencode($plan->name) }}"
                        target="_blank"
                        class="block text-center text-sm font-semibold py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition">
                         Hubungi Kami
@@ -213,7 +213,7 @@
             </div>
             <div>
                 <p class="text-sm font-semibold text-gray-900">Butuh bantuan atau ingin upgrade?</p>
-                <p class="text-sm text-gray-500">Hubungi kami di <a href="mailto:info@qalcuity.com" class="text-blue-400 hover:underline">info@qalcuity.com</a> — tim kami siap membantu.</p>
+                <p class="text-sm text-gray-500">Hubungi kami di <a href="mailto:info@qalcuity.com" class="text-blue-400 hover:underline">info@qalcuity.com</a> � tim kami siap membantu.</p>
             </div>
         </div>
 

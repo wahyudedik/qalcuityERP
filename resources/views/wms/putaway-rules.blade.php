@@ -16,10 +16,10 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($rules as $r)
                     <tr>
-                        <td class="px-4 py-3 text-gray-900">{{ $r->warehouse->name ?? '-' }}</td>
-                        <td class="px-4 py-3 text-gray-700">{{ $r->product->name ?? $r->product_category ?? 'Semua' }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $r->zone->name ?? '-' }}</td>
-                        <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ $r->bin->code ?? 'Auto' }}</td>
+                        <td class="px-4 py-3 text-gray-900">{{ $r->warehouse?->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $r->product?->name ?? $r->product_category ?? 'Semua' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $r->zone?->name ?? '-' }}</td>
+                        <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ $r->bin?->code ?? 'Auto' }}</td>
                         <td class="px-4 py-3 text-center text-gray-900">{{ $r->priority }}</td>
                         <td class="px-4 py-3 text-center">
                             @canmodule('wms', 'delete')
@@ -47,10 +47,10 @@
                 @csrf
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900'; @endphp
                 <div><label class="block text-xs text-gray-600 mb-1">Gudang *</label>
-                    <select name="warehouse_id" required class="{{ $cls }}">@foreach($warehouses as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach</select>
+                    <select name="warehouse_id" required class="{{ $cls }}">@foreach($warehouses ?? [] as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach</select>
                 </div>
                 <div><label class="block text-xs text-gray-600 mb-1">Produk (opsional)</label>
-                    <select name="product_id" class="{{ $cls }}"><option value="">-- Semua --</option>@foreach($products as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach</select>
+                    <select name="product_id" class="{{ $cls }}"><option value="">-- Semua --</option>@foreach($products ?? [] as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach</select>
                 </div>
                 <div><label class="block text-xs text-gray-600 mb-1">Kategori Produk (opsional)</label><input type="text" name="product_category" placeholder="elektronik, makanan..." class="{{ $cls }}"></div>
                 <div><label class="block text-xs text-gray-600 mb-1">Prioritas</label><input type="number" name="priority" min="0" value="0" class="{{ $cls }}"></div>

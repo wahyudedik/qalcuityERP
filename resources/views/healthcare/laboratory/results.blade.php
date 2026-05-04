@@ -40,8 +40,8 @@
                         <h3 class="text-lg font-bold text-gray-900">Order:
                             {{ $order->order_number ?? '-' }}</h3>
                         <p class="text-sm text-gray-600 mt-1">
-                            {{ $order->patient ? $order->patient->full_name : '-' }} |
-                            {{ $order->patient ? $order->patient->medical_record_number : '-' }}</p>
+                            {{ $order->patient ? $order->patient?->full_name : '-' }} |
+                            {{ $order->patient ? $order->patient?->medical_record_number : '-' }}</p>
                     </div>
                     <a href="{{ route('healthcare.laboratory.orders') }}"
                         class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50">
@@ -58,7 +58,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Dokter</p>
                     <p class="text-sm font-semibold text-gray-900 mt-1">
-                        {{ $order->doctor ? $order->doctor->name : '-' }}</p>
+                        {{ $order->doctor ? $order->doctor?->name : '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Tanggal Order</p>

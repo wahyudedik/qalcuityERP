@@ -23,7 +23,7 @@
                             </span>
                         @endif
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">{{ $variant->product->formula_name ?? 'N/A' }}</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ $variant->product?->formula_name ?? 'N/A' }}</p>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="document.getElementById('edit-variant-modal').classList.remove('hidden')"
@@ -115,24 +115,24 @@
                             <div>
                                 <label class="text-sm text-gray-500">Current Stock</label>
                                 <p
-                                    class="text-3xl font-bold {{ $variant->inventory->stock_quantity <= $variant->inventory->low_stock_threshold ? 'text-red-600' : 'text-gray-900' }}">
-                                    {{ number_format($variant->inventory->stock_quantity, 0) }}
+                                    class="text-3xl font-bold {{ $variant->inventory?->stock_quantity <= $variant->inventory?->low_stock_threshold ? 'text-red-600' : 'text-gray-900' }}">
+                                    {{ number_format($variant->inventory?->stock_quantity, 0) }}
                                 </p>
-                                <p class="text-sm text-gray-500">{{ $variant->inventory->unit }}</p>
+                                <p class="text-sm text-gray-500">{{ $variant->inventory?->unit }}</p>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">Low Stock Threshold</label>
                                 <p class="text-xl font-semibold text-orange-600">
-                                    {{ number_format($variant->inventory->low_stock_threshold, 0) }}</p>
+                                    {{ number_format($variant->inventory?->low_stock_threshold, 0) }}</p>
                             </div>
                             <div>
                                 <label class="text-sm text-gray-500">Reserved Stock</label>
                                 <p class="text-xl font-semibold text-gray-900">
-                                    {{ number_format($variant->inventory->reserved_quantity, 0) }}</p>
+                                    {{ number_format($variant->inventory?->reserved_quantity, 0) }}</p>
                             </div>
                         </div>
 
-                        @if ($variant->inventory->stock_quantity <= $variant->inventory->low_stock_threshold)
+                        @if ($variant->inventory?->stock_quantity <= $variant->inventory?->low_stock_threshold)
                             <div class="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor"
@@ -238,10 +238,10 @@
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">🔗 Related Product</h2>
                     @if ($variant->product)
-                        <a href="{{ route('cosmetic.formulas.show', $variant->product->id) }}"
+                        <a href="{{ route('cosmetic.formulas.show', $variant->product?->id) }}"
                             class="block p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
-                            <div class="font-medium text-blue-900">{{ $variant->product->formula_name }}</div>
-                            <div class="text-sm text-blue-700">{{ $variant->product->code }}</div>
+                            <div class="font-medium text-blue-900">{{ $variant->product?->formula_name }}</div>
+                            <div class="text-sm text-blue-700">{{ $variant->product?->code }}</div>
                         </a>
                     @else
                         <p class="text-gray-500 text-sm">No related product</p>

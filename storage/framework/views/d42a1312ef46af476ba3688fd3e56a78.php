@@ -59,9 +59,9 @@
             <div class="space-y-2">
                 <?php $__currentLoopData = $recents->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ua): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-center gap-2.5">
-                        <span class="text-lg leading-none shrink-0"><?php echo e($ua->achievement->icon ?? '🏆'); ?></span>
+                        <span class="text-lg leading-none shrink-0"><?php echo e($ua->achievement?->icon ?? '🏆'); ?></span>
                         <p class="text-xs text-gray-700 truncate">
-                            <?php echo e($ua->achievement->name ?? '-'); ?></p>
+                            <?php echo e($ua->achievement?->name ?? '-'); ?></p>
                     </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>

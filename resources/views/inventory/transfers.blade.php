@@ -24,7 +24,7 @@
                         <select name="from_warehouse_id" id="from_wh" required
                             class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih gudang asal...</option>
-                            @foreach($warehouses as $w)
+                            @foreach($warehouses ?? [] as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
                             @endforeach
                         </select>
@@ -34,7 +34,7 @@
                         <select name="to_warehouse_id" id="to_wh" required
                             class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih gudang tujuan...</option>
-                            @foreach($warehouses as $w)
+                            @foreach($warehouses ?? [] as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
                             @endforeach
                         </select>
@@ -56,7 +56,7 @@
                                 <select name="items[0][product_id]" required
                                     class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                                     <option value="">Produk...</option>
-                                    @foreach($products as $p)
+                                    @foreach($products ?? [] as $p)
                                         <option value="{{ $p->id }}">{{ $p->name }}</option>
                                     @endforeach
                                 </select>
@@ -79,7 +79,7 @@
                 <form method="GET" class="bg-white rounded-2xl border border-gray-200 p-4 flex flex-wrap gap-3">
                     <select name="warehouse_id" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                         <option value="">Semua Gudang</option>
-                        @foreach($warehouses as $w)
+                        @foreach($warehouses ?? [] as $w)
                             <option value="{{ $w->id }}" {{ request('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                         @endforeach
                     </select>
@@ -108,14 +108,14 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
-                                    @foreach($transfers as $t)
+                                    @foreach($transfers ?? [] as $t)
                                         <tr class="hover:bg-gray-50 transition">
                                             <td class="px-4 py-3 font-mono text-xs text-blue-400">{{ $t->reference ?? '-' }}</td>
-                                            <td class="px-4 py-3 text-gray-700">{{ $t->product->name ?? '-' }}</td>
-                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->warehouse->name ?? '-' }}</td>
-                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->toWarehouse->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-gray-700">{{ $t->product?->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->warehouse?->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->toWarehouse?->name ?? '-' }}</td>
                                             <td class="px-4 py-3 text-right font-medium text-gray-900">{{ $t->quantity }}</td>
-                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->user->name ?? '-' }}</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">{{ $t->user?->name ?? '-' }}</td>
                                             <td class="px-4 py-3 text-xs text-gray-500">{{ $t->created_at->format('d/m/Y H:i') }}</td>
                                         </tr>
                                     @endforeach

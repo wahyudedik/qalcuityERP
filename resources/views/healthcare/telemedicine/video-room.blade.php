@@ -44,9 +44,9 @@
                 <div>
                     <h1 class="text-xl font-bold">Video Consultation</h1>
                     <p class="text-sm text-gray-400 mt-1">
-                        {{ $consultation->patient ? $consultation->patient->full_name : '-' }}
+                        {{ $consultation->patient ? $consultation->patient?->full_name : '-' }}
                         <span class="text-gray-500">|</span>
-                        Dr. {{ $consultation->doctor ? $consultation->doctor->name : '-' }}
+                        Dr. {{ $consultation->doctor ? $consultation->doctor?->name : '-' }}
                     </p>
                 </div>
                 <div class="flex items-center gap-3">

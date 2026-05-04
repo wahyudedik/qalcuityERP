@@ -70,6 +70,10 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                     <tr>
+                        <th class="px-3 py-3 w-8">
+                            <input type="checkbox" id="select-all-products"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" title="Pilih semua">
+                        </th>
                         <th class="px-4 py-3 text-left">Produk</th>
                         <th class="px-4 py-3 text-left hidden sm:table-cell">SKU</th>
                         <th class="px-4 py-3 text-left hidden md:table-cell">Kategori</th>
@@ -82,11 +86,18 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($products as $product)
+                        @if (!is_object($product))
+                            @continue
+                        @endif
                         @php
                             $totalStk = $product->productStocks->sum('quantity');
                             $isLow = $totalStk <= $product->stock_min;
                         @endphp
                         <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-3">
+                                <input type="checkbox" name="product_ids[]" value="{{ $product->id }}"
+                                    class="product-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            </td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     @if ($product->image)
@@ -108,8 +119,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td
-                                class="px-4 py-3 hidden sm:table-cell text-gray-500 font-mono text-xs">
+                            <td class="px-4 py-3 hidden sm:table-cell text-gray-500 font-mono text-xs">
                                 {{ $product->sku }}</td>
                             <td class="px-4 py-3 hidden md:table-cell text-gray-500">
                                 {{ $product->category ?? '-' }}</td>
@@ -132,10 +142,9 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">
-                                    {{-- NEW: Print Barcode Button --}}
+                                    {{-- Print Barcode --}}
                                     <button onclick="printBarcode({{ $product->id }})"
-                                        class="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                                        title="Print Barcode">
+                                        class="p-1.5 rounded-lg text-green-600 hover:bg-green-50" title="Print Barcode">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -145,25 +154,15 @@
                                     @canmodule('products', 'edit')
                                     <button
                                         onclick="openEditProduct({{ $product->id }}, @js($product->name), @js($product->sku ?? ''), @js($product->category ?? ''), @js($product->unit), {{ $product->price_sell }}, {{ $product->price_buy }}, {{ $product->stock_min }}, {{ $product->is_active ? 'true' : 'false' }}, @js($product->image ?? ''), @js($product->description ?? ''))"
-                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
-                                        title="Edit">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100" title="Edit">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
                                     @endcanmodule
 
-                                    {{-- Print Barcode Button --}}
-                                    <button onclick="printBarcode({{ $product->id }})"
-                                        class="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                                        title="Print Barcode Label">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                        </svg>
-                                    </button>
                                     @canmodule('products', 'edit')
                                     <form method="POST" action="{{ route('products.toggle', $product) }}">
                                         @csrf @method('PATCH')
@@ -182,8 +181,7 @@
                                     <form method="POST" action="{{ route('products.destroy', $product) }}"
                                         onsubmit="return confirm('Hapus produk ini?')">
                                         @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
+                                        <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                             title="Hapus">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -218,8 +216,7 @@
                     $totalStk = $product->productStocks->sum('quantity');
                     $isLow = $totalStk <= $product->stock_min;
                 @endphp
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
                     {{-- Card Header --}}
                     <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
                         <div class="flex items-start justify-between gap-3">
@@ -255,8 +252,7 @@
                     <div class="px-4 py-3 space-y-2.5">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500">SKU</span>
-                            <span
-                                class="text-sm font-mono text-gray-900">{{ $product->sku ?? '-' }}</span>
+                            <span class="text-sm font-mono text-gray-900">{{ $product->sku ?? '-' }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500">Harga Jual</span>
@@ -270,8 +266,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-500">Stok</span>
-                            <span
-                                class="text-sm font-semibold {{ $isLow ? 'text-red-600' : 'text-gray-900' }}">
+                            <span class="text-sm font-semibold {{ $isLow ? 'text-red-600' : 'text-gray-900' }}">
                                 {{ $totalStk }} {{ $product->unit }}
                                 @if ($isLow)
                                     <span class="text-xs">(Menipis)</span>
@@ -381,8 +376,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                         <input type="text" name="category" list="cat-list-add"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <datalist id="cat-list-add">
@@ -433,8 +427,7 @@
                         </select>
                     </div>
                     <div class="sm:col-span-2">
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                         <textarea name="description" rows="2"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
@@ -494,8 +487,7 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                         <input type="text" id="edit-category" name="category" list="cat-list-edit"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <datalist id="cat-list-edit">
@@ -535,8 +527,7 @@
                             Aktif</label>
                     </div>
                     <div class="sm:col-span-2">
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi</label>
                         <textarea id="edit-description" name="description" rows="2"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
@@ -614,46 +605,22 @@
 
             // Add checkbox functionality to table
             document.addEventListener('DOMContentLoaded', function() {
-                // Add "Select All" checkbox to header
-                const thActions = document.querySelector('thead tr th:last-child');
-                if (thActions) {
-                    const selectAll = document.createElement('input');
-                    selectAll.type = 'checkbox';
-                    selectAll.className = 'mr-2 align-middle';
-                    selectAll.title = 'Select all';
-                    selectAll.onclick = function(e) {
-                        e.stopPropagation();
-                        const checkboxes = document.querySelectorAll('input[name="product_ids[]"]');
-                        checkboxes.forEach(cb => cb.checked = this.checked);
-                    };
-                    if (thActions.firstChild) {
-                        thActions.insertBefore(selectAll, thActions.firstChild);
-                    } else {
-                        thActions.appendChild(selectAll);
-                    }
+                // Select All checkbox
+                const selectAll = document.getElementById('select-all-products');
+                if (selectAll) {
+                    selectAll.addEventListener('change', function() {
+                        document.querySelectorAll('.product-checkbox')
+                            .forEach(cb => cb.checked = this.checked);
+                    });
                 }
 
-                // Add individual checkboxes to action cells
-                const actionCells = document.querySelectorAll('tbody tr td:last-child');
-                actionCells.forEach((cell, index) => {
-                    const row = cell.closest('tr');
-                    const productId = row.dataset.id || (index + 1);
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.name = 'product_ids[]';
-                    checkbox.value = productId;
-                    checkbox.className = 'mr-2 align-middle';
-                    checkbox.title = 'Select for batch print';
-                    checkbox.onclick = function(e) {
-                        e.stopPropagation();
-                    };
-
-                    if (cell.firstChild) {
-                        cell.insertBefore(checkbox, cell.firstChild);
-                    } else {
-                        cell.appendChild(checkbox);
-                    }
+                // Sync select-all state when individual checkboxes change
+                document.querySelectorAll('.product-checkbox').forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        const all = document.querySelectorAll('.product-checkbox');
+                        const checked = document.querySelectorAll('.product-checkbox:checked');
+                        if (selectAll) selectAll.checked = all.length === checked.length;
+                    });
                 });
             });
         </script>
@@ -661,8 +628,7 @@
 
     {{-- Batch Print Barcode Modal --}}
     <div id="modal-batch-print" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div
-            class="bg-white rounded-2xl p-6 max-w-md w-full border border-gray-200 shadow-2xl">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full border border-gray-200 shadow-2xl">
             <h3 class="text-lg font-bold mb-4 text-gray-900">
                 🖨️ Print Barcode Labels
             </h3>

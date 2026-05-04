@@ -14,7 +14,7 @@
 
         <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <div class="grid grid-cols-2 gap-2 mb-5">
-                @foreach($recoveryCodes as $code)
+                @foreach($recoveryCodes ?? [] as $code)
                     <code class="font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg text-center tracking-widest text-gray-900">
                         {{ $code }}
                     </code>

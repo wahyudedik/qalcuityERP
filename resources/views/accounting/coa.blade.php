@@ -218,7 +218,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Akun Induk</label>
                     <select name="parent_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">— Tidak ada (akun root) —</option>
-                        @foreach($headers as $h)
+                        @foreach($headers ?? [] as $h)
                         <option value="{{ $h->id }}">{{ $h->code }} — {{ $h->name }}</option>
                         @endforeach
                     </select>

@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="header">Onboarding — {{ $onboarding->employee->name }}</x-slot>
+    <x-slot name="header">Onboarding — {{ $onboarding->employee?->name }}</x-slot>
 
     @php
     $pct = $onboarding->progressPercent();
@@ -11,13 +11,13 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
             <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-lg font-bold text-gray-900">{{ $onboarding->employee->name }}</h2>
+                    <h2 class="text-lg font-bold text-gray-900">{{ $onboarding->employee?->name }}</h2>
                     <span id="ob-status-badge" class="px-2 py-0.5 rounded-full text-xs {{ $onboarding->status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400' }}">
                         {{ $onboarding->status === 'completed' ? 'Selesai' : 'Berjalan' }}
                     </span>
                 </div>
                 <p class="text-sm text-gray-500">
-                    {{ $onboarding->employee->position ?? '-' }} · {{ $onboarding->employee->department ?? '-' }}
+                    {{ $onboarding->employee?->position ?? '-' }} · {{ $onboarding->employee?->department ?? '-' }}
                     · Mulai: {{ $onboarding->start_date->format('d M Y') }}
                 </p>
             </div>
@@ -37,7 +37,7 @@
 
     {{-- Tasks by category --}}
     <div class="space-y-4 mt-4">
-        @foreach($tasksByCategory as $category => $tasks)
+        @foreach($tasksByCategory ?? [] as $category => $tasks)
         <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">

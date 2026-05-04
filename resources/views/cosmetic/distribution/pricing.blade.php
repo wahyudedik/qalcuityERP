@@ -89,13 +89,13 @@
                     @forelse($pricing as $price)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">{{ $price->channel->channel_name }}</div>
-                                <div class="text-xs text-gray-500">{{ $price->channel->channel_code }}</div>
+                                <div class="font-medium">{{ $price->channel?->channel_name }}</div>
+                                <div class="text-xs text-gray-500">{{ $price->channel?->channel_code }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @if ($price->product)
-                                    <div class="font-medium">{{ $price->product->formula_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $price->product->formula_code }}</div>
+                                    <div class="font-medium">{{ $price->product?->formula_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $price->product?->formula_code }}</div>
                                 @else
                                     <span class="text-gray-400">Product Deleted</span>
                                 @endif

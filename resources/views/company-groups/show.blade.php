@@ -130,7 +130,7 @@
         <h3 class="font-semibold text-gray-900 text-sm mb-4">📈 Tren 6 Bulan Terakhir</h3>
         <div class="space-y-2">
             @php $maxRev = collect($trend)->max('revenue') ?: 1; @endphp
-            @foreach($trend as $t)
+            @foreach($trend ?? [] as $t)
             <div class="flex items-center gap-3">
                 <span class="text-xs text-gray-400 w-16 shrink-0">{{ $t['label'] }}</span>
                 <div class="flex-1 bg-gray-100 rounded-full h-2">
@@ -170,7 +170,7 @@
                 @csrf
                 <select name="tenant_id" required class="w-full rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 px-3 py-2">
                     <option value="">— Pilih perusahaan —</option>
-                    @foreach($availableTenants as $t)
+                    @foreach($availableTenants ?? [] as $t)
                     <option value="{{ $t->id }}">{{ $t->name }} (#{{ $t->id }})</option>
                     @endforeach
                 </select>

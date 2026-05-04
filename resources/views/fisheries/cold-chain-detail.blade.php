@@ -211,7 +211,7 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span
-                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-100 text-{{ $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-700 $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-500/20 $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-400">
+                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $alert->severity === 'critical' ? 'red' : ($alert->severity === 'amber-500' ? 'yellow' : 'blue')  }}-100 text-{{ $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-700 $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-500/20 $alert->severity === 'critical' ? 'red' : ($alert->severity === 'warning' ? 'yellow' : 'blue') }}-400">
                                         {{ ucfirst($alert->severity) }}
                                     </span>
                                     <span

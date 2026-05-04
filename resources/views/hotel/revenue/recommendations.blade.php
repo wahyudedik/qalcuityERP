@@ -96,7 +96,7 @@
                                     @else
                                         <span class="text-sm text-gray-500">
                                             @if ($rec->reviewedBy)
-                                                by {{ $rec->reviewedBy->name }}
+                                                by {{ $rec->reviewedBy?->name }}
                                             @endif
                                         </span>
                                     @endif

@@ -118,7 +118,7 @@
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm font-medium text-gray-900">
-                                                {{ $recall->product->formula_name ?? 'Unknown' }}
+                                                {{ $recall->product?->formula_name ?? 'Unknown' }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">

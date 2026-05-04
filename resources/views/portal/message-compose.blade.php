@@ -1,36 +1,33 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Compose Message')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-envelope text-primary"></i> Compose Message
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-envelope text-blue-600"></i> Compose Message
             </h1>
-            <p class="text-muted mb-0">Send a message to your healthcare provider</p>
+            <p class="text-gray-500">Send a message to your healthcare provider</p>
         </div>
         <div>
-            <a href="{{ route('portal.messages.inbox') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Inbox
+            <a href="{{ route('portal.messages.inbox') }}" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition">
+                <i class="fas fa-argrid grid-cols-1 md:grid-cols-2 gap-6-left"></i> Back to Inbox
             </a>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full md:w-2/3 mx-auto">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">New Message</h5>
                 </div>
-                <div class="card-body">
+                <div class="p-5">
                     <form action="{{ route('portal.messages.send') }}" method="POST">
                         @csrf
 
                         <div class="mb-3">
-                            <label class="form-label">To (Doctor/Department) <span class="text-danger">*</span></label>
+                            <label class="form-label">To (Doctor/Department) <span class="text-red-600">*</span></label>
                             <select name="recipient_id" class="form-select" required>
                                 <option value="">Select Recipient</option>
                                 @foreach ($doctors ?? [] as $doctor)
@@ -48,13 +45,13 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Subject <span class="text-danger">*</span></label>
+                            <label class="form-label">Subject <span class="text-red-600">*</span></label>
                             <input type="text" name="subject" class="form-control" required
                                 placeholder="e.g., Follow-up on prescription, Question about test results">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Message Category <span class="text-danger">*</span></label>
+                            <label class="form-label">Message Category <span class="text-red-600">*</span></label>
                             <select name="category" class="form-select" required>
                                 <option value="">Select Category</option>
                                 <option value="general">General Inquiry</option>
@@ -90,7 +87,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Message <span class="text-danger">*</span></label>
+                            <label class="form-label">Message <span class="text-red-600">*</span></label>
                             <textarea name="message" class="form-control" rows="10" required
                                 placeholder="Please describe your question or concern in detail..."></textarea>
                         </div>
@@ -99,7 +96,7 @@
                             <label class="form-label">Attachments (Optional)</label>
                             <input type="file" name="attachments[]" class="form-control" multiple
                                 accept="image/*,.pdf,.doc,.docx">
-                            <small class="text-muted">Accepted formats: Images, PDF, Word documents (Max 10MB per
+                            <small class="text-gray-500">Accepted formats: Images, PDF, Word documents (Max 10MB per
                                 file)</small>
                         </div>
 
@@ -110,11 +107,11 @@
                             For urgent medical concerns, please call our emergency line or visit the nearest facility.
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <div class="flex justify-between">
+                            <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" onclick="history.back()">
                                 <i class="fas fa-times"></i> Cancel
                             </button>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                                 <i class="fas fa-paper-plane"></i> Send Message
                             </button>
                         </div>
@@ -125,32 +122,32 @@
     </div>
 
     <!-- Quick Templates -->
-    <div class="row mt-4">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="w-full md:w-2/3 mx-auto">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h6 class="mb-0">
-                        <i class="fas fa-lightbulb text-warning"></i> Message Templates
+                        <i class="fas fa-lightbulb text-amber-600"></i> Message Templates
                     </h6>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2 text-start"
+                <div class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="w-full md:w-1/2">
+                            <button type="button" class="w-full mb-2 px-3 py-2 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-sm text-left transition"
                                 onclick="fillTemplate('prescription')">
                                 <i class="fas fa-pills"></i> Prescription Refill Request
                             </button>
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2 text-start"
+                            <button type="button" class="w-full mb-2 px-3 py-2 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-sm text-left transition"
                                 onclick="fillTemplate('results')">
                                 <i class="fas fa-flask"></i> Test Results Inquiry
                             </button>
                         </div>
-                        <div class="col-md-6">
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2 text-start"
+                        <div class="w-full md:w-1/2">
+                            <button type="button" class="w-full mb-2 px-3 py-2 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-sm text-left transition"
                                 onclick="fillTemplate('appointment')">
                                 <i class="fas fa-calendar"></i> Appointment Follow-up
                             </button>
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2 text-start"
+                            <button type="button" class="w-full mb-2 px-3 py-2 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-sm text-left transition"
                                 onclick="fillTemplate('symptoms')">
                                 <i class="fas fa-stethoscope"></i> Report New Symptoms
                             </button>
@@ -161,40 +158,4 @@
         </div>
     </div>
 
-@endsection
-
-@push('scripts')
-    <script>
-        function fillTemplate(type) {
-            const templates = {
-                prescription: {
-                    subject: 'Prescription Refill Request',
-                    category: 'prescription',
-                    message: 'Dear Doctor,\n\nI would like to request a refill for my current prescription:\n\nMedication: [Medication Name]\nDosage: [Dosage]\nLast prescribed: [Date]\n\nThank you.'
-                },
-                results: {
-                    subject: 'Test Results Inquiry',
-                    category: 'test_results',
-                    message: 'Dear Doctor,\n\nI am writing to inquire about my recent test results from [Date].\n\nTest Type: [Test Name]\n\nCould you please provide an update on the results and any recommendations?\n\nThank you.'
-                },
-                appointment: {
-                    subject: 'Follow-up on Recent Appointment',
-                    category: 'follow_up',
-                    message: 'Dear Doctor,\n\nI had an appointment with you on [Date] and have a few follow-up questions:\n\n[Your questions here]\n\nThank you for your time.'
-                },
-                symptoms: {
-                    subject: 'New Symptoms Report',
-                    category: 'symptoms',
-                    message: 'Dear Doctor,\n\nI am experiencing new symptoms since my last visit:\n\nSymptoms: [Describe symptoms]\nStarted: [Date]\nSeverity: [Mild/Moderate/Severe]\n\nPlease advise on the next steps.\n\nThank you.'
-                }
-            };
-
-            const template = templates[type];
-            if (template) {
-                document.querySelector('[name="subject"]').value = template.subject;
-                document.querySelector('[name="category"]').value = template.category;
-                document.querySelector('[name="message"]').value = template.message;
-            }
-        }
-    </script>
-@endpush
+</x-app-layout>

@@ -32,7 +32,7 @@
     </div>
     @else
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @foreach($items as $item)
+        @foreach($items ?? [] as $item)
         @php
             $run    = $item->payrollRun;
             $period = $run?->period ?? '—';

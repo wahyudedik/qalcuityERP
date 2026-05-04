@@ -97,13 +97,13 @@
     {{-- Single BOM Calculator --}}
     <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
         <h3 class="font-semibold text-gray-900 mb-4">Kalkulasi Kebutuhan Material</h3>
-        <form method="GET" class="flex flex-col sm:flex-row gap-3">
+        <form method="GET" class="flex flex-col sm:flex-grid grid-cols-1 md:grid-cols-2 gap-6 gap-3">
             <select name="bom_id"
                 class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">-- Pilih BOM --</option>
                 @foreach ($boms as $b)
                     <option value="{{ $b->id }}" @selected(request('bom_id') == $b->id)>{{ $b->name }}
-                        ({{ $b->product->name ?? '-' }})
+                        ({{ $b->product?->name ?? '-' }})
                     </option>
                 @endforeach
             </select>
@@ -281,7 +281,7 @@
                 <div class="flex gap-2">
                     <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">Critical</span>
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">High</span>
-                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Medium</span>
+                    <span class="px-2 py-1 bg-yellow-full text-yellow-700 rounded text-xs">Medium</span>
                     <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Low</span>
                 </div>
             </div>
@@ -352,7 +352,7 @@
                                                 class="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700">HIGH</span>
                                         @elseif($item['action']['urgency'] === 'medium')
                                             <span
-                                                class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">MEDIUM</span>
+                                                class="px-2 py-1 rounded-full text-xs bg-yellow-full text-yellow-700">MEDIUM</span>
                                         @else
                                             <span
                                                 class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">LOW</span>
@@ -415,8 +415,8 @@
 
                 <div class="modal-action">
                     <button type="button" onclick="document.getElementById('autoPOModal').close()"
-                        class="btn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create PO</button>
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Create PO</button>
                 </div>
             </form>
         </div>

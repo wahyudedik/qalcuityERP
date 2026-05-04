@@ -103,7 +103,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $queue->patient ? $queue->patient->full_name : '-' }}</p>
+                                    {{ $queue->patient ? $queue->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
                                     {{ $queue->created_at ? \Carbon\Carbon::parse($queue->created_at)->format('H:i') : '-' }}
                                 </p>

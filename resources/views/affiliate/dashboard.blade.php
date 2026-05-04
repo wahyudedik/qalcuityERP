@@ -31,8 +31,8 @@
     <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 mb-6">
         <h3 class="font-semibold text-purple-700 mb-2">🎮 Akun Demo ERP Anda</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-            <div><span class="text-purple-600">Tenant:</span> <span class="text-gray-900 font-medium">{{ $affiliate->demoTenant->name }}</span></div>
-            <div><span class="text-purple-600">Email:</span> <span class="text-gray-900 font-mono text-xs">demo-{{ $affiliate->demoTenant->slug }}@qalcuity.com</span></div>
+            <div><span class="text-purple-600">Tenant:</span> <span class="text-gray-900 font-medium">{{ $affiliate->demoTenant?->name }}</span></div>
+            <div><span class="text-purple-600">Email:</span> <span class="text-gray-900 font-mono text-xs">demo-{{ $affiliate->demoTenant?->slug }}@qalcuity.com</span></div>
             <div><span class="text-purple-600">Password:</span> <span class="text-gray-900 font-mono text-xs">demo123456</span></div>
         </div>
         <p class="text-xs text-purple-500 mt-2">Gunakan akun demo ini untuk menunjukkan fitur ERP ke calon referral Anda. Plan: Professional (tidak expired).</p>
@@ -113,14 +113,14 @@
             </div>
             @if($referrals->isNotEmpty())
             <div class="divide-y divide-gray-100">
-                @foreach($referrals as $ref)
+                @foreach($referrals ?? [] as $ref)
                 <div class="px-5 py-3 flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-900">{{ $ref->tenant->name ?? '-' }}</p>
-                        <p class="text-xs text-gray-500">{{ $ref->referred_at->format('d/m/Y') }} · {{ $ref->tenant->plan ?? 'trial' }}</p>
+                        <p class="text-sm text-gray-900">{{ $ref->tenant?->name ?? '-' }}</p>
+                        <p class="text-xs text-gray-500">{{ $ref->referred_at->format('d/m/Y') }} · {{ $ref->tenant?->plan ?? 'trial' }}</p>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full text-xs {{ ($ref->tenant->is_active ?? false) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                        {{ ($ref->tenant->is_active ?? false) ? 'Aktif' : 'Nonaktif' }}
+                    <span class="px-2 py-0.5 rounded-full text-xs {{ ($ref->tenant?->is_active ?? false) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                        {{ ($ref->tenant?->is_active ?? false) ? 'Aktif' : 'Nonaktif' }}
                     </span>
                 </div>
                 @endforeach
@@ -135,7 +135,7 @@
             <h3 class="font-semibold text-gray-900 mb-4">Pendapatan Bulanan</h3>
             @if($monthlyEarnings->isNotEmpty())
             <div class="space-y-2">
-                @foreach($monthlyEarnings as $me)
+                @foreach($monthlyEarnings ?? [] as $me)
                 <div class="flex items-center gap-3">
                     <span class="text-xs text-gray-500 w-16 shrink-0">{{ $me->month }}</span>
                     <div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -166,11 +166,11 @@
                     @forelse($commissions as $c)
                     @php $sc = ['pending'=>'amber','approved'=>'blue','paid'=>'green','rejected'=>'red'][$c->status] ?? 'gray'; @endphp
                     <tr>
-                        <td class="px-4 py-3 text-gray-900">{{ $c->tenant->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-900">{{ $c->tenant?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $c->plan_name }}</td>
                         <td class="px-4 py-3 text-right text-gray-700">Rp {{ number_format($c->payment_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right text-green-500 font-medium">Rp {{ number_format($c->commission_amount, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($c->status) }}</span></td>
+                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($c->status) }}</span></td>
                         <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $c->created_at->format('d/m/Y') }}</td>
                     </tr>
                     @empty

@@ -42,20 +42,20 @@
                                     class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-sm text-gray-600">Room Number</span>
                                     <span
-                                        class="font-semibold text-gray-900">{{ $reservation->room->number }}</span>
+                                        class="font-semibold text-gray-900">{{ $reservation->room?->number }}</span>
                                 </div>
                                 <div
                                     class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-sm text-gray-600">Floor</span>
                                     <span
-                                        class="font-semibold text-gray-900">{{ $reservation->room->floor }}</span>
+                                        class="font-semibold text-gray-900">{{ $reservation->room?->floor }}</span>
                                 </div>
                                 <div
                                     class="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span class="text-sm text-gray-600">Room Type</span>
                                     <span
                                         class="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                                        {{ $reservation->roomType->name }}
+                                        {{ $reservation->roomType?->name }}
                                     </span>
                                 </div>
                                 <div
@@ -81,7 +81,7 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Guest</span>
-                                    <span class="text-gray-900">{{ $reservation->guest->name }}</span>
+                                    <span class="text-gray-900">{{ $reservation->guest?->name }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Check-in</span>
@@ -153,7 +153,7 @@
                                                 @foreach ($rooms as $room)
                                                     @php
                                                         $rateDiff =
-                                                            $room->roomType->base_rate - $reservation->rate_per_night;
+                                                            $room->roomType?->base_rate - $reservation->rate_per_night;
                                                         $changeType =
                                                             $rateDiff > 0
                                                                 ? 'upgrade'
@@ -203,7 +203,7 @@
                                                                     <span
                                                                         class="font-medium text-gray-900">
                                                                         Rp
-                                                                        {{ number_format($room->roomType->base_rate, 0, ',', '.') }}
+                                                                        {{ number_format($room->roomType?->base_rate, 0, ',', '.') }}
                                                                     </span>
                                                                 </div>
                                                                 @if ($rateDiff != 0)

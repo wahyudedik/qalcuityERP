@@ -25,7 +25,7 @@
                 <p class="text-xs text-gray-500 mb-2">Top Kategori Bulan Ini</p>
                 @foreach($topCategories->take(3) as $tc)
                     <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-600">{{ $tc->category->name ?? 'Lainnya' }}</span>
+                        <span class="text-gray-600">{{ $tc->category?->name ?? 'Lainnya' }}</span>
                         <span class="font-medium text-gray-900">Rp {{ number_format($tc->total, 0, ',', '.') }}</span>
                     </div>
                 @endforeach
@@ -45,7 +45,7 @@
                         <select name="expense_category_id" required
                             class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih kategori...</option>
-                            @foreach($categories as $cat)
+                            @foreach($categories ?? [] as $cat)
                                 <option value="{{ $cat->id }}" {{ old('expense_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                             @endforeach
                         </select>
@@ -103,7 +103,7 @@
                         class="flex-1 min-w-[150px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                     <select name="category_id" class="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none">
                         <option value="">Semua Kategori</option>
-                        @foreach($categories as $cat)
+                        @foreach($categories ?? [] as $cat)
                             <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
                     </select>
@@ -133,12 +133,12 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
-                                    @foreach($expenses as $exp)
+                                    @foreach($expenses ?? [] as $exp)
                                         <tr class="hover:bg-gray-50 transition">
                                             <td class="px-4 py-3 text-xs text-gray-500">{{ $exp->date->format('d/m/Y') }}</td>
                                             <td class="px-4 py-3">
                                                 <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
-                                                    {{ $exp->category->name ?? '-' }}
+                                                    {{ $exp->category?->name ?? '-' }}
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-gray-700">
@@ -156,7 +156,7 @@
                                             <td class="px-4 py-3 text-xs text-gray-500 capitalize">{{ $exp->payment_method }}</td>
                                             <td class="px-4 py-3">
                                                 @if($exp->journalEntry)
-                                                    <span title="Jurnal: {{ $exp->journalEntry->number }}"
+                                                    <span title="Jurnal: {{ $exp->journalEntry?->number }}"
                                                         class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">
                                                         ✓ GL
                                                     </span>

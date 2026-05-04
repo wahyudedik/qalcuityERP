@@ -155,7 +155,7 @@
                                                 };
                                             @endphp
                                             <span
-                                                class="px-2 py-1 text-xs rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                                class="px-2 py-1 text-xs rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                                 {{ ucfirst($package->status) }}
                                             </span>
                                         </td>

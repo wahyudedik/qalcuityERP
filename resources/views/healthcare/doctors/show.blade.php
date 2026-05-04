@@ -181,7 +181,7 @@
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3">
                                             <p class="font-medium text-gray-900">
-                                                {{ $appointment->patient ? $appointment->patient->full_name : '-' }}
+                                                {{ $appointment->patient ? $appointment->patient?->full_name : '-' }}
                                             </p>
                                         </td>
                                         <td class="px-4 py-3 hidden md:table-cell">

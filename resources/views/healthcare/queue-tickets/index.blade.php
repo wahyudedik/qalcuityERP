@@ -113,11 +113,11 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $ticket->patient->name ?? 'N/A' }}
+                                    <div class="text-sm font-medium text-gray-900">{{ $ticket->patient?->name ?? 'N/A' }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $ticket->department->name ?? 'N/A' }}</td>
+                                    {{ $ticket->department?->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $ticket->issued_at ? $ticket->issued_at->format('H:i') : '-' }}
                                 </td>

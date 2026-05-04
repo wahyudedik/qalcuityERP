@@ -24,7 +24,7 @@
                             <select name="customer_id" required
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih customer...</option>
-                                @foreach($customers as $c)
+                                @foreach($customers ?? [] as $c)
                                     <option value="{{ $c->id }}" {{ old('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                                 @endforeach
                             </select>
@@ -34,7 +34,7 @@
                             <select name="warehouse_id" required
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih gudang...</option>
-                                @foreach($warehouses as $w)
+                                @foreach($warehouses ?? [] as $w)
                                     <option value="{{ $w->id }}" {{ old('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                                 @endforeach
                             </select>
@@ -67,7 +67,7 @@
                             <select name="tax_rate_id"
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Tanpa Pajak</option>
-                                @foreach($taxRates as $t)
+                                @foreach($taxRates ?? [] as $t)
                                     <option value="{{ $t->id }}" {{ old('tax_rate_id') == $t->id ? 'selected' : '' }}>{{ $t->name }} ({{ $t->rate }}%)</option>
                                 @endforeach
                             </select>
@@ -77,7 +77,7 @@
                             <label class="block text-xs text-gray-500 mb-1">Mata Uang</label>
                             <select name="currency_code" id="currency_code"
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                @foreach($currencies as $cur)
+                                @foreach($currencies ?? [] as $cur)
                                     <option value="{{ $cur->code }}" data-rate="{{ $cur->rate_to_idr }}" data-symbol="{{ $cur->symbol }}"
                                         {{ old('currency_code', 'IDR') === $cur->code ? 'selected' : '' }}>
                                         {{ $cur->code }} — {{ $cur->name }} {{ $cur->is_base ? '(Base)' : '(Kurs: '.number_format($cur->rate_to_idr,0,',','.').')' }}
@@ -119,7 +119,7 @@
                                 <select name="items[0][product_id]" required
                                     class="product-select w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Pilih produk...</option>
-                                    @foreach($products as $p)
+                                    @foreach($products ?? [] as $p)
                                         <option value="{{ $p->id }}" data-price="{{ $p->price_sell }}">{{ $p->name }} ({{ $p->unit }})</option>
                                     @endforeach
                                 </select>

@@ -1,53 +1,50 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Aging Report')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-clock text-primary"></i> Accounts Receivable Aging
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-clock text-blue-600"></i> Accounts Receivable Aging
             </h1>
-            <p class="text-muted mb-0">Outstanding invoices by age category</p>
+            <p class="text-gray-500">Outstanding invoices by age category</p>
         </div>
         <div>
-            <button class="btn btn-success" onclick="window.print()">
+            <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition" onclick="window.print()">
                 <i class="fas fa-print"></i> Print
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-2">
-                            <h4 class="text-primary">Rp {{ number_format($stats['total_outstanding'] ?? 0, 0, ',', '.') }}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/6">
+                            <h4 class="text-blue-600">Rp {{ number_format($stats['total_outstanding'] ?? 0, 0, ',', '.') }}
                             </h4>
-                            <small class="text-muted">Total Outstanding</small>
+                            <small class="text-gray-500">Total Outstanding</small>
                         </div>
-                        <div class="col-md-2">
-                            <h4 class="text-success">Rp {{ number_format($stats['current'] ?? 0, 0, ',', '.') }}</h4>
-                            <small class="text-muted">Current</small>
+                        <div class="w-full md:w-1/6">
+                            <h4 class="text-emerald-600">Rp {{ number_format($stats['current'] ?? 0, 0, ',', '.') }}</h4>
+                            <small class="text-gray-500">Current</small>
                         </div>
-                        <div class="col-md-2">
-                            <h4 class="text-info">Rp {{ number_format($stats['days_30'] ?? 0, 0, ',', '.') }}</h4>
-                            <small class="text-muted">1-30 Days</small>
+                        <div class="w-full md:w-1/6">
+                            <h4 class="text-sky-600">Rp {{ number_format($stats['days_30'] ?? 0, 0, ',', '.') }}</h4>
+                            <small class="text-gray-500">1-30 Days</small>
                         </div>
-                        <div class="col-md-2">
-                            <h4 class="text-warning">Rp {{ number_format($stats['days_60'] ?? 0, 0, ',', '.') }}</h4>
-                            <small class="text-muted">31-60 Days</small>
+                        <div class="w-full md:w-1/6">
+                            <h4 class="text-amber-600">Rp {{ number_format($stats['days_60'] ?? 0, 0, ',', '.') }}</h4>
+                            <small class="text-gray-500">31-60 Days</small>
                         </div>
-                        <div class="col-md-2">
-                            <h4 class="text-danger">Rp {{ number_format($stats['days_90'] ?? 0, 0, ',', '.') }}</h4>
-                            <small class="text-muted">61-90 Days</small>
+                        <div class="w-full md:w-1/6">
+                            <h4 class="text-red-600">Rp {{ number_format($stats['days_90'] ?? 0, 0, ',', '.') }}</h4>
+                            <small class="text-gray-500">61-90 Days</small>
                         </div>
-                        <div class="col-md-2">
+                        <div class="w-full md:w-1/6">
                             <h4 class="text-dark">Rp {{ number_format($stats['over_90'] ?? 0, 0, ',', '.') }}</h4>
-                            <small class="text-muted">90+ Days</small>
+                            <small class="text-gray-500">90+ Days</small>
                         </div>
                     </div>
                 </div>
@@ -55,12 +52,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Invoice #</th>
@@ -88,30 +85,30 @@
                                                 $daysOverdue = $invoice->due_date?->diffInDays(now()) ?? 0;
                                             @endphp
                                             @if ($daysOverdue > 0)
-                                                <span class="text-danger fw-bold">{{ $daysOverdue }} days</span>
+                                                <span class="text-red-600 font-bold">{{ $daysOverdue }} days</span>
                                             @else
-                                                <span class="text-success">Not due</span>
+                                                <span class="text-emerald-600">Not due</span>
                                             @endif
                                         </td>
                                         <td>
                                             @if ($daysOverdue <= 0)
-                                                <span class="badge bg-success">Current</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Current</span>
                                             @elseif($daysOverdue <= 30)
-                                                <span class="badge bg-info">1-30 Days</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">1-30 Days</span>
                                             @elseif($daysOverdue <= 60)
-                                                <span class="badge bg-warning">31-60 Days</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">31-60 Days</span>
                                             @elseif($daysOverdue <= 90)
-                                                <span class="badge bg-danger">61-90 Days</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">61-90 Days</span>
                                             @else
-                                                <span class="badge bg-dark">90+ Days</span>
+                                                <span class="badge bg-gray-900">90+ Days</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-success btn-sm">
+                                                <button class="px-3 py-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-bell"></i> Remind
                                                 </button>
                                             </div>
@@ -119,7 +116,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No outstanding invoices</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No outstanding invoices</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -130,4 +127,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

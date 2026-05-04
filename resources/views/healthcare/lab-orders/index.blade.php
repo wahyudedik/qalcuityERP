@@ -121,13 +121,13 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {{ $order->order_number }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $order->patient->name ?? 'N/A' }}
+                                    <div class="text-sm font-medium text-gray-900">{{ $order->patient?->name ?? 'N/A' }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        {{ $order->patient->medical_record_number ?? '' }}</div>
+                                        {{ $order->patient?->medical_record_number ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ $order->test->name ?? 'N/A' }}</div>
+                                    <div class="text-sm text-gray-900">{{ $order->test?->name ?? 'N/A' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span

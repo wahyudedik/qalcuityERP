@@ -85,8 +85,8 @@
                                 <tr class="{{ !$message->is_read ? 'bg-blue-50' : '' }}">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">
-                                            {{ $message->sender->name ?? 'Unknown' }}</div>
-                                        <div class="text-sm text-gray-500">{{ $message->sender->email ?? '' }}</div>
+                                            {{ $message->sender?->name ?? 'Unknown' }}</div>
+                                        <div class="text-sm text-gray-500">{{ $message->sender?->email ?? '' }}</div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div

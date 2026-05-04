@@ -53,7 +53,7 @@
             <select id="warehouse_id" name="warehouse_id"
                 class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                 <option value="">— Pilih Gudang (opsional) —</option>
-                @foreach($warehouses as $warehouse)
+                @foreach($warehouses ?? [] as $warehouse)
                     <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
                         {{ $warehouse->name }}
                     </option>

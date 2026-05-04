@@ -66,7 +66,7 @@
                         <label class="block text-xs text-gray-500 mb-1">Produk *</label>
                         <select name="items[0][product_id]" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih --</option>
-                            @foreach($products as $p)
+                            @foreach($products ?? [] as $p)
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
                             @endforeach
                         </select>
@@ -99,7 +99,7 @@
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Assign ke Customer (opsional)</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                @foreach($customers as $c)
+                @foreach($customers ?? [] as $c)
                 <label class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50">
                     <input type="checkbox" name="customer_ids[]" value="{{ $c->id }}" class="rounded">
                     <span class="text-sm text-gray-700 truncate">{{ $c->name }}</span>

@@ -11,7 +11,7 @@
                     <select name="account_id" required
                         class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                         <option value="">-- Pilih Akun --</option>
-                        @foreach($accounts as $acc)
+                        @foreach($accounts ?? [] as $acc)
                             <option value="{{ $acc->id }}" {{ request('account_id') == $acc->id ? 'selected' : '' }}>
                                 {{ $acc->code }} - {{ $acc->name }}
                             </option>

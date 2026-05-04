@@ -19,7 +19,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl font-bold text-gray-900">{{ $farmPlot->code }}</span>
-                        <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $farmPlot->statusLabel() }}</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $farmPlot->statusLabel() }}</span>
                     </div>
                     <form method="POST" action="{{ route('farm.plots.status', $farmPlot) }}" class="flex items-center gap-2">
                         @csrf @method('PATCH')
@@ -67,7 +67,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-900 mb-3">Breakdown Biaya</h3>
                 <div class="flex flex-wrap gap-3">
-                    @foreach($costByType as $ct)
+                    @foreach($costByType ?? [] as $ct)
                     <div class="px-3 py-2 rounded-lg bg-gray-50 text-xs">
                         <span class="font-medium text-gray-700">{{ \App\Models\FarmPlotActivity::ACTIVITY_TYPES[$ct->activity_type] ?? $ct->activity_type }}</span>
                         <span class="text-gray-400 ml-1">Rp {{ number_format($ct->total_cost, 0, ',', '.') }}</span>

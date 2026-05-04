@@ -30,7 +30,7 @@
         <form method="GET" class="flex flex-wrap gap-3">
             <select name="employee_id" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                 <option value="">Semua Karyawan</option>
-                @foreach($employees as $emp)
+                @foreach($employees ?? [] as $emp)
                     <option value="{{ $emp->id }}" @selected(request('employee_id') == $emp->id)>{{ $emp->name }}</option>
                 @endforeach
             </select>
@@ -63,8 +63,8 @@
                     @forelse($leaves as $leave)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <p class="font-medium text-gray-900">{{ $leave->employee->name }}</p>
-                            <p class="text-xs text-gray-500">{{ $leave->employee->position ?? '-' }}</p>
+                            <p class="font-medium text-gray-900">{{ $leave->employee?->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $leave->employee?->position ?? '-' }}</p>
                         </td>
                         <td class="px-4 py-3 text-gray-700">{{ $leave->typeLabel() }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">
@@ -87,7 +87,7 @@
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
                                 @if($leave->status === 'pending')
-                                <button onclick="openApprove({{ $leave->id }}, '{{ addslashes($leave->employee->name) }}')"
+                                <button onclick="openApprove({{ $leave->id }}, '{{ addslashes($leave->employee?->name) }}')"
                                     class="px-2 py-1 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700">Proses</button>
                                 <form method="POST" action="{{ route('hrm.leave.destroy', $leave) }}"
                                       onsubmit="return confirm('Hapus pengajuan ini?')">
@@ -126,7 +126,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Karyawan *</label>
                     <select name="employee_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">Pilih karyawan...</option>
-                        @foreach($employees as $emp)
+                        @foreach($employees ?? [] as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->name }} ({{ $emp->position ?? '-' }})</option>
                         @endforeach
                     </select>
@@ -186,7 +186,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Disetujui Oleh</label>
                     <select name="approved_by" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">Pilih atasan...</option>
-                        @foreach($employees as $emp)
+                        @foreach($employees ?? [] as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->name }}</option>
                         @endforeach
                     </select>

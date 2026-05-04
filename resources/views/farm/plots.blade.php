@@ -51,14 +51,14 @@
     </div>
     @else
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @foreach($plots as $plot)
+        @foreach($plots ?? [] as $plot)
         @php $sc = $plot->statusColor(); @endphp
         <a href="{{ route('farm.plots.show', $plot) }}" class="block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-emerald-300 transition group">
             <div class="px-5 py-4 flex items-start justify-between">
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="text-lg font-bold text-gray-900">{{ $plot->code }}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $plot->statusLabel() }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $plot->statusLabel() }}</span>
                     </div>
                     <p class="text-sm text-gray-500 mt-0.5">{{ $plot->name }}</p>
                 </div>

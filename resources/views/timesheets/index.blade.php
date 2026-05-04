@@ -26,7 +26,7 @@
                     <select name="project_id" required
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                         <option value="">Pilih proyek...</option>
-                        @foreach($projects as $project)
+                        @foreach($projects ?? [] as $project)
                         <option value="{{ $project->id }}">{{ $project->name }}</option>
                         @endforeach
                     </select>
@@ -65,7 +65,7 @@
             <select name="project_id"
                 class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                 <option value="">Semua Proyek</option>
-                @foreach($projects as $project)
+                @foreach($projects ?? [] as $project)
                 <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>{{ $project->name }}</option>
                 @endforeach
             </select>
@@ -73,7 +73,7 @@
             <select name="user_id"
                 class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                 <option value="">Semua Anggota</option>
-                @foreach($users as $user)
+                @foreach($users ?? [] as $user)
                 <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
                 @endforeach
             </select>
@@ -105,7 +105,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @foreach($timesheets as $ts)
+                        @foreach($timesheets ?? [] as $ts)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 text-gray-500 whitespace-nowrap">{{ $ts->date->format('d M Y') }}</td>
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $ts->project?->name ?? '-' }}</td>

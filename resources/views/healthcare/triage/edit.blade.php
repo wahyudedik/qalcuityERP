@@ -30,7 +30,7 @@
                                         @foreach ($visits as $visit)
                                             <option value="{{ $visit->id }}"
                                                 {{ old('patient_visit_id', $assessment->patient_visit_id) == $visit->id ? 'selected' : '' }}>
-                                                {{ $visit->patient->name }} - {{ $visit->visit_number }}
+                                                {{ $visit->patient?->name }} - {{ $visit->visit_number }}
                                             </option>
                                         @endforeach
                                     </select>

@@ -15,15 +15,15 @@
                 <div>
                     <p class="font-mono font-bold text-gray-900">{{ $pickingList->number }}</p>
                     <p class="text-xs text-gray-500 mt-0.5">
-                        Gudang: {{ $pickingList->warehouse->name ?? '-' }}
+                        Gudang: {{ $pickingList->warehouse?->name ?? '-' }}
                         @if ($pickingList->assignee)
-                            &bull; Picker: {{ $pickingList->assignee->name }}
+                            &bull; Picker: {{ $pickingList->assignee?->name }}
                         @endif
                     </p>
                 </div>
                 @php $sc = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green','cancelled'=>'gray'][$pickingList->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst(str_replace('_', ' ', $pickingList->status)) }}
                 </span>
             </div>
@@ -71,25 +71,25 @@
                 <div id="item-row-{{ $item->id }}"
                     class="rounded-2xl border {{ $borderCls }} p-4 transition-all duration-300"
                     data-product-id="{{ $item->product_id }}"
-                    data-barcode="{{ $item->product->barcode ?? ($item->product->sku ?? '') }}"
+                    data-barcode="{{ $item->product?->barcode ?? ($item->product?->sku ?? '') }}"
                     data-item-id="{{ $item->id }}">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex-1 min-w-0">
                             <p class="font-medium text-sm text-gray-900 truncate">
-                                {{ $item->product->name ?? '-' }}
+                                {{ $item->product?->name ?? '-' }}
                             </p>
                             <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <span class="text-xs font-mono text-gray-400">
-                                    {{ $item->product->sku ?? '-' }}
+                                    {{ $item->product?->sku ?? '-' }}
                                 </span>
                                 @if ($item->bin)
                                     <span
                                         class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
-                                        Bin: {{ $item->bin->code }}
+                                        Bin: {{ $item->bin?->code }}
                                     </span>
                                 @endif
                                 <span
-                                    class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">
+                                    class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">
                                     {{ ucfirst($item->status) }}
                                 </span>
                             </div>

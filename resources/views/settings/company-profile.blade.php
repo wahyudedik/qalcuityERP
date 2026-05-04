@@ -203,7 +203,7 @@
         </div>
         @else
         <div class="space-y-3">
-            @foreach($templates as $tpl)
+            @foreach($templates ?? [] as $tpl)
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
                     <div class="flex items-center gap-2">

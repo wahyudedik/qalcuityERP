@@ -123,7 +123,7 @@
                             @elseif($bed->status === 'reserved') text-blue-600
                             @else text-gray-600 @endif"></i>
                             <p class="text-sm font-semibold text-gray-900">{{ $bed->bed_number }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ $bed->ward ? $bed->ward->ward_code : 'No Ward' }}
+                            <p class="text-xs text-gray-600 mt-1">{{ $bed->ward ? $bed->ward?->ward_code : 'No Ward' }}
                             </p>
                             <span
                                 class="inline-block mt-2 px-2 py-1 text-xs font-semibold rounded-full
@@ -135,7 +135,7 @@
                                 {{ ucfirst($bed->status) }}
                             </span>
                             @if ($bed->status === 'occupied' && $bed->patient)
-                                <p class="text-xs text-gray-700 mt-1 truncate">{{ $bed->patient->name }}</p>
+                                <p class="text-xs text-gray-700 mt-1 truncate">{{ $bed->patient?->name }}</p>
                             @endif
                         </div>
                     @empty

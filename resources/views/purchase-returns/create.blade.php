@@ -24,9 +24,9 @@
                     <select name="purchase_order_id" id="poSelect" required
                             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Pilih PO --</option>
-                        @foreach($orders as $po)
+                        @foreach($orders ?? [] as $po)
                         <option value="{{ $po->id }}" data-supplier="{{ $po->supplier_id }}" {{ old('purchase_order_id') == $po->id ? 'selected' : '' }}>
-                            {{ $po->number }} — {{ $po->supplier->name ?? '' }}
+                            {{ $po->number }} — {{ $po->supplier?->name ?? '' }}
                         </option>
                         @endforeach
                     </select>
@@ -36,7 +36,7 @@
                     <select name="supplier_id" required
                             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Pilih Supplier --</option>
-                        @foreach($suppliers as $s)
+                        @foreach($suppliers ?? [] as $s)
                         <option value="{{ $s->id }}" {{ old('supplier_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                         @endforeach
                     </select>
@@ -45,7 +45,7 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Gudang <span class="text-red-500">*</span></label>
                     <select name="warehouse_id" required
                             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
-                        @foreach($warehouses as $w)
+                        @foreach($warehouses ?? [] as $w)
                         <option value="{{ $w->id }}" {{ old('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                         @endforeach
                     </select>

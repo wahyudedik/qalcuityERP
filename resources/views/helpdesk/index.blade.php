@@ -77,10 +77,10 @@
                             <a href="{{ route('helpdesk.show', $t) }}" class="hover:text-blue-500">{{ $t->ticket_number }}</a>
                         </td>
                         <td class="px-4 py-3 text-gray-700">{{ Str::limit($t->subject, 35) }}</td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-xs text-gray-500">{{ $t->customer->name ?? $t->contact_name ?? '-' }}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($t->priority) }}</span></td>
-                        <td class="px-4 py-3 text-center hidden sm:table-cell text-xs text-gray-500">{{ $t->assignee->name ?? '-' }}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span></td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-xs text-gray-500">{{ $t->customer?->name ?? $t->contact_name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($t->priority) }}</span></td>
+                        <td class="px-4 py-3 text-center hidden sm:table-cell text-xs text-gray-500">{{ $t->assignee?->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span></td>
                         <td class="px-4 py-3 text-center hidden md:table-cell">
                             @if($t->isOverdue())<span class="text-red-500 text-xs">⏰ Overdue</span>
                             @elseif($t->sla_resolve_met === true)<span class="text-green-500 text-xs">✅</span>
@@ -115,7 +115,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Customer</label>
                         <select name="customer_id" class="{{ $cls }}"><option value="">-- Pilih --</option>
-                            @foreach($customers as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                            @foreach($customers ?? [] as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
                         </select>
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Prioritas *</label>
@@ -130,7 +130,7 @@
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Assign ke</label>
                         <select name="assigned_to" class="{{ $cls }}"><option value="">-- Auto --</option>
-                            @foreach($agents as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach
+                            @foreach($agents ?? [] as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach
                         </select>
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kontak</label><input type="text" name="contact_name" class="{{ $cls }}"></div>

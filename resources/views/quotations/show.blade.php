@@ -8,7 +8,7 @@
                 <div>
                     <h2 class="text-xl font-bold text-gray-900">{{ $quotation->number }}</h2>
                     <p class="text-sm text-gray-500 mt-1">
-                        Customer: <span class="font-medium text-gray-700">{{ $quotation->customer->name }}</span>
+                        Customer: <span class="font-medium text-gray-700">{{ $quotation->customer?->name }}</span>
                     </p>
                     <p class="text-sm text-gray-500">
                         Tanggal: {{ $quotation->date->format('d M Y') }} —
@@ -21,7 +21,7 @@
                         $labels = ['draft'=>'Draft','sent'=>'Terkirim','accepted'=>'Diterima','rejected'=>'Ditolak','expired'=>'Kadaluarsa'];
                         $c = $colors[$quotation->status] ?? 'gray';
                     @endphp
-                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                         {{ $labels[$quotation->status] ?? $quotation->status }}
                     </span>
 
@@ -75,7 +75,7 @@
                         <tr>
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $item->description }}
-                                @if($item->product) <span class="text-xs text-gray-400">({{ $item->product->name }})</span> @endif
+                                @if($item->product) <span class="text-xs text-gray-400">({{ $item->product?->name }})</span> @endif
                             </td>
                             <td class="px-4 py-3 text-right text-gray-900">{{ $item->quantity }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($item->price, 0, ',', '.') }}</td>

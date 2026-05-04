@@ -165,12 +165,12 @@
                                     class="p-4 rounded-lg border-2 {{ $colorClass }} transition-all hover:shadow-md hover:scale-105">
                                     <div class="text-center">
                                         <p class="text-lg font-bold mb-1">{{ $room->number }}</p>
-                                        <p class="text-xs opacity-75 mb-2">{{ $room->roomType->name }}</p>
+                                        <p class="text-xs opacity-75 mb-2">{{ $room->roomType?->name }}</p>
 
                                         @if ($room->status === 'occupied' && $room->currentReservation)
                                             <div class="mt-2 pt-2 border-t border-current border-opacity-30">
                                                 <p class="text-xs truncate">
-                                                    {{ $room->currentReservation->guest->name ?? 'Guest' }}
+                                                    {{ $room->currentReservation?->guest->name ?? 'Guest' }}
                                                 </p>
                                             </div>
                                         @endif
@@ -187,11 +187,11 @@
                                 <div
                                     class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
                                     <p class="font-semibold">Room {{ $room->number }}</p>
-                                    <p>{{ $room->roomType->name }}</p>
+                                    <p>{{ $room->roomType?->name }}</p>
                                     <p class="capitalize">{{ ucfirst(str_replace('_', ' ', $room->status)) }}</p>
                                     @if ($room->status === 'occupied' && $room->currentReservation)
                                         <p class="mt-1 pt-1 border-t border-gray-600">
-                                            {{ $room->currentReservation->guest->name ?? 'N/A' }}
+                                            {{ $room->currentReservation?->guest->name ?? 'N/A' }}
                                         </p>
                                     @endif
                                     <div class="absolute top-full left-1/2 transform -translate-x-1/2">

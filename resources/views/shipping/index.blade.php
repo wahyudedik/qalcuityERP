@@ -86,7 +86,7 @@
                             <td class="px-6 py-3 text-right font-medium text-white">Rp {{ number_format($s->cost, 0, ',', '.') }}</td>
                             <td class="px-6 py-3">
                                 @php $colors = ['pending'=>'amber','shipped'=>'blue','delivered'=>'green','returned'=>'red']; @endphp
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $colors[$s->status] ?? 'gray' }}-500/20 text-{{ $colors[$s->status] ?? 'gray' }}-400">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $colors[$s->status] ?? 'gray'  }}-500/20 text-{{ $colors[$s->status] ?? 'gray' }}-400">
                                     {{ ucfirst($s->status) }}
                                 </span>
                             </td>

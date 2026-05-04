@@ -74,9 +74,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $invoice->patient ? $invoice->patient->full_name : '-' }}</p>
+                                    {{ $invoice->patient ? $invoice->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $invoice->patient ? $invoice->patient->medical_record_number : '-' }}</p>
+                                    {{ $invoice->patient ? $invoice->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden md:table-cell">
                                 {{ $invoice->service_type ?? '-' }}</td>

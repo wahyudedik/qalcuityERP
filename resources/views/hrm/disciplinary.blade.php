@@ -130,7 +130,7 @@
                                 <span
                                     class="px-1.5 py-0.5 rounded text-xs font-bold {{ $sp->levelColor() }}">{{ $sp->levelLabel() }}</span>
                                 <span
-                                    class="text-xs text-gray-700 truncate">{{ $sp->employee->name ?? '-' }}</span>
+                                    class="text-xs text-gray-700 truncate">{{ $sp->employee?->name ?? '-' }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -179,7 +179,7 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <p class="font-medium text-gray-900">
-                                            {{ $sp->employee->name ?? '-' }}</p>
+                                            {{ $sp->employee?->name ?? '-' }}</p>
                                         <p class="text-xs text-gray-400">{{ $sp->letter_number }}
                                         </p>
                                     </td>

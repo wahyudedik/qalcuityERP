@@ -96,7 +96,7 @@
                                 <td class="px-4 py-3">
                                     <div>
                                         <p class="font-medium text-gray-900">
-                                            {{ $response->supplier->name }}</p>
+                                            {{ $response->supplier?->name }}</p>
                                         @if ($response->notes)
                                             <p class="text-xs text-gray-500 mt-1">
                                                 {{ Str::limit($response->notes, 50) }}</p>
@@ -310,7 +310,7 @@
                     @endphp
                     <div class="flex items-center gap-4">
                         <div class="w-32 text-sm text-gray-700 truncate">
-                            {{ $response->supplier->name }}
+                            {{ $response->supplier?->name }}
                         </div>
                         <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
                             <div class="bg-indigo-600 h-6 rounded-full flex items-center justify-end pr-2 transition-all"

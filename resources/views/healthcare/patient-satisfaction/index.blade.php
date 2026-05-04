@@ -100,9 +100,9 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $survey->id }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $survey->patient->name ?? 'N/A' }}</td>
+                                        {{ $survey->patient?->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $survey->doctor->name ?? 'N/A' }}</td>
+                                        {{ $survey->doctor?->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             @for ($i = 1; $i <= 5; $i++)

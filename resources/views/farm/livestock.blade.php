@@ -38,7 +38,7 @@
     </div>
     @else
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @foreach($herds as $herd)
+        @foreach($herds ?? [] as $herd)
         <a href="{{ route('farm.livestock.show', $herd) }}" class="block bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-emerald-300 transition">
             <div class="px-5 py-4">
                 <div class="flex items-center justify-between mb-2">
@@ -56,7 +56,7 @@
                     <div><span class="text-gray-400">Umur:</span> <span class="text-gray-700">{{ $herd->ageDays() ?? '-' }} hari</span></div>
                 </div>
                 @if($herd->plot)
-                <p class="text-[10px] text-gray-400 mt-2">📍 {{ $herd->plot->code }} — {{ $herd->plot->name }}</p>
+                <p class="text-[10px] text-gray-400 mt-2">📍 {{ $herd->plot?->code }} — {{ $herd->plot?->name }}</p>
                 @endif
             </div>
         </a>
@@ -98,7 +98,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Kandang/Area</label>
                         <select name="farm_plot_id" class="{{ $cls }}">
                             <option value="">— Tanpa kandang —</option>
-                            @foreach($plots as $p)
+                            @foreach($plots ?? [] as $p)
                             <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }}</option>
                             @endforeach
                         </select>

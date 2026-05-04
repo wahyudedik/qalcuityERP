@@ -61,7 +61,7 @@
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">
                             <a href="{{ route('quotations.show', $qt) }}" class="hover:text-blue-500">{{ $qt->number }}</a>
                         </td>
-                        <td class="px-4 py-3 text-gray-700">{{ $qt->customer->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700">{{ $qt->customer?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($qt->total, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center">
                             @php
@@ -70,7 +70,7 @@
                                 $status = $expired ? 'expired' : $qt->status;
                                 $c = $colors[$status] ?? 'gray';
                             @endphp
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                 {{ $labels[$status] ?? $status }}
                             </span>
                         </td>
@@ -130,7 +130,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Customer *</label>
                         <select name="customer_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Customer --</option>
-                            @foreach($customers as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                            @foreach($customers ?? [] as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>
@@ -151,7 +151,7 @@
                             <div class="col-span-4">
                                 <select name="items[0][product_id]" onchange="fillDesc(this,0)" class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">-- Produk (opsional) --</option>
-                                    @foreach($products as $p)<option value="{{ $p->id }}" data-name="{{ $p->name }}" data-price="{{ $p->price_sell }}">{{ $p->name }}</option>@endforeach
+                                    @foreach($products ?? [] as $p)<option value="{{ $p->id }}" data-name="{{ $p->name }}" data-price="{{ $p->price_sell }}">{{ $p->name }}</option>@endforeach
                                 </select>
                             </div>
                             <div class="col-span-3">
@@ -204,7 +204,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Customer *</label>
                         <select id="eq-customer" name="customer_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Customer --</option>
-                            @foreach($customers as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                            @foreach($customers ?? [] as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>

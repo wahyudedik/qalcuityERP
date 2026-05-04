@@ -40,7 +40,7 @@
             <p class="text-sm text-gray-400 py-4 text-center">Belum ada tahun fiskal. Buat sekarang untuk mulai mengelola periode.</p>
             @else
             <div class="space-y-3">
-                @foreach($fiscalYears as $fy)
+                @foreach($fiscalYears ?? [] as $fy)
                 @php
                 $statusColor = match($fy->status) {
                     'open'   => 'bg-green-500/20 text-green-400',
@@ -54,9 +54,9 @@
                         <p class="text-sm font-semibold text-gray-900">{{ $fy->name }}</p>
                         <p class="text-xs text-gray-400">{{ $fy->start_date->format('d M Y') }} — {{ $fy->end_date->format('d M Y') }}</p>
                         @if($fy->lockedBy)
-                        <p class="text-xs text-red-400 mt-0.5">Dikunci oleh {{ $fy->lockedBy->name }} · {{ $fy->locked_at->format('d M Y H:i') }}</p>
+                        <p class="text-xs text-red-400 mt-0.5">Dikunci oleh {{ $fy->lockedBy?->name }} · {{ $fy->locked_at->format('d M Y H:i') }}</p>
                         @elseif($fy->closedBy)
-                        <p class="text-xs text-amber-400 mt-0.5">Ditutup oleh {{ $fy->closedBy->name }} · {{ $fy->closed_at->format('d M Y H:i') }}</p>
+                        <p class="text-xs text-amber-400 mt-0.5">Ditutup oleh {{ $fy->closedBy?->name }} · {{ $fy->closed_at->format('d M Y H:i') }}</p>
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
@@ -110,7 +110,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($periods as $period)
+                    @foreach($periods ?? [] as $period)
                     @php
                     $pColor = match($period->status) {
                         'open'   => 'bg-green-500/20 text-green-400',
@@ -196,7 +196,7 @@
             <p class="text-sm text-gray-400 py-4 text-center">Belum ada backup.</p>
             @else
             <div class="space-y-2">
-                @foreach($backups as $backup)
+                @foreach($backups ?? [] as $backup)
                 @php
                 $bColor = match($backup->status) {
                     'completed'  => 'bg-green-500/20 text-green-400',

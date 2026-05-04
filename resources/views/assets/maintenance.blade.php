@@ -48,7 +48,7 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($maintenances as $m)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 font-medium text-gray-900">{{ $m->asset->name ?? '-' }}
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ $m->asset?->name ?? '-' }}
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell text-gray-500 capitalize">
                                 {{ $m->type }}</td>
@@ -61,7 +61,7 @@
                             <td class="px-4 py-3 text-center">
                                 @php $mc = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green'][$m->status] ?? 'gray'; @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc  }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">
                                     {{ ['pending' => 'Pending', 'in_progress' => 'Proses', 'completed' => 'Selesai'][$m->status] ?? $m->status }}
                                 </span>
                             </td>

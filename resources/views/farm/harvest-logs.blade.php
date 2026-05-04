@@ -30,7 +30,7 @@
     <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Produktivitas per Lahan</p>
         <div class="flex flex-wrap gap-3">
-            @foreach($perPlot as $pp)
+            @foreach($perPlot ?? [] as $pp)
             @php $perHa = $pp->area_size > 0 ? round($pp->total / $pp->area_size, 0) : 0; @endphp
             <div class="px-3 py-2 rounded-lg bg-gray-50 text-xs">
                 <span class="font-bold text-gray-700">{{ $pp->code }}</span>
@@ -107,7 +107,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Lahan *</label>
                         <select name="farm_plot_id" required class="{{ $cls }}">
-                            @foreach($plots as $p)
+                            @foreach($plots ?? [] as $p)
                             <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->current_crop ?? $p->name }}</option>
                             @endforeach
                         </select>

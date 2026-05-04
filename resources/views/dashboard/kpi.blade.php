@@ -37,7 +37,7 @@
     {{-- KPI Target Cards --}}
     @if($targets->isNotEmpty())
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        @foreach($targets as $kpi)
+        @foreach($targets ?? [] as $kpi)
         @php
             $pct    = $kpi->achievementPercent();
             $color  = $kpi->statusColor();
@@ -98,7 +98,7 @@
             <h2 class="text-sm font-semibold text-gray-700">Semua Metrik — {{ \Carbon\Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') }}</h2>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
-            @foreach($kpis as $key => $kpi)
+            @foreach($kpis ?? [] as $key => $kpi)
             <div class="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                  onclick="loadDrilldown('{{ $key }}', '{{ $kpi['label'] }}')">
                 <p class="text-xs text-gray-500">{{ $kpi['label'] }}</p>
@@ -154,7 +154,7 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1">Metrik</label>
                 <select name="metric" required
                         class="w-full px-3 py-2 rounded-lg text-sm bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    @foreach($metrics as $key => $meta)
+                    @foreach($metrics ?? [] as $key => $meta)
                     <option value="{{ $key }}">{{ $meta['label'] }} ({{ $meta['unit'] }})</option>
                     @endforeach
                 </select>

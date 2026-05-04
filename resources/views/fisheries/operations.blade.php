@@ -93,12 +93,12 @@
                                 <span
                                     class="text-lg font-bold text-gray-900">{{ $trip->trip_number }}</span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                     {{ $label }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-500 mt-1">
-                                🚢 {{ $trip->vessel->name ?? 'N/A' }} | 👨‍✈️ {{ $trip->captain->name ?? 'N/A' }}
+                                🚢 {{ $trip->vessel?->name ?? 'N/A' }} | 👨‍✈️ {{ $trip->captain?->name ?? 'N/A' }}
                             </p>
                         </div>
                         <div class="text-right">
@@ -116,7 +116,7 @@
                                 <div>
                                     <span class="text-gray-400 text-xs block">Zona Penangkapan</span>
                                     <span
-                                        class="text-gray-700 font-medium">{{ $trip->fishing_zone->name ?? $trip->fishing_zone }}</span>
+                                        class="text-gray-700 font-medium">{{ $trip->fishing_zone?->name ?? $trip->fishing_zone }}</span>
                                 </div>
                             @endif
                             @if ($trip->expected_return)

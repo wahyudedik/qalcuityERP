@@ -89,7 +89,7 @@
                     <div class="flex items-start justify-between gap-2 mb-2">
                         <div class="flex-1 min-w-0">
                             <p class="text-base font-semibold text-white truncate">{{ $s->number }}</p>
-                            <p class="text-sm text-slate-400 mt-0.5">{{ $s->warehouse->name ?? '-' }}</p>
+                            <p class="text-sm text-slate-400 mt-0.5">{{ $s->warehouse?->name ?? '-' }}</p>
                         </div>
                         <span
                             class="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }}">

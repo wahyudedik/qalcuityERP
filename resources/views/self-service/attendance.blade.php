@@ -109,7 +109,7 @@
                     ['label' => 'Cuti/Sakit', 'key' => 'leave', 'color' => 'text-blue-600'],
                 ];
             @endphp
-            @foreach($statItems as $s)
+            @foreach($statItems ?? [] as $s)
             <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <p class="text-xs text-gray-500">{{ $s['label'] }}</p>
                 <p class="text-2xl font-bold {{ $s['color'] }} mt-1">
@@ -141,7 +141,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($history as $att)
+                    @foreach($history ?? [] as $att)
                     @php
                         $dur = '';
                         if ($att->check_in && $att->check_out) {

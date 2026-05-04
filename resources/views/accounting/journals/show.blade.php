@@ -48,7 +48,7 @@
                 @if ($journal->postedBy)
                     <div>
                         <div class="text-gray-400 text-xs mb-1">Diposting Oleh</div>
-                        <div class="text-white">{{ $journal->postedBy->name }}
+                        <div class="text-white">{{ $journal->postedBy?->name }}
                             ({{ $journal->posted_at?->format('d/m/Y H:i') }})</div>
                     </div>
                 @endif

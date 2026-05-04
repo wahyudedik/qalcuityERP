@@ -61,8 +61,8 @@
                 @forelse($returns as $return)
                 <tr class="hover:bg-slate-50">
                     <td class="px-4 py-3 font-mono font-medium text-slate-800">{{ $return->number }}</td>
-                    <td class="px-4 py-3 text-slate-600">{{ $return->supplier->name ?? '-' }}</td>
-                    <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ $return->purchaseOrder->number ?? '-' }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ $return->supplier?->name ?? '-' }}</td>
+                    <td class="px-4 py-3 text-slate-500 font-mono text-xs">{{ $return->purchaseOrder?->number ?? '-' }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ $return->return_date->format('d/m/Y') }}</td>
                     <td class="px-4 py-3 text-right font-medium text-slate-800">Rp {{ number_format($return->total, 0, ',', '.') }}</td>
                     <td class="px-4 py-3">

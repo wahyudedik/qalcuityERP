@@ -42,7 +42,7 @@
                     $color = $statusColors[$job->status] ?? 'gray';
                 @endphp
                 <span
-                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400 font-medium">
+                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400 font-medium">
                     {{ ucfirst(str_replace('_', ' ', $job->status)) }}
                 </span>
             </div>
@@ -53,7 +53,7 @@
                     $pColor = $priorityColors[$job->priority] ?? 'blue';
                 @endphp
                 <span
-                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $pColor }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400 font-medium">
+                    class="px-3 py-1.5 text-sm rounded-full bg-{{ $pColor  }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400 font-medium">
                     {{ ucfirst($job->priority) }}
                 </span>
             </div>
@@ -188,11 +188,11 @@
                     <div class="flex items-center gap-3">
                         <div
                             class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-lg">
-                            {{ substr($job->assignedOperator->name, 0, 1) }}
+                            {{ substr($job->assignedOperator?->name, 0, 1) }}
                         </div>
                         <div>
-                            <p class="font-medium text-gray-900">{{ $job->assignedOperator->name }}</p>
-                            <p class="text-sm text-gray-500">{{ $job->assignedOperator->email }}
+                            <p class="font-medium text-gray-900">{{ $job->assignedOperator?->name }}</p>
+                            <p class="text-sm text-gray-500">{{ $job->assignedOperator?->email }}
                             </p>
                         </div>
                     </div>

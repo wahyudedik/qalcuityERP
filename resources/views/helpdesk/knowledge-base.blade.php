@@ -7,7 +7,7 @@
                 class="flex-1 min-w-[150px] px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <select name="category" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                 <option value="">Semua Kategori</option>
-                @foreach($categories as $cat)<option value="{{ $cat }}" @selected(request('category')===$cat)>{{ ucfirst($cat) }}</option>@endforeach
+                @foreach($categories ?? [] as $cat)<option value="{{ $cat }}" @selected(request('category')===$cat)>{{ ucfirst($cat) }}</option>@endforeach
             </select>
             <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Cari</button>
         </form>

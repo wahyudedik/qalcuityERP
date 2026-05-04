@@ -80,9 +80,9 @@
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900">
-                                            {{ $admission->patient ? $admission->patient->full_name : '-' }}</p>
+                                            {{ $admission->patient ? $admission->patient?->full_name : '-' }}</p>
                                         <p class="text-xs text-gray-500">
-                                            {{ $admission->patient ? $admission->patient->medical_record_number : '-' }}
+                                            {{ $admission->patient ? $admission->patient?->medical_record_number : '-' }}
                                         </p>
                                     </div>
                                 </div>
@@ -95,9 +95,9 @@
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell">
                                 <p class="text-gray-900">
-                                    {{ $admission->doctor ? $admission->doctor->name : '-' }}</p>
+                                    {{ $admission->doctor ? $admission->doctor?->name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $admission->doctor ? $admission->doctor->specialization : '' }}</p>
+                                    {{ $admission->doctor ? $admission->doctor?->specialization : '' }}</p>
                             </td>
                             <td class="px-4 py-3">
                                 <p class="text-gray-900">

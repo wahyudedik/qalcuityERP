@@ -25,7 +25,7 @@
                         };
                     @endphp
                     <span
-                        class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span>
+                        class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc  }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span>
                 </div>
                 <p class="text-sm text-gray-700 whitespace-pre-line">{{ $ticket->description }}</p>
                 <p class="text-xs text-gray-400 mt-3">
@@ -39,7 +39,7 @@
                     <div class="flex items-center gap-2 mb-2">
                         <span
                             class="text-sm font-medium text-gray-900">{{ $reply->user?->name ?? 'Anda' }}</span>
-                        @if ($reply->user && $reply->user->role !== 'customer')
+                        @if ($reply->user && $reply->user?->role !== 'customer')
                             <span
                                 class="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-700">Staff</span>
                         @endif
@@ -89,7 +89,7 @@
                             };
                         @endphp
                         <span
-                            class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($ticket->priority ?? 'medium') }}</span>
+                            class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($ticket->priority ?? 'medium') }}</span>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Kategori</p>

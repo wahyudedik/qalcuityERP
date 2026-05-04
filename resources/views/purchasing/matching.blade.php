@@ -42,7 +42,7 @@
                         <span class="px-2 py-0.5 rounded-full text-xs {{ $matchBadge }}">{{ $matchLabel }}</span>
                     </div>
                     <p class="text-xs text-gray-500 mt-0.5">
-                        {{ $po->supplier->name }} &bull; {{ $po->date->format('d M Y') }}
+                        {{ $po->supplier?->name }} &bull; {{ $po->date->format('d M Y') }}
                     </p>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                     <div class="mt-3 space-y-1">
                         @foreach($po->items as $item)
                         <div class="flex justify-between text-xs text-gray-500">
-                            <span class="truncate max-w-[120px]">{{ $item->product->name ?? '-' }}</span>
+                            <span class="truncate max-w-[120px]">{{ $item->product?->name ?? '-' }}</span>
                             <span>{{ $item->quantity_ordered }} × Rp {{ number_format($item->price, 0, ',', '.') }}</span>
                         </div>
                         @endforeach

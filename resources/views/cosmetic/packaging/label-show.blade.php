@@ -22,7 +22,7 @@
                             {{ $label->status_label }}
                         </span>
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">{{ $label->product->formula_name ?? 'No Product' }} -
+                    <p class="mt-1 text-sm text-gray-500">{{ $label->product?->formula_name ?? 'No Product' }} -
                         {{ $label->type_label }}</p>
                 </div>
                 <div class="flex gap-2">

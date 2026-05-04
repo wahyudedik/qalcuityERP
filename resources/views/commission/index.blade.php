@@ -67,7 +67,7 @@
                         $cl = ['draft'=>'Draft','approved'=>'Approved','paid'=>'Dibayar'][$c->status] ?? $c->status;
                     @endphp
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-gray-900">{{ $c->user->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-900">{{ $c->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-right text-gray-500">{{ $target ? 'Rp ' . number_format($target->target_amount, 0, ',', '.') : '-' }}</td>
                         <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($c->total_sales, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center hidden sm:table-cell">
@@ -83,7 +83,7 @@
                         <td class="px-4 py-3 text-right text-gray-900">Rp {{ number_format($c->commission_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right hidden sm:table-cell {{ $c->bonus_amount > 0 ? 'text-green-500' : 'text-gray-400' }}">{{ $c->bonus_amount > 0 ? 'Rp ' . number_format($c->bonus_amount, 0, ',', '.') : '—' }}</td>
                         <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp {{ number_format($c->total_payout, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $cc }}-100 text-{{ $cc }}-700 $cc }}-500/20 $cc }}-400">{{ $cl }}</span></td>
+                        <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $cc  }}-100 text-{{ $cc }}-700 $cc }}-500/20 $cc }}-400">{{ $cl }}</span></td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
                                 @canmodule('commission', 'edit')
@@ -120,7 +120,7 @@
                 @php $cls = 'w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900'; @endphp
                 <div><label class="block text-xs font-medium text-gray-600 mb-1">Salesperson *</label>
                     <select name="user_id" required class="{{ $cls }}"><option value="">-- Pilih --</option>
-                        @foreach($salespeople as $sp)<option value="{{ $sp->id }}">{{ $sp->name }} ({{ $sp->role }})</option>@endforeach
+                        @foreach($salespeople ?? [] as $sp)<option value="{{ $sp->id }}">{{ $sp->name }} ({{ $sp->role }})</option>@endforeach
                     </select>
                 </div>
                 <div><label class="block text-xs font-medium text-gray-600 mb-1">Periode *</label>
@@ -131,7 +131,7 @@
                 </div>
                 <div><label class="block text-xs font-medium text-gray-600 mb-1">Rule Komisi</label>
                     <select name="commission_rule_id" class="{{ $cls }}"><option value="">-- Default --</option>
-                        @foreach($rules as $r)<option value="{{ $r->id }}">{{ $r->name }} ({{ $r->type === 'flat_pct' ? $r->rate . '%' : ($r->type === 'flat_amount' ? 'Rp ' . number_format($r->rate, 0, ',', '.') : 'Tiered') }})</option>@endforeach
+                        @foreach($rules ?? [] as $r)<option value="{{ $r->id }}">{{ $r->name }} ({{ $r->type === 'flat_pct' ? $r->rate . '%' : ($r->type === 'flat_amount' ? 'Rp ' . number_format($r->rate, 0, ',', '.') : 'Tiered') }})</option>@endforeach
                     </select>
                 </div>
                 <div class="flex justify-end gap-3">

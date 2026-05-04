@@ -94,17 +94,17 @@
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900">
-                                            {{ $visit->patient ? $visit->patient->full_name : '-' }}</p>
+                                            {{ $visit->patient ? $visit->patient?->full_name : '-' }}</p>
                                         <p class="text-xs text-gray-500">
-                                            {{ $visit->patient ? $visit->patient->medical_record_number : '-' }}</p>
+                                            {{ $visit->patient ? $visit->patient?->medical_record_number : '-' }}</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900">
-                                    {{ $visit->doctor ? $visit->doctor->name : '-' }}</p>
+                                    {{ $visit->doctor ? $visit->doctor?->name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $visit->doctor ? $visit->doctor->specialization : '' }}</p>
+                                    {{ $visit->doctor ? $visit->doctor?->specialization : '' }}</p>
                             </td>
                             <td class="px-4 py-3">
                                 <p class="text-gray-900">

@@ -1,42 +1,39 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Book Teleconsultation')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-video text-primary"></i> Book Teleconsultation
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-video text-blue-600"></i> Book Teleconsultation
             </h1>
-            <p class="text-muted mb-0">Schedule online consultation with doctor</p>
+            <p class="text-gray-500">Schedule online consultation with doctor</p>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full md:w-2/3">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
                     <form action="{{ route('healthcare.telemedicine.book.store') }}" method="POST">
                         @csrf
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Select Doctor</label>
-                            <div class="row">
+                            <label class="form-label font-bold">Select Doctor</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @forelse($availableDoctors ?? [] as $doctor)
-                                    <div class="col-md-6 mb-3">
+                                    <div class="w-full md:w-1/2">
                                         <div
-                                            class="card border-2 {{ old('doctor_id') == $doctor->id ? 'border-primary' : '' }}">
-                                            <div class="card-body">
+                                            class="bg-white rounded-2xl border border-gray-200 border-2 {{ old('doctor_id') == $doctor->id ? 'border-blue-500' : '' }}">
+                                            <div class="p-5">
                                                 <div class="form-check">
                                                     <input class="form-check-input" type="radio" name="doctor_id"
                                                         id="doctor{{ $doctor->id }}" value="{{ $doctor->id }}"
                                                         {{ old('doctor_id') == $doctor->id ? 'checked' : '' }} required>
-                                                    <label class="form-check-label w-100" for="doctor{{ $doctor->id }}">
-                                                        <div class="d-flex align-items-center">
+                                                    <label class="form-check-label w-full" for="doctor{{ $doctor->id }}">
+                                                        <div class="flex items-center">
                                                             <div class="me-3">
-                                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                                <div class="rounded-full bg-primary text-white flex items-center justify-center"
                                                                     style="width: 50px; height: 50px;">
                                                                     <i class="fas fa-user-md fa-lg"></i>
                                                                 </div>
@@ -44,8 +41,8 @@
                                                             <div>
                                                                 <strong>{{ $doctor->name }}</strong>
                                                                 <br><small
-                                                                    class="text-muted">{{ $doctor->specialty ?? 'General Practitioner' }}</small>
-                                                                <br><small class="text-success">
+                                                                    class="text-gray-500">{{ $doctor->specialty ?? 'General Practitioner' }}</small>
+                                                                <br><small class="text-emerald-600">
                                                                     <i class="fas fa-check-circle"></i> Available
                                                                 </small>
                                                             </div>
@@ -56,21 +53,21 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <div class="col-12">
-                                        <p class="text-muted text-center">No doctors available for teleconsultation</p>
+                                    <div class="w-full">
+                                        <p class="text-gray-500 text-center">No doctors available for teleconsultation</p>
                                     </div>
                                 @endforelse
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Consultation Date</label>
                                 <input type="date" name="consultation_date" class="form-control"
                                     value="{{ old('consultation_date', today()->format('Y-m-d')) }}" required
                                     min="{{ today()->format('Y-m-d') }}">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Preferred Time</label>
                                 <select name="preferred_time" class="form-select" required>
                                     <option value="">Select time slot</option>
@@ -115,7 +112,7 @@
                             <br><small>Payment will be collected before the consultation begins.</small>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <button type="submit" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-medium transition">
                             <i class="fas fa-calendar-check"></i> Book Consultation
                         </button>
                     </form>
@@ -123,78 +120,78 @@
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle"></i> How It Works
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="p-5">
                     <div class="mb-3">
-                        <div class="d-flex">
+                        <div class="flex">
                             <div class="me-3">
-                                <span class="badge bg-primary rounded-circle"
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 rounded-full"
                                     style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">1</span>
                             </div>
                             <div>
                                 <strong>Book Appointment</strong>
-                                <br><small class="text-muted">Choose doctor and time slot</small>
+                                <br><small class="text-gray-500">Choose doctor and time slot</small>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex">
+                        <div class="flex">
                             <div class="me-3">
-                                <span class="badge bg-primary rounded-circle"
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 rounded-full"
                                     style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">2</span>
                             </div>
                             <div>
                                 <strong>Make Payment</strong>
-                                <br><small class="text-muted">Pay consultation fee</small>
+                                <br><small class="text-gray-500">Pay consultation fee</small>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex">
+                        <div class="flex">
                             <div class="me-3">
-                                <span class="badge bg-primary rounded-circle"
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 rounded-full"
                                     style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">3</span>
                             </div>
                             <div>
                                 <strong>Join Consultation</strong>
-                                <br><small class="text-muted">Click link at scheduled time</small>
+                                <br><small class="text-gray-500">Click link at scheduled time</small>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <div class="d-flex">
+                        <div class="flex">
                             <div class="me-3">
-                                <span class="badge bg-primary rounded-circle"
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 rounded-full"
                                     style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">4</span>
                             </div>
                             <div>
                                 <strong>Get Prescription</strong>
-                                <br><small class="text-muted">Receive e-prescription</small>
+                                <br><small class="text-gray-500">Receive e-prescription</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
+            <div class="bg-white rounded-2xl border border-gray-200 mt-3">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-headset"></i> Need Help?
                     </h5>
                 </div>
-                <div class="card-body">
-                    <p class="mb-2"><i class="fas fa-phone me-2"></i> <strong>Phone:</strong> (021) 1234-5678</p>
-                    <p class="mb-2"><i class="fas fa-envelope me-2"></i> <strong>Email:</strong>
+                <div class="p-5">
+                    <p class="mb-2"><i class="fas fa-phone mr-2"></i> <strong>Phone:</strong> (021) 1234-5678</p>
+                    <p class="mb-2"><i class="fas fa-envelope mr-2"></i> <strong>Email:</strong>
                         telemedicine@hospital.com</p>
-                    <p class="mb-0"><i class="fas fa-clock me-2"></i> <strong>Hours:</strong> Mon-Sat, 08:00-17:00</p>
+                    <p class="mb-0"><i class="fas fa-clock mr-2"></i> <strong>Hours:</strong> Mon-Sat, 08:00-17:00</p>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

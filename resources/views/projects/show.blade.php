@@ -77,7 +77,7 @@
                     <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 group">
                         <select onchange="updateTaskStatus({{ $task->id }}, this.value)"
                             class="text-xs rounded-lg border-0 bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400 font-medium focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                            @foreach($taskStatuses as $v=>$l)
+                            @foreach($taskStatuses ?? [] as $v=>$l)
                             <option value="{{ $v }}" @selected($task->status===$v)>{{ $l }}</option>
                             @endforeach
                         </select>
@@ -161,7 +161,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
                         <select name="status" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            @foreach($statusLabels as $v=>$l)
+                            @foreach($statusLabels ?? [] as $v=>$l)
                             <option value="{{ $v }}" @selected($project->status===$v)>{{ $l }}</option>
                             @endforeach
                         </select>
@@ -215,7 +215,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Ditugaskan ke</label>
                         <select name="assigned_to" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih --</option>
-                            @foreach($users as $u)
+                            @foreach($users ?? [] as $u)
                             <option value="{{ $u->id }}">{{ $u->name }}</option>
                             @endforeach
                         </select>

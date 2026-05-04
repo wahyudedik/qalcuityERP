@@ -1,65 +1,62 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Sample Management')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-vials text-primary"></i> Sample Management
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-vials text-blue-600"></i> Sample Management
             </h1>
-            <p class="text-muted mb-0">Track and manage laboratory samples</p>
+            <p class="text-gray-500">Track and manage laboratory samples</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSampleModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addSampleModal">
                 <i class="fas fa-plus"></i> Register Sample
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $samples->where('status', 'collected')->count() }}</h3>
-                    <small class="text-muted">Collected</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $samples->where('status', 'collected')->count() }}</h3>
+                    <small class="text-gray-500">Collected</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $samples->where('status', 'processing')->count() }}</h3>
-                    <small class="text-muted">Processing</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $samples->where('status', 'processing')->count() }}</h3>
+                    <small class="text-gray-500">Processing</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $samples->where('status', 'completed')->count() }}</h3>
-                    <small class="text-muted">Completed</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $samples->where('status', 'completed')->count() }}</h3>
+                    <small class="text-gray-500">Completed</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">{{ $samples->where('status', 'rejected')->count() }}</h3>
-                    <small class="text-muted">Rejected</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-red-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-red-600">{{ $samples->where('status', 'rejected')->count() }}</h3>
+                    <small class="text-gray-500">Rejected</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Sample ID</th>
@@ -86,7 +83,7 @@
                                                     'swab' => 'fa-stroopwafel',
                                                 ];
                                             @endphp
-                                            <i class="fas {{ $icons[$sample->sample_type] ?? 'fa-vial' }} me-1"></i>
+                                            <i class="fas {{ $icons[$sample->sample_type] ?? 'fa-vial' }} mr-1"></i>
                                             {{ ucfirst($sample->sample_type ?? '-') }}
                                         </td>
                                         <td>{{ $sample->collected_at?->format('d/m/Y H:i') ?? '-' }}</td>
@@ -100,18 +97,18 @@
                                                     'rejected' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$sample->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$sample->status] ?? 'secondary'  }}">
                                                 {{ ucfirst($sample->status) }}
                                             </span>
                                         </td>
                                         <td>{{ $sample->technician?->name ?? '-' }}</td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 @if ($sample->status == 'collected')
-                                                    <button class="btn btn-outline-warning btn-sm">
+                                                    <button class="px-3 py-1.5 border border-amber-500 text-amber-600 hover:bg-amber-50 rounded-lg text-xs transition">
                                                         <i class="fas fa-play"></i>
                                                     </button>
                                                 @endif
@@ -120,7 +117,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No samples found</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No samples found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -140,7 +137,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Register Sample</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -174,11 +171,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Register Sample</button>
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Register Sample</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

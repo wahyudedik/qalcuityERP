@@ -4,19 +4,18 @@
     {{-- Toolbar --}}
     <div class="flex flex-wrap items-center justify-end gap-2 mb-4">
         <button onclick="document.getElementById('addColdStorageModal').classList.remove('hidden')"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
-                + Add Cold Storage
-            </button>
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium whitespace-nowrap">
+            + Add Cold Storage
+        </button>
     </div>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
     {{-- Stats Cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" x-data="{ units: {{ Js::from($stats['units'] ?? []) }}, alerts: {{ Js::from($stats['alerts'] ?? []) }} }">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" x-data="{ units: @js($stats['units'] ?? []), alerts: @js($stats['alerts'] ?? []) }">
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs text-gray-500">Total Unit</p>
             <p class="text-2xl font-bold text-blue-600" x-text="units.length">{{ count($stats['units'] ?? []) }}</p>
@@ -57,8 +56,7 @@
 
     {{-- Cold Storage Units Grid --}}
     @if (empty($storageUnits) || count($storageUnits) === 0)
-        <div
-            class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+        <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p class="text-4xl mb-3">❄️</p>
             <p class="text-sm text-gray-500">Belum ada unit cold storage. Tambahkan unit pertama
                 Anda.</p>
@@ -79,17 +77,15 @@
                             : 'text-yellow-600');
                 @endphp
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition group"
-                    x-data="{ showTempForm: false, currentTemp: {{ $unit->current_temperature ?? 'null' }} }">
+                    x-data="{ showTempForm: false, currentTemp: @js($unit->current_temperature) }">
 
                     {{-- Header --}}
-                    <div
-                        class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
+                    <div class="px-5 py-4 flex items-start justify-between border-b border-gray-100">
                         <div>
                             <div class="flex items-center gap-2">
+                                <span class="text-lg font-bold text-gray-900">{{ $unit->unit_code }}</span>
                                 <span
-                                    class="text-lg font-bold text-gray-900">{{ $unit->unit_code }}</span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $tempClass }}-100 text-{{ $tempClass }}-700 $tempClass }}-500/20 $tempClass }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $tempClass  }}-100 text-{{ $tempClass }}-700 $tempClass }}-500/20 $tempClass }}-400">
                                     {{ $unit->isTemperatureSafe() ? 'Normal' : 'Warning' }}
                                 </span>
                             </div>
@@ -121,15 +117,13 @@
                         </div>
 
                         {{-- Temperature Form --}}
-                        <div x-show="showTempForm" x-transition
-                            class="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div x-show="showTempForm" x-transition class="mt-3 p-3 bg-gray-50 rounded-lg">
                             <form :action="'{{ route('fisheries.cold-chain.log-temperature', $unit->id) }}'"
                                 method="POST" class="space-y-2">
                                 @csrf
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Suhu
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Suhu
                                             (°C)
                                         </label>
                                         <input type="number" name="temperature" required step="0.1"
@@ -137,8 +131,7 @@
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-medium text-gray-600 mb-1">Kelembaban
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Kelembaban
                                             (%)</label>
                                         <input type="number" name="humidity" step="0.1" placeholder="85.0"
                                             class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900">
@@ -168,8 +161,7 @@
                             @if ($unit->capacity_kg)
                                 <div>
                                     <span class="text-gray-400">Kapasitas:</span>
-                                    <span
-                                        class="text-gray-700">{{ number_format($unit->capacity_kg, 0) }}
+                                    <span class="text-gray-700">{{ number_format($unit->capacity_kg, 0) }}
                                         kg</span>
                                 </div>
                             @endif
@@ -215,10 +207,8 @@
             </h3>
             <div class="space-y-3">
                 @foreach ($alerts as $alert)
-                    <div
-                        class="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
-                        <div
-                            class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm">
+                    <div class="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm">
                             ⚠️</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-900">{{ $alert['title'] }}</p>
@@ -226,7 +216,7 @@
                             <p class="text-xs text-gray-400 mt-1">{{ $alert['time'] }}</p>
                         </div>
                         <span
-                            class="text-xs px-2 py-1 rounded-full bg-{{ $alert['severity_color'] }}-100 text-{{ $alert['severity_color'] }}-700 $alert['severity_color'] }}-500/20 $alert['severity_color'] }}-400">
+                            class="text-xs px-2 py-1 rounded-full bg-{{ $alert['severity_color']  }}-100 text-{{ $alert['severity_color'] }}-700 $alert['severity_color'] }}-500/20 $alert['severity_color'] }}-400">
                             {{ ucfirst($alert['severity']) }}
                         </span>
                     </div>
@@ -238,8 +228,7 @@
     {{-- Add Unit Modal --}}
     <div id="addUnitModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold text-gray-900">Tambah Cold Storage Unit</h2>
                 <button onclick="document.getElementById('addUnitModal').classList.add('hidden')"

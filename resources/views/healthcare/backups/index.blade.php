@@ -162,7 +162,7 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $backup->initiatedBy->name ?? 'N/A' }}</td>
+                                        {{ $backup->initiatedBy?->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <a href="{{ route('healthcare.backups.show', $backup) }}"
                                             class="text-blue-600 hover:text-blue-900 mr-3"><i

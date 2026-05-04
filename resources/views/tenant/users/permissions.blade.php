@@ -40,7 +40,7 @@
         @csrf
 
         <div class="space-y-4">
-            @foreach($categories as $catLabel => $catModules)
+            @foreach($categories ?? [] as $catLabel => $catModules)
                 @php
                     // Only show categories that have at least one module in MODULES
                     $visibleModules = array_filter($catModules, fn($m) => isset($modules[$m]));
@@ -59,13 +59,13 @@
                             <thead>
                                 <tr class="border-b border-gray-100">
                                     <th class="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 w-52">Modul</th>
-                                    @foreach($actionLabels as $act => $lbl)
+                                    @foreach($actionLabels ?? [] as $act => $lbl)
                                         <th class="text-center px-4 py-2.5 text-xs font-semibold text-slate-500 w-20">{{ $lbl }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                @foreach($visibleModules as $module)
+                                @foreach($visibleModules ?? [] as $module)
                                     @php $actions = $modules[$module]; @endphp
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-5 py-3 font-medium text-gray-800 text-sm">
@@ -83,7 +83,7 @@
                                                 <span class="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">override</span>
                                             @endif
                                         </td>
-                                        @foreach($actionLabels as $action => $lbl)
+                                        @foreach($actionLabels ?? [] as $action => $lbl)
                                             <td class="text-center px-4 py-3">
                                                 @if(in_array($action, $actions))
                                                     @php

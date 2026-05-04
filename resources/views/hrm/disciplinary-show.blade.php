@@ -46,9 +46,9 @@
 
             {{-- Riwayat SP karyawan --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-4">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Riwayat SP — {{ $letter->employee->name }}</p>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Riwayat SP — {{ $letter->employee?->name }}</p>
                 <div class="space-y-2">
-                    @foreach($history as $h)
+                    @foreach($history ?? [] as $h)
                     <a href="{{ route('hrm.disciplinary.show', $h) }}"
                         class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 {{ $h->id === $letter->id ? 'bg-blue-50' : '' }}">
                         <span class="px-1.5 py-0.5 rounded text-xs font-bold {{ $h->levelColor() }}">{{ $h->levelLabel() }}</span>
@@ -77,14 +77,14 @@
                 <div class="mb-6 text-sm text-gray-700 space-y-1">
                     <p>Yang bertanda tangan di bawah ini:</p>
                     <div class="ml-4 space-y-1">
-                        <div class="flex gap-2"><span class="w-32 shrink-0">Nama</span><span>: {{ $letter->issuer->name ?? '-' }}</span></div>
+                        <div class="flex gap-2"><span class="w-32 shrink-0">Nama</span><span>: {{ $letter->issuer?->name ?? '-' }}</span></div>
                         <div class="flex gap-2"><span class="w-32 shrink-0">Jabatan</span><span>: {{ $letter->issuer?->role ? ucfirst($letter->issuer->role) : 'HRD' }}</span></div>
                     </div>
                     <p class="mt-2">Dengan ini memberikan Surat Peringatan kepada:</p>
                     <div class="ml-4 space-y-1">
-                        <div class="flex gap-2"><span class="w-32 shrink-0">Nama</span><span>: {{ $letter->employee->name ?? '-' }}</span></div>
-                        <div class="flex gap-2"><span class="w-32 shrink-0">Jabatan</span><span>: {{ $letter->employee->position ?? '-' }}</span></div>
-                        <div class="flex gap-2"><span class="w-32 shrink-0">Departemen</span><span>: {{ $letter->employee->department ?? '-' }}</span></div>
+                        <div class="flex gap-2"><span class="w-32 shrink-0">Nama</span><span>: {{ $letter->employee?->name ?? '-' }}</span></div>
+                        <div class="flex gap-2"><span class="w-32 shrink-0">Jabatan</span><span>: {{ $letter->employee?->position ?? '-' }}</span></div>
+                        <div class="flex gap-2"><span class="w-32 shrink-0">Departemen</span><span>: {{ $letter->employee?->department ?? '-' }}</span></div>
                     </div>
                 </div>
 
@@ -126,14 +126,14 @@
                     <div>
                         <p>{{ $letter->issued_date->format('d F Y') }}</p>
                         <div class="h-16 border-b border-gray-400 mt-2 mb-1"></div>
-                        <p class="font-semibold">{{ $letter->issuer->name ?? 'HRD' }}</p>
+                        <p class="font-semibold">{{ $letter->issuer?->name ?? 'HRD' }}</p>
                         <p class="text-xs text-gray-500">Yang Menerbitkan</p>
                     </div>
                     @if($letter->witness)
                     <div>
                         <p>&nbsp;</p>
                         <div class="h-16 border-b border-gray-400 mt-2 mb-1"></div>
-                        <p class="font-semibold">{{ $letter->witness->name }}</p>
+                        <p class="font-semibold">{{ $letter->witness?->name }}</p>
                         <p class="text-xs text-gray-500">Saksi</p>
                     </div>
                     @else
@@ -146,7 +146,7 @@
                         <p>&nbsp;</p>
                         @endif
                         <div class="h-16 border-b border-gray-400 mt-2 mb-1"></div>
-                        <p class="font-semibold">{{ $letter->employee->name ?? '-' }}</p>
+                        <p class="font-semibold">{{ $letter->employee?->name ?? '-' }}</p>
                         <p class="text-xs text-gray-500">Yang Menerima</p>
                     </div>
                 </div>

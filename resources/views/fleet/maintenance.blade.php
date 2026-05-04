@@ -79,7 +79,7 @@
                                 {{ number_format($m->cost, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">{{ $ml }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $mc  }}-100 text-{{ $mc }}-700 $mc }}-500/20 $mc }}-400">{{ $ml }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">

@@ -2,8 +2,7 @@
     <x-slot name="header">📦 Export Documentation</x-slot>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
@@ -28,8 +27,7 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="bg-white rounded-xl border border-gray-200"
-        x-data="{ tab: '{{ request('tab', 'permits') }}' }">
+    <div class="bg-white rounded-xl border border-gray-200" x-data="{ tab: @js(request('tab', 'permits')) }">
         <div class="flex border-b border-gray-200 overflow-x-auto">
             <button @click="tab = 'permits'; window.location.href = '?tab=permits'"
                 :class="tab === 'permits' ? 'border-b-2 border-orange-600 text-orange-600' :
@@ -79,8 +77,7 @@
             </div>
 
             @if (empty($permits) || count($permits) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">📄</p>
                     <p class="text-sm text-gray-500">Belum ada izin ekspor. Ajukan izin pertama
                         Anda.</p>
@@ -97,15 +94,14 @@
                             ];
                             $color = $statusColors[$permit->status] ?? 'gray';
                         @endphp
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <h4 class="text-base font-bold text-gray-900">
                                             {{ $permit->permit_number }}</h4>
                                         <span
-                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                             {{ ucfirst($permit->status) }}
                                         </span>
                                     </div>
@@ -135,8 +131,7 @@
                                 @if ($permit->commodity)
                                     <div>
                                         <span class="text-gray-400 text-xs block">Komoditas</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $permit->commodity }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $permit->commodity }}</span>
                                     </div>
                                 @endif
                                 @if ($permit->quantity_kg)
@@ -150,15 +145,13 @@
                                 @if ($permit->issuing_authority)
                                     <div>
                                         <span class="text-gray-400 text-xs block">Penerbit</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $permit->issuing_authority }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $permit->issuing_authority }}</span>
                                     </div>
                                 @endif
                             </div>
 
                             @if ($permit->notes)
-                                <p
-                                    class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
                                     {{ Str::limit($permit->notes, 150) }}
                                 </p>
                             @endif
@@ -180,8 +173,7 @@
             </div>
 
             @if (empty($certificates) || count($certificates) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">🏥</p>
                     <p class="text-sm text-gray-500">Belum ada sertifikat kesehatan. Buat sertifikat
                         pertama Anda.</p>
@@ -189,8 +181,7 @@
             @else
                 <div class="space-y-3">
                     @foreach ($certificates as $cert)
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <h4 class="text-base font-bold text-gray-900">
@@ -198,8 +189,7 @@
                                     <p class="text-sm text-gray-500 mt-1">Issued:
                                         {{ $cert->issued_date->format('d M Y') }}</p>
                                 </div>
-                                <span
-                                    class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                     Valid
                                 </span>
                             </div>
@@ -208,22 +198,19 @@
                                 @if ($cert->veterinarian_name)
                                     <div>
                                         <span class="text-gray-400 text-xs block">Dokter Hewan</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $cert->veterinarian_name }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $cert->veterinarian_name }}</span>
                                     </div>
                                 @endif
                                 @if ($cert->species_tested)
                                     <div>
                                         <span class="text-gray-400 text-xs block">Spesies Diuji</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $cert->species_tested }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $cert->species_tested }}</span>
                                     </div>
                                 @endif
                                 @if ($cert->test_results)
                                     <div class="col-span-2 md:col-span-3">
                                         <span class="text-gray-400 text-xs block">Hasil Tes</span>
-                                        <span
-                                            class="text-gray-700">{{ Str::limit($cert->test_results, 200) }}</span>
+                                        <span class="text-gray-700">{{ Str::limit($cert->test_results, 200) }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -244,8 +231,7 @@
             </div>
 
             @if (empty($customsDeclarations) || count($customsDeclarations) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">🛃</p>
                     <p class="text-sm text-gray-500">Belum ada deklarasi bea cukai. Buat deklarasi
                         pertama Anda.</p>
@@ -253,8 +239,7 @@
             @else
                 <div class="space-y-3">
                     @foreach ($customsDeclarations as $declaration)
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <h4 class="text-base font-bold text-gray-900">
@@ -262,8 +247,7 @@
                                     <p class="text-sm text-gray-500 mt-1">
                                         {{ $declaration->declaration_type }}</p>
                                 </div>
-                                <span
-                                    class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+                                <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
                                     {{ ucfirst($declaration->status) }}
                                 </span>
                             </div>
@@ -272,8 +256,7 @@
                                 @if ($declaration->hs_code)
                                     <div>
                                         <span class="text-gray-400 text-xs block">HS Code</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $declaration->hs_code }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $declaration->hs_code }}</span>
                                     </div>
                                 @endif
                                 @if ($declaration->declared_value_usd)
@@ -316,8 +299,7 @@
             </div>
 
             @if (empty($shipments) || count($shipments) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">🚢</p>
                     <p class="text-sm text-gray-500">Belum ada pengiriman ekspor. Buat pengiriman
                         pertama Anda.</p>
@@ -336,15 +318,14 @@
                             ];
                             $color = $statusColors[$shipment->status] ?? 'gray';
                         @endphp
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <h4 class="text-base font-bold text-gray-900">
                                             {{ $shipment->shipment_number }}</h4>
                                         <span
-                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                            class="text-xs px-2 py-0.5 rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                             {{ str_replace('_', ' ', ucfirst($shipment->status)) }}
                                         </span>
                                     </div>
@@ -364,8 +345,7 @@
                                 @if ($shipment->carrier)
                                     <div>
                                         <span class="text-gray-400 text-xs block">Ekspedisi</span>
-                                        <span
-                                            class="text-gray-700 font-medium">{{ $shipment->carrier }}</span>
+                                        <span class="text-gray-700 font-medium">{{ $shipment->carrier }}</span>
                                     </div>
                                 @endif
                                 @if ($shipment->tracking_number)
@@ -402,8 +382,7 @@
     {{-- Add Permit Modal --}}
     <div id="addPermitModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold text-gray-900">Ajukan Izin Ekspor Baru</h2>
                 <button onclick="document.getElementById('addPermitModal').classList.add('hidden')"

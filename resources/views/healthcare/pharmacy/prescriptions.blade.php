@@ -87,14 +87,14 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $prescription->patient ? $prescription->patient->full_name : '-' }}</p>
+                                    {{ $prescription->patient ? $prescription->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $prescription->patient ? $prescription->patient->medical_record_number : '-' }}
+                                    {{ $prescription->patient ? $prescription->patient?->medical_record_number : '-' }}
                                 </p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900">
-                                    {{ $prescription->doctor ? $prescription->doctor->name : '-' }}</p>
+                                    {{ $prescription->doctor ? $prescription->doctor?->name : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell">
                                 <p class="text-gray-900">
@@ -176,10 +176,10 @@
                             <p class="font-mono text-sm font-bold text-blue-600">
                                 {{ $prescription->prescription_number ?? '-' }}</p>
                             <p class="font-semibold text-gray-900 truncate mt-0.5">
-                                {{ $prescription->patient ? $prescription->patient->full_name : '-' }}
+                                {{ $prescription->patient ? $prescription->patient?->full_name : '-' }}
                             </p>
                             <p class="text-xs text-gray-500">
-                                {{ $prescription->patient ? $prescription->patient->medical_record_number : '-' }}
+                                {{ $prescription->patient ? $prescription->patient?->medical_record_number : '-' }}
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1">
@@ -203,7 +203,7 @@
                         <div>
                             <p class="text-gray-500">Dokter</p>
                             <p class="font-medium text-gray-900">
-                                {{ $prescription->doctor ? $prescription->doctor->name : '-' }}</p>
+                                {{ $prescription->doctor ? $prescription->doctor?->name : '-' }}</p>
                         </div>
                         <div>
                             <p class="text-gray-500">Tanggal</p>

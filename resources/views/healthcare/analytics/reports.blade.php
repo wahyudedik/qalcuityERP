@@ -82,7 +82,7 @@
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                {{ $report->generatedBy ? $report->generatedBy->name : '-' }}</td>
+                                {{ $report->generatedBy ? $report->generatedBy?->name : '-' }}</td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span
                                     class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-gray-100 text-gray-700">

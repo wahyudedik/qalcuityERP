@@ -28,7 +28,7 @@
                     <p class="text-blue-100">Patient ID: <span
                             class="font-mono">{{ $patient->patient_id ?? 'N/A' }}</span></p>
                     <p class="text-sm text-blue-100 mt-1">Last visit:
-                        {{ $patient->lastVisit ? $patient->lastVisit->visit_date->format('d M Y') : 'No visits yet' }}
+                        {{ $patient->lastVisit ? $patient->lastVisit?->visit_date->format('d M Y') : 'No visits yet' }}
                     </p>
                 </div>
                 <div class="hidden sm:block">
@@ -37,7 +37,7 @@
                         @if (isset($nextAppointment) && $nextAppointment)
                             <p class="text-lg font-bold">{{ $nextAppointment->appointment_date->format('d M Y') }}</p>
                             <p class="text-sm">{{ $nextAppointment->appointment_date->format('H:i') }} -
-                                {{ $nextAppointment->doctor ? $nextAppointment->doctor->name : '-' }}</p>
+                                {{ $nextAppointment->doctor ? $nextAppointment->doctor?->name : '-' }}</p>
                         @else
                             <p class="text-sm">No upcoming appointments</p>
                         @endif
@@ -161,7 +161,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">
-                                    {{ $appointment->doctor ? $appointment->doctor->name : '-' }}</p>
+                                    {{ $appointment->doctor ? $appointment->doctor?->name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
                                     {{ $appointment->appointment_date->format('d M Y • H:i') }}</p>
                             </div>

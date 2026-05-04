@@ -1,65 +1,62 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Inventory Requests')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-clipboard-list text-primary"></i> Inventory Requests
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-clipboard-list text-blue-600"></i> Inventory Requests
             </h1>
-            <p class="text-muted mb-0">Medical supply requisition and approval</p>
+            <p class="text-gray-500">Medical supply requisition and approval</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRequestModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addRequestModal">
                 <i class="fas fa-plus"></i> New Request
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $requests->where('status', 'pending')->count() }}</h3>
-                    <small class="text-muted">Pending</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $requests->where('status', 'pending')->count() }}</h3>
+                    <small class="text-gray-500">Pending</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $requests->where('status', 'approved')->count() }}</h3>
-                    <small class="text-muted">Approved</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $requests->where('status', 'approved')->count() }}</h3>
+                    <small class="text-gray-500">Approved</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $requests->where('status', 'fulfilled')->count() }}</h3>
-                    <small class="text-muted">Fulfilled</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $requests->where('status', 'fulfilled')->count() }}</h3>
+                    <small class="text-gray-500">Fulfilled</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">{{ $requests->where('status', 'rejected')->count() }}</h3>
-                    <small class="text-muted">Rejected</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-red-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-red-600">{{ $requests->where('status', 'rejected')->count() }}</h3>
+                    <small class="text-gray-500">Rejected</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Request #</th>
@@ -82,11 +79,11 @@
                                         <td><strong>{{ count($request->items ?? []) }} items</strong></td>
                                         <td>
                                             @if ($request->priority == 'urgent')
-                                                <span class="badge bg-danger">Urgent</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Urgent</span>
                                             @elseif($request->priority == 'high')
-                                                <span class="badge bg-warning">High</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">High</span>
                                             @else
-                                                <span class="badge bg-secondary">Normal</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Normal</span>
                                             @endif
                                         </td>
                                         <td>
@@ -98,20 +95,20 @@
                                                     'rejected' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$request->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$request->status] ?? 'secondary'  }}">
                                                 {{ ucfirst($request->status) }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 @if ($request->status == 'pending')
-                                                    <button class="btn btn-outline-success btn-sm">
+                                                    <button class="px-3 py-1.5 border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition">
                                                         <i class="fas fa-check"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger btn-sm">
+                                                    <button class="px-3 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg text-xs transition">
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 @endif
@@ -120,7 +117,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No requests found</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No requests found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -131,4 +128,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

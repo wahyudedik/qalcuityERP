@@ -10,15 +10,15 @@
                 <div class="flex items-start justify-between gap-4 mb-4">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900">{{ $t->subject }}</h2>
-                        <p class="text-xs text-gray-500 mt-1">{{ $t->ticket_number }} · {{ $t->created_at->format('d/m/Y H:i') }} · oleh {{ $t->creator->name ?? '-' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $t->ticket_number }} · {{ $t->created_at->format('d/m/Y H:i') }} · oleh {{ $t->creator?->name ?? '-' }}</p>
                     </div>
                     @php
                         $pc = ['low'=>'gray','medium'=>'blue','high'=>'amber','urgent'=>'red'][$t->priority] ?? 'gray';
                         $sc = ['open'=>'blue','in_progress'=>'amber','waiting'=>'purple','resolved'=>'green','closed'=>'gray'][$t->status] ?? 'gray';
                     @endphp
                     <div class="flex gap-2">
-                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($t->priority) }}</span>
-                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $t->status)) }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($t->priority) }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $t->status)) }}</span>
                     </div>
                 </div>
                 <div class="prose prose-sm max-w-none text-gray-700">
@@ -31,7 +31,7 @@
                 @foreach($t->replies->sortBy('created_at') as $reply)
                 <div class="bg-white rounded-2xl border {{ $reply->is_internal ? 'border-amber-200' : 'border-gray-200' }} p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-900">{{ $reply->user->name ?? 'System' }}</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $reply->user?->name ?? 'System' }}</span>
                         <div class="flex items-center gap-2">
                             @if($reply->is_internal)<span class="text-xs text-amber-500">🔒 Internal</span>@endif
                             <span class="text-xs text-gray-400">{{ $reply->created_at->format('d/m H:i') }}</span>
@@ -82,7 +82,7 @@
                     <div><label class="block text-xs text-gray-500 mb-1">Assign ke</label>
                         <select name="assigned_to" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                             <option value="">-- Unassigned --</option>
-                            @foreach($agents as $a)<option value="{{ $a->id }}" @selected($t->assigned_to==$a->id)>{{ $a->name }}</option>@endforeach
+                            @foreach($agents ?? [] as $a)<option value="{{ $a->id }}" @selected($t->assigned_to==$a->id)>{{ $a->name }}</option>@endforeach
                         </select>
                     </div>
                     <button type="submit" class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700">Update</button>
@@ -93,10 +93,10 @@
             {{-- Details --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-4 space-y-2 text-sm">
                 <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Detail</h4>
-                <div><span class="text-gray-500">Customer:</span> <span class="text-gray-900">{{ $t->customer->name ?? $t->contact_name ?? '-' }}</span></div>
-                <div><span class="text-gray-500">Email:</span> <span class="text-gray-900">{{ $t->contact_email ?? $t->customer->email ?? '-' }}</span></div>
+                <div><span class="text-gray-500">Customer:</span> <span class="text-gray-900">{{ $t->customer?->name ?? $t->contact_name ?? '-' }}</span></div>
+                <div><span class="text-gray-500">Email:</span> <span class="text-gray-900">{{ $t->contact_email ?? $t->customer?->email ?? '-' }}</span></div>
                 <div><span class="text-gray-500">Kategori:</span> <span class="text-gray-900">{{ ucfirst($t->category) }}</span></div>
-                @if($t->contract)<div><span class="text-gray-500">Kontrak:</span> <a href="{{ route('contracts.show', $t->contract) }}" class="text-blue-500 hover:underline">{{ $t->contract->contract_number }}</a></div>@endif
+                @if($t->contract)<div><span class="text-gray-500">Kontrak:</span> <a href="{{ route('contracts.show', $t->contract) }}" class="text-blue-500 hover:underline">{{ $t->contract?->contract_number }}</a></div>@endif
             </div>
 
             {{-- SLA --}}
@@ -125,7 +125,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-4">
                 <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Artikel Terkait</h4>
                 <div class="space-y-1">
-                    @foreach($kbArticles as $kb)
+                    @foreach($kbArticles ?? [] as $kb)
                     <a href="#" class="block text-sm text-blue-500 hover:underline">📄 {{ $kb->title }}</a>
                     @endforeach
                 </div>

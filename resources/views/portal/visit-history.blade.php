@@ -1,55 +1,52 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Visit History')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-history text-primary"></i> My Visit History
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-history text-blue-600"></i> My Visit History
             </h1>
-            <p class="text-muted mb-0">Complete record of your healthcare visits</p>
+            <p class="text-gray-500">Complete record of your healthcare visits</p>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">{{ $stats['total_visits'] ?? 0 }}</h3>
-                    <small class="text-muted">Total Visits</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-blue-400">
+                <div class="p-5 text-center">
+                    <h3 class="text-blue-600">{{ $stats['total_visits'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Total Visits</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $stats['last_visit_days'] ?? 0 }}</h3>
-                    <small class="text-muted">Days Since Last Visit</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $stats['last_visit_days'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Days Since Last Visit</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $stats['upcoming_appointments'] ?? 0 }}</h3>
-                    <small class="text-muted">Upcoming Appointments</small>
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $stats['upcoming_appointments'] ?? 0 }}</h3>
+                    <small class="text-gray-500">Upcoming Appointments</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">Visit Records</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -67,26 +64,26 @@
                                         <td>
                                             <strong>{{ $visit->visit_date->format('d/m/Y') ?? '-' }}</strong>
                                             <br><small
-                                                class="text-muted">{{ $visit->visit_date->diffForHumans() ?? '-' }}</small>
+                                                class="text-gray-500">{{ $visit->visit_date->diffForHumans() ?? '-' }}</small>
                                         </td>
                                         <td>
                                             @if ($visit->visit_type == 'consultation')
-                                                <span class="badge bg-primary">Consultation</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Consultation</span>
                                             @elseif($visit->visit_type == 'emergency')
-                                                <span class="badge bg-danger">Emergency</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Emergency</span>
                                             @elseif($visit->visit_type == 'follow_up')
-                                                <span class="badge bg-info">Follow-up</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">Follow-up</span>
                                             @elseif($visit->visit_type == 'checkup')
-                                                <span class="badge bg-success">Check-up</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Check-up</span>
                                             @else
                                                 <span
-                                                    class="badge bg-secondary">{{ ucfirst($visit->visit_type ?? '-') }}</span>
+                                                    class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ ucfirst($visit->visit_type ?? '-') }}</span>
                                             @endif
                                         </td>
                                         <td>{{ $visit->department ?? '-' }}</td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                                            <div class="flex items-center">
+                                                <div class="rounded-full bg-primary text-white flex items-center justify-center mr-2"
                                                     style="width: 30px; height: 30px;">
                                                     <i class="fas fa-user-md fa-xs"></i>
                                                 </div>
@@ -98,22 +95,22 @@
                                         </td>
                                         <td>
                                             @if ($visit->status == 'completed')
-                                                <span class="badge bg-success">Completed</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Completed</span>
                                             @elseif($visit->status == 'in_progress')
-                                                <span class="badge bg-warning">In Progress</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">In Progress</span>
                                             @elseif($visit->status == 'cancelled')
-                                                <span class="badge bg-danger">Cancelled</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Cancelled</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ ucfirst($visit->status) }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ ucfirst($visit->status) }}</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs transition" data-bs-toggle="modal"
                                                     data-bs-target="#visitDetailModal{{ $visit->id }}">
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
-                                                <button class="btn btn-sm btn-success" title="Download Summary"
+                                                <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs transition" title="Download Summary"
                                                     onclick="window.print()">
                                                     <i class="fas fa-download"></i>
                                                 </button>
@@ -127,26 +124,26 @@
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title">Visit Details</h5>
-                                                    <button type="button" class="btn-close"
+                                                    <button type="button" class="text-gray-400 hover:text-gray-600"
                                                         data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Visit Date:</strong>
                                                             <p>{{ $visit->visit_date->format('d/m/Y H:i') ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Visit Type:</strong>
                                                             <p>{{ ucfirst($visit->visit_type ?? '-') }}</p>
                                                         </div>
                                                     </div>
-                                                    <div class="row mb-3">
-                                                        <div class="col-md-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Department:</strong>
                                                             <p>{{ $visit->department ?? '-' }}</p>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="w-full md:w-1/2">
                                                             <strong>Doctor:</strong>
                                                             <p>{{ $visit->doctor_name ?? '-' }}</p>
                                                         </div>
@@ -157,7 +154,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <strong>Treatment/Notes:</strong>
-                                                        <p class="bg-light p-3 rounded" style="white-space: pre-wrap;">
+                                                        <p class="bg-gray-50 p-3 rounded" style="white-space: pre-wrap;">
                                                             {{ $visit->notes ?? 'N/A' }}</p>
                                                     </div>
                                                     @if ($visit->prescriptions)
@@ -176,9 +173,9 @@
                                                     @endif
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
+                                                    <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition"
                                                         data-bs-dismiss="modal">Close</button>
-                                                    <button class="btn btn-success" onclick="window.print()">
+                                                    <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition" onclick="window.print()">
                                                         <i class="fas fa-print"></i> Print
                                                     </button>
                                                 </div>
@@ -187,9 +184,9 @@
                                     </div>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
-                                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">No visit history available</p>
+                                        <td colspan="7" class="text-center py-10">
+                                            <i class="fas fa-history fa-3x text-gray-500 mb-3"></i>
+                                            <p class="text-gray-500">No visit history available</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -206,4 +203,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

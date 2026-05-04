@@ -29,13 +29,13 @@
             <a href="{{ route('hrm.onboarding.index') }}" class="text-xs text-blue-500 hover:underline">Lihat semua</a>
         </div>
         <div class="flex flex-wrap gap-3">
-            @foreach($onboardings as $ob)
+            @foreach($onboardings ?? [] as $ob)
             @php $pct = $ob->progressPercent(); @endphp
             <a href="{{ route('hrm.onboarding.detail', $ob) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition min-w-[200px]">
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate">{{ $ob->employee->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $ob->employee->position ?? '-' }}</p>
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ $ob->employee?->name }}</p>
+                    <p class="text-xs text-gray-500">{{ $ob->employee?->position ?? '-' }}</p>
                 </div>
                 <div class="text-right shrink-0">
                     <p class="text-sm font-bold {{ $pct >= 100 ? 'text-green-400' : 'text-blue-400' }}">{{ $pct }}%</p>

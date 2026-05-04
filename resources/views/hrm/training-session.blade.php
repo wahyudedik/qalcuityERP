@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="header">Peserta Pelatihan — {{ $session->program->name }}</x-slot>
+    <x-slot name="header">Peserta Pelatihan — {{ $session->program?->name }}</x-slot>
 
     <div class="flex flex-col lg:flex-row gap-5">
 
@@ -8,10 +8,10 @@
             {{-- Info sesi --}}
             <div
                 class="bg-white rounded-2xl border border-gray-200 p-5 space-y-2 text-sm">
-                <p class="font-semibold text-gray-900">{{ $session->program->name }}</p>
-                @if ($session->program->category)
+                <p class="font-semibold text-gray-900">{{ $session->program?->name }}</p>
+                @if ($session->program?->category)
                     <span
-                        class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">{{ $session->program->category }}</span>
+                        class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">{{ $session->program?->category }}</span>
                 @endif
                 <div class="space-y-1 text-xs text-gray-500 pt-1">
                     <p>📅 {{ $session->start_date->format('d M Y') }} – {{ $session->end_date->format('d M Y') }}</p>
@@ -93,9 +93,9 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <p class="font-medium text-gray-900">
-                                            {{ $p->employee->name ?? '-' }}</p>
+                                            {{ $p->employee?->name ?? '-' }}</p>
                                         <p class="text-xs text-gray-400">
-                                            {{ $p->employee->department ?? ($p->employee->position ?? '') }}</p>
+                                            {{ $p->employee?->department ?? ($p->employee?->position ?? '') }}</p>
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <form method="POST"

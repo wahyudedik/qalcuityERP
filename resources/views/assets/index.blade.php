@@ -124,7 +124,7 @@
                             <td class="px-4 py-3 text-center">
                                 @php $sc = ['active'=>'green','maintenance'=>'yellow','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                                     {{ ucfirst($asset->status) }}
                                 </span>
                             </td>

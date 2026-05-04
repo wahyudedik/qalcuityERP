@@ -55,7 +55,7 @@
                                 {{ number_format($order->total_amount ?? 0, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($order->status) }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($order->status) }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <a href="{{ route('customer-portal.orders.show', $order) }}"

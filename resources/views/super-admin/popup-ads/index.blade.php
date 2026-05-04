@@ -12,55 +12,55 @@
     </x-slot>
 
     @if (session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-500/20 border border-green-500/30 text-green-400 text-sm rounded-xl">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl">
             {{ session('success') }}
         </div>
     @endif
 
-    <div class="bg-[#1e293b] border border-white/10 rounded-2xl overflow-hidden">
+    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead>
-                    <tr class="border-b border-white/10 bg-white/5">
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Judul</th>
                         <th
-                            class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             Target</th>
                         <th
-                            class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             Frekuensi</th>
                         <th
-                            class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                             Periode</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Status</th>
-                        <th class="px-5 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-gray-100">
                     @forelse($ads as $ad)
                         @php
                             $statusLabel = $ad->status_label;
                             $statusClass = match ($statusLabel) {
-                                'Aktif' => 'text-green-400 bg-green-500/15 border-green-500/30',
-                                'Nonaktif' => 'text-slate-400 bg-white/10 border-white/10',
-                                'Terjadwal' => 'text-blue-400 bg-blue-500/15 border-blue-500/30',
-                                'Kedaluwarsa' => 'text-red-400 bg-red-500/15 border-red-500/30',
-                                default => 'text-slate-400 bg-white/10 border-white/10',
+                                'Aktif' => 'text-green-700 bg-green-100 border-green-200',
+                                'Nonaktif' => 'text-gray-500 bg-gray-100 border-gray-200',
+                                'Terjadwal' => 'text-blue-700 bg-blue-100 border-blue-200',
+                                'Kedaluwarsa' => 'text-red-700 bg-red-100 border-red-200',
+                                default => 'text-gray-500 bg-gray-100 border-gray-200',
                             };
                         @endphp
-                        <tr class="hover:bg-white/5 transition">
+                        <tr class="hover:bg-gray-50 transition">
                             <td class="px-5 py-4">
                                 <div class="flex items-center gap-3">
                                     @if ($ad->image_path)
                                         <img src="{{ Storage::url($ad->image_path) }}"
-                                            class="w-10 h-10 rounded-lg object-cover shrink-0 border border-white/10">
+                                            class="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-200">
                                     @else
                                         <div
-                                            class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor"
+                                            class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -68,22 +68,22 @@
                                         </div>
                                     @endif
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium text-slate-100 truncate">{{ $ad->title }}</p>
+                                        <p class="text-sm font-medium text-gray-900 truncate">{{ $ad->title }}</p>
                                         @if ($ad->button_label)
-                                            <p class="text-xs text-slate-500 truncate">CTA: {{ $ad->button_label }}</p>
+                                            <p class="text-xs text-gray-400 truncate">CTA: {{ $ad->button_label }}</p>
                                         @endif
                                     </div>
                                 </div>
                             </td>
                             <td class="px-5 py-4 hidden md:table-cell">
                                 @if ($ad->target === 'all')
-                                    <span class="text-xs text-slate-300">Semua Tenant</span>
+                                    <span class="text-xs text-gray-600">Semua Tenant</span>
                                 @else
-                                    <span class="text-xs text-blue-400">{{ count($ad->tenant_ids ?? []) }} tenant</span>
+                                    <span class="text-xs text-blue-600">{{ count($ad->tenant_ids ?? []) }} tenant</span>
                                 @endif
                             </td>
                             <td class="px-5 py-4 hidden md:table-cell">
-                                <span class="text-xs text-slate-300">
+                                <span class="text-xs text-gray-600">
                                     {{ match ($ad->frequency) {
                                         'once' => 'Sekali saja',
                                         'daily' => 'Setiap hari',
@@ -93,10 +93,10 @@
                                 </span>
                             </td>
                             <td class="px-5 py-4 hidden lg:table-cell">
-                                <p class="text-xs text-slate-400">
+                                <p class="text-xs text-gray-500">
                                     {{ $ad->starts_at ? $ad->starts_at->format('d M Y') : '—' }}
                                     @if ($ad->ends_at)
-                                        <span class="text-slate-600 mx-1">→</span>
+                                        <span class="text-gray-300 mx-1">→</span>
                                         {{ $ad->ends_at->format('d M Y') }}
                                     @endif
                                 </p>
@@ -110,7 +110,7 @@
                             <td class="px-5 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('super-admin.popup-ads.edit', $ad) }}"
-                                        class="p-1.5 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition"
+                                        class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
                                         title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -122,7 +122,7 @@
                                         class="inline">
                                         @csrf @method('PATCH')
                                         <button type="submit"
-                                            class="p-1.5 rounded-lg transition {{ $ad->is_active ? 'text-green-400 hover:text-slate-400 hover:bg-white/10' : 'text-slate-400 hover:text-green-400 hover:bg-green-500/10' }}"
+                                            class="p-1.5 rounded-lg transition {{ $ad->is_active ? 'text-green-600 hover:text-gray-500 hover:bg-gray-100' : 'text-gray-400 hover:text-green-600 hover:bg-green-50' }}"
                                             title="{{ $ad->is_active ? 'Nonaktifkan' : 'Aktifkan' }}">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
                                         onsubmit="return confirm('Hapus popup iklan ini?')" class="inline">
                                         @csrf @method('DELETE')
                                         <button type="submit"
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition"
+                                            class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
                                             title="Hapus">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -150,7 +150,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-16 text-center">
-                                <div class="flex flex-col items-center gap-3 text-slate-500">
+                                <div class="flex flex-col items-center gap-3 text-gray-400">
                                     <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -158,7 +158,7 @@
                                     </svg>
                                     <p class="text-sm">Belum ada popup iklan.</p>
                                     <a href="{{ route('super-admin.popup-ads.create') }}"
-                                        class="text-sm text-blue-400 hover:text-blue-300 font-medium">+ Buat iklan
+                                        class="text-sm text-blue-600 hover:text-blue-700 font-medium">+ Buat iklan
                                         pertama</a>
                                 </div>
                             </td>
@@ -168,7 +168,7 @@
             </table>
         </div>
         @if ($ads->hasPages())
-            <div class="px-6 py-4 border-t border-white/10">{{ $ads->links() }}</div>
+            <div class="px-6 py-4 border-t border-gray-200">{{ $ads->links() }}</div>
         @endif
     </div>
 </x-app-layout>

@@ -158,7 +158,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-gray-900">
-                                    {{ $variant->product->formula_name ?? 'N/A' }}</div>
+                                    {{ $variant->product?->formula_name ?? 'N/A' }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="space-y-1">
@@ -181,11 +181,11 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if ($variant->inventory)
                                     <div
-                                        class="text-sm {{ $variant->inventory->stock_quantity <= $variant->inventory->low_stock_threshold ? 'text-red-600 font-medium' : 'text-gray-900' }}">
-                                        {{ number_format($variant->inventory->stock_quantity, 0) }}
-                                        {{ $variant->inventory->unit }}
+                                        class="text-sm {{ $variant->inventory?->stock_quantity <= $variant->inventory?->low_stock_threshold ? 'text-red-600 font-medium' : 'text-gray-900' }}">
+                                        {{ number_format($variant->inventory?->stock_quantity, 0) }}
+                                        {{ $variant->inventory?->unit }}
                                     </div>
-                                    @if ($variant->inventory->stock_quantity <= $variant->inventory->low_stock_threshold)
+                                    @if ($variant->inventory?->stock_quantity <= $variant->inventory?->low_stock_threshold)
                                         <div class="text-xs text-orange-600">Low Stock</div>
                                     @endif
                                 @else

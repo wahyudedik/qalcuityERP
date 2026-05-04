@@ -82,7 +82,7 @@
                                         $sColor = $statusColors[$estimate->status] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $sColor }}-100 text-{{ $sColor }}-700 $sColor }}-500/20 $sColor }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $sColor  }}-100 text-{{ $sColor }}-700 $sColor }}-500/20 $sColor }}-400">
                                         {{ ucfirst($estimate->status) }}
                                     </span>
                                 </td>

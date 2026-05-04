@@ -46,7 +46,7 @@
                                 {{ $customer['days_since_last_purchase'] ?? '-' }} days</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                    <div class="bg-{{ $customer['risk_level'] === 'high' ? 'red' : ($customer['risk_level'] === 'medium' ? 'yellow' : 'green') }}-600 h-2.5 rounded-full"
+                                    <div class="bg-{{ $customer['risk_level'] === 'high' ? 'red' : ($customer['risk_level'] === 'medium' ? 'yellow' : 'green')  }}-600 h-2.5 rounded-full"
                                         style="width: {{ $customer['risk_score'] }}%"></div>
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1">{{ $customer['risk_score'] }}/100</div>

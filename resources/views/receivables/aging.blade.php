@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Analisis Aging Piutang</x-slot>
 
     <div class="space-y-5">
@@ -22,7 +22,7 @@
                     'total'   => ['label' => 'Total Outstanding', 'color' => 'indigo'],
                 ];
             @endphp
-            @foreach($buckets as $key => $b)
+            @foreach($buckets ?? [] as $key => $b)
             <div class="bg-white/5 border border-white/10 rounded-xl p-4">
                 <p class="text-xs text-gray-400 mb-1">{{ $b['label'] }}</p>
                 <p class="text-lg font-bold text-{{ $b['color'] }}-400">

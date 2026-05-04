@@ -22,7 +22,7 @@
                         class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('patient_visit_id') border-red-500 @enderror">
                         <option value="">Pilih kunjungan pasien</option>
                         @foreach ($visits as $visit)
-                            <option value="{{ $visit->id }}">{{ $visit->patient->name ?? 'Unknown' }} -
+                            <option value="{{ $visit->id }}">{{ $visit->patient?->name ?? 'Unknown' }} -
                                 {{ $visit->visit_date }}</option>
                         @endforeach
                     </select>

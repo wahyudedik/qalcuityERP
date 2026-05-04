@@ -35,7 +35,7 @@
                                 <td class="px-4 py-3">
                                     <div class="font-medium">{{ $rule->name }}</div>
                                     @if ($rule->ratePlan)
-                                        <div class="text-sm text-gray-500">Applies to: {{ $rule->ratePlan->name }}</div>
+                                        <div class="text-sm text-gray-500">Applies to: {{ $rule->ratePlan?->name }}</div>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">

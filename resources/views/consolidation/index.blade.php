@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Multi-Company Consolidation</x-slot>
 
     {{-- Toolbar --}}
@@ -47,7 +47,7 @@
                     </div>
                 @else
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($groups as $group)
+                        @foreach($groups ?? [] as $group)
                             <div class="border rounded-lg p-4 hover:shadow-lg transition">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="font-semibold text-lg">{{ $group->name }}</h4>

@@ -28,7 +28,7 @@
                                 {{ $payment->reference ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($payment->status ?? 'pending') }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($payment->status ?? 'pending') }}</span>
                             </td>
                         </tr>
                     @empty

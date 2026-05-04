@@ -45,7 +45,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 text-gray-900">{{ $d->name }}
                                 @if ($d->employee)
-                                    <span class="text-xs text-gray-400">({{ $d->employee->employee_id ?? '' }})</span>
+                                    <span class="text-xs text-gray-400">({{ $d->employee?->employee_id ?? '' }})</span>
                                 @endif
                             </td>
                             <td
@@ -57,7 +57,7 @@
                                 {{ $d->phone ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $dc }}-100 text-{{ $dc }}-700 $dc }}-500/20 $dc }}-400">{{ $dl }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $dc  }}-100 text-{{ $dc }}-700 $dc }}-500/20 $dc }}-400">{{ $dl }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1">

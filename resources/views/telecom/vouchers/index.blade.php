@@ -246,7 +246,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($voucher->customer)
                                             <div class="text-sm text-gray-900">
-                                                {{ $voucher->customer->name }}</div>
+                                                {{ $voucher->customer?->name }}</div>
                                             <div class="text-xs text-gray-500">
                                                 {{ $voucher->used_at?->format('d M Y H:i') }}</div>
                                         @else

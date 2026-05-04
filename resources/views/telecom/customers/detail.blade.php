@@ -107,7 +107,7 @@
                                     <span class="text-gray-600">{{ round($quotaBytes / 1073741824, 2) }} GB {{ __('total') }}</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-4">
-                                    <div class="bg-{{ $color }}-500 h-4 rounded-full" style="width: {{ $percentage }}%"></div>
+                                    <div class="bg-{{ $color  }}-500 h-4 rounded-full" style="width: {{ $percentage }}%"></div>
                                 </div>
                                 <p class="text-sm text-gray-500 mt-1">{{ $percentage }}% {{ __('terpakai') }}</p>
                             </div>

@@ -19,7 +19,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <p class="text-xs text-gray-500">Guest</p>
-                    <p class="font-medium text-gray-900">{{ $reservation->guest->name }}</p>
+                    <p class="font-medium text-gray-900">{{ $reservation->guest?->name }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Current Room</p>
@@ -176,7 +176,7 @@
 
             function detectChangeType() {
                 const roomTypeSelect = document.getElementById('room-type-select');
-                const currentRoomTypeName = "{{ $reservation->roomType->name }}";
+                const currentRoomTypeName = "{{ $reservation->roomType?->name }}";
                 const selectedRoomTypeName = roomTypeSelect.options[roomTypeSelect.selectedIndex]?.text || '';
 
                 if (!selectedRoomTypeName) return;

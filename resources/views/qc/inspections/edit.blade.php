@@ -21,13 +21,13 @@
                             <div>
                                 <label class="text-sm text-gray-600">Work Order</label>
                                 <p class="text-sm font-medium text-gray-900">
-                                    {{ $inspection->workOrder->number ?? 'N/A' }}</p>
+                                    {{ $inspection->workOrder?->number ?? 'N/A' }}</p>
                             </div>
 
                             <div>
                                 <label class="text-sm text-gray-600">Template</label>
                                 <p class="text-sm font-medium text-gray-900">
-                                    {{ $inspection->template->name ?? 'Manual Inspection' }}</p>
+                                    {{ $inspection->template?->name ?? 'Manual Inspection' }}</p>
                             </div>
 
                             <div>
@@ -57,11 +57,11 @@
                             </div>
                         </div>
 
-                        @if ($inspection->template && $inspection->template->instructions)
+                        @if ($inspection->template && $inspection->template?->instructions)
                             <div class="mt-4 p-3 bg-blue-50 rounded">
                                 <label class="text-sm font-medium text-blue-900">Instructions</label>
                                 <p class="text-sm text-blue-800 mt-1">
-                                    {{ $inspection->template->instructions }}</p>
+                                    {{ $inspection->template?->instructions }}</p>
                             </div>
                         @endif
                     </div>
@@ -76,10 +76,10 @@
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <h2 class="text-lg font-semibold text-gray-900 mb-4">Test Results</h2>
 
-                            @if ($inspection->template && $inspection->template->test_parameters)
+                            @if ($inspection->template && $inspection->template?->test_parameters)
                                 <!-- Template-based testing -->
                                 <div id="test-results-container">
-                                    @foreach ($inspection->template->test_parameters as $index => $parameter)
+                                    @foreach ($inspection->template?->test_parameters as $index => $parameter)
                                         <div class="mb-4 p-4 border rounded-lg"
                                             data-parameter-index="{{ $index }}">
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

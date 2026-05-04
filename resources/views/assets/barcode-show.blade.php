@@ -22,7 +22,7 @@
                 </div>
                 @php $sc = ['active'=>'green','maintenance'=>'amber','disposed'=>'red','retired'=>'gray'][$asset->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst($asset->status) }}
                 </span>
             </div>

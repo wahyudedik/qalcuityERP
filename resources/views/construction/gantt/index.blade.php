@@ -103,7 +103,7 @@
                                 </div>
                                 <div class="w-2/3">
                                     <div class="relative h-8 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="absolute top-0 left-0 h-full bg-{{ $task['status'] === 'done' ? 'green' : ($task['status'] === 'in_progress' ? 'blue' : 'gray') }}-500 rounded-full transition-all duration-500"
+                                        <div class="absolute top-0 left-0 h-full bg-{{ $task['status'] === 'done' ? 'green' : ($task['status'] === 'in_progress' ? 'blue' : 'gray')  }}-500 rounded-full transition-all duration-500"
                                             style="width: {{ $task['progress'] }}%">
                                         </div>
                                         <div

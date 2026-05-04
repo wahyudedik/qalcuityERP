@@ -42,12 +42,12 @@
                         $label = $statusLabels[$trip->status] ?? $trip->status;
                     @endphp
                     <span
-                        class="px-3 py-1 text-sm rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                        class="px-3 py-1 text-sm rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                         {{ $label }}
                     </span>
                 </div>
                 <p class="text-sm text-gray-500">
-                    🚢 {{ $trip->vessel->name ?? 'N/A' }} | 👨‍✈️ {{ $trip->captain->name ?? 'N/A' }}
+                    🚢 {{ $trip->vessel?->name ?? 'N/A' }} | 👨‍✈️ {{ $trip->captain?->name ?? 'N/A' }}
                 </p>
             </div>
             <div class="text-right">
@@ -83,7 +83,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Zona Penangkapan</p>
                     <p class="text-sm font-medium text-gray-900">
-                        {{ $trip->fishing_zone->name ?? $trip->fishing_zone }}</p>
+                        {{ $trip->fishing_zone?->name ?? $trip->fishing_zone }}</p>
                 </div>
             @endif
             <div>
@@ -189,9 +189,9 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <p class="font-medium text-gray-900">
-                                        {{ $catch->species->common_name ?? 'N/A' }}</p>
+                                        {{ $catch->species?->common_name ?? 'N/A' }}</p>
                                     <p class="text-xs text-gray-500 italic">
-                                        {{ $catch->species->scientific_name ?? '' }}</p>
+                                        {{ $catch->species?->scientific_name ?? '' }}</p>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-700">
                                     {{ number_format($catch->quantity, 0) }} ekor
@@ -204,8 +204,8 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if ($catch->grade)
                                         <span
-                                            class="px-2 py-1 text-xs rounded-full bg-{{ $catch->grade->color ?? 'purple' }}-100 text-{{ $catch->grade->color ?? 'purple' }}-700 $catch->grade->color ?? 'purple' }}-500/20 $catch->grade->color ?? 'purple' }}-400">
-                                            {{ $catch->grade->grade_code }}
+                                            class="px-2 py-1 text-xs rounded-full bg-{{ $catch->grade?->color ?? 'purple'  }}-100 text-{{ $catch->grade?->color ?? 'purple' }}-700 $catch->grade?->color ?? 'purple' }}-500/20 $catch->grade?->color ?? 'purple' }}-400">
+                                            {{ $catch->grade?->grade_code }}
                                         </span>
                                     @else
                                         <span class="text-gray-400">-</span>

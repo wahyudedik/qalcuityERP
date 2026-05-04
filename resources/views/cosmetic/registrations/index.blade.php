@@ -100,7 +100,7 @@
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900">{{ $reg->product_name }}</div>
                                 @if ($reg->formula)
-                                    <div class="text-xs text-gray-500">{{ $reg->formula->formula_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $reg->formula?->formula_name }}</div>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

@@ -4,7 +4,7 @@
 ])
 
 <!-- Advanced Filter Builder Component -->
-<div x-data="filterBuilder('{{ $module }}')" class="space-y-4">
+<div x-data="filterBuilder(@js($module))" class="space-y-4">
     <!-- Filter Header -->
     <div class="flex items-center justify-between">
         <h3 class="text-sm font-semibold text-gray-900">Filter Lanjutan</h3>
@@ -20,8 +20,7 @@
     <!-- Active Filters -->
     <div class="space-y-2">
         <template x-for="(filter, index) in filters" :key="index">
-            <div
-                class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <!-- Field Select -->
                 <select x-model="filter.field" @change="updateOperators(index)"
                     class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500">
@@ -45,8 +44,7 @@
 
                 <!-- Remove Button -->
                 <button @click="removeFilter(index)"
-                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Hapus filter">
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus filter">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                         </path>

@@ -34,7 +34,7 @@
                         <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $r->expense_date->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($r->amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($r->status) }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst($r->status) }}</span>
                             @if($r->reject_reason)<p class="text-xs text-red-400 mt-0.5">{{ $r->reject_reason }}</p>@endif
                             @if($r->status === 'paid')<p class="text-xs text-green-500 mt-0.5">Dibayar {{ $r->paid_at?->format('d/m') }}</p>@endif
                         </td>

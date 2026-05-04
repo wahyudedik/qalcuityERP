@@ -59,9 +59,9 @@
             <div class="space-y-2">
                 @foreach ($recents->take(3) as $ua)
                     <div class="flex items-center gap-2.5">
-                        <span class="text-lg leading-none shrink-0">{{ $ua->achievement->icon ?? '🏆' }}</span>
+                        <span class="text-lg leading-none shrink-0">{{ $ua->achievement?->icon ?? '🏆' }}</span>
                         <p class="text-xs text-gray-700 truncate">
-                            {{ $ua->achievement->name ?? '-' }}</p>
+                            {{ $ua->achievement?->name ?? '-' }}</p>
                     </div>
                 @endforeach
             </div>

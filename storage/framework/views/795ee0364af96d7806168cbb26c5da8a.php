@@ -1,26 +1,21 @@
 ﻿<?php
     $openAnomalies = $data['openAnomalies'] ?? [];
 
-    // Convert incomplete Collection objects to array to avoid unserialize errors
-    if (is_object($openAnomalies)) {
+    // Normalize to plain array — handles Collection, Eloquent models, stdClass, or raw arrays
+    if (!is_array($openAnomalies)) {
         try {
-            // Try to convert to array if it's a Collection
-        if (method_exists($openAnomalies, 'toArray')) {
+            if (method_exists($openAnomalies, 'toArray')) {
                 $openAnomalies = $openAnomalies->toArray();
             } else {
                 $openAnomalies = (array) $openAnomalies;
             }
         } catch (\Error $e) {
-            // If object is incomplete, default to empty array
             $openAnomalies = [];
         }
     }
 
-    // Now safely check if not empty
-    $hasAnomalies =
-        (!is_null($openAnomalies) && (is_array($openAnomalies) && !empty($openAnomalies))) ||
-        (is_countable($openAnomalies) && count($openAnomalies) > 0);
-    $anomalyCount = is_array($openAnomalies) ? count($openAnomalies) : 0;
+    $hasAnomalies = !empty($openAnomalies);
+    $anomalyCount = count($openAnomalies);
 ?>
 <?php if($hasAnomalies): ?>
     <div class="h-full" id="anomaly-section">
@@ -45,32 +40,36 @@
             <?php $__currentLoopData = $openAnomalies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $anomaly): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php
                     // Normalize: support both array and object (stdClass / Eloquent model)
-                    $aData     = is_array($anomaly) ? $anomaly : (array) $anomaly;
+                    $aData = is_array($anomaly)
+                        ? $anomaly
+                        : (method_exists($anomaly, 'toArray')
+                            ? $anomaly->toArray()
+                            : (array) $anomaly);
                     $aSeverity = $aData['severity'] ?? 'info';
-                    $aId       = $aData['id'] ?? 0;
-                    $aTitle    = $aData['title'] ?? 'Unknown Anomaly';
-                    $aDesc     = $aData['description'] ?? '';
+                    $aId = $aData['id'] ?? 0;
+                    $aTitle = $aData['title'] ?? 'Unknown Anomaly';
+                    $aDesc = $aData['description'] ?? '';
                     $aCreatedAt = $aData['created_at'] ?? null;
 
                     $aBorder = match ($aSeverity) {
                         'critical' => 'border-red-500/40 bg-red-500/5',
-                        'warning'  => 'border-yellow-500/40 bg-yellow-500/5',
-                        default    => 'border-orange-500/20 bg-orange-500/5',
+                        'warning' => 'border-yellow-500/40 bg-yellow-500/5',
+                        default => 'border-orange-500/20 bg-orange-500/5',
                     };
                     $aBadge = match ($aSeverity) {
                         'critical' => 'bg-red-500/20 text-red-400',
-                        'warning'  => 'bg-yellow-500/20 text-yellow-400',
-                        default    => 'bg-orange-500/20 text-orange-400',
+                        'warning' => 'bg-yellow-500/20 text-yellow-400',
+                        default => 'bg-orange-500/20 text-orange-400',
                     };
                     $aIcon = match ($aSeverity) {
                         'critical' => 'text-red-400',
-                        'warning'  => 'text-yellow-400',
-                        default    => 'text-orange-400',
+                        'warning' => 'text-yellow-400',
+                        default => 'text-orange-400',
                     };
                     $aBadgeLabel = match ($aSeverity) {
                         'critical' => 'Kritis',
-                        'warning'  => 'Perhatian',
-                        default    => 'Info',
+                        'warning' => 'Perhatian',
+                        default => 'Info',
                     };
 
                     // Parse created_at safely
@@ -111,8 +110,7 @@
         </div>
     </div>
 <?php else: ?>
-    <div
-        class="bg-white rounded-2xl border border-gray-200 p-5 h-full flex items-center justify-center">
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 h-full flex items-center justify-center">
         <div class="text-center text-gray-400">
             <svg class="w-8 h-8 mx-auto mb-2 text-green-500/30" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">

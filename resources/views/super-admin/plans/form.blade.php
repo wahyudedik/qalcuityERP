@@ -77,7 +77,7 @@
                 $currentFeatures = old('features_list', $plan->features ?? []);
                 @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50">
-                    @foreach($allFeatures as $feat)
+                    @foreach($allFeatures ?? [] as $feat)
                     <label class="flex items-center gap-2 cursor-pointer py-1 px-1 rounded hover:bg-gray-100">
                         <input type="checkbox" name="features_list[]" value="{{ $feat }}" {{ in_array($feat, $currentFeatures) ? 'checked' : '' }}
                             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">

@@ -135,10 +135,10 @@
                         <tbody class="divide-y divide-white/10">
                             @foreach ($mappings as $mapping)
                                 <tr class="hover:bg-white/5">
-                                    <td class="px-6 py-3 text-white font-medium">{{ $mapping->product->name ?? '—' }}
+                                    <td class="px-6 py-3 text-white font-medium">{{ $mapping->product?->name ?? '—' }}
                                     </td>
                                     <td class="px-6 py-3 font-mono text-xs text-gray-400">
-                                        {{ $mapping->product->sku ?? '—' }}</td>
+                                        {{ $mapping->product?->sku ?? '—' }}</td>
                                     <td class="px-6 py-3 font-mono text-xs text-indigo-300">
                                         {{ $mapping->external_sku }}</td>
                                     <td class="px-6 py-3 font-mono text-xs text-gray-500">

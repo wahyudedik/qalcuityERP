@@ -321,7 +321,7 @@
                     <div class="mob-pick-card-top">
                         <div>
                             <div class="mob-pick-number">{{ $list->number }}</div>
-                            <div class="mob-pick-warehouse">{{ $list->warehouse->name ?? '-' }}</div>
+                            <div class="mob-pick-warehouse">{{ $list->warehouse?->name ?? '-' }}</div>
                         </div>
                         <span class="mob-status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
                     </div>
@@ -340,7 +340,7 @@
 
                     @if ($list->assignee)
                         <div class="mob-pick-assignee">
-                            👤 {{ $list->assignee->name }}
+                            👤 {{ $list->assignee?->name }}
                         </div>
                     @endif
 

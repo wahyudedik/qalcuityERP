@@ -65,7 +65,7 @@
                                     {{ $opname->category ?? 'All Categories' }}</p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                {{ $opname->conductedBy ? $opname->conductedBy->name : '-' }}</td>
+                                {{ $opname->conductedBy ? $opname->conductedBy?->name : '-' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">
                                 <p class="text-gray-900">
                                     {{ $opname->opname_date ? \Carbon\Carbon::parse($opname->opname_date)->format('d M Y') : '-' }}

@@ -10,7 +10,7 @@
             ['label' => 'Pengeluaran Bulan Ini', 'value' => 'Rp ' . number_format($data['finance']['expense'] ?? 0, 0, ',', '.'),          'color' => 'text-red-400'],
         ];
         ?>
-        <?php $__currentLoopData = $stats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php $__currentLoopData = $stats ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <div class="flex items-center justify-between">
             <span class="text-sm text-gray-500"><?php echo e($stat['label']); ?></span>
             <span class="text-sm font-semibold <?php echo e($stat['color']); ?>"><?php echo e($stat['value']); ?></span>

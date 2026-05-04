@@ -36,12 +36,12 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900 text-xs">
-                                    {{ $gr->purchaseOrder->number }}</p>
+                                    {{ $gr->purchaseOrder?->number }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $gr->purchaseOrder->supplier->name }}</p>
+                                    {{ $gr->purchaseOrder?->supplier->name }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell text-gray-500">
-                                {{ $gr->warehouse->name }}</td>
+                                {{ $gr->warehouse?->name }}</td>
                             <td class="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
                                 {{ $gr->delivery_note ?? '—' }}</td>
                             <td class="px-4 py-3 text-center text-xs text-gray-500">
@@ -88,8 +88,8 @@
                             <option value="">Pilih PO...</option>
                             @foreach ($openPos as $po)
                                 <option value="{{ $po->id }}"
-                                    data-items="{{ json_encode($po->items->map(fn($i) => ['id' => $i->id, 'product_id' => $i->product_id, 'product' => $i->product->name ?? '-', 'qty_ordered' => $i->quantity_ordered, 'qty_received' => $i->quantity_received, 'remaining' => $i->quantity_ordered - $i->quantity_received])) }}">
-                                    {{ $po->number }} — {{ $po->supplier->name }}
+                                    data-items="{{ json_encode($po->items->map(fn($i) => ['id' => $i->id, 'product_id' => $i->product_id, 'product' => $i->product?->name ?? '-', 'qty_ordered' => $i->quantity_ordered, 'qty_received' => $i->quantity_received, 'remaining' => $i->quantity_ordered - $i->quantity_received])) }}">
+                                    {{ $po->number }} — {{ $po->supplier?->name }}
                                 </option>
                             @endforeach
                         </select>

@@ -47,12 +47,12 @@
                         <div>
                             <p class="text-xs text-gray-500">Nama Pasien</p>
                             <p class="text-sm font-semibold text-gray-900">
-                                {{ $invoice->patient ? $invoice->patient->full_name : '-' }}</p>
+                                {{ $invoice->patient ? $invoice->patient?->full_name : '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">No. Rekam Medis</p>
                             <p class="text-sm text-gray-900">
-                                {{ $invoice->patient ? $invoice->patient->medical_record_number : '-' }}</p>
+                                {{ $invoice->patient ? $invoice->patient?->medical_record_number : '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">No. Telepon</p>
@@ -72,7 +72,7 @@
                         <div>
                             <p class="text-xs text-gray-500">Dokter</p>
                             <p class="text-sm text-gray-900">
-                                {{ $invoice->doctor ? $invoice->doctor->name : '-' }}</p>
+                                {{ $invoice->doctor ? $invoice->doctor?->name : '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Asuransi</p>

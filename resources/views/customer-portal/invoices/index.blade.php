@@ -56,7 +56,7 @@
                                 {{ number_format($invoice->remaining_amount ?? 0, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-2">

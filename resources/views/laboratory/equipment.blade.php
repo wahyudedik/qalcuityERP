@@ -1,44 +1,41 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Lab Equipment')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-microscope text-primary"></i> Laboratory Equipment
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-microscope text-blue-600"></i> Laboratory Equipment
             </h1>
-            <p class="text-muted mb-0">Manage laboratory equipment and maintenance</p>
+            <p class="text-gray-500">Manage laboratory equipment and maintenance</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
                 <i class="fas fa-plus"></i> Add Equipment
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h3 class="text-success">{{ $equipment->where('status', 'active')->count() }}</h3>
-                            <small class="text-muted">Active</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-emerald-600">{{ $equipment->where('status', 'active')->count() }}</h3>
+                            <small class="text-gray-500">Active</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-warning">{{ $equipment->where('status', 'maintenance')->count() }}</h3>
-                            <small class="text-muted">Maintenance</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-amber-600">{{ $equipment->where('status', 'maintenance')->count() }}</h3>
+                            <small class="text-gray-500">Maintenance</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-danger">{{ $equipment->where('status', 'out_of_order')->count() }}</h3>
-                            <small class="text-muted">Out of Order</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-red-600">{{ $equipment->where('status', 'out_of_order')->count() }}</h3>
+                            <small class="text-gray-500">Out of Order</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-info">{{ $equipment->where('auto_polling', true)->count() }}</h3>
-                            <small class="text-muted">Auto-Polling</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-sky-600">{{ $equipment->where('auto_polling', true)->count() }}</h3>
+                            <small class="text-gray-500">Auto-Polling</small>
                         </div>
                     </div>
                 </div>
@@ -46,44 +43,44 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @forelse($equipment as $device)
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="w-full md:w-1/2">
+                <div class="bg-white rounded-2xl border border-gray-200">
+                    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
                         <div>
                             <strong>{{ $device->name }}</strong>
                             <span
-                                class="badge bg-{{ $device->status == 'active' ? 'success' : ($device->status == 'maintenance' ? 'warning' : 'danger') }} ms-2">
+                                class="badge bg-{{ $device->status == 'active' ? 'emerald-500' : ($device->status == 'maintenance' ? 'amber-500' : 'red-500')  }} ml-2">
                                 {{ ucfirst(str_replace('_', ' ', $device->status)) }}
                             </span>
                         </div>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary btn-sm">
+                        <div class="flex gap-1">
+                            <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Manufacturer</small></div>
-                            <div class="col-6"><strong>{{ $device->manufacturer ?? 'N/A' }}</strong></div>
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Manufacturer</small></div>
+                            <div class="w-1/2"><strong>{{ $device->manufacturer ?? 'N/A' }}</strong></div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Model</small></div>
-                            <div class="col-6"><strong>{{ $device->model ?? 'N/A' }}</strong></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Model</small></div>
+                            <div class="w-1/2"><strong>{{ $device->model ?? 'N/A' }}</strong></div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Serial Number</small></div>
-                            <div class="col-6"><code>{{ $device->serial_number ?? 'N/A' }}</code></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Serial Number</small></div>
+                            <div class="w-1/2"><code>{{ $device->serial_number ?? 'N/A' }}</code></div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Location</small></div>
-                            <div class="col-6"><strong>{{ $device->location ?? 'N/A' }}</strong></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Location</small></div>
+                            <div class="w-1/2"><strong>{{ $device->location ?? 'N/A' }}</strong></div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Last Calibration</small></div>
-                            <div class="col-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Last Calibration</small></div>
+                            <div class="w-1/2">
                                 <strong>
                                     @if ($device->last_calibration_date)
                                         {{ $device->last_calibration_date->format('d/m/Y') }}
@@ -93,13 +90,13 @@
                                 </strong>
                             </div>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-6"><small class="text-muted">Next Calibration</small></div>
-                            <div class="col-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div class="w-1/2"><small class="text-gray-500">Next Calibration</small></div>
+                            <div class="w-1/2">
                                 @if ($device->next_calibration_date)
                                     @if ($device->next_calibration_date->isPast())
                                         <strong
-                                            class="text-danger">{{ $device->next_calibration_date->format('d/m/Y') }}</strong>
+                                            class="text-red-600">{{ $device->next_calibration_date->format('d/m/Y') }}</strong>
                                     @else
                                         <strong>{{ $device->next_calibration_date->format('d/m/Y') }}</strong>
                                     @endif
@@ -108,26 +105,26 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-6"><small class="text-muted">Auto Polling</small></div>
-                            <div class="col-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-1/2"><small class="text-gray-500">Auto Polling</small></div>
+                            <div class="w-1/2">
                                 @if ($device->auto_polling)
-                                    <span class="badge bg-success">Enabled</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Enabled</span>
                                 @else
-                                    <span class="badge bg-secondary">Disabled</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Disabled</span>
                                 @endif
                             </div>
                         </div>
                     </div>
                     @if ($device->auto_polling)
-                        <div class="card-footer bg-light">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <small class="text-muted">Last Polled</small>
+                        <div class="px-5 py-4 border-t border-gray-200 bg-gray-50">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div class="w-1/2">
+                                    <small class="text-gray-500">Last Polled</small>
                                     <br><strong>{{ $device->last_polled_at?->diffForHumans() ?? 'Never' }}</strong>
                                 </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Poll Interval</small>
+                                <div class="w-1/2">
+                                    <small class="text-gray-500">Poll Interval</small>
                                     <br><strong>{{ $device->poll_interval_minutes ?? 30 }} min</strong>
                                 </div>
                             </div>
@@ -136,11 +133,11 @@
                 </div>
             </div>
         @empty
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-microscope fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No laboratory equipment registered</p>
+            <div class="w-full">
+                <div class="bg-white rounded-2xl border border-gray-200">
+                    <div class="p-5 text-center py-10">
+                        <i class="fas fa-microscope fa-3x text-gray-500 mb-3"></i>
+                        <p class="text-gray-500">No laboratory equipment registered</p>
                     </div>
                 </div>
             </div>
@@ -155,36 +152,36 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Add Laboratory Equipment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Equipment Name</label>
                                 <input type="text" name="name" class="form-control" required>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Manufacturer</label>
                                 <input type="text" name="manufacturer" class="form-control">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Model</label>
                                 <input type="text" name="model" class="form-control">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Serial Number</label>
                                 <input type="text" name="serial_number" class="form-control">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Location</label>
                                 <input type="text" name="location" class="form-control"
                                     placeholder="e.g., Lab Room 1">
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Status</label>
                                 <select name="status" class="form-select">
                                     <option value="active">Active</option>
@@ -199,11 +196,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Equipment</button>
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Add Equipment</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

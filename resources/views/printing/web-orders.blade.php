@@ -68,7 +68,7 @@
                                         $payColor = $payColors[$order->payment_status] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $payColor }}-100 text-{{ $payColor }}-700 $payColor }}-500/20 $payColor }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $payColor  }}-100 text-{{ $payColor }}-700 $payColor }}-500/20 $payColor }}-400">
                                         {{ ucfirst($order->payment_status ?? 'pending') }}
                                     </span>
                                 </td>
@@ -83,7 +83,7 @@
                                         $fulColor = $fulColors[$order->fulfillment_status] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $fulColor }}-100 text-{{ $fulColor }}-700 $fulColor }}-500/20 $fulColor }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $fulColor  }}-100 text-{{ $fulColor }}-700 $fulColor }}-500/20 $fulColor }}-400">
                                         {{ ucfirst(str_replace('_', ' ', $order->fulfillment_status ?? 'pending')) }}
                                     </span>
                                 </td>

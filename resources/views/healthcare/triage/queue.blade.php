@@ -84,7 +84,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3 mb-2">
                                             <h4 class="text-lg font-semibold text-gray-900">
-                                                {{ $assessment->patient->name ?? 'Unknown' }}</h4>
+                                                {{ $assessment->patient?->name ?? 'Unknown' }}</h4>
                                             <span
                                                 class="px-3 py-1 text-sm font-semibold rounded-full
                                             @if ($assessment->priority_level === 'critical') bg-red-100 text-red-800
@@ -125,7 +125,7 @@
                                             <div>
                                                 <p class="text-gray-500">Triage Nurse</p>
                                                 <p class="font-medium text-gray-900">
-                                                    {{ $assessment->nurse->name ?? 'N/A' }}</p>
+                                                    {{ $assessment->nurse?->name ?? 'N/A' }}</p>
                                             </div>
                                         </div>
                                     </div>

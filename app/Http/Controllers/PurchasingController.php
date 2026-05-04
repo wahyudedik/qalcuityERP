@@ -150,6 +150,15 @@ class PurchasingController extends Controller
         return view('purchasing.orders', compact('orders', 'suppliers', 'warehouses', 'products'));
     }
 
+    public function showOrder(PurchaseOrder $order)
+    {
+        abort_unless($order->tenant_id === $this->tenantId(), 403);
+
+        $order->load(['supplier', 'warehouse', 'items.product', 'user', 'goodsReceipts.items']);
+
+        return view('purchasing.order-detail', compact('order'));
+    }
+
     public function storeOrder(Request $request)
     {
         $data = $request->validate([

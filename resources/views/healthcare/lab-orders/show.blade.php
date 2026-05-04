@@ -22,11 +22,11 @@
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Patient</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $labOrder->patient->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $labOrder->patient?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Test</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $labOrder->test->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $labOrder->test?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Priority</dt>

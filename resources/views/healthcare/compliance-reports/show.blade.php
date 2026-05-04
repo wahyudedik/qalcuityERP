@@ -66,7 +66,7 @@
                     <dl class="space-y-4">
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Created By</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $report->createdBy->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $report->createdBy?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Created At</dt>
@@ -82,7 +82,7 @@
                         @if ($report->approved_at)
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Approved By</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $report->reviewer->name ?? 'N/A' }}</dd>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $report->reviewer?->name ?? 'N/A' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Approved At</dt>

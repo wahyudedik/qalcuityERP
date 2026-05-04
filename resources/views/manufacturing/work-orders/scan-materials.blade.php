@@ -20,13 +20,13 @@
                 <div>
                     <p class="font-mono font-bold text-gray-900">{{ $workOrder->number }}</p>
                     <p class="text-xs text-gray-500 mt-0.5">
-                        Produk: {{ $workOrder->product->name ?? '-' }}
+                        Produk: {{ $workOrder->product?->name ?? '-' }}
                         &bull; Target: {{ number_format($workOrder->target_quantity, 2) }} {{ $workOrder->unit }}
                     </p>
                 </div>
                 @php $sc = ['pending'=>'amber','in_progress'=>'blue','completed'=>'green','cancelled'=>'gray'][$workOrder->status] ?? 'gray'; @endphp
                 <span
-                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                     {{ ucfirst($workOrder->status) }}
                 </span>
             </div>

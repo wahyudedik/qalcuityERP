@@ -65,7 +65,7 @@
                     </td>
                     <td class="px-4 py-3">
                         @php $typeColors = ['department'=>'blue','branch'=>'purple','project'=>'amber','product_line'=>'green']; $c = $typeColors[$cc->type] ?? 'gray'; @endphp
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-300">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-300">
                             {{ $cc->typeLabel() }}
                         </span>
                     </td>
@@ -135,7 +135,7 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Induk (opsional)</label>
                 <select name="parent_id" class="w-full px-3 py-2 rounded-xl text-sm border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Tidak ada —</option>
-                    @foreach($parents as $p)
+                    @foreach($parents ?? [] as $p)
                     <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }}</option>
                     @endforeach
                 </select>
@@ -186,7 +186,7 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Induk</label>
                 <select id="edit-parent" name="parent_id" class="w-full px-3 py-2 rounded-xl text-sm border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">— Tidak ada —</option>
-                    @foreach($parents as $p)
+                    @foreach($parents ?? [] as $p)
                     <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }}</option>
                     @endforeach
                 </select>

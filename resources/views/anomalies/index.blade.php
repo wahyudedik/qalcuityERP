@@ -46,7 +46,7 @@
             </div>
         @else
             <div class="space-y-3">
-                @foreach($anomalies as $anomaly)
+                @foreach($anomalies ?? [] as $anomaly)
                     @php
                         $severityClass = match($anomaly->severity) {
                             'critical' => 'border-red-400 bg-red-50',

@@ -25,8 +25,8 @@
                         </span>
                     </div>
                     <p class="mt-1 text-lg text-gray-600">
-                        {{ $batch->formula->formula_name }}
-                        <span class="text-sm text-gray-500">({{ $batch->formula->formula_code }})</span>
+                        {{ $batch->formula?->formula_name }}
+                        <span class="text-sm text-gray-500">({{ $batch->formula?->formula_code }})</span>
                     </p>
                 </div>
                 <div class="flex gap-2">
@@ -127,7 +127,7 @@
                         </div>
                         <div>
                             <strong class="text-sm text-gray-700">Formula:</strong>
-                            <p class="text-gray-900">{{ $batch->formula->formula_name }}</p>
+                            <p class="text-gray-900">{{ $batch->formula?->formula_name }}</p>
                         </div>
                         <div>
                             <strong class="text-sm text-gray-700">Production Date:</strong>
@@ -148,12 +148,12 @@
                         @endif
                         <div>
                             <strong class="text-sm text-gray-700">Created By:</strong>
-                            <p class="text-gray-900">{{ $batch->creator->name ?? 'Unknown' }}</p>
+                            <p class="text-gray-900">{{ $batch->creator?->name ?? 'Unknown' }}</p>
                         </div>
                         @if ($batch->producer)
                             <div>
                                 <strong class="text-sm text-gray-700">Produced By:</strong>
-                                <p class="text-gray-900">{{ $batch->producer->name }}</p>
+                                <p class="text-gray-900">{{ $batch->producer?->name }}</p>
                             </div>
                         @endif
                     </div>
@@ -217,7 +217,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-600">
-                                                {{ $check->inspector->name ?? '-' }}</td>
+                                                {{ $check->inspector?->name ?? '-' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

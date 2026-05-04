@@ -44,12 +44,12 @@
                         <td class="px-4 py-3 font-mono text-xs font-medium text-gray-900">
                             <a href="{{ route('landed-cost.show', $lc) }}" class="hover:text-blue-500">{{ $lc->number }}</a>
                         </td>
-                        <td class="px-4 py-3 text-gray-700 text-xs">{{ $lc->purchaseOrder->number ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-700 text-xs">{{ $lc->purchaseOrder?->number ?? '-' }}</td>
                         <td class="px-4 py-3 hidden sm:table-cell text-gray-500">{{ Str::limit($lc->description, 40) }}</td>
                         <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($lc->total_additional_cost, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $ml }}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-1">
@@ -89,8 +89,8 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Purchase Order *</label>
                         <select name="purchase_order_id" required class="{{ $cls }}">
                             <option value="">-- Pilih PO --</option>
-                            @foreach($purchaseOrders as $po)
-                            <option value="{{ $po->id }}">{{ $po->number }} — {{ $po->supplier->name ?? '-' }} (Rp {{ number_format($po->total, 0, ',', '.') }})</option>
+                            @foreach($purchaseOrders ?? [] as $po)
+                            <option value="{{ $po->id }}">{{ $po->number }} — {{ $po->supplier?->name ?? '-' }} (Rp {{ number_format($po->total, 0, ',', '.') }})</option>
                             @endforeach
                         </select>
                     </div>

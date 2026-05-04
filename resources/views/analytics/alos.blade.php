@@ -1,39 +1,36 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Average Length of Stay (ALOS)')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-clock text-primary"></i> Average Length of Stay (ALOS)
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-clock text-blue-600"></i> Average Length of Stay (ALOS)
             </h1>
-            <p class="text-muted mb-0">Patient hospitalization duration metrics</p>
+            <p class="text-gray-500">Patient hospitalization duration metrics</p>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h2 class="text-primary">{{ $stats['alos'] ?? 0 }} days</h2>
-                            <small class="text-muted">Overall ALOS</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-blue-600">{{ $stats['alos'] ?? 0 }} days</h2>
+                            <small class="text-gray-500">Overall ALOS</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-success">{{ $stats['total_discharges'] ?? 0 }}</h2>
-                            <small class="text-muted">Total Discharges</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-emerald-600">{{ $stats['total_discharges'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Total Discharges</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-info">{{ $stats['total_days'] ?? 0 }}</h2>
-                            <small class="text-muted">Total Patient Days</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-sky-600">{{ $stats['total_days'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Total Patient Days</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-warning">{{ $stats['target_alos'] ?? 0 }} days</h2>
-                            <small class="text-muted">Target ALOS</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-amber-600">{{ $stats['target_alos'] ?? 0 }} days</h2>
+                            <small class="text-gray-500">Target ALOS</small>
                         </div>
                     </div>
                 </div>
@@ -41,15 +38,15 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">ALOS by Department</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Department</th>
@@ -66,15 +63,15 @@
                                         <td>{{ $dept['discharges'] }}</td>
                                         <td>
                                             @if ($dept['alos'] <= ($stats['target_alos'] ?? 5))
-                                                <span class="badge bg-success">On Target</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">On Target</span>
                                             @else
-                                                <span class="badge bg-warning">Above Target</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Above Target</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">No data available</td>
+                                        <td colspan="4" class="text-center text-gray-400">No data available</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -84,14 +81,14 @@
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">ALOS Trend (Last 30 Days)</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Period</th>
@@ -106,19 +103,19 @@
                                         <td><strong>{{ $period['alos'] }} days</strong></td>
                                         <td>
                                             @if ($period['trend'] > 0)
-                                                <span class="text-danger"><i class="fas fa-arrow-up"></i>
+                                                <span class="text-red-600"><i class="fas fa-argrid grid-cols-1 md:grid-cols-2 gap-6-up"></i>
                                                     +{{ $period['trend'] }}%</span>
                                             @elseif($period['trend'] < 0)
-                                                <span class="text-success"><i class="fas fa-arrow-down"></i>
+                                                <span class="text-emerald-600"><i class="fas fa-argrid grid-cols-1 md:grid-cols-2 gap-6-down"></i>
                                                     {{ $period['trend'] }}%</span>
                                             @else
-                                                <span class="text-muted"><i class="fas fa-minus"></i> 0%</span>
+                                                <span class="text-gray-500"><i class="fas fa-minus"></i> 0%</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted">No trend data</td>
+                                        <td colspan="3" class="text-center text-gray-400">No trend data</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -128,4 +125,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

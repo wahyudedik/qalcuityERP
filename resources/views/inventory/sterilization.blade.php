@@ -1,44 +1,41 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Sterilization Tracking')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-shield-virus text-primary"></i> Sterilization Tracking
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-shield-virus text-blue-600"></i> Sterilization Tracking
             </h1>
-            <p class="text-muted mb-0">Track equipment sterilization cycles</p>
+            <p class="text-gray-500">Track equipment sterilization cycles</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCycleModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addCycleModal">
                 <i class="fas fa-plus"></i> Log Cycle
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h3 class="text-success">{{ $cycles->where('status', 'completed')->count() }}</h3>
-                            <small class="text-muted">Completed Today</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-emerald-600">{{ $cycles->where('status', 'completed')->count() }}</h3>
+                            <small class="text-gray-500">Completed Today</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-warning">{{ $cycles->where('status', 'in_progress')->count() }}</h3>
-                            <small class="text-muted">In Progress</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-amber-600">{{ $cycles->where('status', 'in_progress')->count() }}</h3>
+                            <small class="text-gray-500">In Progress</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-info">{{ $equipment->where('status', 'sterile')->count() }}</h3>
-                            <small class="text-muted">Sterile Items</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-sky-600">{{ $equipment->where('status', 'sterile')->count() }}</h3>
+                            <small class="text-gray-500">Sterile Items</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-danger">{{ $equipment->where('status', 'contaminated')->count() }}</h3>
-                            <small class="text-muted">Contaminated</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-red-600">{{ $equipment->where('status', 'contaminated')->count() }}</h3>
+                            <small class="text-gray-500">Contaminated</small>
                         </div>
                     </div>
                 </div>
@@ -46,12 +43,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Cycle #</th>
@@ -84,13 +81,13 @@
                                                     'scheduled' => 'info',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$cycle->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$cycle->status] ?? 'secondary'  }}">
                                                 {{ ucfirst(str_replace('_', ' ', $cycle->status)) }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
@@ -98,7 +95,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4 text-muted">No sterilization cycles found
+                                        <td colspan="9" class="text-center py-6 text-gray-400">No sterilization cycles found
                                         </td>
                                     </tr>
                                 @endforelse
@@ -110,4 +107,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

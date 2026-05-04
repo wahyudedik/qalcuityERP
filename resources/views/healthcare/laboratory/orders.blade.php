@@ -84,9 +84,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $order->patient ? $order->patient->full_name : '-' }}</p>
+                                    {{ $order->patient ? $order->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $order->patient ? $order->patient->medical_record_number : '-' }}</p>
+                                    {{ $order->patient ? $order->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <span
@@ -95,7 +95,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                {{ $order->doctor ? $order->doctor->name : '-' }}</td>
+                                {{ $order->doctor ? $order->doctor?->name : '-' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">
                                 <p class="text-gray-900">
                                     {{ $order->order_date ? \Carbon\Carbon::parse($order->order_date)->format('d M Y') : '-' }}
@@ -177,10 +177,10 @@
                             <p class="font-mono text-sm font-bold text-blue-600">
                                 {{ $order->order_number ?? '-' }}</p>
                             <p class="font-semibold text-gray-900 truncate mt-0.5">
-                                {{ $order->patient ? $order->patient->full_name : '-' }}
+                                {{ $order->patient ? $order->patient?->full_name : '-' }}
                             </p>
                             <p class="text-xs text-gray-500">
-                                {{ $order->patient ? $order->patient->medical_record_number : '-' }}
+                                {{ $order->patient ? $order->patient?->medical_record_number : '-' }}
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1">
@@ -227,7 +227,7 @@
                         <div class="col-span-2">
                             <p class="text-gray-500">Dokter</p>
                             <p class="font-medium text-gray-900">
-                                {{ $order->doctor ? $order->doctor->name : '-' }}</p>
+                                {{ $order->doctor ? $order->doctor?->name : '-' }}</p>
                         </div>
                     </div>
 

@@ -1,26 +1,23 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Quality Control')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-check-double text-primary"></i> Quality Control
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-check-double text-blue-600"></i> Quality Control
             </h1>
-            <p class="text-muted mb-0">Laboratory quality control and calibration</p>
+            <p class="text-gray-500">Laboratory quality control and calibration</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQCModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addQCModal">
                 <i class="fas fa-plus"></i> Add QC Record
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
                 <strong>Quality Control:</strong> Regular QC checks ensure accurate and reliable laboratory test results.
@@ -29,12 +26,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -57,11 +54,11 @@
                                         <td>{{ $qc->acceptable_range ?? '-' }}</td>
                                         <td>
                                             @if ($qc->status == 'pass')
-                                                <span class="badge bg-success">Pass</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Pass</span>
                                             @elseif($qc->status == 'fail')
-                                                <span class="badge bg-danger">Fail</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Fail</span>
                                             @else
-                                                <span class="badge bg-warning">Warning</span>
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Warning</span>
                                             @endif
                                         </td>
                                         <td>{{ $qc->performed_by?->name ?? '-' }}</td>
@@ -69,7 +66,7 @@
                                             @if ($qc->next_due_date)
                                                 @if ($qc->next_due_date->isPast())
                                                     <span
-                                                        class="text-danger fw-bold">{{ $qc->next_due_date->format('d/m/Y') }}</span>
+                                                        class="text-red-600 font-bold">{{ $qc->next_due_date->format('d/m/Y') }}</span>
                                                 @else
                                                     {{ $qc->next_due_date->format('d/m/Y') }}
                                                 @endif
@@ -80,7 +77,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-4 text-muted">No QC records found</td>
+                                        <td colspan="7" class="text-center py-6 text-gray-400">No QC records found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -100,7 +97,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Add Quality Control Record</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -116,12 +113,12 @@
                                 <option value="maintenance">Maintenance Check</option>
                             </select>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Result Value</label>
                                 <input type="text" name="result_value" class="form-control" required>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="w-full md:w-1/2">
                                 <label class="form-label">Acceptable Range</label>
                                 <input type="text" name="acceptable_range" class="form-control"
                                     placeholder="e.g., 95-105">
@@ -145,11 +142,11 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save QC Record</button>
+                        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Save QC Record</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

@@ -68,7 +68,7 @@
                                         </p>
                                     </td>
                                     <td class="px-4 py-3 text-gray-600 hidden md:table-cell">
-                                        {{ $visit->doctor ? $visit->doctor->name : '-' }}</td>
+                                        {{ $visit->doctor ? $visit->doctor?->name : '-' }}</td>
                                     <td class="px-4 py-3 hidden lg:table-cell">
                                         <span
                                             class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-blue-100 text-blue-700">
@@ -135,7 +135,7 @@
                                     <td class="px-4 py-3 text-gray-900 hidden md:table-cell">
                                         {{ $diagnosis->description ?? '-' }}</td>
                                     <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                        {{ $diagnosis->doctor ? $diagnosis->doctor->name : '-' }}</td>
+                                        {{ $diagnosis->doctor ? $diagnosis->doctor?->name : '-' }}</td>
                                     <td class="px-4 py-3 text-center">
                                         @if ($diagnosis->diagnosis_type === 'primary')
                                             <span
@@ -192,7 +192,7 @@
                                         {{ $prescription->prescription_date ? \Carbon\Carbon::parse($prescription->prescription_date)->format('d M Y') : '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-gray-600 hidden md:table-cell">
-                                        {{ $prescription->doctor ? $prescription->doctor->name : '-' }}</td>
+                                        {{ $prescription->doctor ? $prescription->doctor?->name : '-' }}</td>
                                     <td class="px-4 py-3">
                                         <p class="text-gray-900">
                                             {{ $prescription->medication_name ?? '-' }}</p>
@@ -266,7 +266,7 @@
                                         <p class="font-medium text-gray-900">
                                             {{ $result->test_name ?? '-' }}</p>
                                         <p class="text-xs text-gray-500">
-                                            {{ $result->lab_order ? $result->lab_order->order_number : '-' }}</p>
+                                            {{ $result->lab_order ? $result->lab_order?->order_number : '-' }}</p>
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell">
                                         <span

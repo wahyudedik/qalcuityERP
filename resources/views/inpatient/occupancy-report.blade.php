@@ -1,45 +1,42 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Bed Occupancy Report')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-bed text-primary"></i> Bed Occupancy Report
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-bed text-blue-600"></i> Bed Occupancy Report
             </h1>
-            <p class="text-muted mb-0">Hospital bed utilization and occupancy statistics</p>
+            <p class="text-gray-500">Hospital bed utilization and occupancy statistics</p>
         </div>
         <div>
-            <button class="btn btn-success" onclick="window.print()">
+            <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition" onclick="window.print()">
                 <i class="fas fa-print"></i> Print Report
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h2 class="text-primary">{{ $stats['total_beds'] ?? 0 }}</h2>
-                            <small class="text-muted">Total Beds</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-blue-600">{{ $stats['total_beds'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Total Beds</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-success">{{ $stats['occupied_beds'] ?? 0 }}</h2>
-                            <small class="text-muted">Occupied</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-emerald-600">{{ $stats['occupied_beds'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Occupied</small>
                         </div>
-                        <div class="col-md-3">
-                            <h2 class="text-info">{{ $stats['available_beds'] ?? 0 }}</h2>
-                            <small class="text-muted">Available</small>
+                        <div class="w-full md:w-1/4">
+                            <h2 class="text-sky-600">{{ $stats['available_beds'] ?? 0 }}</h2>
+                            <small class="text-gray-500">Available</small>
                         </div>
-                        <div class="col-md-3">
+                        <div class="w-full md:w-1/4">
                             <h2 class="text-{{ ($stats['occupancy_rate'] ?? 0) > 85 ? 'danger' : 'warning' }}">
                                 {{ $stats['occupancy_rate'] ?? 0 }}%</h2>
-                            <small class="text-muted">Occupancy Rate</small>
+                            <small class="text-gray-500">Occupancy Rate</small>
                         </div>
                     </div>
                 </div>
@@ -47,17 +44,17 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-bar"></i> Occupancy by Ward
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Ward</th>
@@ -75,8 +72,8 @@
                                         <td>{{ $ward['occupied'] }}</td>
                                         <td>{{ $ward['available'] }}</td>
                                         <td>
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar bg-{{ $ward['rate'] > 85 ? 'danger' : ($ward['rate'] > 60 ? 'warning' : 'success') }}"
+                                            <div class="w-full bg-gray-200 rounded-full overflow-hidden" style="height: 20px;">
+                                                <div class="h-full rounded-full bg-{{ $ward['rate'] > 85 ? 'red-500' : ($ward['rate'] > 60 ? 'amber-500' : 'emerald-500')   }}"
                                                     style="width: {{ $ward['rate'] }}%">
                                                     {{ $ward['rate'] }}%
                                                 </div>
@@ -85,7 +82,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">No ward data available</td>
+                                        <td colspan="5" class="text-center text-gray-400">No ward data available</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -95,16 +92,16 @@
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+        <div class="w-full md:w-1/2">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-clock"></i> Average Length of Stay
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Department</th>
@@ -123,7 +120,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">No department data</td>
+                                        <td colspan="4" class="text-center text-gray-400">No department data</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -134,17 +131,17 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-bed"></i> Current Bed Status
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Bed Number</th>
@@ -169,7 +166,7 @@
                                                     'reserved' => 'secondary',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$bed->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$bed->status] ?? 'secondary'  }}">
                                                 {{ ucfirst($bed->status) }}
                                             </span>
                                         </td>
@@ -178,7 +175,7 @@
                                         </td>
                                         <td>
                                             @if ($bed->currentPatient?->admission)
-                                                {{ $bed->currentPatient->admission->admission_date->diffInDays(now()) }}
+                                                {{ $bed->currentPatient?->admission->admission_date->diffInDays(now()) }}
                                                 days
                                             @else
                                                 -
@@ -187,7 +184,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">No bed data available</td>
+                                        <td colspan="6" class="text-center text-gray-400">No bed data available</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -197,4 +194,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

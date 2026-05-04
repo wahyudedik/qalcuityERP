@@ -23,7 +23,7 @@
                     </p>
                     <p class="text-sm text-gray-600 mb-2">
                         <span class="font-semibold">Shared by:</span>
-                        {{ $sharedReport->creator->name ?? 'Unknown' }}
+                        {{ $sharedReport->creator?->name ?? 'Unknown' }}
                     </p>
                     <p class="text-sm text-gray-600">
                         <span class="font-semibold">Total views:</span>

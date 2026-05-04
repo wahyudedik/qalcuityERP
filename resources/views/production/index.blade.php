@@ -73,10 +73,10 @@
                                     class="hover:text-blue-500">{{ $wo->number }}</a>
                             </td>
                             <td class="px-4 py-3 text-gray-700">
-                                {{ $wo->product->name ?? '-' }}
+                                {{ $wo->product?->name ?? '-' }}
                                 @if ($wo->recipe)
                                     <span
-                                        class="text-xs text-gray-400">({{ $wo->recipe->name }})</span>
+                                        class="text-xs text-gray-400">({{ $wo->recipe?->name }})</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right hidden sm:table-cell text-gray-900">
@@ -109,7 +109,7 @@
                                     $c = $colors[$wo->status] ?? 'gray';
                                 @endphp
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                     {{ $labels[$wo->status] ?? $wo->status }}
                                 </span>
                             </td>

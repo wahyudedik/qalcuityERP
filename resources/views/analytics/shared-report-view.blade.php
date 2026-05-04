@@ -15,7 +15,7 @@
                             {{ $sharedReport->name }}
                         </h3>
                         <p class="text-sm text-gray-600">
-                            Shared by <strong>{{ $sharedReport->creator->name ?? 'Unknown' }}</strong>
+                            Shared by <strong>{{ $sharedReport->creator?->name ?? 'Unknown' }}</strong>
                             on {{ $sharedReport->created_at->format('d M Y H:i') }}
                         </p>
                     </div>

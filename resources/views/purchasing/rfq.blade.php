@@ -77,7 +77,7 @@
                                     @if($resp->is_selected)
                                     <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
                                     @endif
-                                    <span class="font-medium text-gray-900">{{ $resp->supplier->name }}</span>
+                                    <span class="font-medium text-gray-900">{{ $resp->supplier?->name }}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-2.5 text-right font-semibold text-gray-900">
@@ -142,7 +142,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Berdasarkan PR (opsional)</label>
                         <select name="purchase_requisition_id" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                             <option value="">Tidak ada</option>
-                            @foreach($requisitions as $pr)
+                            @foreach($requisitions ?? [] as $pr)
                                 <option value="{{ $pr->id }}">{{ $pr->number }} — {{ $pr->department ?? 'Umum' }}</option>
                             @endforeach
                         </select>
@@ -190,7 +190,7 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Supplier *</label>
                     <select name="supplier_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">Pilih supplier...</option>
-                        @foreach($suppliers as $s)
+                        @foreach($suppliers ?? [] as $s)
                             <option value="{{ $s->id }}">{{ $s->name }}</option>
                         @endforeach
                     </select>

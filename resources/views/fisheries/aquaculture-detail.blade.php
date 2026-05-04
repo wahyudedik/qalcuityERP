@@ -35,7 +35,7 @@
                 $color = $statusColors[$pond->status] ?? 'gray';
             @endphp
             <span
-                class="px-3 py-1 text-sm rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                class="px-3 py-1 text-sm rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                 {{ $pond->status_label }}
             </span>
         </div>
@@ -109,42 +109,42 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-semibold text-gray-900">💧 Kualitas Air Terakhir</h3>
                 <span
-                    class="text-xs text-gray-500">{{ $pond->latestWaterQuality->logged_at->format('d M Y, H:i') }}</span>
+                    class="text-xs text-gray-500">{{ $pond->latestWaterQuality?->logged_at->format('d M Y, H:i') }}</span>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div class="text-center">
                     <p class="text-xs text-gray-500 mb-1">pH</p>
                     <p
-                        class="text-2xl font-bold {{ $pond->latestWaterQuality->ph >= 6.5 && $pond->latestWaterQuality->ph <= 8.5 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ number_format($pond->latestWaterQuality->ph, 1) }}
+                        class="text-2xl font-bold {{ $pond->latestWaterQuality?->ph >= 6.5 && $pond->latestWaterQuality?->ph <= 8.5 ? 'text-green-600' : 'text-red-600' }}">
+                        {{ number_format($pond->latestWaterQuality?->ph, 1) }}
                     </p>
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-500 mb-1">Oksigen (mg/L)</p>
                     <p
-                        class="text-2xl font-bold {{ $pond->latestWaterQuality->dissolved_oxygen >= 5 ? 'text-green-600' : 'text-yellow-600' }}">
-                        {{ number_format($pond->latestWaterQuality->dissolved_oxygen, 1) }}
+                        class="text-2xl font-bold {{ $pond->latestWaterQuality?->dissolved_oxygen >= 5 ? 'text-green-600' : 'text-yellow-600' }}">
+                        {{ number_format($pond->latestWaterQuality?->dissolved_oxygen, 1) }}
                     </p>
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-500 mb-1">Suhu (°C)</p>
                     <p class="text-2xl font-bold text-gray-900">
-                        {{ number_format($pond->latestWaterQuality->temperature ?? 0, 1) }}
+                        {{ number_format($pond->latestWaterQuality?->temperature ?? 0, 1) }}
                     </p>
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-500 mb-1">Amonia (mg/L)</p>
                     <p
-                        class="text-2xl font-bold {{ ($pond->latestWaterQuality->ammonia ?? 0) <= 0.02 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ number_format($pond->latestWaterQuality->ammonia ?? 0, 2) }}
+                        class="text-2xl font-bold {{ ($pond->latestWaterQuality?->ammonia ?? 0) <= 0.02 ? 'text-green-600' : 'text-red-600' }}">
+                        {{ number_format($pond->latestWaterQuality?->ammonia ?? 0, 2) }}
                     </p>
                 </div>
-                @if ($pond->latestWaterQuality->salinity)
+                @if ($pond->latestWaterQuality?->salinity)
                     <div class="text-center">
                         <p class="text-xs text-gray-500 mb-1">Salinitas (ppt)</p>
                         <p class="text-2xl font-bold text-gray-900">
-                            {{ number_format($pond->latestWaterQuality->salinity, 1) }}
+                            {{ number_format($pond->latestWaterQuality?->salinity, 1) }}
                         </p>
                     </div>
                 @endif

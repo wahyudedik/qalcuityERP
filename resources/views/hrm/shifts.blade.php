@@ -118,7 +118,7 @@
                         <thead>
                             <tr class="bg-gray-50">
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase w-40 border-b border-gray-100 sticky left-0 bg-gray-50 z-10">Karyawan</th>
-                                @foreach($weekDays as $i => $day)
+                                @foreach($weekDays ?? [] as $i => $day)
                                 <th class="px-2 py-3 text-center text-xs font-semibold border-b border-gray-100 min-w-[90px]
                                     {{ $day->isToday() ? 'text-blue-600' : 'text-gray-500' }}">
                                     <p>{{ $days[$i] }}</p>
@@ -136,7 +136,7 @@
                                     <p class="font-medium text-gray-900 text-xs truncate max-w-[140px]">{{ $emp->name }}</p>
                                     <p class="text-xs text-gray-400 truncate">{{ $emp->department ?? $emp->position ?? '-' }}</p>
                                 </td>
-                                @foreach($weekDays as $day)
+                                @foreach($weekDays ?? [] as $day)
                                 @php
                                     $dateStr  = $day->format('Y-m-d');
                                     $schedule = $schedules[$emp->id][$dateStr] ?? null;
@@ -155,12 +155,12 @@
                                         class="shift-cell w-full min-h-[52px] rounded-lg text-xs transition flex flex-col items-center justify-center gap-0.5 px-1 relative
                                             {{ $schedule ? 'cursor-grab active:cursor-grabbing' : ($isWeekend ? 'cursor-default' : 'hover:bg-gray-100 cursor-pointer') }}"
                                         @if($schedule)
-                                        style="background-color: {{ $schedule->shift->color }}22; border: 1px solid {{ $schedule->shift->color }}55; color: {{ $schedule->shift->color }}"
+                                        style="background-color: {{ $schedule->shift?->color }}22; border: 1px solid {{ $schedule->shift?->color }}55; color: {{ $schedule->shift?->color }}"
                                         @endif
                                     >
                                         @if($schedule)
-                                        <span class="font-semibold leading-tight">{{ $schedule->shift->name }}</span>
-                                        <span class="opacity-75 leading-tight text-[10px]">{{ $schedule->shift->timeLabel() }}</span>
+                                        <span class="font-semibold leading-tight">{{ $schedule->shift?->name }}</span>
+                                        <span class="opacity-75 leading-tight text-[10px]">{{ $schedule->shift?->timeLabel() }}</span>
                                         @else
                                         <span class="text-lg leading-none text-gray-300">{{ $isWeekend ? '—' : '+' }}</span>
                                         @endif

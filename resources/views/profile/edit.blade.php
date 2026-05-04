@@ -40,7 +40,7 @@
                             {{ ucfirst(str_replace('_', ' ', $user->role)) }}
                         </span>
                         @if($user->tenant)
-                        <span class="text-xs text-gray-400">{{ $user->tenant->name }}</span>
+                        <span class="text-xs text-gray-400">{{ $user->tenant?->name }}</span>
                         @endif
                     </div>
                     @if($user->avatar)

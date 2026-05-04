@@ -124,7 +124,7 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                                     {{ $stageLabels[$lead->stage] ?? $lead->stage }}
                                 </span>
                             </td>

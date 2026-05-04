@@ -61,9 +61,9 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $operation->patient ? $operation->patient->full_name : '-' }}</p>
+                                    {{ $operation->patient ? $operation->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $operation->patient ? $operation->patient->medical_record_number : '-' }}</p>
+                                    {{ $operation->patient ? $operation->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900">{{ $operation->procedure_name ?? '-' }}</p>
@@ -71,7 +71,7 @@
                                     {{ $operation->surgery_type ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                {{ $operation->surgeon ? $operation->surgeon->name : '-' }}</td>
+                                {{ $operation->surgeon ? $operation->surgeon?->name : '-' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">
                                 <p class="text-gray-900">
                                     {{ $operation->operation_date ? \Carbon\Carbon::parse($operation->operation_date)->format('d M Y') : '-' }}

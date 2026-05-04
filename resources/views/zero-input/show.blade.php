@@ -21,7 +21,7 @@
                     @php
                         $confColor = $log->confidence_score >= 80 ? 'green' : ($log->confidence_score >= 50 ? 'amber' : 'red');
                     @endphp
-                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-{{ $confColor }}-100 text-{{ $confColor }}-700 $confColor }}-500/20 $confColor }}-400">
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-{{ $confColor  }}-100 text-{{ $confColor }}-700 $confColor }}-500/20 $confColor }}-400">
                         AI {{ $log->confidence_score }}%
                     </span>
                     @endif

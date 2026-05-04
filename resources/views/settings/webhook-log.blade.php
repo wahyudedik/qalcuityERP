@@ -32,7 +32,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($deliveries as $d)
+                    @foreach($deliveries ?? [] as $d)
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-4 py-3">
                             <code class="text-xs font-mono text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{{ $d->event }}</code>

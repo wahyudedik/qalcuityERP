@@ -94,9 +94,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $claim->patient ? $claim->patient->full_name : '-' }}</p>
+                                    {{ $claim->patient ? $claim->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $claim->patient ? $claim->patient->medical_record_number : '-' }}</p>
+                                    {{ $claim->patient ? $claim->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900">{{ $claim->insurance_provider ?? '-' }}</p>

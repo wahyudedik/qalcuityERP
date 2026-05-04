@@ -118,7 +118,7 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($priceList->items->sortBy('product.name') as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ $item->product->name }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $item->product?->name }}</td>
                         <td class="px-4 py-3 text-right text-gray-700">Rp {{ number_format($item->price,0,',','.') }}</td>
                         <td class="px-4 py-3 text-right text-gray-500">{{ $item->discount_percent > 0 ? $item->discount_percent . '%' : '-' }}</td>
                         <td class="px-4 py-3 text-right font-semibold text-green-700">Rp {{ number_format($item->effectivePrice(),0,',','.') }}</td>

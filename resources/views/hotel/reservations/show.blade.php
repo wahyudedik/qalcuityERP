@@ -6,6 +6,7 @@
             @if ($reservation->status === 'pending')
                 <form method="POST" action="{{ route('hotel.reservations.confirm', $reservation) }}">
                     @csrf
+                    @method('PATCH')
                     <button type="submit"
                         class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,9 +140,8 @@
                         </div>
                     </div>
                     @if ($reservation->guest?->vip_level)
-                        <span
-                            class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
-                            {{ strtoupper($reservation->guest->vip_level) }} VIP
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                            {{ strtoupper($reservation->guest?->vip_level) }} VIP
                         </span>
                     @endif
                 </div>
@@ -349,19 +349,16 @@
                     </div>
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-500">Created by</span>
-                        <span
-                            class="text-gray-700">{{ $reservation->createdBy?->name ?? 'System' }}</span>
+                        <span class="text-gray-700">{{ $reservation->createdBy?->name ?? 'System' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-500">Created at</span>
-                        <span
-                            class="text-gray-700">{{ $reservation->created_at->format('d M Y, H:i') }}</span>
+                        <span class="text-gray-700">{{ $reservation->created_at->format('d M Y, H:i') }}</span>
                     </div>
                     @if ($reservation->updated_at != $reservation->created_at)
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-500">Last updated</span>
-                            <span
-                                class="text-gray-700">{{ $reservation->updated_at->format('d M Y, H:i') }}</span>
+                            <span class="text-gray-700">{{ $reservation->updated_at->format('d M Y, H:i') }}</span>
                         </div>
                     @endif
                 </div>
@@ -373,10 +370,9 @@
                 <div class="space-y-4">
                     {{-- Created --}}
                     <div class="flex items-start gap-3">
-                        <div
-                            class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-gray-500" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
@@ -390,8 +386,7 @@
                     {{-- Confirmed --}}
                     @if ($reservation->status !== 'pending')
                         <div class="flex items-start gap-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -411,8 +406,7 @@
                     {{-- Checked In --}}
                     @if (in_array($reservation->status, ['checked_in', 'checked_out']))
                         <div class="flex items-start gap-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -432,8 +426,7 @@
                     {{-- Checked Out --}}
                     @if ($reservation->status === 'checked_out')
                         <div class="flex items-start gap-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -453,8 +446,7 @@
                     {{-- Cancelled --}}
                     @if ($reservation->status === 'cancelled')
                         <div class="flex items-start gap-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
                                 <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -558,15 +550,13 @@
                         </div>
 
                         <div>
-                            <label
-                                class="block text-xs font-medium text-gray-600 mb-1">Reason</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Reason</label>
                             <textarea name="reason" rows="2"
                                 class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Reason for this request..."></textarea>
                         </div>
 
-                        <div
-                            class="p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+                        <div class="p-3 rounded-xl bg-yellow-50 border border-yellow-200">
                             <p class="text-xs text-yellow-800">
                                 <strong>Note:</strong> This request requires approval. Additional charges may apply
                                 based on hotel policy.

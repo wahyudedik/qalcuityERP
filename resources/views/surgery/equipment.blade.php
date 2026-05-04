@@ -1,44 +1,41 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Surgery Equipment')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-tools text-primary"></i> Surgery Equipment
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-tools text-blue-600"></i> Surgery Equipment
             </h1>
-            <p class="text-muted mb-0">Track and manage surgical equipment</p>
+            <p class="text-gray-500">Track and manage surgical equipment</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addEquipmentModal">
                 <i class="fas fa-plus"></i> Add Equipment
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h3 class="text-success">{{ $equipment->where('status', 'available')->count() }}</h3>
-                            <small class="text-muted">Available</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-emerald-600">{{ $equipment->where('status', 'available')->count() }}</h3>
+                            <small class="text-gray-500">Available</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-warning">{{ $equipment->where('status', 'in_use')->count() }}</h3>
-                            <small class="text-muted">In Use</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-amber-600">{{ $equipment->where('status', 'in_use')->count() }}</h3>
+                            <small class="text-gray-500">In Use</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-info">{{ $equipment->where('status', 'sterilizing')->count() }}</h3>
-                            <small class="text-muted">Sterilizing</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-sky-600">{{ $equipment->where('status', 'sterilizing')->count() }}</h3>
+                            <small class="text-gray-500">Sterilizing</small>
                         </div>
-                        <div class="col-md-3">
-                            <h3 class="text-danger">{{ $equipment->where('status', 'maintenance')->count() }}</h3>
-                            <small class="text-muted">Maintenance</small>
+                        <div class="w-full md:w-1/4">
+                            <h3 class="text-red-600">{{ $equipment->where('status', 'maintenance')->count() }}</h3>
+                            <small class="text-gray-500">Maintenance</small>
                         </div>
                     </div>
                 </div>
@@ -46,12 +43,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Equipment</th>
@@ -80,7 +77,7 @@
                                                     'maintenance' => 'danger',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$item->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$item->status] ?? 'secondary'  }}">
                                                 {{ ucfirst(str_replace('_', ' ', $item->status)) }}
                                             </span>
                                         </td>
@@ -95,7 +92,7 @@
                                             @if ($item->next_maintenance)
                                                 @if ($item->next_maintenance->isPast())
                                                     <span
-                                                        class="text-danger fw-bold">{{ $item->next_maintenance->format('d/m/Y') }}</span>
+                                                        class="text-red-600 font-bold">{{ $item->next_maintenance->format('d/m/Y') }}</span>
                                                 @else
                                                     {{ $item->next_maintenance->format('d/m/Y') }}
                                                 @endif
@@ -104,8 +101,8 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             </div>
@@ -113,7 +110,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No surgical equipment found
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No surgical equipment found
                                         </td>
                                     </tr>
                                 @endforelse
@@ -125,4 +122,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

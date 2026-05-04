@@ -31,7 +31,7 @@
                 </span>
                 @if($item->payrollRun?->processed_at)
                 <p class="text-xs text-gray-400 mt-2">
-                    {{ $item->payrollRun->processed_at->format('d M Y') }}
+                    {{ $item->payrollRun?->processed_at->format('d M Y') }}
                 </p>
                 @endif
             </div>
@@ -101,7 +101,7 @@
                                 </tr>
                                 @php $compAllowances = $item->components->where('type','allowance'); @endphp
                                 @if($compAllowances->count())
-                                    @foreach($compAllowances as $c)
+                                    @foreach($compAllowances ?? [] as $c)
                                     <tr>
                                         <td class="py-1.5 text-gray-600 print:text-gray-700">{{ $c->name }}</td>
                                         <td class="py-1.5 text-right font-medium text-gray-900 print:text-black">Rp {{ number_format($c->amount, 0, ',', '.') }}</td>
@@ -166,7 +166,7 @@
                                 @if(($item->deduction_other ?? 0) > 0)
                                 @php $compDeductions = $item->components->where('type','deduction'); @endphp
                                 @if($compDeductions->count())
-                                    @foreach($compDeductions as $c)
+                                    @foreach($compDeductions ?? [] as $c)
                                     <tr>
                                         <td class="py-1.5 text-gray-600 print:text-gray-700">{{ $c->name }}</td>
                                         <td class="py-1.5 text-right font-medium text-red-600 print:text-red-700">-Rp {{ number_format($c->amount, 0, ',', '.') }}</td>
@@ -203,7 +203,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 print:divide-gray-200">
-                            @foreach($overtimes as $ot)
+                            @foreach($overtimes ?? [] as $ot)
                             <tr>
                                 <td class="px-3 py-1.5 text-gray-700 print:text-gray-700">{{ $ot->date->format('d M Y') }}</td>
                                 <td class="px-3 py-1.5 text-center text-gray-600 print:text-gray-600">{{ substr($ot->start_time, 0, 5) }} – {{ substr($ot->end_time, 0, 5) }}</td>

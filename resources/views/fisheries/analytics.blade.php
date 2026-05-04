@@ -76,11 +76,11 @@
                         <div class="flex items-center justify-between mb-1">
                             <div class="flex items-center gap-2">
                                 <span
-                                    class="w-6 h-6 rounded-full bg-{{ $color }}-100 $color }}-500/20 flex items-center justify-center text-xs font-bold text-{{ $color }}-600 $color }}-400">
+                                    class="w-6 h-6 rounded-full bg-{{ $color  }}-100 $color }}-500/20 flex items-center justify-center text-xs font-bold text-{{ $color }}-600 $color }}-400">
                                     {{ $index + 1 }}
                                 </span>
                                 <span class="text-sm font-medium text-gray-900">
-                                    {{ $species->species->common_name ?? 'Unknown' }}
+                                    {{ $species->species?->common_name ?? 'Unknown' }}
                                 </span>
                             </div>
                             <div class="text-right">
@@ -92,7 +92,7 @@
                             </div>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-{{ $color }}-600 h-2 rounded-full transition-all"
+                            <div class="bg-{{ $color  }}-600 h-2 rounded-full transition-all"
                                 style="width: {{ $percentage }}%"></div>
                         </div>
                     </div>

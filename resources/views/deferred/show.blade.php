@@ -57,11 +57,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                     <span class="text-gray-500">Akun Deferred:</span>
-                    <span class="ml-1 text-gray-900">{{ $deferredItem->deferredAccount->code }} - {{ $deferredItem->deferredAccount->name }}</span>
+                    <span class="ml-1 text-gray-900">{{ $deferredItem->deferredAccount?->code }} - {{ $deferredItem->deferredAccount?->name }}</span>
                 </div>
                 <div>
                     <span class="text-gray-500">Akun Pengakuan:</span>
-                    <span class="ml-1 text-gray-900">{{ $deferredItem->recognitionAccount->code }} - {{ $deferredItem->recognitionAccount->name }}</span>
+                    <span class="ml-1 text-gray-900">{{ $deferredItem->recognitionAccount?->code }} - {{ $deferredItem->recognitionAccount?->name }}</span>
                 </div>
                 @if($deferredItem->reference_number)
                 <div>
@@ -71,7 +71,7 @@
                 @endif
                 <div>
                     <span class="text-gray-500">Dibuat oleh:</span>
-                    <span class="ml-1 text-gray-900">{{ $deferredItem->user->name }}</span>
+                    <span class="ml-1 text-gray-900">{{ $deferredItem->user?->name }}</span>
                 </div>
             </div>
         </div>
@@ -135,7 +135,7 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @if($schedule->journalEntry)
-                            <a href="{{ route('journals.show', $schedule->journalEntry) }}" class="text-xs text-blue-600 hover:underline">{{ $schedule->journalEntry->number }}</a>
+                            <a href="{{ route('journals.show', $schedule->journalEntry) }}" class="text-xs text-blue-600 hover:underline">{{ $schedule->journalEntry?->number }}</a>
                             @else
                             <span class="text-xs text-gray-400">-</span>
                             @endif

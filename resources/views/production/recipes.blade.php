@@ -14,7 +14,7 @@
                 <div>
                     <h3 class="font-semibold text-gray-900">{{ $recipe->name }}</h3>
                     <p class="text-sm text-gray-500">
-                        Produk: {{ $recipe->product->name }} — Batch: {{ $recipe->batch_size }} {{ $recipe->batch_unit }}
+                        Produk: {{ $recipe->product?->name }} — Batch: {{ $recipe->batch_size }} {{ $recipe->batch_unit }}
                     </p>
                 </div>
                 <span class="text-xs px-2 py-1 rounded-full {{ $recipe->is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400' }}">
@@ -24,7 +24,7 @@
             <div class="flex flex-wrap gap-2">
                 @foreach($recipe->ingredients as $ing)
                 <div class="px-3 py-1.5 text-xs rounded-xl bg-gray-100 text-gray-700">
-                    <span class="font-medium">{{ $ing->product->name }}</span>
+                    <span class="font-medium">{{ $ing->product?->name }}</span>
                     <span class="text-gray-500 ml-1">{{ $ing->quantity_per_batch }} {{ $ing->unit }}</span>
                 </div>
                 @endforeach
@@ -58,7 +58,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Produk Jadi *</label>
                         <select name="product_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Pilih Produk --</option>
-                            @foreach($products as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
+                            @foreach($products ?? [] as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                         </select>
                     </div>
                     <div>
@@ -93,7 +93,7 @@
                             <div class="col-span-5">
                                 <select name="ingredients[0][product_id]" required class="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">-- Bahan --</option>
-                                    @foreach($products as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
+                                    @foreach($products ?? [] as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach
                                 </select>
                             </div>
                             <div class="col-span-3">
@@ -120,7 +120,7 @@
     @push('scripts')
     <script>
     let ingCount = 1;
-    const productOptions = `@foreach($products as $p)<option value="{{ $p->id }}">{{ addslashes($p->name) }}</option>@endforeach`;
+    const productOptions = `@foreach($products ?? [] as $p)<option value="{{ $p->id }}">{{ addslashes($p->name) }}</option>@endforeach`;
 
     function addIngredient() {
         const i = ingCount++;

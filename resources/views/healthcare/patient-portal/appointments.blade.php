@@ -110,10 +110,10 @@
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <h3 class="text-lg font-bold text-gray-900">
-                                        {{ $appointment->doctor ? $appointment->doctor->name : 'Doctor Not Assigned' }}
+                                        {{ $appointment->doctor ? $appointment->doctor?->name : 'Doctor Not Assigned' }}
                                     </h3>
                                     <p class="text-sm text-gray-600">
-                                        {{ $appointment->doctor ? $appointment->doctor->specialization ?? '-' : '-' }}
+                                        {{ $appointment->doctor ? $appointment->doctor?->specialization ?? '-' : '-' }}
                                     </p>
                                 </div>
                                 @if ($appointment->status === 'scheduled')

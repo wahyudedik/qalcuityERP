@@ -110,7 +110,7 @@
                                     <span class="text-gray-600">{{ __('Total') }}: {{ round($quotaBytes / 1073741824, 2) }} GB</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-4">
-                                    <div class="bg-{{ $color }}-500 h-4 rounded-full transition-all" style="width: {{ $percentage }}%"></div>
+                                    <div class="bg-{{ $color  }}-500 h-4 rounded-full transition-all" style="width: {{ $percentage }}%"></div>
                                 </div>
                                 <p class="text-sm text-gray-600 mt-1">{{ $percentage }}% {{ __('terpakai') }}</p>
                             </div>
@@ -191,15 +191,15 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span class="text-gray-500">{{ __('Download') }}</span>
-                                    <span class="font-medium text-gray-900">{{ $subscription->package->download_speed_mbps }} Mbps</span>
+                                    <span class="font-medium text-gray-900">{{ $subscription->package?->download_speed_mbps }} Mbps</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-500">{{ __('Upload') }}</span>
-                                    <span class="font-medium text-gray-900">{{ $subscription->package->upload_speed_mbps }} Mbps</span>
+                                    <span class="font-medium text-gray-900">{{ $subscription->package?->upload_speed_mbps }} Mbps</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-500">{{ __('Harga') }}</span>
-                                    <span class="font-medium text-gray-900">Rp {{ number_format($subscription->package->price, 0, ',', '.') }}</span>
+                                    <span class="font-medium text-gray-900">Rp {{ number_format($subscription->package?->price, 0, ',', '.') }}</span>
                                 </div>
                             </div>
                         </div>

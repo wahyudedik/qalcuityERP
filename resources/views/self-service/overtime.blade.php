@@ -104,7 +104,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($overtimes as $ot)
+                            @foreach($overtimes ?? [] as $ot)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-3 text-gray-900 font-medium">
                                     {{ $ot->date->format('d M Y') }}

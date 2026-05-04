@@ -23,7 +23,7 @@
                 </a>
                 <div class="flex-1 min-w-0">
                     <h1 class="text-base font-bold text-white truncate">{{ $s->number }}</h1>
-                    <p class="text-xs text-slate-400">{{ $s->warehouse->name ?? '-' }} ·
+                    <p class="text-xs text-slate-400">{{ $s->warehouse?->name ?? '-' }} ·
                         {{ $s->opname_date->format('d/m/Y') }}</p>
                 </div>
                 @php
@@ -99,10 +99,10 @@
                             ? 'border-red-500/50'
                             : 'border-white/10');
 
-                    $productName = $item->product->name ?? 'Produk Tidak Dikenal';
-                    $sku = $item->product->sku ?? '';
-                    $barcode = $item->product->barcode ?? '';
-                    $binCode = $item->bin->code ?? '-';
+                    $productName = $item->product?->name ?? 'Produk Tidak Dikenal';
+                    $sku = $item->product?->sku ?? '';
+                    $barcode = $item->product?->barcode ?? '';
+                    $binCode = $item->bin?->code ?? '-';
                     $initialQty = $actualQty ?? 0;
                     $diff = $isCounted ? (int) $actualQty - (int) $systemQty : null;
                 @endphp
@@ -110,7 +110,7 @@
                 <div class="item-card bg-[#1e293b] rounded-2xl border {{ $cardBorder }} p-4 transition-all duration-200"
                     data-sku="{{ $sku }}" data-barcode="{{ $barcode }}"
                     data-counted="{{ $isCounted ? 'true' : 'false' }}"
-                    data-mismatch="{{ $isMismatch ? 'true' : 'false' }}" x-data="{ qty: {{ $initialQty }} }">
+                    data-mismatch="{{ $isMismatch ? 'true' : 'false' }}" x-data="{ qty: @js($initialQty) }">
 
                     {{-- Item header --}}
                     <div class="flex items-start justify-between gap-2 mb-2">

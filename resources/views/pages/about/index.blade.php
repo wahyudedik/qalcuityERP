@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Tentang Qalcuity') }}
@@ -40,7 +40,7 @@
                                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                     Lihat Karir
                                 </a>
-                                <a href="https://wa.me/6281654932383" target="_blank"
+                                <a href="https://wa.me/6281529211963" target="_blank"
                                     class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                     Hubungi Sales
                                 </a>

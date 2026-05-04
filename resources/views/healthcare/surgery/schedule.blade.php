@@ -91,9 +91,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $schedule->patient ? $schedule->patient->full_name : '-' }}</p>
+                                    {{ $schedule->patient ? $schedule->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $schedule->patient ? $schedule->patient->medical_record_number : '-' }}</p>
+                                    {{ $schedule->patient ? $schedule->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-900">{{ $schedule->procedure_name ?? '-' }}</p>
@@ -101,9 +101,9 @@
                                     {{ $schedule->procedure_type ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                <p>{{ $schedule->surgeon ? $schedule->surgeon->name : '-' }}</p>
+                                <p>{{ $schedule->surgeon ? $schedule->surgeon?->name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $schedule->anesthesiologist ? 'Anest: ' . $schedule->anesthesiologist->name : '' }}
+                                    {{ $schedule->anesthesiologist ? 'Anest: ' . $schedule->anesthesiologist?->name : '' }}
                                 </p>
                             </td>
                             <td class="px-4 py-3 hidden sm:table-cell">

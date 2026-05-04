@@ -131,8 +131,7 @@
 
     <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
         @foreach ($cards as $card)
-            <div
-                class="bg-white rounded-2xl border border-gray-200 p-3 sm:p-5 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-gray-200 p-3 sm:p-5 overflow-hidden">
                 <div class="flex items-start justify-between mb-2 sm:mb-4">
                     <p class="text-[10px] sm:text-xs font-medium text-gray-500 leading-tight">
                         {{ $card['label'] }}</p>
@@ -154,8 +153,7 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 min-w-0">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 min-w-0">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-sm font-semibold text-gray-900 truncate">Pertumbuhan Tenant (6 Bulan)</p>
                 <a href="{{ route('super-admin.tenants.index') }}"
@@ -164,8 +162,7 @@
             <div class="relative" style="height:200px"><canvas id="growthChart"></canvas></div>
         </div>
 
-        <div
-            class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 min-w-0">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 min-w-0">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-sm font-semibold text-gray-900">Distribusi Paket</p>
                 <a href="{{ route('super-admin.plans.index') }}"
@@ -200,11 +197,9 @@
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full shrink-0"
                                     style="background:{{ $planColors[$plan] ?? '#94a3b8' }}"></span>
-                                <span
-                                    class="text-sm text-gray-700">{{ $planLabels[$plan] ?? ucfirst($plan) }}</span>
+                                <span class="text-sm text-gray-700">{{ $planLabels[$plan] ?? ucfirst($plan) }}</span>
                             </div>
-                            <span
-                                class="text-sm font-semibold text-gray-900">{{ $count }}</span>
+                            <span class="text-sm font-semibold text-gray-900">{{ $count }}</span>
                         </div>
                     @endforeach
                     @if (empty($planDist))
@@ -246,7 +241,8 @@
                             </div>
                         </div>
                         <div class="text-right shrink-0 ml-3">
-                            <p class="text-xs font-semibold {{ $urgency }}">{{ $expiryDateCarbon?->format('d M Y') }}
+                            <p class="text-xs font-semibold {{ $urgency }}">
+                                {{ $expiryDateCarbon?->format('d M Y') }}
                             </p>
                             <p class="text-xs text-gray-400">
                                 {{ $daysLeft !== null ? $daysLeft . ' hari lagi' : '—' }}</p>
@@ -344,8 +340,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <a href="{{ route('super-admin.tenants.index') }}"
                         class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
@@ -353,8 +348,7 @@
                     </a>
                     <a href="{{ route('super-admin.plans.index') }}"
                         class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-sm font-medium text-gray-700">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
@@ -409,10 +403,10 @@
                 new Chart(document.getElementById('growthChart'), {
                     type: 'bar',
                     data: {
-                        labels: {!! json_encode(array_column($growthChart, 'month')) !!},
+                        labels: @json(array_column($growthChart, 'month')),
                         datasets: [{
                             label: 'Tenant Baru',
-                            data: {!! json_encode(array_column($growthChart, 'count')) !!},
+                            data: @json(array_column($growthChart, 'count')),
                             backgroundColor: 'rgba(99,102,241,0.2)',
                             borderColor: '#6366f1',
                             borderWidth: 2,
@@ -456,10 +450,10 @@
                     new Chart(document.getElementById('planChart'), {
                         type: 'doughnut',
                         data: {
-                            labels: {!! json_encode($planChartLabels) !!},
+                            labels: @json($planChartLabels),
                             datasets: [{
-                                data: {!! json_encode($planChartData) !!},
-                                backgroundColor: {!! json_encode($planChartColors) !!},
+                                data: @json($planChartData),
+                                backgroundColor: @json($planChartColors),
                                 borderWidth: 0,
                                 hoverOffset: 4
                             }]

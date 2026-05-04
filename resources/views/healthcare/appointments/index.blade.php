@@ -107,19 +107,19 @@
                                         </div>
                                         <div>
                                             <p class="font-medium text-gray-900">
-                                                {{ $appointment->patient ? $appointment->patient->full_name : '-' }}
+                                                {{ $appointment->patient ? $appointment->patient?->full_name : '-' }}
                                             </p>
                                             <p class="text-xs text-gray-500">
-                                                {{ $appointment->patient ? $appointment->patient->medical_record_number : '-' }}
+                                                {{ $appointment->patient ? $appointment->patient?->medical_record_number : '-' }}
                                             </p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-gray-900">
-                                        {{ $appointment->doctor ? $appointment->doctor->name : '-' }}</p>
+                                        {{ $appointment->doctor ? $appointment->doctor?->name : '-' }}</p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $appointment->doctor ? $appointment->doctor->specialization : '' }}</p>
+                                        {{ $appointment->doctor ? $appointment->doctor?->specialization : '' }}</p>
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="text-gray-900">
@@ -223,10 +223,10 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <p class="font-semibold text-gray-900 truncate">
-                                        {{ $appointment->patient ? $appointment->patient->full_name : '-' }}
+                                        {{ $appointment->patient ? $appointment->patient?->full_name : '-' }}
                                     </p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $appointment->patient ? $appointment->patient->medical_record_number : '-' }}
+                                        {{ $appointment->patient ? $appointment->patient?->medical_record_number : '-' }}
                                     </p>
                                 </div>
                             </div>
@@ -250,10 +250,10 @@
                             <div class="col-span-2">
                                 <p class="text-gray-400">Dokter</p>
                                 <p class="text-gray-700">
-                                    {{ $appointment->doctor ? $appointment->doctor->name : '-' }}
-                                    @if ($appointment->doctor && $appointment->doctor->specialization)
+                                    {{ $appointment->doctor ? $appointment->doctor?->name : '-' }}
+                                    @if ($appointment->doctor && $appointment->doctor?->specialization)
                                         <span class="text-gray-400">-
-                                            {{ $appointment->doctor->specialization }}</span>
+                                            {{ $appointment->doctor?->specialization }}</span>
                                     @endif
                                 </p>
                             </div>

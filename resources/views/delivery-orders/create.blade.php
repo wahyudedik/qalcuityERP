@@ -24,9 +24,9 @@
                     <select name="sales_order_id" id="soSelect" required onchange="loadSoItems()"
                             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                         <option value="">-- Pilih Sales Order --</option>
-                        @foreach($salesOrders as $so)
+                        @foreach($salesOrders ?? [] as $so)
                         <option value="{{ $so->id }}" {{ old('sales_order_id', $selectedSo?->id) == $so->id ? 'selected' : '' }}>
-                            {{ $so->number }} — {{ $so->customer->name ?? '' }} ({{ $so->date->format('d/m/Y') }})
+                            {{ $so->number }} — {{ $so->customer?->name ?? '' }} ({{ $so->date->format('d/m/Y') }})
                         </option>
                         @endforeach
                     </select>
@@ -35,7 +35,7 @@
                     <label class="block text-sm font-medium text-slate-700 mb-1">Gudang <span class="text-red-500">*</span></label>
                     <select name="warehouse_id" required
                             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
-                        @foreach($warehouses as $w)
+                        @foreach($warehouses ?? [] as $w)
                         <option value="{{ $w->id }}" {{ old('warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                         @endforeach
                     </select>
@@ -77,7 +77,7 @@
                             <div class="grid grid-cols-12 gap-2 items-center mb-2 p-3 bg-slate-50 rounded-lg">
                                 <input type="hidden" name="items[{{ $i }}][sales_order_item_id]" value="{{ $item->id }}">
                                 <input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $item->product_id }}">
-                                <div class="col-span-6 text-sm text-slate-800 font-medium">{{ $item->product->name }}</div>
+                                <div class="col-span-6 text-sm text-slate-800 font-medium">{{ $item->product?->name }}</div>
                                 <div class="col-span-2 text-xs text-slate-500 text-center">
                                     Dipesan: {{ $item->quantity }}<br>
                                     Sisa: {{ $remaining }}

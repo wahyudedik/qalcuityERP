@@ -65,7 +65,7 @@
                                 <div class="text-sm font-mono font-medium text-gray-900">{{ $recall->recall_number }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $recall->batch->batch_number ?? 'N/A' }}</div>
+                                <div class="text-sm text-gray-900">{{ $recall->batch?->batch_number ?? 'N/A' }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm text-gray-900">{{ Str::limit($recall->recall_reason, 30) }}</div>

@@ -16,15 +16,15 @@
                 <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Patient Name</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->patient->name ?? 'N/A' }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->patient?->name ?? 'N/A' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Doctor</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->doctor->name ?? 'N/A' }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->doctor?->name ?? 'N/A' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Visit Date</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->visit->visit_date ?? 'N/A' }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $survey->visit?->visit_date ?? 'N/A' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Survey Date</dt>

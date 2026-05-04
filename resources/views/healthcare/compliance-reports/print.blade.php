@@ -189,7 +189,7 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Created By</div>
-                    <div class="info-value">{{ $report->createdBy->name ?? 'N/A' }}</div>
+                    <div class="info-value">{{ $report->createdBy?->name ?? 'N/A' }}</div>
                 </div>
             </div>
         </div>
@@ -241,7 +241,7 @@
                 <div>
                     <div class="info-item">
                         <div class="info-label">Approved By</div>
-                        <div class="info-value">{{ $report->reviewer->name ?? 'N/A' }}</div>
+                        <div class="info-value">{{ $report->reviewer?->name ?? 'N/A' }}</div>
                     </div>
                 </div>
                 <div>

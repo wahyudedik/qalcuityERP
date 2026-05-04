@@ -114,7 +114,7 @@
                                 <div class="text-sm font-mono font-medium text-gray-900">{{ $label->label_code }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $label->product->formula_name ?? 'N/A' }}
+                                <div class="text-sm font-medium text-gray-900">{{ $label->product?->formula_name ?? 'N/A' }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">

@@ -76,7 +76,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-lg font-bold text-gray-900">{{ $pond->code }}</span>
                                 <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
+                                    class="text-xs px-2 py-0.5 rounded-full bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">
                                     {{ $pond->status_label }}
                                 </span>
                             </div>
@@ -129,18 +129,18 @@
                                     <div>
                                         <span class="text-gray-400 block">pH</span>
                                         <span
-                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality->ph, 1) }}</span>
+                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality?->ph, 1) }}</span>
                                     </div>
                                     <div>
                                         <span class="text-gray-400 block">Oksigen</span>
                                         <span
-                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality->dissolved_oxygen, 1) }}
+                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality?->dissolved_oxygen, 1) }}
                                             mg/L</span>
                                     </div>
                                     <div>
                                         <span class="text-gray-400 block">Suhu</span>
                                         <span
-                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality->temperature, 1) }}°C</span>
+                                            class="font-medium text-gray-700">{{ number_format($pond->latest_water_quality?->temperature, 1) }}°C</span>
                                     </div>
                                 </div>
                             </div>

@@ -6,14 +6,12 @@
     </x-slot>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
     {{-- Tabs --}}
-    <div class="bg-white rounded-xl border border-gray-200 mb-6"
-        x-data="{ tab: '{{ request('tab', 'species') }}' }">
+    <div class="bg-white rounded-xl border border-gray-200 mb-6" x-data="{ tab: @js(request('tab', 'species')) }">
         <div class="flex border-b border-gray-200">
             <button @click="tab = 'species'; window.location.href = '?tab=species'"
                 :class="tab === 'species' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500'"
@@ -49,8 +47,7 @@
             </div>
 
             @if (empty($species) || count($species) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">🐟</p>
                     <p class="text-sm text-gray-500">Belum ada data spesies. Tambahkan spesies
                         pertama Anda.</p>
@@ -58,8 +55,7 @@
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     @foreach ($species as $sp)
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div>
                                     <h4 class="text-base font-bold text-gray-900">{{ $sp->common_name }}
@@ -67,8 +63,7 @@
                                     <p class="text-xs italic text-gray-500">
                                         {{ $sp->scientific_name }}</p>
                                 </div>
-                                <span
-                                    class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+                                <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
                                     {{ ucfirst($sp->category) }}
                                 </span>
                             </div>
@@ -84,8 +79,7 @@
                                 @if ($sp->average_weight_kg)
                                     <div class="flex items-center justify-between">
                                         <span class="text-gray-500">Berat Rata-rata:</span>
-                                        <span
-                                            class="text-gray-700">{{ number_format($sp->average_weight_kg, 2) }}
+                                        <span class="text-gray-700">{{ number_format($sp->average_weight_kg, 2) }}
                                             kg</span>
                                     </div>
                                 @endif
@@ -98,8 +92,7 @@
                             </div>
 
                             @if ($sp->description)
-                                <p
-                                    class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
                                     {{ Str::limit($sp->description, 100) }}
                                 </p>
                             @endif
@@ -121,8 +114,7 @@
             </div>
 
             @if (empty($grades) || count($grades) === 0)
-                <div
-                    class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                     <p class="text-4xl mb-3">⭐</p>
                     <p class="text-sm text-gray-500">Belum ada grade kualitas. Tambahkan grade
                         pertama Anda.</p>
@@ -130,8 +122,7 @@
             @else
                 <div class="space-y-3">
                     @foreach ($grades as $grade)
-                        <div
-                            class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
                                     <div
@@ -154,8 +145,7 @@
                             </div>
 
                             @if ($grade->min_weight_kg || $grade->max_weight_kg || $grade->quality_criteria)
-                                <div
-                                    class="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-4 text-xs">
+                                <div class="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-4 text-xs">
                                     @if ($grade->min_weight_kg)
                                         <div>
                                             <span class="text-gray-400">Berat Min:</span>
@@ -175,8 +165,7 @@
                                     @if ($grade->quality_criteria)
                                         <div class="col-span-3">
                                             <span class="text-gray-400">Kriteria:</span>
-                                            <span
-                                                class="text-gray-700 ml-1">{{ $grade->quality_criteria }}</span>
+                                            <span class="text-gray-700 ml-1">{{ $grade->quality_criteria }}</span>
                                         </div>
                                     @endif
                                 </div>
@@ -191,8 +180,7 @@
     {{-- Add Species Modal --}}
     <div id="addSpeciesModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-base font-semibold text-gray-900">🐟 Tambah Spesies Ikan</h3>
                 <button onclick="document.getElementById('addSpeciesModal').classList.add('hidden')"
@@ -219,8 +207,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label
-                            class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
                         <select name="category" class="{{ $cls }}">
                             <option value="marine">Laut</option>
                             <option value="freshwater">Air Tawar</option>
@@ -273,8 +260,7 @@
     {{-- Add Grade Modal --}}
     <div id="addGradeModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div
-            class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-gray-200 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-base font-semibold text-gray-900">⭐ Tambah Grade Kualitas</h3>
                 <button onclick="document.getElementById('addGradeModal').classList.add('hidden')"

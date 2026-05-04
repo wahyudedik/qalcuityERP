@@ -46,7 +46,7 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Ward</dt>
                                 <dd class="mt-1 text-sm text-gray-900">
-                                    {{ $bed->ward ? $bed->ward->name : 'Not assigned' }}</dd>
+                                    {{ $bed->ward ? $bed->ward?->name : 'Not assigned' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Room Number</dt>
@@ -102,17 +102,17 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Patient Name</p>
                                 <p class="mt-1 text-lg font-semibold text-gray-900">
-                                    {{ $bed->patientVisit->patient->name ?? 'N/A' }}</p>
+                                    {{ $bed->patientVisit?->patient->name ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Admission Date</p>
                                 <p class="mt-1 text-lg text-gray-900">
-                                    {{ $bed->patientVisit->admission_date ? $bed->patientVisit->admission_date->format('d/m/Y H:i') : 'N/A' }}
+                                    {{ $bed->patientVisit?->admission_date ? $bed->patientVisit?->admission_date->format('d/m/Y H:i') : 'N/A' }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Doctor</p>
-                                <p class="mt-1 text-lg text-gray-900">{{ $bed->patientVisit->doctor->name ?? 'N/A' }}
+                                <p class="mt-1 text-lg text-gray-900">{{ $bed->patientVisit?->doctor->name ?? 'N/A' }}
                                 </p>
                             </div>
                         </div>

@@ -124,7 +124,7 @@
                 <select name="party_id" id="customerPartySelect"
                         class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="">-- Pilih Customer --</option>
-                    @foreach($customers as $c)
+                    @foreach($customers ?? [] as $c)
                     <option value="{{ $c->id }}">{{ $c->name }}</option>
                     @endforeach
                 </select>
@@ -134,7 +134,7 @@
                 <select name="party_id" id="supplierPartySelect"
                         class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="">-- Pilih Supplier --</option>
-                    @foreach($suppliers as $s)
+                    @foreach($suppliers ?? [] as $s)
                     <option value="{{ $s->id }}">{{ $s->name }}</option>
                     @endforeach
                 </select>

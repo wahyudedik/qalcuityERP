@@ -7,7 +7,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">{{ $workOrder->number }}</h2>
-                    <p class="text-sm text-gray-500">{{ $workOrder->product->name }}</p>
+                    <p class="text-sm text-gray-500">{{ $workOrder->product?->name }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     @php
@@ -15,7 +15,7 @@
                         $labels = ['pending'=>'Pending','in_progress'=>'Sedang Dikerjakan','completed'=>'Selesai','cancelled'=>'Dibatalkan'];
                         $c = $colors[$workOrder->status] ?? 'gray';
                     @endphp
-                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $c }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $c  }}-100 text-{{ $c }}-700 $c }}-500/20 $c }}-400">
                         {{ $labels[$workOrder->status] ?? $workOrder->status }}
                     </span>
                     @if($workOrder->status === 'pending')
@@ -71,11 +71,11 @@
 
             @if($workOrder->recipe)
             <div class="mt-4 pt-4 border-t border-gray-100">
-                <p class="text-xs font-medium text-gray-500 mb-2">Resep: {{ $workOrder->recipe->name }} (batch {{ $workOrder->recipe->batch_size }} {{ $workOrder->recipe->batch_unit }})</p>
+                <p class="text-xs font-medium text-gray-500 mb-2">Resep: {{ $workOrder->recipe?->name }} (batch {{ $workOrder->recipe?->batch_size }} {{ $workOrder->recipe?->batch_unit }})</p>
                 <div class="flex flex-wrap gap-2">
-                    @foreach($workOrder->recipe->ingredients as $ing)
+                    @foreach($workOrder->recipe?->ingredients as $ing)
                     <span class="px-2 py-1 text-xs rounded-lg bg-gray-100 text-gray-700">
-                        {{ $ing->product->name }}: {{ $ing->quantity_per_batch }} {{ $ing->unit }}
+                        {{ $ing->product?->name }}: {{ $ing->quantity_per_batch }} {{ $ing->unit }}
                     </span>
                     @endforeach
                 </div>
@@ -87,7 +87,7 @@
             <div class="mt-4 pt-4 border-t border-gray-100">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-xs font-medium text-gray-500">
-                        BOM: {{ $workOrder->bom->name }} (batch {{ $workOrder->bom->batch_size }} {{ $workOrder->bom->batch_unit }})
+                        BOM: {{ $workOrder->bom?->name }} (batch {{ $workOrder->bom?->batch_size }} {{ $workOrder->bom?->batch_unit }})
                     </p>
                     <div class="flex items-center gap-2">
                         @if($workOrder->materials_consumed)
@@ -103,9 +103,9 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    @foreach($workOrder->bom->lines as $line)
+                    @foreach($workOrder->bom?->lines as $line)
                     <span class="px-2 py-1 text-xs rounded-lg bg-gray-100 text-gray-700">
-                        {{ $line->product->name }}: {{ $line->quantity_per_batch }} {{ $line->unit }}
+                        {{ $line->product?->name }}: {{ $line->quantity_per_batch }} {{ $line->unit }}
                         @if($line->childBom) <span class="text-purple-500">(sub-BOM)</span> @endif
                     </span>
                     @endforeach
@@ -117,8 +117,8 @@
             @if($workOrder->journalEntry)
             <div class="mt-4 pt-4 border-t border-gray-100">
                 <p class="text-xs text-gray-500">
-                    Jurnal Material: <a href="{{ url('accounting/journals') }}/{{ $workOrder->journalEntry->id }}" class="text-blue-500 hover:underline">{{ $workOrder->journalEntry->number }}</a>
-                    <span class="ml-2 px-1.5 py-0.5 rounded text-xs {{ $workOrder->journalEntry->status === 'posted' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">{{ $workOrder->journalEntry->status }}</span>
+                    Jurnal Material: <a href="{{ url('accounting/journals') }}/{{ $workOrder->journalEntry?->id }}" class="text-blue-500 hover:underline">{{ $workOrder->journalEntry?->number }}</a>
+                    <span class="ml-2 px-1.5 py-0.5 rounded text-xs {{ $workOrder->journalEntry?->status === 'posted' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">{{ $workOrder->journalEntry?->status }}</span>
                 </p>
             </div>
             @endif
@@ -186,11 +186,11 @@
                         <tr>
                             <td class="px-4 py-3 text-center font-mono text-xs text-gray-900">{{ $op->sequence }}</td>
                             <td class="px-4 py-3 text-gray-900">{{ $op->name }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ $op->workCenter->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-500">{{ $op->workCenter?->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">{{ $op->estimated_hours }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">{{ $op->actual_hours ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $oc }}-100 text-{{ $oc }}-700 $oc }}-500/20 $oc }}-400">
+                                <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $oc  }}-100 text-{{ $oc }}-700 $oc }}-500/20 $oc }}-400">
                                     {{ $opLabels[$op->status] ?? $op->status }}
                                 </span>
                             </td>

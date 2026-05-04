@@ -73,13 +73,13 @@
                         @endphp
                         <tr class="hover:bg-gray-50 {{ $isLowStock ? 'bg-red-50' : '' }}">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">{{ $item->channel->channel_name }}</div>
-                                <div class="text-xs text-gray-500">{{ $item->channel->channel_code }}</div>
+                                <div class="font-medium">{{ $item->channel?->channel_name }}</div>
+                                <div class="text-xs text-gray-500">{{ $item->channel?->channel_code }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @if ($item->product)
-                                    <div class="font-medium">{{ $item->product->formula_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $item->product->formula_code }}</div>
+                                    <div class="font-medium">{{ $item->product?->formula_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $item->product?->formula_code }}</div>
                                 @else
                                     <span class="text-gray-400">Product Deleted</span>
                                 @endif
@@ -107,7 +107,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button type="button"
-                                    onclick="openRestockModal({{ $item->id }}, '{{ $item->channel->channel_name }}', '{{ $item->product ? $item->product->formula_name : 'Unknown' }}')"
+                                    onclick="openRestockModal({{ $item->id }}, '{{ $item->channel?->channel_name }}', '{{ $item->product ? $item->product?->formula_name : 'Unknown' }}')"
                                     class="text-blue-600 hover:text-blue-900">
                                     Restock
                                 </button>

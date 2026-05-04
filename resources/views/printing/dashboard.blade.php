@@ -141,7 +141,7 @@
                                         $color = $statusColors[$job->status] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                                         {{ ucfirst(str_replace('_', ' ', $job->status)) }}
                                     </span>
                                 </td>
@@ -156,7 +156,7 @@
                                         $pColor = $priorityColors[$job->priority] ?? 'blue';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $pColor }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $pColor  }}-100 text-{{ $pColor }}-700 $pColor }}-500/20 $pColor }}-400">
                                         {{ ucfirst($job->priority) }}
                                     </span>
                                 </td>

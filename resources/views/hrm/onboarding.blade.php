@@ -21,13 +21,13 @@
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                        <p class="font-semibold text-gray-900">{{ $ob->employee->name }}</p>
+                        <p class="font-semibold text-gray-900">{{ $ob->employee?->name }}</p>
                         <span class="px-2 py-0.5 rounded-full text-xs {{ $ob->status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400' }}">
                             {{ $ob->status === 'completed' ? 'Selesai' : 'Berjalan' }}
                         </span>
                     </div>
                     <p class="text-xs text-gray-500">
-                        {{ $ob->employee->position ?? '-' }} · Mulai: {{ $ob->start_date->format('d M Y') }}
+                        {{ $ob->employee?->position ?? '-' }} · Mulai: {{ $ob->start_date->format('d M Y') }}
                         @if($ob->completed_at) · Selesai: {{ $ob->completed_at->format('d M Y') }}@endif
                     </p>
                 </div>

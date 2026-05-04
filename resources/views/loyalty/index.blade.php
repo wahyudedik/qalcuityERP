@@ -35,7 +35,7 @@
                         class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <select name="tier" class="px-3 py-2 text-sm rounded-xl border border-gray-200 bg-white text-gray-900">
                         <option value="">Semua Tier</option>
-                        @foreach($tiers as $tier)
+                        @foreach($tiers ?? [] as $tier)
                         <option value="{{ $tier->name }}" @selected(request('tier')===$tier->name)>{{ $tier->name }}</option>
                         @endforeach
                     </select>
@@ -70,11 +70,11 @@
                             @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900">{{ $lp->customer->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $lp->customer->phone ?? $lp->customer->email ?? '' }}</p>
+                                    <p class="font-medium text-gray-900">{{ $lp->customer?->name }}</p>
+                                    <p class="text-xs text-gray-500">{{ $lp->customer?->phone ?? $lp->customer?->email ?? '' }}</p>
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $tc  }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">
                                         {{ $lp->tier }}
                                     </span>
                                 </td>
@@ -139,7 +139,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-900 mb-3">Tier Member</h3>
                 <div class="space-y-2">
-                    @foreach($tiers as $tier)
+                    @foreach($tiers ?? [] as $tier)
                     <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 rounded-full" style="background:{{ $tier->color }}"></div>

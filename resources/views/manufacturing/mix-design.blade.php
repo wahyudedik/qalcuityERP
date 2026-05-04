@@ -473,8 +473,8 @@
                 </div>
                 <div class="modal-action">
                     <button type="button" onclick="document.getElementById('addMixModal').close()"
-                        class="btn">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Simpan</button>
                 </div>
             </form>
         </div>
@@ -640,10 +640,10 @@
                 </div>
                 <div class="modal-action">
                     <button type="button" onclick="document.getElementById('editMixModal').close()"
-                        class="btn">Batal</button>
-                    <a href="#" id="viewVersionsLink" target="_blank" class="btn btn-outline btn-info">📋 View
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm transition">Batal</button>
+                    <a href="#" id="viewVersionsLink" target="_blank" class="px-4 py-2 border border-sky-500 text-sky-600 hover:bg-sky-50 rounded-xl text-sm transition">📋 View
                         Versions</a>
-                    <button type="submit" class="btn btn-primary">Update & Create Version</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">Update & Create Version</button>
                 </div>
             </form>
         </div>

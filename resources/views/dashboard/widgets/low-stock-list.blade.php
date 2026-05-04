@@ -44,14 +44,14 @@
                     class="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
                     <div>
                         <p class="text-sm font-medium text-gray-900">
-                            {{ $item->product->name ?? 'Unknown Product' }}</p>
+                            {{ $item->product?->name ?? 'Unknown Product' }}</p>
                         <p class="text-xs text-gray-400">
-                            {{ $item->warehouse->name ?? 'Unknown Warehouse' }}</p>
+                            {{ $item->warehouse?->name ?? 'Unknown Warehouse' }}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-red-400">{{ $item->quantity ?? 0 }}
-                            {{ $item->product->unit ?? '' }}</p>
-                        <p class="text-xs text-gray-400">min: {{ $item->product->stock_min ?? 0 }}
+                            {{ $item->product?->unit ?? '' }}</p>
+                        <p class="text-xs text-gray-400">min: {{ $item->product?->stock_min ?? 0 }}
                         </p>
                     </div>
                 </div>

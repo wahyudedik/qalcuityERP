@@ -1,65 +1,62 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Medical Waste Management')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-biohazard text-primary"></i> Medical Waste Management
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-biohazard text-blue-600"></i> Medical Waste Management
             </h1>
-            <p class="text-muted mb-0">Track and manage medical waste disposal</p>
+            <p class="text-gray-500">Track and manage medical waste disposal</p>
         </div>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWasteModal">
+            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition" data-bs-toggle="modal" data-bs-target="#addWasteModal">
                 <i class="fas fa-plus"></i> Log Waste
             </button>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">{{ number_format($stats['total_waste_kg'] ?? 0, 2) }} kg</h3>
-                    <small class="text-muted">Total This Month</small>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-red-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-red-600">{{ number_format($stats['total_waste_kg'] ?? 0, 2) }} kg</h3>
+                    <small class="text-gray-500">Total This Month</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">{{ $stats['infectious_kg'] ?? 0 }} kg</h3>
-                    <small class="text-muted">Infectious Waste</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-amber-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-amber-600">{{ $stats['infectious_kg'] ?? 0 }} kg</h3>
+                    <small class="text-gray-500">Infectious Waste</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h3 class="text-info">{{ $stats['sharps_kg'] ?? 0 }} kg</h3>
-                    <small class="text-muted">Sharps</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-blue-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-sky-600">{{ $stats['sharps_kg'] ?? 0 }} kg</h3>
+                    <small class="text-gray-500">Sharps</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h3 class="text-success">{{ $stats['disposed_kg'] ?? 0 }} kg</h3>
-                    <small class="text-muted">Properly Disposed</small>
+        <div class="w-full md:w-1/4">
+            <div class="bg-white rounded-2xl border border-emerald-300">
+                <div class="p-5 text-center">
+                    <h3 class="text-emerald-600">{{ $stats['disposed_kg'] ?? 0 }} kg</h3>
+                    <small class="text-gray-500">Properly Disposed</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
                             <thead>
                                 <tr>
                                     <th>Log #</th>
@@ -87,7 +84,7 @@
                                                     'chemical' => 'dark',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $typeColors[$log->waste_type] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $typeColors[$log->waste_type] ?? 'secondary'  }}">
                                                 {{ ucfirst($log->waste_type ?? '-') }}
                                             </span>
                                         </td>
@@ -103,13 +100,13 @@
                                                     'incinerated' => 'dark',
                                                 ];
                                             @endphp
-                                            <span class="badge bg-{{ $statusColors[$log->status] ?? 'secondary' }}">
+                                            <span class="badge bg-{{ $statusColors[$log->status] ?? 'secondary'  }}">
                                                 {{ ucfirst($log->status) }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm">
+                                            <div class="flex gap-1">
+                                                <button class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg text-xs transition">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
@@ -117,7 +114,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">No waste logs found</td>
+                                        <td colspan="8" class="text-center py-6 text-gray-400">No waste logs found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -128,4 +125,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-app-layout>

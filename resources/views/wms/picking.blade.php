@@ -24,9 +24,9 @@
                         <span
                             class="font-mono text-sm font-bold text-gray-900">{{ $list->number }}</span>
                         <span
-                            class="text-xs text-gray-500 ml-2">{{ $list->warehouse->name ?? '-' }}</span>
+                            class="text-xs text-gray-500 ml-2">{{ $list->warehouse?->name ?? '-' }}</span>
                         @if ($list->assignee)
-                            <span class="text-xs text-blue-500 ml-2">→ {{ $list->assignee->name }}</span>
+                            <span class="text-xs text-blue-500 ml-2">→ {{ $list->assignee?->name }}</span>
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
@@ -41,7 +41,7 @@
                             </a>
                         @endif
                         <span
-                            class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $list->status)) }}</span>
+                            class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $list->status)) }}</span>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -60,16 +60,16 @@
                             @foreach ($list->items as $item)
                                 @php $ic = ['pending'=>'amber','picked'=>'green','short'=>'red'][$item->status] ?? 'gray'; @endphp
                                 <tr>
-                                    <td class="py-1.5 text-gray-900">{{ $item->product->name ?? '-' }}
+                                    <td class="py-1.5 text-gray-900">{{ $item->product?->name ?? '-' }}
                                     </td>
                                     <td class="py-1.5 font-mono text-xs text-gray-500">
-                                        {{ $item->bin->code ?? '-' }}</td>
+                                        {{ $item->bin?->code ?? '-' }}</td>
                                     <td class="py-1.5 text-right text-gray-700">
                                         {{ number_format($item->quantity_requested, 0) }}</td>
                                     <td class="py-1.5 text-right text-gray-900">
                                         {{ number_format($item->quantity_picked, 0) }}</td>
                                     <td class="py-1.5 text-center"><span
-                                            class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($item->status) }}</span>
+                                            class="px-1.5 py-0.5 rounded text-[10px] bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($item->status) }}</span>
                                     </td>
                                     <td class="py-1.5 text-center">
                                         @if ($item->status === 'pending')

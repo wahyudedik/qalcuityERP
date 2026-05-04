@@ -28,7 +28,7 @@
                             $runColor = $runStatusColors[$currentRun->current_status] ?? 'gray';
                         @endphp
                         <span
-                            class="px-3 py-1 text-xs rounded-full bg-{{ $runColor }}-100 text-{{ $runColor }}-700 $runColor }}-500/20 $runColor }}-400 font-medium">
+                            class="px-3 py-1 text-xs rounded-full bg-{{ $runColor  }}-100 text-{{ $runColor }}-700 $runColor }}-500/20 $runColor }}-400 font-medium">
                             {{ ucfirst($currentRun->current_status) }}
                         </span>
                     </div>
@@ -231,7 +231,7 @@
                                         class="text-gray-900 font-medium">{{ $level }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-{{ $color }}-500 h-2 rounded-full"
+                                    <div class="bg-{{ $color  }}-500 h-2 rounded-full"
                                         style="width: {{ $level }}%"></div>
                                 </div>
                             </div>

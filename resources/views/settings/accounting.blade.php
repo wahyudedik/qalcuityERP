@@ -67,7 +67,7 @@
                         <select name="parent_id"
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Tidak ada --</option>
-                            @foreach($headers as $h)
+                            @foreach($headers ?? [] as $h)
                             <option value="{{ $h->id }}">{{ $h->code }} - {{ $h->name }}</option>
                             @endforeach
                         </select>
@@ -123,11 +123,11 @@
                                 <td class="px-4 py-3 font-mono text-xs text-gray-900">{{ $acc->code }}</td>
                                 <td class="px-4 py-3 text-gray-900">
                                     {{ $acc->is_header ? '' : '↳ ' }}{{ $acc->name }}
-                                    @if($acc->parent) <span class="text-xs text-gray-400">({{ $acc->parent->code }})</span> @endif
+                                    @if($acc->parent) <span class="text-xs text-gray-400">({{ $acc->parent?->code }})</span> @endif
                                 </td>
                                 <td class="px-4 py-3 hidden sm:table-cell">
                                     @php $typeColors = ['asset'=>'blue','liability'=>'red','equity'=>'purple','revenue'=>'green','expense'=>'orange']; $tc = $typeColors[$acc->type] ?? 'gray'; @endphp
-                                    <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">
+                                    <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc  }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">
                                         {{ ['asset'=>'Aset','liability'=>'Kewajiban','equity'=>'Ekuitas','revenue'=>'Pendapatan','expense'=>'Beban'][$acc->type] ?? $acc->type }}
                                     </span>
                                 </td>
@@ -487,7 +487,7 @@
                         <label class="block text-xs font-medium text-gray-600 mb-1">Akun Induk</label>
                         <select name="parent_id" id="edit-coa-parent" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Tidak ada --</option>
-                            @foreach($headers as $h)
+                            @foreach($headers ?? [] as $h)
                             <option value="{{ $h->id }}">{{ $h->code }} - {{ $h->name }}</option>
                             @endforeach
                         </select>

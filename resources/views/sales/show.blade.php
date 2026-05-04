@@ -97,7 +97,7 @@
                 <div>
                     <p class="text-xs text-gray-500">Customer</p>
                     <p class="text-sm font-medium text-gray-900 mt-0.5">
-                        {{ $salesOrder->customer->name ?? '-' }}</p>
+                        {{ $salesOrder->customer?->name ?? '-' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Tanggal</p>
@@ -121,7 +121,7 @@
                 @if ($salesOrder->quotation)
                     <div>
                         <p class="text-xs text-gray-500">Dari Quotation</p>
-                        <p class="text-sm font-medium text-blue-400 mt-0.5">{{ $salesOrder->quotation->number }}</p>
+                        <p class="text-sm font-medium text-blue-400 mt-0.5">{{ $salesOrder->quotation?->number }}</p>
                     </div>
                 @endif
                 @if ($salesOrder->currency_code && $salesOrder->currency_code !== 'IDR')
@@ -167,9 +167,9 @@
                 <tbody class="divide-y divide-gray-50">
                     @foreach ($salesOrder->items as $item)
                         <tr>
-                            <td class="px-4 py-3 text-gray-700">{{ $item->product->name ?? '-' }}
+                            <td class="px-4 py-3 text-gray-700">{{ $item->product?->name ?? '-' }}
                             </td>
-                            <td class="px-4 py-3 text-right">{{ $item->quantity }} {{ $item->product->unit ?? '' }}
+                            <td class="px-4 py-3 text-right">{{ $item->quantity }} {{ $item->product?->unit ?? '' }}
                             </td>
                             <td class="px-4 py-3 text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-right text-red-400">

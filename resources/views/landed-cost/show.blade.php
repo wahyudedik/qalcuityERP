@@ -8,9 +8,9 @@
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">{{ $landedCost->number }}</h2>
                     <p class="text-sm text-gray-500">
-                        PO: {{ $landedCost->purchaseOrder->number ?? '-' }}
+                        PO: {{ $landedCost->purchaseOrder?->number ?? '-' }}
                         @if ($landedCost->purchaseOrder?->supplier)
-                            · {{ $landedCost->purchaseOrder->supplier->name }}
+                            · {{ $landedCost->purchaseOrder?->supplier->name }}
                         @endif
                     </p>
                 </div>
@@ -25,7 +25,7 @@
                             ] ?? $landedCost->status;
                     @endphp
                     <span
-                        class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                        class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
 
                     @canmodule('landed_cost', 'edit')
                     @if ($landedCost->status === 'draft' || $landedCost->status === 'allocated')
@@ -69,8 +69,8 @@
                 <div>
                     <p class="text-xs text-gray-500">Jurnal</p>
                     @if ($landedCost->journalEntry)
-                        <a href="{{ url('accounting/journals') }}/{{ $landedCost->journalEntry->id }}"
-                            class="text-blue-500 hover:underline">{{ $landedCost->journalEntry->number }}</a>
+                        <a href="{{ url('accounting/journals') }}/{{ $landedCost->journalEntry?->id }}"
+                            class="text-blue-500 hover:underline">{{ $landedCost->journalEntry?->number }}</a>
                     @else
                         <p class="text-gray-400">—</p>
                     @endif
@@ -145,7 +145,7 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($landedCost->allocations as $alloc)
                             <tr>
-                                <td class="px-4 py-3 text-gray-900">{{ $alloc->product->name ?? '-' }}
+                                <td class="px-4 py-3 text-gray-900">{{ $alloc->product?->name ?? '-' }}
                                 </td>
                                 <td class="px-4 py-3 text-right text-gray-700">
                                     {{ number_format($alloc->quantity, 0, ',', '.') }}</td>

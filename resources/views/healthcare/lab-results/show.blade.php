@@ -25,15 +25,15 @@
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Patient</dt>
                             <dd class="mt-1 text-lg font-semibold text-gray-900">
-                                {{ $labResult->patient->name ?? 'N/A' }}</dd>
+                                {{ $labResult->patient?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Test</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $labResult->test->name ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $labResult->test?->name ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Order Number</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $labResult->order->order_number ?? 'N/A' }}</dd>
+                            <dd class="mt-1 text-sm text-gray-900">{{ $labResult->order?->order_number ?? 'N/A' }}</dd>
                         </div>
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Result Value</dt>
@@ -62,7 +62,7 @@
                                         class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800"><i
                                             class="fas fa-check mr-1"></i>Verified</span>
                                     <div class="text-xs text-gray-500 mt-1">By:
-                                        {{ $labResult->verifiedBy->name ?? 'N/A' }} on
+                                        {{ $labResult->verifiedBy?->name ?? 'N/A' }} on
                                         {{ $labResult->verified_at ? $labResult->verified_at->format('d/m/Y H:i') : '-' }}
                                     </div>
                                 @else

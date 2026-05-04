@@ -19,8 +19,7 @@ class ProductController extends Controller
 
     public function __construct(
         protected QueryCacheService $cacheService
-    ) {
-    }
+    ) {}
 
     // tenantId() inherited from parent Controller
 
@@ -29,31 +28,27 @@ class ProductController extends Controller
         $tid = $this->tenantId();
 
         // Use cache for dropdown data (changes infrequently)
-        $categories = $this->cacheService->remember("product_categories:{$tid}", function () use ($tid) {
+        $categories = collect($this->cacheService->remember("product_categories:{$tid}", function () use ($tid) {
             return Product::where('tenant_id', $tid)
                 ->whereNotNull('category')
                 ->distinct()
-                ->pluck('category');
-        }, 7200); // 2 hours
+                ->pluck('category')
+                ->values()
+                ->toArray();
+        }, 7200))->flatten()->filter()->values(); // 2 hours
 
-        $warehouses = $this->cacheService->remember("warehouses_list:{$tid}", function () use ($tid) {
+        // Warehouses - cache sebagai array, bukan Eloquent Collection
+        $warehouses = collect($this->cacheService->remember("warehouses_list:{$tid}", function () use ($tid) {
             return Warehouse::where('tenant_id', $tid)
                 ->where('is_active', true)
-                ->get();
-        }, 7200); // 2 hours
+                ->select('id', 'name')
+                ->get()
+                ->toArray();
+        }, 7200))->map(fn($wh) => (object) $wh); // cast ke object agar $wh->id tetap bekerja di view
 
-        // Products list - cache for 5 minutes (frequently changing)
-        $filters = $request->only(['search', 'category', 'status']);
-        $cacheKey = "products_index:{$tid}:" . md5(json_encode($filters));
-
-        if ($request->has('no_cache')) {
-            // Bypass cache for fresh data
-            $products = $this->getProductsQuery($tid, $request)->orderBy('name')->paginate(20)->withQueryString();
-        } else {
-            $products = $this->cacheService->remember($cacheKey, function () use ($tid, $request) {
-                return $this->getProductsQuery($tid, $request)->orderBy('name')->paginate(20)->withQueryString();
-            }, 300); // 5 minutes
-        }
+        // Products list - TIDAK di-cache karena Paginator+Eloquent tidak aman di-serialize
+        // Cache hanya untuk data statis (categories, warehouses, counts)
+        $products = $this->getProductsQuery($tid, $request)->orderBy('name')->paginate(20)->withQueryString();
 
         $lowCount = $this->cacheService->remember("products_low_count:{$tid}", function () use ($tid) {
             return Product::where('tenant_id', $tid)

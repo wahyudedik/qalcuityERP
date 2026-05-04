@@ -8,19 +8,19 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">{{ $ship->number }}</h2>
-                    <p class="text-sm text-gray-500">🏪 {{ $ship->partner->name ?? '-' }} · {{ $ship->warehouse->name ?? '-' }}</p>
+                    <p class="text-sm text-gray-500">🏪 {{ $ship->partner?->name ?? '-' }} · {{ $ship->warehouse?->name ?? '-' }}</p>
                 </div>
                 @php
                     $sc = ['draft'=>'gray','shipped'=>'blue','partial_sold'=>'amber','settled'=>'green','returned'=>'purple'][$ship->status] ?? 'gray';
                     $sl = ['draft'=>'Draft','shipped'=>'Dikirim','partial_sold'=>'Sebagian Terjual','settled'=>'Settled','returned'=>'Diretur'][$ship->status] ?? $ship->status;
                 @endphp
-                <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div><p class="text-xs text-gray-500">Tanggal Kirim</p><p class="text-gray-900">{{ $ship->ship_date->format('d/m/Y') }}</p></div>
                 <div><p class="text-xs text-gray-500">Nilai HPP</p><p class="text-gray-900">Rp {{ number_format($ship->total_cost, 0, ',', '.') }}</p></div>
                 <div><p class="text-xs text-gray-500">Nilai Retail</p><p class="font-semibold text-gray-900">Rp {{ number_format($ship->total_retail, 0, ',', '.') }}</p></div>
-                <div><p class="text-xs text-gray-500">Komisi Partner</p><p class="text-gray-900">{{ $ship->partner->commission_pct ?? 0 }}%</p></div>
+                <div><p class="text-xs text-gray-500">Komisi Partner</p><p class="text-gray-900">{{ $ship->partner?->commission_pct ?? 0 }}%</p></div>
             </div>
         </div>
 
@@ -45,7 +45,7 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach($ship->items as $item)
                         <tr>
-                            <td class="px-4 py-3 text-gray-900">{{ $item->product->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-900">{{ $item->product?->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-right text-gray-700">{{ number_format($item->quantity_sent, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-right text-green-500 font-medium">{{ number_format($item->quantity_sold, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-right text-purple-500">{{ number_format($item->quantity_returned, 0, ',', '.') }}</td>
@@ -77,7 +77,7 @@
                     @if($item->remainingQty() > 0)
                     <div class="flex items-center gap-3 text-sm">
                         <input type="hidden" name="items[{{ $loop->index }}][item_id]" value="{{ $item->id }}">
-                        <span class="flex-1 text-gray-700">{{ $item->product->name ?? '-' }} <span class="text-xs text-gray-400">(sisa {{ number_format($item->remainingQty(), 0) }})</span></span>
+                        <span class="flex-1 text-gray-700">{{ $item->product?->name ?? '-' }} <span class="text-xs text-gray-400">(sisa {{ number_format($item->remainingQty(), 0) }})</span></span>
                         <input type="number" name="items[{{ $loop->index }}][quantity_sold]" min="0" max="{{ $item->remainingQty() }}" value="0" step="1"
                             class="w-24 px-2 py-1 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
@@ -98,7 +98,7 @@
                     @if($item->remainingQty() > 0)
                     <div class="flex items-center gap-3 text-sm">
                         <input type="hidden" name="items[{{ $loop->index }}][item_id]" value="{{ $item->id }}">
-                        <span class="flex-1 text-gray-700">{{ $item->product->name ?? '-' }} <span class="text-xs text-gray-400">(sisa {{ number_format($item->remainingQty(), 0) }})</span></span>
+                        <span class="flex-1 text-gray-700">{{ $item->product?->name ?? '-' }} <span class="text-xs text-gray-400">(sisa {{ number_format($item->remainingQty(), 0) }})</span></span>
                         <input type="number" name="items[{{ $loop->index }}][quantity_returned]" min="0" max="{{ $item->remainingQty() }}" value="0" step="1"
                             class="w-24 px-2 py-1 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900">
                     </div>
@@ -126,7 +126,7 @@
                             <span class="text-xs text-gray-500 ml-2">{{ $rpt->period_start->format('d/m') }} — {{ $rpt->period_end->format('d/m/Y') }}</span>
                         </div>
                         @php $rc = ['draft'=>'gray','confirmed'=>'blue','settled'=>'green'][$rpt->status] ?? 'gray'; @endphp
-                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $rc }}-100 text-{{ $rc }}-700 $rc }}-500/20 $rc }}-400">{{ ucfirst($rpt->status) }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $rc  }}-100 text-{{ $rc }}-700 $rc }}-500/20 $rc }}-400">{{ ucfirst($rpt->status) }}</span>
                     </div>
                     <div class="grid grid-cols-4 gap-3 text-xs mb-2">
                         <div><span class="text-gray-500">Penjualan:</span> <span class="text-gray-900">Rp {{ number_format($rpt->total_sales, 0, ',', '.') }}</span></div>

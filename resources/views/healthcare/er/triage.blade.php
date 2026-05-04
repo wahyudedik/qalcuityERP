@@ -73,9 +73,9 @@
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900">
-                                            {{ $case->patient ? $case->patient->full_name : '-' }}</p>
+                                            {{ $case->patient ? $case->patient?->full_name : '-' }}</p>
                                         <p class="text-xs text-gray-500">
-                                            {{ $case->patient ? $case->patient->medical_record_number : '-' }}</p>
+                                            {{ $case->patient ? $case->patient?->medical_record_number : '-' }}</p>
                                     </div>
                                 </div>
                             </td>
@@ -140,7 +140,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $case->patient ? $case->patient->full_name : '-' }}</p>
+                                    {{ $case->patient ? $case->patient?->full_name : '-' }}</p>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <p class="text-gray-700">

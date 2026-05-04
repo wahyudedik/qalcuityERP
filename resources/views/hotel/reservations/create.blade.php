@@ -313,16 +313,16 @@
                 // State
                 guestSearch: '',
                 guestResults: [],
-                selectedGuestId: {{ isset($reservation) && $reservation->guest ? $reservation->guest->id : 'null' }},
-                selectedGuest: {{ isset($reservation) && $reservation->guest ? json_encode($reservation->guest->only(['id', 'name', 'email', 'phone', 'guest_code'])) : 'null' }},
+                selectedGuestId: {{ isset($reservation) && $reservation->guest ? $reservation->guest?->id : 'null' }},
+                selectedGuest: {{ isset($reservation) && $reservation->guest ? json_encode($reservation->guest?->only(['id', 'name', 'email', 'phone', 'guest_code'])) : 'null' }},
                 showGuestDropdown: false,
                 showNewGuestForm: false,
                 isLoadingGuests: false,
                 formSubmitted: false,
 
                 // Room
-                selectedRoomTypeId: {{ isset($reservation) && $reservation->roomType ? $reservation->roomType->id : 'null' }},
-                selectedRoomId: {{ isset($reservation) && $reservation->room ? $reservation->room->id : 'null' }},
+                selectedRoomTypeId: {{ isset($reservation) && $reservation->roomType ? $reservation->roomType?->id : 'null' }},
+                selectedRoomId: {{ isset($reservation) && $reservation->room ? $reservation->room?->id : 'null' }},
                 availableRooms: [],
 
                 // Dates

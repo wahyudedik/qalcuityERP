@@ -1,65 +1,62 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
 
-@section('title', 'Consultation Feedback')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="h3 mb-0">
-                <i class="fas fa-star text-primary"></i> Consultation Feedback
+            <h1 class="text-2xl font-bold mb-0">
+                <i class="fas fa-star text-blue-600"></i> Consultation Feedback
             </h1>
-            <p class="text-muted mb-0">Rate and review your teleconsultation experience</p>
+            <p class="text-gray-500">Rate and review your teleconsultation experience</p>
         </div>
     </div>
-@endsection
+    </x-slot>
 
-@section('content')
-    <div class="row">
-        <div class="col-md-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="w-full md:w-2/3">
             @forelse($consultations as $consultation)
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
+                <div class="bg-white rounded-2xl border border-gray-200 mb-4">
+                    <div class="px-5 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
                             <div>
                                 <strong>Consultation #{{ $consultation->consultation_number }}</strong>
                                 <br><small
-                                    class="text-muted">{{ $consultation->consultation_date?->format('d/m/Y H:i') ?? '-' }}</small>
+                                    class="text-gray-500">{{ $consultation->consultation_date?->format('d/m/Y H:i') ?? '-' }}</small>
                             </div>
                             @if ($consultation->feedback)
-                                <span class="badge bg-success">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                     <i class="fas fa-check"></i> Feedback Submitted
                                 </span>
                             @else
-                                <span class="badge bg-warning">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                                     <i class="fas fa-clock"></i> Pending Feedback
                                 </span>
                             @endif
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <small class="text-muted">Doctor</small>
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <div class="w-full md:w-1/2">
+                                <small class="text-gray-500">Doctor</small>
                                 <br><strong>{{ $consultation->doctor?->name ?? '-' }}</strong>
                             </div>
-                            <div class="col-md-6">
-                                <small class="text-muted">Consultation Type</small>
+                            <div class="w-full md:w-1/2">
+                                <small class="text-gray-500">Consultation Type</small>
                                 <br><strong>{{ ucfirst($consultation->consultation_type ?? '-') }}</strong>
                             </div>
                         </div>
 
                         @if ($consultation->feedback)
-                            <div class="bg-light p-3 rounded">
+                            <div class="bg-gray-50 p-3 rounded">
                                 <div class="mb-2">
                                     <strong>Your Rating:</strong>
                                     @for ($i = 1; $i <= 5; $i++)
                                         <i
-                                            class="fas fa-star {{ $i <= ($consultation->feedback['rating'] ?? 0) ? 'text-warning' : 'text-muted' }}"></i>
+                                            class="fas fa-star {{ $i <= ($consultation->feedback['rating'] ?? 0) ? 'text-amber-600' : 'text-gray-500' }}"></i>
                                     @endfor
                                 </div>
                                 <p class="mb-1"><strong>Comment:</strong>
                                     {{ $consultation->feedback['comment'] ?? 'N/A' }}</p>
-                                <small class="text-muted">Submitted on
+                                <small class="text-gray-500">Submitted on
                                     {{ $consultation->feedback['submitted_at'] ?? '-' }}</small>
                             </div>
                         @else
@@ -67,10 +64,10 @@
                                 method="POST">
                                 @csrf
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Overall Rating</label>
+                                    <label class="form-label font-bold">Overall Rating</label>
                                     <div class="rating-stars" data-rating-input="rating{{ $consultation->id }}">
                                         @for ($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star fa-2x text-muted rating-star"
+                                            <i class="fas fa-star fa-2x text-gray-500 rating-star"
                                                 data-rating="{{ $i }}" style="cursor: pointer;"></i>
                                         @endfor
                                     </div>
@@ -79,8 +76,8 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">What did you like?</label>
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="w-full md:w-1/2">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" name="liked[]"
                                                     value="doctor_knowledge">
@@ -97,7 +94,7 @@
                                                 <label class="form-check-label">Wait Time</label>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="w-full md:w-1/2">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" name="liked[]"
                                                     value="platform_ease">
@@ -140,7 +137,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition">
                                     <i class="fas fa-paper-plane"></i> Submit Feedback
                                 </button>
                             </form>
@@ -148,39 +145,39 @@
                     </div>
                 </div>
             @empty
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No consultations to review</p>
+                <div class="bg-white rounded-2xl border border-gray-200">
+                    <div class="p-5 text-center py-10">
+                        <i class="fas fa-star fa-3x text-gray-500 mb-3"></i>
+                        <p class="text-gray-500">No consultations to review</p>
                     </div>
                 </div>
             @endforelse
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
+        <div class="w-full md:w-1/3">
+            <div class="bg-white rounded-2xl border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-bar"></i> Your Feedback Stats
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="p-5">
                     <div class="text-center mb-3">
-                        <h2 class="text-warning">
+                        <h2 class="text-amber-600">
                             @for ($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star {{ $i <= ($avgRating ?? 0) ? '' : 'text-muted' }}"></i>
+                                <i class="fas fa-star {{ $i <= ($avgRating ?? 0) ? '' : 'text-gray-500' }}"></i>
                             @endfor
                         </h2>
-                        <small class="text-muted">Average Rating: {{ number_format($avgRating ?? 0, 1) }}/5.0</small>
+                        <small class="text-gray-500">Average Rating: {{ number_format($avgRating ?? 0, 1) }}/5.0</small>
                     </div>
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <h4 class="text-success">{{ $feedbackSubmitted ?? 0 }}</h4>
-                            <small class="text-muted">Submitted</small>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="w-1/2">
+                            <h4 class="text-emerald-600">{{ $feedbackSubmitted ?? 0 }}</h4>
+                            <small class="text-gray-500">Submitted</small>
                         </div>
-                        <div class="col-6">
-                            <h4 class="text-warning">{{ $pendingFeedback ?? 0 }}</h4>
-                            <small class="text-muted">Pending</small>
+                        <div class="w-1/2">
+                            <h4 class="text-amber-600">{{ $pendingFeedback ?? 0 }}</h4>
+                            <small class="text-gray-500">Pending</small>
                         </div>
                     </div>
                 </div>
@@ -211,4 +208,4 @@
             });
         </script>
     @endpush
-@endsection
+</x-app-layout>

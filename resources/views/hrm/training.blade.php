@@ -51,7 +51,7 @@
                         <select name="training_program_id" required
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih program...</option>
-                            @foreach($programs as $p)
+                            @foreach($programs ?? [] as $p)
                             <option value="{{ $p->id }}">{{ $p->name }}</option>
                             @endforeach
                         </select>
@@ -107,8 +107,8 @@
                             @forelse($sessions as $s)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900">{{ $s->program->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-400">{{ $s->program->category ?? '' }} {{ $s->location ? '· '.$s->location : '' }}</p>
+                                    <p class="font-medium text-gray-900">{{ $s->program?->name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-400">{{ $s->program?->category ?? '' }} {{ $s->location ? '· '.$s->location : '' }}</p>
                                 </td>
                                 <td class="px-4 py-3 hidden sm:table-cell text-gray-600 text-xs whitespace-nowrap">
                                     {{ $s->start_date->format('d M Y') }}
@@ -168,7 +168,7 @@
                         <select name="employee_id" required
                             class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Pilih karyawan...</option>
-                            @foreach($employees as $emp)
+                            @foreach($employees ?? [] as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->name }}</option>
                             @endforeach
                         </select>
@@ -243,8 +243,8 @@
                             @php $days = $cert->daysUntilExpiry(); @endphp
                             <tr class="hover:bg-gray-50 {{ $days !== null && $days <= 30 ? 'bg-red-50/30' : '' }}">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900 text-xs">{{ $cert->employee->name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-400">{{ $cert->employee->department ?? $cert->employee->position ?? '' }}</p>
+                                    <p class="font-medium text-gray-900 text-xs">{{ $cert->employee?->name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-400">{{ $cert->employee?->department ?? $cert->employee?->position ?? '' }}</p>
                                 </td>
                                 <td class="px-4 py-3">
                                     <p class="font-medium text-gray-900 text-xs">{{ $cert->name }}</p>

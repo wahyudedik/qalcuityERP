@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">Buat Jurnal Baru</x-slot>
 
     <div class="max-w-4xl mx-auto space-y-5">
@@ -38,7 +38,7 @@
                         <label class="text-xs text-gray-400 mb-1 block">Periode Akuntansi</label>
                         <select name="period_id" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                             <option value="">— Pilih Periode —</option>
-                            @foreach($periods as $p)
+                            @foreach($periods ?? [] as $p)
                             <option value="{{ $p->id }}" @selected(old('period_id') == $p->id)>{{ $p->name }}</option>
                             @endforeach
                         </select>
@@ -73,7 +73,7 @@
                         <div class="col-span-4">
                             <select name="lines[0][account_id]" required class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                                 <option value="">— Pilih Akun —</option>
-                                @foreach($accounts as $acc)
+                                @foreach($accounts ?? [] as $acc)
                                 <option value="{{ $acc->id }}">{{ $acc->code }} - {{ $acc->name }}</option>
                                 @endforeach
                             </select>
@@ -96,7 +96,7 @@
                         <div class="col-span-4">
                             <select name="lines[1][account_id]" required class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
                                 <option value="">— Pilih Akun —</option>
-                                @foreach($accounts as $acc)
+                                @foreach($accounts ?? [] as $acc)
                                 <option value="{{ $acc->id }}">{{ $acc->code }} - {{ $acc->name }}</option>
                                 @endforeach
                             </select>
@@ -136,7 +136,7 @@
     </div>
 
     <script>
-    const accountOptions = `@foreach($accounts as $acc)<option value="{{ $acc->id }}">{{ $acc->code }} - {{ $acc->name }}</option>@endforeach`;
+    const accountOptions = `@foreach($accounts ?? [] as $acc)<option value="{{ $acc->id }}">{{ $acc->code }} - {{ $acc->name }}</option>@endforeach`;
     let lineCount = 2;
 
     function updateTotals() {

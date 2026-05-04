@@ -78,7 +78,7 @@
                         </td>
                         <td class="px-4 py-3 text-right hidden md:table-cell text-gray-900">Rp {{ number_format($c->value, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ $sl }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <a href="{{ route('contracts.show', $c) }}" class="text-xs px-2 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">Detail</a>
@@ -112,12 +112,12 @@
                     </div>
                     <div id="party-customer"><label class="block text-xs font-medium text-gray-600 mb-1">Customer</label>
                         <select name="customer_id" class="{{ $cls }}"><option value="">-- Pilih --</option>
-                            @foreach($customers as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+                            @foreach($customers ?? [] as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
                         </select>
                     </div>
                     <div id="party-supplier" class="hidden"><label class="block text-xs font-medium text-gray-600 mb-1">Supplier</label>
                         <select name="supplier_id" class="{{ $cls }}"><option value="">-- Pilih --</option>
-                            @foreach($suppliers as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
+                            @foreach($suppliers ?? [] as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
                         </select>
                     </div>
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Kategori *</label>
@@ -128,7 +128,7 @@
                     @if($templates->isNotEmpty())
                     <div><label class="block text-xs font-medium text-gray-600 mb-1">Template</label>
                         <select name="template_id" class="{{ $cls }}"><option value="">-- Tanpa Template --</option>
-                            @foreach($templates as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach
+                            @foreach($templates ?? [] as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach
                         </select>
                     </div>
                     @endif

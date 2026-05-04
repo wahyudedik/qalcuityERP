@@ -50,7 +50,7 @@
                 <p id="hint-deferred" class="text-xs text-gray-400 mb-1">Untuk Deferred Revenue: pilih akun Kewajiban (misal: Pendapatan Diterima di Muka). Untuk Prepaid: pilih akun Aset (misal: Biaya Dibayar di Muka).</p>
                 <select name="deferred_account_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Pilih Akun --</option>
-                    @foreach($accounts as $acc)
+                    @foreach($accounts ?? [] as $acc)
                     <option value="{{ $acc->id }}" {{ old('deferred_account_id') == $acc->id ? 'selected' : '' }}>
                         {{ $acc->code }} - {{ $acc->name }} ({{ $acc->getTypeLabel() }})
                     </option>
@@ -63,7 +63,7 @@
                 <p class="text-xs text-gray-400 mb-1">Untuk Deferred Revenue: akun Pendapatan. Untuk Prepaid: akun Beban.</p>
                 <select name="recognition_account_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">-- Pilih Akun --</option>
-                    @foreach($accounts as $acc)
+                    @foreach($accounts ?? [] as $acc)
                     <option value="{{ $acc->id }}" {{ old('recognition_account_id') == $acc->id ? 'selected' : '' }}>
                         {{ $acc->code }} - {{ $acc->name }} ({{ $acc->getTypeLabel() }})
                     </option>

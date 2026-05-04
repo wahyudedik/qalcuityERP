@@ -6,12 +6,12 @@
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900">{{ $sub->plan->name ?? '-' }}</h2>
-                    <p class="text-sm text-gray-500">{{ $sub->subscription_number }} · 👤 {{ $sub->customer->name ?? '-' }}</p>
+                    <h2 class="text-lg font-semibold text-gray-900">{{ $sub->plan?->name ?? '-' }}</h2>
+                    <p class="text-sm text-gray-500">{{ $sub->subscription_number }} · 👤 {{ $sub->customer?->name ?? '-' }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     @php $sc = ['trial'=>'blue','active'=>'green','past_due'=>'red','cancelled'=>'gray','expired'=>'gray'][$sub->status] ?? 'gray'; @endphp
-                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $sub->status)) }}</span>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium bg-{{ $sc  }}-100 text-{{ $sc }}-700 $sc }}-500/20 $sc }}-400">{{ ucfirst(str_replace('_', ' ', $sub->status)) }}</span>
                     @if(in_array($sub->status, ['active', 'trial']))
                     @canmodule('subscription_billing', 'edit')
                     <form method="POST" action="{{ route('subscription-billing.cancel', $sub) }}" onsubmit="return confirm('Batalkan subscription ini?')">@csrf @method('PATCH')
@@ -23,7 +23,7 @@
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div><p class="text-xs text-gray-500">Mulai</p><p class="text-gray-900">{{ $sub->start_date->format('d/m/Y') }}</p></div>
-                <div><p class="text-xs text-gray-500">Siklus</p><p class="text-gray-900">{{ $sub->plan->cycleLabel() ?? '-' }}</p></div>
+                <div><p class="text-xs text-gray-500">Siklus</p><p class="text-gray-900">{{ $sub->plan?->cycleLabel() ?? '-' }}</p></div>
                 <div><p class="text-xs text-gray-500">Harga Efektif</p><p class="font-semibold text-gray-900">Rp {{ number_format($sub->effectivePrice(), 0, ',', '.') }}</p></div>
                 <div><p class="text-xs text-gray-500">MRR</p><p class="font-semibold text-green-500">Rp {{ number_format($sub->mrr(), 0, ',', '.') }}</p></div>
                 <div><p class="text-xs text-gray-500">Next Billing</p><p class="{{ $sub->next_billing_date->isPast() ? 'text-red-500' : 'text-gray-900' }}">{{ $sub->next_billing_date->format('d/m/Y') }}</p></div>
@@ -60,12 +60,12 @@
                         @foreach($sub->invoices->sortByDesc('billing_date') as $si)
                         @php $ic = ['pending'=>'gray','invoiced'=>'blue','paid'=>'green','failed'=>'red'][$si->status] ?? 'gray'; @endphp
                         <tr>
-                            <td class="px-4 py-3 font-mono text-xs text-gray-900">{{ $si->invoice->number ?? '-' }}</td>
+                            <td class="px-4 py-3 font-mono text-xs text-gray-900">{{ $si->invoice?->number ?? '-' }}</td>
                             <td class="px-4 py-3 text-center text-xs text-gray-500">{{ $si->period_start->format('d/m') }} — {{ $si->period_end->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-right text-gray-700">Rp {{ number_format($si->amount, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-right text-gray-500">{{ $si->discount > 0 ? 'Rp ' . number_format($si->discount, 0, ',', '.') : '-' }}</td>
                             <td class="px-4 py-3 text-right font-medium text-gray-900">Rp {{ number_format($si->net_amount, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($si->status) }}</span></td>
+                            <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-{{ $ic  }}-100 text-{{ $ic }}-700 $ic }}-500/20 $ic }}-400">{{ ucfirst($si->status) }}</span></td>
                         </tr>
                         @endforeach
                     </tbody>

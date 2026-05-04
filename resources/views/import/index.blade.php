@@ -130,7 +130,7 @@
         ];
         @endphp
 
-        @foreach($importTypes as $type)
+        @foreach($importTypes ?? [] as $type)
         @php $c = $colorMap[$type['color']]; @endphp
         <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
             <div class="flex items-center gap-4 px-6 py-4 border-b border-gray-100">

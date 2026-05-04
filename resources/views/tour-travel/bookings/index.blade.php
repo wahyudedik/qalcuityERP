@@ -172,7 +172,7 @@
                                                 };
                                             @endphp
                                             <span
-                                                class="px-2 py-1 text-xs rounded-full bg-{{ $payColor }}-100 text-{{ $payColor }}-700 $payColor }}-500/20 $payColor }}-400">
+                                                class="px-2 py-1 text-xs rounded-full bg-{{ $payColor  }}-100 text-{{ $payColor }}-700 $payColor }}-500/20 $payColor }}-400">
                                                 {{ ucfirst($booking->payment_status) }}
                                             </span>
                                             @if ($booking->paid_amount > 0)
@@ -194,7 +194,7 @@
                                                 };
                                             @endphp
                                             <span
-                                                class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
+                                                class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor  }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
                                                 {{ ucfirst($booking->status) }}
                                             </span>
                                         </td>

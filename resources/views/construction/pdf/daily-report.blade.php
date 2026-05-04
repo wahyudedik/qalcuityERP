@@ -120,7 +120,7 @@
     <!-- Header -->
     <div class="header">
         <h1>DAILY SITE REPORT</h1>
-        <p>{{ $report->project->name }} ({{ $report->project->number }})</p>
+        <p>{{ $report->project?->name }} ({{ $report->project?->number }})</p>
         <p>Report Date: {{ $report->report_date->format('d F Y') }}</p>
     </div>
 
@@ -130,7 +130,7 @@
         <div class="info-grid">
             <div class="info-row">
                 <div class="info-cell info-label">Reported By</div>
-                <div class="info-cell">{{ $report->reportedBy->name ?? 'N/A' }}</div>
+                <div class="info-cell">{{ $report->reportedBy?->name ?? 'N/A' }}</div>
             </div>
             <div class="info-row">
                 <div class="info-cell info-label">Status</div>
@@ -143,7 +143,7 @@
             @if ($report->approvedBy)
                 <div class="info-row">
                     <div class="info-cell info-label">Approved By</div>
-                    <div class="info-cell">{{ $report->approvedBy->name }}</div>
+                    <div class="info-cell">{{ $report->approvedBy?->name }}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-cell info-label">Approved At</div>

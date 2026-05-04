@@ -1,5 +1,5 @@
 ﻿<x-app-layout>
-    <x-slot name="header">Penilaian Triage - {{ $emergencyCase->patient->full_name ?? 'Pasien' }}</x-slot>
+    <x-slot name="header">Penilaian Triage - {{ $emergencyCase->patient?->full_name ?? 'Pasien' }}</x-slot>
 
     <div class="max-w-4xl mx-auto">
         {{-- Patient Alert Banner --}}
@@ -13,7 +13,7 @@
                     </svg>
                 </div>
                 <div class="flex-1">
-                    <h2 class="text-lg font-bold">{{ $emergencyCase->patient->full_name ?? '-' }}</h2>
+                    <h2 class="text-lg font-bold">{{ $emergencyCase->patient?->full_name ?? '-' }}</h2>
                     <p class="text-sm text-white/80">{{ $emergencyCase->chief_complaint ?? 'Tidak ada keluhan' }}</p>
                     <p class="text-xs text-white/70 mt-1">Tiba:
                         {{ $emergencyCase->arrival_time ? \Carbon\Carbon::parse($emergencyCase->arrival_time)->format('d M Y H:i') : '-' }}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 
     @if(!empty($summary))
     <div class="summary">
-        @foreach($summary as $item)
+        @foreach($summary ?? [] as $item)
         <div class="summary-card">
             <div class="label">{{ $item['label'] }}</div>
             <div class="value">{{ $item['value'] }}</div>
@@ -47,7 +47,7 @@
     <table>
         <thead>
             <tr>
-                @foreach($headers as $h)
+                @foreach($headers ?? [] as $h)
                 <th>{{ $h }}</th>
                 @endforeach
             </tr>
@@ -55,7 +55,7 @@
         <tbody>
             @forelse($rows as $row)
             <tr>
-                @foreach($row as $cell)
+                @foreach($row ?? [] as $cell)
                 <td>{{ $cell }}</td>
                 @endforeach
             </tr>

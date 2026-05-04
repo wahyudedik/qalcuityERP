@@ -18,7 +18,7 @@
                     ['label' => 'Revenue Bulan Ini', 'value' => 'Rp ' . number_format($stats['this_month'], 0, ',', '.'), 'color' => 'emerald', 'wide' => true],
                 ];
             @endphp
-            @foreach($statCards as $card)
+            @foreach($statCards ?? [] as $card)
                 <div class="bg-white rounded-2xl border border-gray-200 p-4 {{ ($card['wide'] ?? false) ? 'col-span-2 sm:col-span-1' : '' }}">
                     <p class="text-xs text-gray-500">{{ $card['label'] }}</p>
                     <p class="text-xl font-bold text-gray-900 mt-1">{{ $card['value'] }}</p>
@@ -67,7 +67,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            @foreach($orders as $order)
+                            @foreach($orders ?? [] as $order)
                                 @php
                                     $statusColors = [
                                         'pending'    => 'bg-yellow-500/20 text-yellow-400',
@@ -82,7 +82,7 @@
                                     <td class="px-4 py-3 font-mono text-xs text-blue-400">
                                         <a href="{{ route('sales.show', $order) }}">{{ $order->number }}</a>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $order->customer->name ?? '-' }}</td>
+                                    <td class="px-4 py-3 text-gray-700">{{ $order->customer?->name ?? '-' }}</td>
                                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $order->date->format('d/m/Y') }}</td>
                                     <td class="px-4 py-3 text-right font-medium text-gray-900">
                                         Rp {{ number_format($order->total, 0, ',', '.') }}

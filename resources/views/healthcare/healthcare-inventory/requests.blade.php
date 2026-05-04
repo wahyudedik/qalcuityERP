@@ -70,7 +70,7 @@
                                 </p>
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                {{ $request->requestedBy ? $request->requestedBy->name : '-' }}</td>
+                                {{ $request->requestedBy ? $request->requestedBy?->name : '-' }}</td>
                             <td class="px-4 py-3 hidden sm:table-cell">
                                 <p class="text-gray-900">
                                     {{ $request->request_date ? \Carbon\Carbon::parse($request->request_date)->format('d M Y') : '-' }}

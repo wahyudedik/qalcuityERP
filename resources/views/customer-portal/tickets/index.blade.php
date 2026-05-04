@@ -55,11 +55,11 @@
                             </td>
                             <td class="px-4 py-3 text-center hidden sm:table-cell">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($ticket->priority ?? 'medium') }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ ucfirst($ticket->priority ?? 'medium') }}</span>
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span
-                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span>
+                                    class="px-2 py-0.5 rounded-full text-xs bg-{{ $tc  }}-100 text-{{ $tc }}-700 $tc }}-500/20 $tc }}-400">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</span>
                             </td>
                             <td class="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">
                                 {{ $ticket->created_at?->format('d/m/Y') }}</td>

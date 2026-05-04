@@ -10,7 +10,7 @@
            class="px-3 py-1.5 text-xs rounded-xl border {{ !request('stage') ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
             Semua ({{ $stageCounts->sum() }})
         </a>
-        @foreach($stages as $key => $label)
+        @foreach($stages ?? [] as $key => $label)
         <a href="{{ route('hrm.recruitment.applications', [$posting, 'stage' => $key]) }}"
            class="px-3 py-1.5 text-xs rounded-xl border {{ request('stage') === $key ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
             {{ $label }} ({{ $stageCounts[$key] ?? 0 }})

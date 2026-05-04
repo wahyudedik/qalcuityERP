@@ -92,7 +92,7 @@
                             @foreach ($checkIns as $reservation)
                                 @php
                                     $hasPreArrival =
-                                        $reservation->preArrivalForm && $reservation->preArrivalForm->isComplete();
+                                        $reservation->preArrivalForm && $reservation->preArrivalForm?->isComplete();
                                     $roomAssigned = $reservation->room_id !== null;
                                 @endphp
                                 <div

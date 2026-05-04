@@ -90,7 +90,7 @@
                         Paket yang Menyertakan Modul Ini
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        @foreach($availablePlans as $plan)
+                        @foreach($availablePlans ?? [] as $plan)
                             <div class="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
                                 <h3 class="text-xl font-bold text-gray-900 mb-2 uppercase">
                                     {{ $plan['name'] }}

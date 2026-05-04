@@ -27,7 +27,7 @@
             @endphp
             <div class="text-right">
                 <span
-                    class="inline-block px-4 py-2 text-2xl font-bold rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                    class="inline-block px-4 py-2 text-2xl font-bold rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                     {{ $report['current_rating'] }}
                 </span>
                 <p class="text-xs text-gray-500 mt-2">Current Rating</p>
@@ -91,7 +91,7 @@
                         $ratingColor = $ratingColors[$scorecard->rating] ?? 'gray';
                     @endphp
                     <div class="flex-1 min-w-[40px] flex flex-col items-center group">
-                        <div class="w-full bg-{{ $ratingColor }}-500 hover:bg-{{ $ratingColor }}-600 rounded-t transition-all relative"
+                        <div class="w-full bg-{{ $ratingColor }}-500 hover:bg-{{ $ratingColor  }}-600 rounded-t transition-all relative"
                             style="height: {{ max($height, 5) }}px">
                             <div
                                 class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
@@ -160,7 +160,7 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
-                                            <div class="bg-{{ $ratingColors[$scorecard->rating] ?? 'gray' }}-600 h-2 rounded-full"
+                                            <div class="bg-{{ $ratingColors[$scorecard->rating] ?? 'gray'  }}-600 h-2 rounded-full"
                                                 style="width: {{ $scorecard->overall_score }}%"></div>
                                         </div>
                                         <span
@@ -169,7 +169,7 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <span
-                                        class="px-2 py-1 text-xs font-bold rounded-full bg-{{ $ratingColors[$scorecard->rating] ?? 'gray' }}-100 text-{{ $ratingColors[$scorecard->rating] ?? 'gray' }}-700 $ratingColors[$scorecard->rating] ?? 'gray' }}-500/20 $ratingColors[$scorecard->rating] ?? 'gray' }}-400">
+                                        class="px-2 py-1 text-xs font-bold rounded-full bg-{{ $ratingColors[$scorecard->rating] ?? 'gray'  }}-100 text-{{ $ratingColors[$scorecard->rating] ?? 'gray' }}-700 $ratingColors[$scorecard->rating] ?? 'gray' }}-500/20 $ratingColors[$scorecard->rating] ?? 'gray' }}-400">
                                         {{ $scorecard->rating }}
                                     </span>
                                 </td>
@@ -210,7 +210,7 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span
-                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $incident->severity_color }}-100 text-{{ $incident->severity_color }}-700 $incident->severity_color }}-500/20 $incident->severity_color }}-400">
+                                        class="px-2 py-0.5 text-xs rounded-full bg-{{ $incident->severity_color  }}-100 text-{{ $incident->severity_color }}-700 $incident->severity_color }}-500/20 $incident->severity_color }}-400">
                                         {{ ucfirst($incident->severity) }}
                                     </span>
                                     <span

@@ -50,7 +50,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @foreach($comparison as $p)
+                    @foreach($comparison ?? [] as $p)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <a href="{{ route('farm.plots.show', $p['code']) }}" class="font-medium text-gray-900 hover:text-blue-600">{{ $p['code'] }}</a>
@@ -88,7 +88,7 @@
     <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h3 class="font-semibold text-gray-900 mb-4">🏆 Ranking Efisiensi (HPP Terendah = Paling Efisien)</h3>
         <div class="space-y-3">
-            @foreach($ranked as $i => $p)
+            @foreach($ranked ?? [] as $i => $p)
             @php
                 $medal = match($i) { 0 => '🥇', 1 => '🥈', 2 => '🥉', default => '#'.($i+1) };
                 $barWidth = $ranked->first()['hpp_per_kg'] > 0 ? min(100, round($p['hpp_per_kg'] / $ranked->last()['hpp_per_kg'] * 100)) : 0;

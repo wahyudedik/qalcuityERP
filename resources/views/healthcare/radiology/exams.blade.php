@@ -93,9 +93,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">
-                                    {{ $exam->patient ? $exam->patient->full_name : '-' }}</p>
+                                    {{ $exam->patient ? $exam->patient?->full_name : '-' }}</p>
                                 <p class="text-xs text-gray-500">
-                                    {{ $exam->patient ? $exam->patient->medical_record_number : '-' }}</p>
+                                    {{ $exam->patient ? $exam->patient?->medical_record_number : '-' }}</p>
                             </td>
                             <td class="px-4 py-3">
                                 @if ($exam->exam_type === 'xray')
@@ -203,10 +203,10 @@
                             <p class="font-mono text-sm font-bold text-blue-600">
                                 {{ $exam->exam_number ?? '-' }}</p>
                             <p class="font-semibold text-gray-900 truncate mt-0.5">
-                                {{ $exam->patient ? $exam->patient->full_name : '-' }}
+                                {{ $exam->patient ? $exam->patient?->full_name : '-' }}
                             </p>
                             <p class="text-xs text-gray-500">
-                                {{ $exam->patient ? $exam->patient->medical_record_number : '-' }}
+                                {{ $exam->patient ? $exam->patient?->medical_record_number : '-' }}
                             </p>
                         </div>
                         <div class="flex flex-col items-end gap-1">

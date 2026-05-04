@@ -55,7 +55,7 @@
                                         $opColor = $opStatusColors[$operation->status] ?? 'gray';
                                     @endphp
                                     <span
-                                        class="px-2 py-1 text-xs rounded-full bg-{{ $opColor }}-100 text-{{ $opColor }}-700 $opColor }}-500/20 $opColor }}-400">
+                                        class="px-2 py-1 text-xs rounded-full bg-{{ $opColor  }}-100 text-{{ $opColor }}-700 $opColor }}-500/20 $opColor }}-400">
                                         {{ ucfirst(str_replace('_', ' ', $operation->status)) }}
                                     </span>
                                 </div>
@@ -143,7 +143,7 @@
                             $color = $statusColors[$job->status] ?? 'gray';
                         @endphp
                         <span
-                            class="px-2 py-1 text-xs rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
+                            class="px-2 py-1 text-xs rounded-full bg-{{ $color  }}-100 text-{{ $color }}-700 $color }}-500/20 $color }}-400">
                             {{ ucfirst(str_replace('_', ' ', $job->status)) }}
                         </span>
                     </div>

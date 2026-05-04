@@ -135,7 +135,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500">
                         <div>
                             @if ($oos->batch)
-                                Batch: {{ $oos->batch->batch_number }} |
+                                Batch: {{ $oos->batch?->batch_number }} |
                             @endif
                             Discovered: {{ $oos->discovery_date->format('d M Y') }}
                         </div>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Onboarding Dashboard')
 
@@ -79,13 +79,13 @@
 
             @php $categories = $progress['steps']->groupBy('category') @endphp
 
-            @foreach($categories as $category => $steps)
+            @foreach($categories ?? [] as $category => $steps)
             <div class="mb-6 last:mb-0">
                 <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                     {{ $steps->first()->category_label }}
                 </div>
                 <div class="space-y-3">
-                    @foreach($steps as $step)
+                    @foreach($steps ?? [] as $step)
                     @php
                         $cfg = $stepConfig[$step->step_key] ?? ['icon' => '📌', 'url' => null, 'label' => 'Start', 'ajax' => true];
                         $isCompleted = $step->completed;
@@ -146,7 +146,7 @@
         <div class="bg-white rounded-2xl shadow-xl p-8 mb-8" id="tips-section">
             <h3 class="text-lg font-bold text-gray-900 mb-4">💡 Tips for You</h3>
             <div class="space-y-3" id="tips-list">
-                @foreach($tips as $tip)
+                @foreach($tips ?? [] as $tip)
                 <div class="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl" id="tip-{{ $tip->id }}">
                     <div class="flex-1 text-sm text-gray-700">{{ $tip->message ?? $tip->content ?? '' }}</div>
                     <button onclick="dismissTip({{ $tip->id }})"

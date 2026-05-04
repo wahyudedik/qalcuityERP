@@ -4,7 +4,7 @@
     @php $s = $stockOpnameSession; @endphp
     <div class="flex items-center justify-between mb-4">
         <div>
-            <p class="text-sm text-gray-500">{{ $s->warehouse->name ?? '-' }} ·
+            <p class="text-sm text-gray-500">{{ $s->warehouse?->name ?? '-' }} ·
                 {{ $s->opname_date->format('d/m/Y') }}</p>
         </div>
         @if ($s->status !== 'completed')
@@ -40,9 +40,9 @@
                         @php $diff = $item->difference ?? 0; @endphp
                         <tr
                             class="{{ $diff != 0 ? ($diff > 0 ? 'bg-green-50/50' : 'bg-red-50/50') : '' }}">
-                            <td class="px-4 py-3 text-gray-900">{{ $item->product->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-900">{{ $item->product?->name ?? '-' }}</td>
                             <td class="px-4 py-3 font-mono text-xs text-gray-500">
-                                {{ $item->bin->code ?? '-' }}</td>
+                                {{ $item->bin?->code ?? '-' }}</td>
                             <td class="px-4 py-3 text-right text-gray-700">
                                 {{ number_format($item->system_qty, 0) }}</td>
                             <td class="px-4 py-3 text-right text-gray-900">

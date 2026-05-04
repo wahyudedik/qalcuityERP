@@ -30,7 +30,7 @@
                     </p>
 
                     @if ($transaction->salesOrder)
-                        <p class="text-xs text-gray-400 mt-2">Order #{{ $transaction->salesOrder->order_number }}</p>
+                        <p class="text-xs text-gray-400 mt-2">Order #{{ $transaction->salesOrder?->order_number }}</p>
                     @endif
                 </div>
             </div>

@@ -115,8 +115,8 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $record->sale_date->format('d M Y') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="font-medium">{{ $record->channel->channel_name }}</div>
-                                <div class="text-xs text-gray-500">{{ $record->channel->channel_code }}</div>
+                                <div class="font-medium">{{ $record->channel?->channel_name }}</div>
+                                <div class="text-xs text-gray-500">{{ $record->channel?->channel_code }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
                                 Rp {{ number_format($record->total_sales, 0, ',', '.') }}</td>

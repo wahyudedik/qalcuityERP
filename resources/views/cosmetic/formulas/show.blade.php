@@ -217,7 +217,7 @@
                                         @if ($version->changer)
                                             <div class="text-xs text-gray-500">
                                                 <i class="fas fa-user mr-1"></i>Changed by:
-                                                {{ $version->changer->name }}
+                                                {{ $version->changer?->name }}
                                             </div>
                                         @endif
                                     </div>
@@ -351,14 +351,14 @@
                             @endif
                             <div>
                                 <strong class="text-sm text-gray-700">Created By:</strong>
-                                <p class="text-gray-900">{{ $formula->creator->name ?? 'Unknown' }}
+                                <p class="text-gray-900">{{ $formula->creator?->name ?? 'Unknown' }}
                                 </p>
                             </div>
                             @if ($formula->approved_by)
                                 <div>
                                     <strong class="text-sm text-gray-700">Approved By:</strong>
                                     <p class="text-gray-900">
-                                        {{ $formula->approver->name ?? 'Unknown' }}</p>
+                                        {{ $formula->approver?->name ?? 'Unknown' }}</p>
                                     <p class="text-xs text-gray-500">
                                         {{ $formula->approved_at->format('d M Y H:i') }}</p>
                                 </div>

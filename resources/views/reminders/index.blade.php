@@ -73,7 +73,7 @@
                 </div>
             @else
             <div class="divide-y divide-gray-100">
-                @foreach($reminders as $reminder)
+                @foreach($reminders ?? [] as $reminder)
                 @php $isOverdue = $reminder->status === 'pending' && $reminder->remind_at->isPast(); @endphp
                 <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-4 {{ $isOverdue ? 'bg-amber-50' : '' }}">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0

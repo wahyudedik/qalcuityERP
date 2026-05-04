@@ -32,7 +32,7 @@
         <p>Invoice untuk Anda</p>
     </div>
     <div class="body">
-        <p class="greeting">Yth. <strong>{{ $invoice->customer->name }}</strong>,</p>
+        <p class="greeting">Yth. <strong>{{ $invoice->customer?->name }}</strong>,</p>
         <p style="font-size:13px;line-height:1.6;color:#6b7280">
             Bersama email ini kami lampirkan invoice dari <strong>{{ $tenantName }}</strong>.
             Mohon segera melakukan pembayaran sebelum tanggal jatuh tempo.

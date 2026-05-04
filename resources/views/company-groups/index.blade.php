@@ -26,7 +26,7 @@
             </div>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @foreach($groups as $group)
+                @foreach($groups ?? [] as $group)
                     <div class="bg-white rounded-2xl border border-gray-200 p-5">
                         <div class="flex items-start justify-between mb-3">
                             <div>

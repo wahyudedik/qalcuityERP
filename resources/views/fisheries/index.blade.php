@@ -2,8 +2,7 @@
     <x-slot name="header">🐟 Dashboard Perikanan</x-slot>
 
     @if (session('success'))
-        <div
-            class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
             {{ session('success') }}</div>
     @endif
 
@@ -11,7 +10,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs text-gray-500">Unit Cold Storage</p>
-            <p class="text-2xl font-bold text-blue-600" x-data="{ count: {{ $stats['cold_storage_units'] ?? 0 }} }" x-text="count">0</p>
+            <p class="text-2xl font-bold text-blue-600" x-data="{ count: @js($stats['cold_storage_units'] ?? 0) }" x-text="count">0</p>
             <p class="text-xs mt-1" :class="{{ $stats['temp_alerts'] ?? 0 > 0 ? 'text-red-500' : 'text-green-500' }}">
                 {{ $stats['temp_alerts'] ?? 0 }} alert suhu
             </p>
@@ -40,14 +39,12 @@
             class="block bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-2xl">❄️</div>
-                <span
-                    class="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">Monitoring</span>
+                <span class="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">Monitoring</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Cold Chain Management</h3>
             <p class="text-sm text-gray-600 mb-3">Pantau suhu cold storage, kelola alert, dan
                 pastikan kualitas produk tetap terjaga</p>
-            <div
-                class="flex items-center text-sm text-blue-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-blue-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -57,14 +54,12 @@
             class="block bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl border border-emerald-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl">⚓</div>
-                <span
-                    class="text-xs px-2 py-1 bg-emerald-200 text-emerald-700 rounded-full">Operasional</span>
+                <span class="text-xs px-2 py-1 bg-emerald-200 text-emerald-700 rounded-full">Operasional</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Fishing Operations</h3>
             <p class="text-sm text-gray-600 mb-3">Kelola trip penangkapan, catat hasil tangkapan,
                 dan tracking armada kapal</p>
-            <div
-                class="flex items-center text-sm text-emerald-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-emerald-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -74,14 +69,12 @@
             class="block bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl border border-cyan-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center text-2xl">🐠</div>
-                <span
-                    class="text-xs px-2 py-1 bg-cyan-200 text-cyan-700 rounded-full">Budidaya</span>
+                <span class="text-xs px-2 py-1 bg-cyan-200 text-cyan-700 rounded-full">Budidaya</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Aquaculture Management</h3>
             <p class="text-sm text-gray-600 mb-3">Monitor kualitas air kolam, jadwal pemberian
                 pakan, dan kesehatan ikan</p>
-            <div
-                class="flex items-center text-sm text-cyan-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-cyan-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -91,14 +84,12 @@
             class="block bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-2xl">📋</div>
-                <span
-                    class="text-xs px-2 py-1 bg-purple-200 text-purple-700 rounded-full">Katalog</span>
+                <span class="text-xs px-2 py-1 bg-purple-200 text-purple-700 rounded-full">Katalog</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Species & Grading</h3>
             <p class="text-sm text-gray-600 mb-3">Kelola katalog spesies ikan, sistem grading
                 kualitas, dan penilaian kesegaran</p>
-            <div
-                class="flex items-center text-sm text-purple-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-purple-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -108,14 +99,12 @@
             class="block bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border border-orange-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center text-2xl">📦</div>
-                <span
-                    class="text-xs px-2 py-1 bg-orange-200 text-orange-700 rounded-full">Ekspor</span>
+                <span class="text-xs px-2 py-1 bg-orange-200 text-orange-700 rounded-full">Ekspor</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Export Documentation</h3>
             <p class="text-sm text-gray-600 mb-3">Urus perizinan ekspor, sertifikat kesehatan, dan
                 dokumen kepabeanan</p>
-            <div
-                class="flex items-center text-sm text-orange-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-orange-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -125,14 +114,12 @@
             class="block bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl border border-indigo-200 p-6 hover:shadow-lg transition group">
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-2xl">📊</div>
-                <span
-                    class="text-xs px-2 py-1 bg-indigo-200 text-indigo-700 rounded-full">Analitik</span>
+                <span class="text-xs px-2 py-1 bg-indigo-200 text-indigo-700 rounded-full">Analitik</span>
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">Analytics & Reports</h3>
             <p class="text-sm text-gray-600 mb-3">Laporan produksi, analisis efisiensi, dan insight
                 bisnis perikanan</p>
-            <div
-                class="flex items-center text-sm text-indigo-600 font-medium group-hover:translate-x-1 transition">
+            <div class="flex items-center text-sm text-indigo-600 font-medium group-hover:translate-x-1 transition">
                 Lihat Detail →
             </div>
         </a>
@@ -153,7 +140,7 @@
                 @foreach ($recent_activities as $activity)
                     <div class="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
                         <div
-                            class="w-8 h-8 rounded-full bg-{{ $activity['color'] ?? 'blue' }}-100 $activity['color'] ?? 'blue' }}-500/20 flex items-center justify-center text-sm">
+                            class="w-8 h-8 rounded-full bg-{{ $activity['color'] ?? 'blue'  }}-100 $activity['color'] ?? 'blue' }}-500/20 flex items-center justify-center text-sm">
                             {!! $activity['icon'] ?? '📌' !!}
                         </div>
                         <div class="flex-1 min-w-0">

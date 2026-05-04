@@ -30,7 +30,7 @@
                     <select id="sel-employee" name="_employee_id" onchange="onEmployeeChange()"
                         class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">Pilih karyawan...</option>
-                        @foreach($employees as $emp)
+                        @foreach($employees ?? [] as $emp)
                             <option value="{{ $emp->id }}" data-manager="{{ $emp->manager_id ?? '' }}">{{ $emp->name }}</option>
                         @endforeach
                     </select>
@@ -40,7 +40,7 @@
                     <select id="sel-manager" name="manager_id"
                         class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900">
                         <option value="">Tidak ada (Top Level)</option>
-                        @foreach($employees as $emp)
+                        @foreach($employees ?? [] as $emp)
                             <option value="{{ $emp->id }}">{{ $emp->name }} — {{ $emp->position ?? '-' }}</option>
                         @endforeach
                     </select>

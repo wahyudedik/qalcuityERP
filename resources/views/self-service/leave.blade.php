@@ -97,7 +97,7 @@
                 <div class="px-5 py-12 text-center text-sm text-gray-400">Belum ada pengajuan cuti.</div>
                 @else
                 <div class="divide-y divide-gray-100">
-                    @foreach($leaves as $leave)
+                    @foreach($leaves ?? [] as $leave)
                     @php
                         $badge = match($leave->status) {
                             'approved' => 'bg-green-100 text-green-700',
@@ -125,7 +125,7 @@
                             <p class="text-xs text-red-500 mt-1">Alasan penolakan: {{ $leave->rejection_reason }}</p>
                             @endif
                             @if($leave->status === 'approved' && $leave->approver)
-                            <p class="text-xs text-gray-400 mt-0.5">Disetujui oleh: {{ $leave->approver->name }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Disetujui oleh: {{ $leave->approver?->name }}</p>
                             @endif
                         </div>
                         <div class="shrink-0 text-right">

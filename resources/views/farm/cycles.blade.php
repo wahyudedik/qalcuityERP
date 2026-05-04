@@ -34,14 +34,14 @@
     </div>
     @else
     <div class="space-y-3">
-        @foreach($cycles as $cycle)
+        @foreach($cycles ?? [] as $cycle)
         @php $pc = $cycle->phaseColor(); @endphp
         <a href="{{ route('farm.cycles.show', $cycle) }}" class="block bg-white rounded-xl border border-gray-200 p-5 hover:border-emerald-300 transition">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-3">
                     <span class="font-mono text-xs text-gray-400">{{ $cycle->number }}</span>
                     <span class="font-semibold text-gray-900">{{ $cycle->crop_name }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-{{ $pc }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ $cycle->phaseLabel() }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-{{ $pc  }}-100 text-{{ $pc }}-700 $pc }}-500/20 $pc }}-400">{{ $cycle->phaseLabel() }}</span>
                 </div>
                 <span class="text-xs text-gray-400">{{ $cycle->plot?->code }} · {{ $cycle->plot?->name }}</span>
             </div>
@@ -90,7 +90,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Lahan *</label>
                         <select name="farm_plot_id" required class="{{ $cls }}">
-                            @foreach($plots as $p)
+                            @foreach($plots ?? [] as $p)
                             <option value="{{ $p->id }}">{{ $p->code }} — {{ $p->name }} ({{ $p->area_size }} {{ $p->area_unit }})</option>
                             @endforeach
                         </select>

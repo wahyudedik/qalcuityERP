@@ -173,12 +173,12 @@
                         <div
                             class="w-12 h-12 rounded-full flex items-center justify-center text-2xl
                     @php
-$cat = $ua->achievement->category ?? 'general';
+$cat = $ua->achievement?->category ?? 'general';
                         echo $categoryColors[$cat]['bg'] ?? 'bg-purple-500/20'; @endphp">
-                            {{ $ua->achievement->icon ?? '🏆' }}
+                            {{ $ua->achievement?->icon ?? '🏆' }}
                         </div>
                         <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">
-                            {{ $ua->achievement->name }}</p>
+                            {{ $ua->achievement?->name }}</p>
                         <p class="text-[10px] text-gray-400">
                             {{ \Carbon\Carbon::parse($ua->earned_at)->format('d M Y') }}</p>
                     </div>

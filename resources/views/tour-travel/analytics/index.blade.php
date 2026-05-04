@@ -145,7 +145,7 @@
                                             $statusColor = $package->is_active ? 'green' : 'gray';
                                         @endphp
                                         <span
-                                            class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
+                                            class="px-2 py-1 text-xs rounded-full bg-{{ $statusColor  }}-100 text-{{ $statusColor }}-700 $statusColor }}-500/20 $statusColor }}-400">
                                             {{ $package->is_active ? 'Active' : 'Inactive' }}
                                         </span>
                                     </td>

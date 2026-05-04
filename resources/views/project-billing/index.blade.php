@@ -27,7 +27,7 @@
                                     </h3>
                                     @if ($project->customer)
                                         <p class="text-sm text-gray-500 mt-1">
-                                            {{ $project->customer->name }}
+                                            {{ $project->customer?->name }}
                                         </p>
                                     @endif
                                 </div>
@@ -48,15 +48,15 @@
                                     <div class="flex items-center justify-between text-sm">
                                         <span class="text-gray-500">Billing Type:</span>
                                         <span class="font-medium text-gray-900 capitalize">
-                                            {{ str_replace('_', ' ', $project->billingConfig->billing_type) }}
+                                            {{ str_replace('_', ' ', $project->billingConfig?->billing_type) }}
                                         </span>
                                     </div>
 
-                                    @if ($project->billingConfig->hourly_rate)
+                                    @if ($project->billingConfig?->hourly_rate)
                                         <div class="flex items-center justify-between text-sm">
                                             <span class="text-gray-500">Hourly Rate:</span>
                                             <span class="font-medium text-gray-900">
-                                                Rp {{ number_format($project->billingConfig->hourly_rate, 0, ',', '.') }}
+                                                Rp {{ number_format($project->billingConfig?->hourly_rate, 0, ',', '.') }}
                                             </span>
                                         </div>
                                     @endif

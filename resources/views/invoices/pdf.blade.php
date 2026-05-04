@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -155,13 +155,13 @@
     @if($invoice->salesOrder)
     <div class="date-box">
         <div class="label">No. Sales Order</div>
-        <div class="value">{{ $invoice->salesOrder->number }}</div>
+        <div class="value">{{ $invoice->salesOrder?->number }}</div>
     </div>
     @endif
 </div>
 
 {{-- Items --}}
-@if($invoice->salesOrder && $invoice->salesOrder->items->count())
+@if($invoice->salesOrder && $invoice->salesOrder?->items->count())
 <table>
     <thead>
         <tr>
@@ -173,7 +173,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($invoice->salesOrder->items as $item)
+        @foreach($invoice->salesOrder?->items as $item)
         <tr>
             <td>{{ $item->product?->name ?? '-' }}</td>
             <td style="text-align:center">{{ $item->quantity }}</td>
@@ -185,12 +185,12 @@
     </tbody>
 </table>
 <div class="totals">
-    @if($invoice->salesOrder->discount > 0)
-    <div class="totals-row"><span>Subtotal</span><span>Rp {{ number_format($invoice->salesOrder->subtotal, 0, ',', '.') }}</span></div>
-    <div class="totals-row"><span>Diskon</span><span>- Rp {{ number_format($invoice->salesOrder->discount, 0, ',', '.') }}</span></div>
+    @if($invoice->salesOrder?->discount > 0)
+    <div class="totals-row"><span>Subtotal</span><span>Rp {{ number_format($invoice->salesOrder?->subtotal, 0, ',', '.') }}</span></div>
+    <div class="totals-row"><span>Diskon</span><span>- Rp {{ number_format($invoice->salesOrder?->discount, 0, ',', '.') }}</span></div>
     @endif
-    @if($invoice->salesOrder->tax > 0)
-    <div class="totals-row"><span>Pajak</span><span>Rp {{ number_format($invoice->salesOrder->tax, 0, ',', '.') }}</span></div>
+    @if($invoice->salesOrder?->tax > 0)
+    <div class="totals-row"><span>Pajak</span><span>Rp {{ number_format($invoice->salesOrder?->tax, 0, ',', '.') }}</span></div>
     @endif
     <div class="totals-row grand"><span>Total</span><span>Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</span></div>
     @if($invoice->paid_amount > 0)
@@ -272,7 +272,7 @@
             <img src="{{ $dirSigUrl }}" alt="TTD" style="max-height:50px;max-width:120px;opacity:0.9;">
         </div>
         @endif
-        @foreach($digitalSigs as $sig)
+        @foreach($digitalSigs ?? [] as $sig)
         <div style="margin-bottom:4px;">
             <img src="{{ $sig->signature_data }}" alt="TTD Digital" style="max-height:40px;max-width:100px;border:1px solid #e5e7eb;border-radius:4px;">
             <div style="font-size:8px;color:#9ca3af;">{{ $sig->user?->name }} · {{ $sig->signed_at?->format('d/m/Y H:i') }}</div>

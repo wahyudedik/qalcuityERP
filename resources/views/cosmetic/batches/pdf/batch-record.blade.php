@@ -189,11 +189,11 @@
             </div>
             <div class="info-row">
                 <div class="info-label">Formula:</div>
-                <div class="info-value">{{ $batch->formula->formula_name }} ({{ $batch->formula->formula_code }})</div>
+                <div class="info-value">{{ $batch->formula?->formula_name }} ({{ $batch->formula?->formula_code }})</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Product Type:</div>
-                <div class="info-value">{{ ucfirst($batch->formula->product_type) }}</div>
+                <div class="info-value">{{ ucfirst($batch->formula?->product_type) }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Production Date:</div>
@@ -213,13 +213,13 @@
             <div class="info-row">
                 <div class="info-label">Planned Quantity:</div>
                 <div class="info-value">{{ number_format($batch->planned_quantity, 2) }}
-                    {{ $batch->formula->batch_unit }}</div>
+                    {{ $batch->formula?->batch_unit }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">Actual Quantity:</div>
                 <div class="info-value">
                     {{ $batch->actual_quantity ? number_format($batch->actual_quantity, 2) : 'Not recorded' }}
-                    {{ $batch->formula->batch_unit }}</div>
+                    {{ $batch->formula?->batch_unit }}</div>
             </div>
         </div>
 
@@ -251,7 +251,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($batch->formula->ingredients as $ingredient)
+                @foreach ($batch->formula?->ingredients as $ingredient)
                     <tr>
                         <td>{{ $ingredient->sort_order }}</td>
                         <td>{{ $ingredient->inci_name }}</td>
@@ -361,14 +361,14 @@
         <div class="signature-box">
             <div class="signature-line">
                 <strong>Produced By</strong><br>
-                {{ $batch->producer->name ?? '________________' }}<br>
+                {{ $batch->producer?->name ?? '________________' }}<br>
                 <small>{{ $batch->production_date->format('d M Y') }}</small>
             </div>
         </div>
         <div class="signature-box">
             <div class="signature-line">
                 <strong>QC Inspector</strong><br>
-                {{ $batch->qcInspector->name ?? '________________' }}<br>
+                {{ $batch->qcInspector?->name ?? '________________' }}<br>
                 <small>{{ $batch->qc_completed_at ? $batch->qc_completed_at->format('d M Y') : '' }}</small>
             </div>
         </div>

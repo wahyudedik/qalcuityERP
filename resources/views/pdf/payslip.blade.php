@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -200,7 +200,7 @@
                     </tr>
                     @php $compAllowances = $item->components->where('type','allowance'); @endphp
                     @if($compAllowances->count())
-                        @foreach($compAllowances as $c)
+                        @foreach($compAllowances ?? [] as $c)
                         <tr>
                             <td>{{ $c->name }}</td>
                             <td class="right text-green">{{ number_format($c->amount, 0, ',', '.') }}</td>
@@ -264,7 +264,7 @@
                     @if(($item->deduction_other ?? 0) > 0)
                         @php $compDeductions = $item->components->where('type','deduction'); @endphp
                         @if($compDeductions->count())
-                            @foreach($compDeductions as $c)
+                            @foreach($compDeductions ?? [] as $c)
                             <tr>
                                 <td>{{ $c->name }}</td>
                                 <td class="right text-red">{{ number_format($c->amount, 0, ',', '.') }}</td>
@@ -306,7 +306,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($overtimes as $ot)
+            @foreach($overtimes ?? [] as $ot)
             <tr>
                 <td>{{ $ot->date->format('d/m/Y') }}</td>
                 <td class="center">{{ substr($ot->start_time, 0, 5) }} – {{ substr($ot->end_time, 0, 5) }}</td>

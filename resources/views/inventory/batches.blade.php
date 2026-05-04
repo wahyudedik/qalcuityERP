@@ -57,7 +57,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            @foreach($batches as $batch)
+                            @foreach($batches ?? [] as $batch)
                                 @php
                                     $days = $batch->daysUntilExpiry();
                                     $alertDays = $product->expiry_alert_days;
@@ -73,7 +73,7 @@
                                         {{ $batch->batch_number }}
                                     </td>
                                     <td class="px-4 py-3 text-gray-600">
-                                        {{ $batch->warehouse->name ?? '-' }}
+                                        {{ $batch->warehouse?->name ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-right font-medium text-gray-900">
                                         {{ number_format($batch->quantity) }} {{ $product->unit }}
