@@ -119,7 +119,7 @@ Asisten berbasis Google Gemini yang memahami konteks bisnis — menjawab pertany
 - **Loyalty Program** — poin reward pelanggan
 - **Gamifikasi** — poin, achievement, leaderboard karyawan
 - **KPI Tracking** — pantau indikator kinerja utama
-- **Push Notification** — notifikasi browser real-time
+- **Push Notification** — notifikasi browser real-time dengan detail expandable, filter per modul, dan action links
 - **Affiliate Program** — sistem referral dengan komisi
 - **GDPR Tools** — manajemen data pribadi & consent
 

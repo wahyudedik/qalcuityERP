@@ -2,9 +2,10 @@
 
 ## Backend
 - **PHP 8.3+** with **Laravel 13**
-- **MySQL** — primary database
-- **Queue** — Laravel queues (database driver) for background jobs
-- **Cache** — Laravel cache (used heavily for settings, dashboard, AI responses)
+- **MySQL 8.0+** — primary database (utf8mb4_unicode_ci)
+- **Redis** — required for production; used for cache, sessions, and queues
+- **Queue** — Laravel queues (Redis driver in production, database driver in dev)
+- **Cache** — Laravel cache (Redis); heavily used for settings, dashboard, AI responses
 
 ## Frontend
 - **Blade** — server-side templating
@@ -71,11 +72,13 @@ php artisan migrate
 php artisan db:seed
 ```
 
-## Environment
+## Environment Notes
 - `APP_ENV=local` enables sourcemaps, disables minification, skips compressed size reporting
 - `APP_DEBUG=true` keeps `console.log` in JS builds
 - `VITE_PORT` — configures Vite dev server port (default 5173)
 - Vite HMR uses `APP_URL` hostname for WebSocket host
+- Redis is **required** for production (cache, sessions, queues); database driver is acceptable for local dev
+- All third-party API keys (Gemini, OAuth, payment gateways, etc.) are managed via the SuperAdmin settings panel, not hardcoded in `.env`
 
 ## Build Notes
 - JS chunks are split: `vendor-alpine`, `vendor-charts`, `vendor`, per-module chunks, feature chunks (offline, notifications, POS)

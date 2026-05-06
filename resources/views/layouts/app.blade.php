@@ -24,266 +24,88 @@
     <script>
         (function() {
             try {
-                if (!localStorage.getItem('_theme_cleaned')) {
-                    localStorage.removeItem('theme');
-                    localStorage.setItem('_theme_cleaned', '1');
+                // FORCE LIGHT MODE FOR ERP - Aggressive approach
+
+                // 1. Clear any existing theme settings
+                localStorage.removeItem('theme');
+                localStorage.removeItem('color-theme');
+                localStorage.removeItem('darkMode');
+                localStorage.setItem('theme', 'light');
+                localStorage.setItem('_theme_cleaned', '1');
+
+                // 2. Force remove dark class immediately
+                const html = document.documentElement;
+                const body = document.body;
+
+                html.classList.remove('dark');
+                body?.classList.remove('dark');
+
+                // 3. Set light mode attributes
+                html.setAttribute('data-theme', 'light');
+                html.style.colorScheme = 'light';
+
+                // 4. Override any CSS that might force dark mode
+                const style = document.createElement('style');
+                style.textContent = `
+                    html, html.dark, html[data-theme="dark"] {
+                        color-scheme: light !important;
+                    }
+                    html.dark *, html[data-theme="dark"] * {
+                        color-scheme: light !important;
+                    }
+                    /* Force light backgrounds */
+                    body, .bg-gray-900, .bg-slate-900, .dark\\:bg-gray-900 {
+                        background-color: #ffffff !important;
+                        color: #1f2937 !important;
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // 5. Continuous monitoring with MutationObserver
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            const target = mutation.target;
+                            if (target.classList.contains('dark')) {
+                                target.classList.remove('dark');
+                            }
+                        }
+                    });
+                });
+
+                observer.observe(html, {
+                    attributes: true,
+                    attributeFilter: ['class', 'data-theme'],
+                    subtree: true
+                });
+
+                // 6. Override media query detection
+                if (window.matchMedia) {
+                    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                    mediaQuery.matches = false; // Force override
                 }
-            } catch (e) {}
+
+            } catch (e) {
+                console.warn('Theme override failed:', e);
+            }
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js', 'resources/js/conflict-resolution.js', 'resources/js/topbar-offline-indicator.js'])
     @stack('head')
     <style>
-        /* ═══════════════════════════════════════════════
-           QALCUITY SIDEBAR — Orbital Design System
-           Rail: 56px | Panel: 240px | Frosted glass
-        ═══════════════════════════════════════════════ */
-
-        /* Rail */
-        #sidebar-rail {
-            width: 56px;
-            background: linear-gradient(180deg, #080f1e 0%, #0a1628 60%, #080f1e 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.04);
+        /* ── Module color CSS custom properties ── */
+        :root {
+            --module-color-home: #3b82f6;
+            --module-color-ai: #8b5cf6;
+            --module-color-transactions: #f59e0b;
+            --module-color-inventory: #10b981;
+            --module-color-operations: #f97316;
+            --module-color-finance: #06b6d4;
+            --module-color-settings: #6b7280;
+            --module-color-superadmin: #ef4444;
         }
 
-        /* Panel */
-        #sidebar-panel {
-            width: 240px;
-            transform: translateX(-244px);
-            transition: transform 0.26s cubic-bezier(.16, 1, .3, 1), opacity 0.2s;
-            opacity: 0;
-            pointer-events: none;
-            background: #0a1226;
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
-        }
-
-        #sidebar-panel.panel-open {
-            transform: translateX(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Rail button */
-        .rail-btn {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            transition: all 0.18s cubic-bezier(.4, 0, .2, 1);
-            color: #475569;
-        }
-
-        .rail-btn:hover {
-            color: #e2e8f0;
-            transform: scale(1.08);
-        }
-
-        .rail-btn.rail-active {
-            color: var(--group-color, #60a5fa);
-            background: rgba(var(--group-rgb, 96, 165, 250), 0.12);
-        }
-
-        /* Glow dot indicator */
-        .rail-btn::before {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 0;
-            border-radius: 0 3px 3px 0;
-            background: var(--group-color, #60a5fa);
-            transition: height 0.2s cubic-bezier(.4, 0, .2, 1);
-            box-shadow: 0 0 8px var(--group-color, #60a5fa);
-        }
-
-        .rail-btn.rail-active::before {
-            height: 20px;
-        }
-
-        /* Tooltip */
-        .rail-btn .rail-tip {
-            position: absolute;
-            left: 52px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #1e293b;
-            color: #f1f5f9;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 8px;
-            white-space: nowrap;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s, left 0.15s;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 200;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-        }
-
-        .rail-btn:hover .rail-tip {
-            opacity: 1;
-            left: 56px;
-        }
-
-        /* Badge on rail icon */
-        .rail-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            min-width: 14px;
-            height: 14px;
-            border-radius: 7px;
-            background: #ef4444;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 3px;
-            border: 1.5px solid #080f1e;
-            animation: pulse-badge 2s infinite;
-        }
-
-        @keyframes pulse-badge {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
-            }
-        }
-
-        /* Panel header accent line */
-        #panel-accent {
-            height: 2px;
-            background: var(--group-color, #60a5fa);
-            box-shadow: 0 0 12px var(--group-color, #60a5fa);
-            transition: background 0.3s, box-shadow 0.3s;
-        }
-
-        /* Panel search */
-        #panel-search {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #e2e8f0;
-            font-size: 12px;
-            padding: 7px 12px 7px 32px;
-            width: 100%;
-            outline: none;
-            transition: border-color 0.15s, background 0.15s;
-        }
-
-        #panel-search:focus {
-            border-color: rgba(var(--group-rgb, 96, 165, 250), 0.4);
-            background: rgba(255, 255, 255, 0.07);
-        }
-
-        #panel-search::placeholder {
-            color: #475569;
-        }
-
-        /* Panel nav link */
-        .panel-link {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 8px 12px;
-            border-radius: 9px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #64748b;
-            transition: all 0.15s;
-            cursor: pointer;
-            text-decoration: none;
-            position: relative;
-            margin: 2px 0;
-            line-height: 1.4;
-        }
-
-        .panel-icon {
-            font-size: 15px;
-            width: 22px;
-            text-align: center;
-            flex-shrink: 0;
-            line-height: 1;
-        }
-
-        .panel-link:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #cbd5e1;
-            padding-left: 16px;
-        }
-
-        .panel-link.active {
-            background: rgba(var(--group-rgb, 96, 165, 250), 0.12);
-            color: var(--group-color, #60a5fa);
-            font-weight: 600;
-        }
-
-        .panel-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 2px;
-            height: 16px;
-            border-radius: 0 2px 2px 0;
-            background: var(--group-color, #60a5fa);
-        }
-
-        /* Panel section label */
-        .panel-section {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #475569;
-            padding: 14px 12px 6px;
-            margin-top: 6px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .panel-section:first-child {
-            border-top: none;
-            padding-top: 4px;
-            margin-top: 0;
-        }
-
-        /* Badge */
-        .panel-link .badge {
-            margin-left: auto;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 20px;
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-
-        .panel-link .badge.badge-red {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
-        /* Scrollbar */
+        /* Scrollbar utilities */
         .scrollbar-thin::-webkit-scrollbar {
             width: 3px;
         }
@@ -293,118 +115,8 @@
         }
 
         .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.12);
             border-radius: 4px;
-        }
-
-        /* Logo glow */
-        #rail-logo:hover {
-            filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.6));
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 1023px) {
-            #sidebar-rail {
-                width: 100vw !important;
-                flex-direction: row !important;
-                height: auto !important;
-                bottom: 0 !important;
-                top: auto !important;
-                padding: 8px 12px !important;
-                gap: 0 !important;
-                justify-content: space-around !important;
-                border-right: none !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-                transform: translateY(100%) !important;
-                transition: transform 0.3s cubic-bezier(.16, 1, .3, 1) !important;
-            }
-
-            #sidebar-rail.mobile-open {
-                transform: translateY(0) !important;
-            }
-
-            #sidebar-panel {
-                left: 0 !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                top: 0 !important;
-                bottom: 0 !important;
-                transform: translateX(-100%) !important;
-                transition: transform 0.26s cubic-bezier(.16, 1, .3, 1) !important;
-            }
-
-            #sidebar-panel.panel-open {
-                transform: translateX(0) !important;
-            }
-
-            #main-wrap {
-                padding-left: 0 !important;
-                padding-bottom: 64px !important;
-                transition: none !important;
-            }
-
-            #panel-backdrop {
-                display: none !important;
-            }
-
-            .rail-btn .rail-tip {
-                display: none !important;
-            }
-
-            .rail-btn::before {
-                display: none !important;
-            }
-
-            /* Rail buttons mobile */
-            .rail-btn {
-                width: 44px !important;
-                height: 44px !important;
-                min-width: 44px !important;
-            }
-
-            #rail-logo {
-                display: none !important;
-            }
-        }
-
-        /* Sidebar rail visual override (dark rail is by design, not dark mode) */
-        #sidebar-rail {
-            background: linear-gradient(180deg, #1e293b 0%, #1a2744 100%);
-        }
-
-        #sidebar-panel {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
-        }
-
-        .panel-link {
-            color: #64748b;
-        }
-
-        .panel-link:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        .panel-link.active {
-            background: rgba(var(--group-rgb, 59, 130, 246), 0.08);
-            color: var(--group-color, #2563eb);
-        }
-
-        .panel-section {
-            color: #64748b;
-            border-top-color: #e2e8f0;
-        }
-
-        #panel-search {
-            background: #f1f5f9;
-            border-color: #e2e8f0;
-            color: #1e293b;
-        }
-
-        #panel-search::placeholder {
-            color: #94a3b8;
         }
 
         /* Hide scrollbar for mobile breadcrumb */
@@ -422,461 +134,421 @@
 <body class="h-full font-[Inter,sans-serif] antialiased bg-[#f8f8f8] text-gray-900">
     <div class="flex h-full">
 
-        {{-- ── ICON RAIL (always visible on desktop, slide-in on mobile) ── --}}
-        <aside id="sidebar-rail"
-            class="fixed inset-y-0 left-0 z-60 flex flex-col items-center py-3 gap-0.5 shrink-0
-               -translate-x-full lg:translate-x-0 transition-transform duration-300">
+        {{-- ── PHP: Resolve active group & user context ── --}}
+        @php
+            $user = auth()->user();
+            $navTenant = $user?->tenant;
 
-            {{-- Logo: always white since rail bg is always dark --}}
-            <a href="{{ route('dashboard') }}" id="rail-logo"
-                class="flex items-center justify-center w-9 h-9 mb-3 rounded-xl transition-all duration-200">
-                <img src="/logo.png" alt="Q" class="h-6 w-auto object-contain" loading="lazy"
-                    style="filter: brightness(0) invert(1);">
-            </a>
+            // resolveActiveGroup() — array-priority approach.
+            // Each route pattern belongs to exactly ONE group. The first matching group wins.
+            function resolveActiveGroup(): string
+            {
+                $groupMap = [
+                    // 1. Super Admin (checked first — most specific)
+                    'superadmin' => ['super-admin*'],
+                    // 2. Dashboard & Analytics
+                    'home' => [
+                        'dashboard',
+                        'reports*',
+                        'kpi*',
+                        'forecast*',
+                        'anomalies*',
+                        'zero-input*',
+                        'simulations*',
+                    ],
+                    // 3. AI Assistant
+                    'ai' => ['chat*'],
+                    // 4. Transaksi & Master Data
+                    'transactions' => [
+                        'quotations*',
+                        'invoices*',
+                        'delivery-orders*',
+                        'down-payments*',
+                        'sales-returns*',
+                        'sales.*',
+                        'sales.index',
+                        'price-lists*',
+                        'purchase-returns*',
+                        'customers*',
+                        'suppliers*',
+                        'supplier-performance*',
+                        'products*',
+                        'warehouses*',
+                        'categories*',
+                        'crm*',
+                        'commission*',
+                        'helpdesk*',
+                        'subscription-billing*',
+                        'loyalty*',
+                    ],
+                    // 5. Inventori
+                    'inventory' => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
+                    // 6. SDM & Operasional
+                    'operations' => [
+                        'hrm*',
+                        'payroll*',
+                        'self-service*',
+                        'reimbursement*',
+                        'production*',
+                        'manufacturing*',
+                        'qc*',
+                        'printing*',
+                        'cosmetic*',
+                        'tour-travel*',
+                        'livestock-enhancement*',
+                        'fisheries*',
+                        'fleet*',
+                        'contracts*',
+                        'shipping*',
+                        'approvals*',
+                        'ecommerce*',
+                        'documents*',
+                        'projects*',
+                        'timesheets*',
+                        'project-billing*',
+                        'farm*',
+                        'pos*',
+                        'telecom*',
+                    ],
+                    // 7. Keuangan
+                    'finance' => [
+                        'accounting*',
+                        'expenses*',
+                        'bank.*',
+                        'bank-accounts*',
+                        'receivables*',
+                        'payables*',
+                        'bulk-payments*',
+                        'assets*',
+                        'budget*',
+                        'journals*',
+                        'deferred*',
+                        'writeoffs*',
+                    ],
+                    // 8. Pengaturan
+                    'settings' => [
+                        'company-profile*',
+                        'settings*',
+                        'tenant.users*',
+                        'reminders*',
+                        'import*',
+                        'audit*',
+                        'notifications*',
+                        'bot*',
+                        'api-settings*',
+                        'subscription.index',
+                        'cost-centers*',
+                        'ai-memory*',
+                        'taxes*',
+                        'custom-fields*',
+                        'constraints*',
+                        'company-groups*',
+                        'hotel*',
+                    ],
+                ];
 
-            @php
-                $user = auth()->user();
-                $navTenant = $user?->tenant;
-
-                // BUG-1.1 & BUG-1.4 FIX: resolveActiveGroup() — array-priority approach.
-                // Each route pattern belongs to exactly ONE group. The first matching group wins.
-                // This prevents double-active when a route could match multiple patterns.
-                function resolveActiveGroup(): string
-                {
-                    $groupMap = [
-                        // 1. Super Admin (checked first — most specific)
-                        'superadmin' => ['super-admin*'],
-                        // 2. Dashboard & Analytics
-                        'home' => [
-                            'dashboard',
-                            'reports*',
-                            'kpi*',
-                            'forecast*',
-                            'anomalies*',
-                            'zero-input*',
-                            'simulations*',
-                        ],
-                        // 3. AI Assistant
-                        'ai' => ['chat*'],
-                        // 4. Transaksi & Master Data
-                        'transactions' => [
-                            'quotations*',
-                            'invoices*',
-                            'delivery-orders*',
-                            'down-payments*',
-                            'sales-returns*',
-                            'sales.*',
-                            'sales.index',
-                            'price-lists*',
-                            'purchase-returns*',
-                            'customers*',
-                            'suppliers*',
-                            'supplier-performance*',
-                            'products*',
-                            'warehouses*',
-                            'categories*',
-                            'crm*',
-                            'commission*',
-                            'helpdesk*',
-                            'subscription-billing*',
-                            'loyalty*',
-                        ],
-                        // 5. Inventori
-                        'inventory' => ['inventory*', 'wms*', 'purchasing*', 'landed-cost*', 'consignment*', 'iot*'],
-                        // 6. SDM & Operasional
-                        'operations' => [
-                            'hrm*',
-                            'payroll*',
-                            'self-service*',
-                            'reimbursement*',
-                            'production*',
-                            'manufacturing*',
-                            'qc*',
-                            'printing*',
-                            'cosmetic*',
-                            'tour-travel*',
-                            'livestock-enhancement*',
-                            'fisheries*',
-                            'fleet*',
-                            'contracts*',
-                            'shipping*',
-                            'approvals*',
-                            'ecommerce*',
-                            'documents*',
-                            'projects*',
-                            'timesheets*',
-                            'project-billing*',
-                            'farm*',
-                            'pos*',
-                            // BUG-1.4: telecom routes were missing — added here
-                            'telecom*',
-                        ],
-                        // 7. Keuangan
-                        'finance' => [
-                            'accounting*',
-                            'expenses*',
-                            'bank.*',
-                            'bank-accounts*',
-                            'receivables*',
-                            'payables*',
-                            'bulk-payments*',
-                            'assets*',
-                            'budget*',
-                            'journals*',
-                            'deferred*',
-                            'writeoffs*',
-                        ],
-                        // 8. Pengaturan (hotel routes kept here per existing design)
-                        'settings' => [
-                            'company-profile*',
-                            'settings*',
-                            'tenant.users*',
-                            'reminders*',
-                            'import*',
-                            'audit*',
-                            'notifications*',
-                            'bot*',
-                            'api-settings*',
-                            'subscription.index',
-                            'cost-centers*',
-                            'ai-memory*',
-                            'taxes*',
-                            'custom-fields*',
-                            'constraints*',
-                            'company-groups*',
-                            'hotel*',
-                        ],
-                    ];
-
-                    foreach ($groupMap as $group => $patterns) {
-                        if (request()->routeIs(...$patterns)) {
-                            return $group; // First match wins — no double-active possible
-                        }
+                foreach ($groupMap as $group => $patterns) {
+                    if (request()->routeIs(...$patterns)) {
+                        return $group;
                     }
-
-                    return '';
                 }
 
-                $activeGroup = resolveActiveGroup();
-            @endphp
+                return '';
+            }
 
-            @if ($user?->isSuperAdmin())
-                @include('layouts._rail_btn', [
-                    'group' => 'home',
-                    'icon' => 'home',
-                    'label' => 'Dashboard',
-                ])
-                @include('layouts._rail_btn', [
-                    'group' => 'superadmin',
-                    'icon' => 'building',
-                    'label' => 'Admin',
-                ])
-            @elseif($user?->isAffiliate())
-                @include('layouts._rail_btn', [
-                    'group' => 'home',
-                    'icon' => 'home',
-                    'label' => 'Dashboard',
-                ])
-            @else
-                {{-- TASK-016: Simplified to 7 top-level groups --}}
-                @include('layouts._rail_btn', [
-                    'group' => 'home',
-                    'icon' => 'home',
-                    'label' => 'Dashboard',
-                ])
-                @include('layouts._rail_btn', ['group' => 'ai', 'icon' => 'sparkle', 'label' => 'AI Chat'])
-                @include('layouts._rail_btn', [
-                    'group' => 'transactions',
-                    'icon' => 'tag',
-                    'label' => 'Transaksi',
-                ])
-                @include('layouts._rail_btn', [
-                    'group' => 'inventory',
-                    'icon' => 'cube',
-                    'label' => 'Inventori',
-                ])
-                @if (!$user?->isKasir() && !$user?->isGudang())
-                    @include('layouts._rail_btn', [
-                        'group' => 'operations',
-                        'icon' => 'cog',
-                        'label' => 'Operasional',
-                    ])
-                    @include('layouts._rail_btn', [
-                        'group' => 'finance',
-                        'icon' => 'currency',
-                        'label' => 'Keuangan',
-                    ])
-                    @include('layouts._rail_btn', [
-                        'group' => 'settings',
-                        'icon' => 'gear',
-                        'label' => 'Pengaturan',
-                    ])
-                @endif
-            @endif
+            $activeGroup = resolveActiveGroup();
+        @endphp
 
-            {{-- Mode Lapangan — visible for all regular users --}}
-            @if (!$user?->isSuperAdmin() && !$user?->isAffiliate())
-                <a href="{{ route('mobile.hub') }}" title="Mode Lapangan" class="rail-btn mt-1"
-                    style="--group-color:#34d399;--group-rgb:52,211,153;background:rgba(52,211,153,0.12);color:#34d399;"
-                    @if (request()->routeIs('mobile*')) aria-current="page" @endif>
-                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <span class="rail-tip">Mode Lapangan</span>
-                </a>
-            @endif
+        {{-- ── MAIN CONTENT — Task 4.9: flex row layout (sidebar + main) ── --}}
+        {{-- pt-14 offsets the fixed topbar (h-14 = 56px) so sidebar and content start below it --}}
+        <div class="flex-1 flex min-w-0 pt-14" id="main-wrap">
 
-            {{-- Spacer --}}
-            <div class="flex-1"></div>
+            {{-- Task 4.10: Module Sidebar --}}
+            @include('layouts._nav_sidebar')
 
-            {{-- User Avatar --}}
-            <button onclick="toggleGroup('profile')"
-                class="rail-btn w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/10 hover:ring-blue-500/50 transition mb-1 relative"
-                data-group="profile" data-color="#60a5fa" data-rgb="96,165,250"
-                style="--group-color:#60a5fa;--group-rgb:96,165,250">
-                <img src="{{ $user?->avatarUrl() }}" alt="{{ $user?->name }}" class="w-full h-full object-cover"
-                    loading="lazy">
-                <span class="rail-tip">{{ $user?->name }}</span>
-            </button>
-        </aside>
-
-        {{-- ── SLIDE PANEL (240px, appears on group click) ── --}}
-        <div id="sidebar-panel" class="fixed inset-y-0 left-0 lg:left-14 z-50 flex flex-col overflow-hidden">
-
-            {{-- Accent line --}}
-            <div id="panel-accent"></div>
-
-            {{-- Panel Header --}}
-            <div class="flex items-center justify-between px-4 h-14 border-b border-white/10 shrink-0">
-                <span id="panel-title" class="text-xs font-bold uppercase tracking-widest text-slate-400"></span>
-                <button onclick="closePanel()"
-                    class="text-slate-600 hover:text-white transition p-1.5 rounded-lg hover:bg-white/10">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M6 18L18 6M6 6l12 12" />
+            {{-- Task 4.7: Tombol buka sidebar saat collapsed --}}
+            <div x-data>
+                <button x-show="$store.navSystem.sidebarVisible && $store.navSystem.sidebarCollapsed"
+                    @click="$store.navSystem.openSidebar()"
+                    class="fixed top-[72px] left-0 z-50 flex items-center justify-center w-6 h-8 bg-white border border-l-0 border-gray-200 rounded-r-lg shadow-sm hover:bg-gray-50 text-gray-500 transition"
+                    title="Buka sidebar" aria-label="Buka sidebar" style="display: none;">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
             </div>
 
-            {{-- Search --}}
-            <div class="px-3 py-2.5 border-b border-white/5 shrink-0">
-                <div class="relative">
-                    <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input id="panel-search" type="text" placeholder="Cari menu..."
-                        oninput="filterPanel(this.value)">
-                </div>
-            </div>
+            {{-- Main content column --}}
+            <div class="flex-1 flex flex-col min-w-0">
 
-            {{-- Panel Content --}}
-            <nav class="flex-1 overflow-y-auto scrollbar-thin py-2 px-2" id="panel-nav">
-                {{-- Filled by JS --}}
-            </nav>
-        </div>
-
-        {{-- Panel backdrop (click outside to close) --}}
-        <div id="panel-backdrop" class="fixed inset-0 z-40 hidden" onclick="closePanel()"></div>
-
-        {{-- Mobile sidebar overlay --}}
-        <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden lg:hidden"
-            onclick="closeMobileSidebar()" style="pointer-events:auto"></div>
-
-
-        {{-- ── MAIN CONTENT ── --}}
-        <div class="flex-1 flex flex-col min-w-0 pl-0 lg:pl-14" id="main-wrap">
-
-            {{-- Topbar --}}
-            <header
-                class="sticky top-0 z-20 h-14 border-b flex items-center px-4 sm:px-6 gap-4
+                {{-- Topbar --}}
+                <header
+                    class="fixed top-0 left-0 right-0 z-30 h-14 border-b flex items-center px-4 sm:px-6 gap-4
                        bg-[#f0f0f0] border-gray-200">
 
-                {{-- Mobile menu --}}
-                <button onclick="toggleMobileSidebar()"
-                    class="lg:hidden p-2 rounded-lg hover:bg-[#e4e4e4] text-gray-500">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                    {{-- Task 2.1-2.4: Launcher Button (menggantikan tombol hamburger mobile lama) --}}
+                    <div x-data>
+                        <button id="launcher-btn" @click="$store.navSystem.toggleLauncher()"
+                            :aria-expanded="$store.navSystem.launcherOpen"
+                            :class="$store.navSystem.launcherOpen ?
+                                'bg-gray-200' :
+                                'hover:bg-gray-100'"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-150 text-gray-600"
+                            title="Buka Menu" aria-label="Buka Menu" aria-controls="launcher-overlay">
+                            {{-- Waffle icon 3x3 dots (20x20px) --}}
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"
+                                aria-hidden="true">
+                                <circle cx="4" cy="4" r="1.5" />
+                                <circle cx="10" cy="4" r="1.5" />
+                                <circle cx="16" cy="4" r="1.5" />
+                                <circle cx="4" cy="10" r="1.5" />
+                                <circle cx="10" cy="10" r="1.5" />
+                                <circle cx="16" cy="10" r="1.5" />
+                                <circle cx="4" cy="16" r="1.5" />
+                                <circle cx="10" cy="16" r="1.5" />
+                                <circle cx="16" cy="16" r="1.5" />
+                            </svg>
 
-                {{-- Breadcrumb / Page title --}}
-                <div class="flex-1 flex items-center gap-2 min-w-0 overflow-x-auto scrollbar-hide">
-                    <span
-                        class="text-xs text-slate-400 hidden sm:block whitespace-nowrap">{{ config('app.name') }}</span>
-                    <span class="text-xs text-slate-600 hidden sm:block whitespace-nowrap">/</span>
-                    @if (isset($header))
-                        @if (is_string($header) && !str_contains($header, '<'))
-                            <h1 class="text-base font-semibold text-gray-900 truncate whitespace-nowrap">
-                                {{ $header }}</h1>
-                        @else
-                            <div class="flex items-center gap-2 whitespace-nowrap">{!! $header !!}</div>
-                        @endif
-                    @elseif(View::hasSection('header'))
-                        <div class="flex items-center gap-2 whitespace-nowrap">
-                            <h1 class="text-base font-semibold text-gray-900 truncate">
-                                @yield('header')
-                            </h1>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="flex items-center gap-1.5 shrink-0">
-                    {{-- TASK 1.6: Enhanced Offline Indicator di Topbar --}}
-                    <div id="topbar-offline-indicator" class="flex items-center gap-2"></div>
-
-                    {{-- Legacy offline indicator (hidden, kept for backward compat) --}}
-                    <div id="offline-indicator"
-                        class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs font-medium"
-                        data-pending="0">
-                        <span class="relative flex h-2 w-2">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                        </span>
-                        <span>Offline</span>
-                        <span id="offline-sync-badge"
-                            class="hidden ml-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold">0</span>
+                            {{-- Task 2.3: Active module color dot indicator --}}
+                            <span x-show="$store.navSystem.activeModule !== ''"
+                                class="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-[#f0f0f0]"
+                                :style="`background-color: var(--module-color-${$store.navSystem.activeModule}, #60a5fa)`"
+                                aria-hidden="true"></span>
+                        </button>
                     </div>
 
-                    {{-- Fullscreen toggle --}}
-                    <button onclick="toggleFullscreen()" id="btn-fullscreen-main" title="Layar penuh (F11)"
-                        class="p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
-                        <svg id="icon-fs-enter" class="w-5 h-5" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2" />
-                        </svg>
-                        <svg id="icon-fs-exit" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
-                        </svg>
-                    </button>
-
-                    {{-- Notification bell --}}
-                    @php
-                        // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
-                        $unreadCount = $sidebarBadges['notifications'] ?? 0;
-                        $notifTenantId = $user->tenant_id ?? null;
-                        $authUser = $user;
-                    @endphp
-                    <div class="relative" id="notif-wrapper">
-                        <button onclick="toggleNotif()"
-                            class="relative p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            @if ($unreadCount > 0)
-                                <span
-                                    class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                    {{-- Breadcrumb / Page title --}}
+                    <div class="flex-1 flex items-center gap-2 min-w-0 overflow-x-auto scrollbar-hide">
+                        <span
+                            class="text-xs text-slate-400 hidden sm:block whitespace-nowrap">{{ config('app.name') }}</span>
+                        <span class="text-xs text-slate-600 hidden sm:block whitespace-nowrap">/</span>
+                        @if (isset($header))
+                            @if (is_string($header) && !str_contains($header, '<'))
+                                <h1 class="text-base font-semibold text-gray-900 truncate whitespace-nowrap">
+                                    {{ $header }}</h1>
+                            @else
+                                <div class="flex items-center gap-2 whitespace-nowrap">{!! $header !!}</div>
                             @endif
-                        </button>
-                        <div id="notif-dropdown"
-                            class="hidden absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50
-                               bg-white border-gray-200">
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                                <span class="font-semibold text-sm text-gray-900">Notifikasi</span>
-                                <a href="{{ route('notifications.index') }}"
-                                    class="text-xs text-blue-500 hover:underline">Lihat semua</a>
+                        @elseif(View::hasSection('header'))
+                            <div class="flex items-center gap-2 whitespace-nowrap">
+                                <h1 class="text-base font-semibold text-gray-900 truncate">
+                                    @yield('header')
+                                </h1>
                             </div>
-                            <div class="max-h-72 overflow-y-auto divide-y divide-gray-100">
-                                @php
-                                    $topbarNotifs = $notifTenantId
-                                        ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)
-                                            ->latest()
-                                            ->take(5)
-                                            ->get()
-                                        : ($authUser?->isSuperAdmin()
-                                            ? \App\Models\ErpNotification::where('user_id', $authUser->id)
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        {{-- TASK 1.6: Enhanced Offline Indicator di Topbar --}}
+                        <div id="topbar-offline-indicator" class="flex items-center gap-2"></div>
+
+                        {{-- Legacy offline indicator (hidden, kept for backward compat) --}}
+                        <div id="offline-indicator"
+                            class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs font-medium"
+                            data-pending="0">
+                            <span class="relative flex h-2 w-2">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                            </span>
+                            <span>Offline</span>
+                            <span id="offline-sync-badge"
+                                class="hidden ml-1 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold">0</span>
+                        </div>
+
+                        {{-- Fullscreen toggle --}}
+                        <button onclick="toggleFullscreen()" id="btn-fullscreen-main" title="Layar penuh (F11)"
+                            class="p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
+                            <svg id="icon-fs-enter" class="w-5 h-5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2m8-16h2a2 2 0 012 2v2m0 8v2a2 2 0 01-2 2h-2" />
+                            </svg>
+                            <svg id="icon-fs-exit" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
+                            </svg>
+                        </button>
+
+                        {{-- Notification bell --}}
+                        @php
+                            // N+1 FIX: Use cached sidebarBadges from View Composer instead of direct DB query
+                            $unreadCount = $sidebarBadges['notifications'] ?? 0;
+                            $notifTenantId = $user->tenant_id ?? null;
+                            $authUser = $user;
+                        @endphp
+                        <div class="relative" id="notif-wrapper">
+                            <button onclick="toggleNotif()"
+                                class="relative p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                @if ($unreadCount > 0)
+                                    <span
+                                        class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                                @endif
+                            </button>
+                            <div id="notif-dropdown"
+                                class="hidden absolute right-0 mt-2 w-80 rounded-2xl shadow-xl border overflow-hidden z-50
+                               bg-white border-gray-200">
+                                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                                    <span class="font-semibold text-sm text-gray-900">Notifikasi</span>
+                                    <a href="{{ route('notifications.index') }}"
+                                        class="text-xs text-blue-500 hover:underline">Lihat semua</a>
+                                </div>
+                                <div class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                                    @php
+                                        $topbarNotifs = $notifTenantId
+                                            ? \App\Models\ErpNotification::where('tenant_id', $notifTenantId)
                                                 ->latest()
                                                 ->take(5)
                                                 ->get()
-                                            : collect());
-                                @endphp
-                                @forelse($topbarNotifs as $notif)
-                                    <div
-                                        class="px-4 py-3 hover:bg-[#f0f0f0] {{ $notif->isRead() ? 'opacity-60' : '' }}">
-                                        <p class="text-sm font-medium text-gray-900">
-                                            {{ $notif->title }}</p>
-                                        <p class="text-xs text-slate-400 mt-0.5">{{ Str::limit($notif->body, 80) }}
-                                        </p>
-                                        <p class="text-xs text-slate-500 mt-1">
-                                            {{ $notif->created_at->diffForHumans() }}</p>
-                                    </div>
-                                @empty
-                                    <div class="px-4 py-6 text-center text-sm text-slate-400">Tidak ada notifikasi
-                                    </div>
-                                @endforelse
-                            </div>
-                            {{-- Push notification opt-in --}}
-                            <div class="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
-                                <button id="btn-enable-push" onclick="enablePushNotifications()"
-                                    class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition">
-                                    🔔 Aktifkan Notifikasi Push
-                                </button>
+                                            : ($authUser?->isSuperAdmin()
+                                                ? \App\Models\ErpNotification::where('user_id', $authUser->id)
+                                                    ->latest()
+                                                    ->take(5)
+                                                    ->get()
+                                                : collect());
+                                    @endphp
+                                    @forelse($topbarNotifs as $notif)
+                                        <div
+                                            class="px-4 py-3 hover:bg-[#f0f0f0] {{ $notif->isRead() ? 'opacity-60' : '' }}">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                {{ $notif->title }}</p>
+                                            <p class="text-xs text-slate-400 mt-0.5">
+                                                {{ Str::limit($notif->body, 80) }}
+                                            </p>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                                {{ $notif->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    @empty
+                                        <div class="px-4 py-6 text-center text-sm text-slate-400">Tidak ada notifikasi
+                                        </div>
+                                    @endforelse
+                                </div>
+                                {{-- Push notification opt-in --}}
+                                <div class="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+                                    <button id="btn-enable-push" onclick="enablePushNotifications()"
+                                        class="w-full text-xs text-center py-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition">
+                                        🔔 Aktifkan Notifikasi Push
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </header>
 
-            {{-- Page Content --}}
-            <main class="flex-1 p-4 sm:p-6 bg-[#f8f8f8]">
-                {{-- BUG-1.11 FIX: Page header section — action buttons live here, not in topbar --}}
-                @isset($pageHeader)
-                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-                        <div class="min-w-0">
-                            @isset($pageTitle)
-                                <h1 class="text-xl font-semibold text-gray-900 truncate">{{ $pageTitle }}
-                                </h1>
-                            @endisset
+                        {{-- Profile Menu --}}
+                        <div class="relative" id="profile-wrapper">
+                            <button onclick="toggleProfile()"
+                                class="flex items-center gap-2 p-2 rounded-xl hover:bg-[#e4e4e4] text-gray-500 transition">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                                    {{ strtoupper(substr($user?->name ?? 'U', 0, 1)) }}
+                                </div>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="profile-dropdown"
+                                class="hidden absolute right-0 mt-2 w-64 rounded-2xl shadow-xl border overflow-hidden z-50
+                               bg-white border-gray-200">
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="font-semibold text-sm text-gray-900">{{ $user?->name ?? 'User' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $user?->roleLabel() ?? 'User' }}</p>
+                                </div>
+                                <div class="py-2">
+                                    <a href="{{ route('profile.edit') }}"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Profil Saya
+                                    </a>
+                                    @if (!$user?->isSuperAdmin() && !$user?->isAffiliate())
+                                        <a href="{{ route('self-service.dashboard') }}"
+                                            class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" />
+                                            </svg>
+                                            Portal Karyawan
+                                        </a>
+                                    @endif
+                                    <div class="border-t border-gray-100 my-2"></div>
+                                    <button onclick="document.getElementById('logout-form').submit()"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition w-full text-left">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        Keluar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 shrink-0">
-                            {{ $pageHeader }}
+                    </div>
+                </header>
+
+                {{-- Page Content --}}
+                <main class="flex-1 p-4 sm:p-6 bg-[#f8f8f8]">
+                    {{-- BUG-1.11 FIX: Page header section — action buttons live here, not in topbar --}}
+                    @isset($pageHeader)
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                            <div class="min-w-0">
+                                @isset($pageTitle)
+                                    <h1 class="text-xl font-semibold text-gray-900 truncate">{{ $pageTitle }}
+                                    </h1>
+                                @endisset
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                {{ $pageHeader }}
+                            </div>
                         </div>
-                    </div>
-                @endisset
-                @if (session('success'))
-                    <div
-                        class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-600 text-sm px-4 py-3 rounded-xl">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 13l4 4L19 7" />
-                        </svg>
-                        {{ session('success') }}
-                    </div>
-                @endif
-                @if (session('warning'))
-                    <div
-                        class="mb-4 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm px-4 py-3 rounded-xl">
-                        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <span>{{ session('warning') }}</span>
-                    </div>
-                @endif
-                @if (session('error'))
-                    <div
-                        class="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-600 text-sm px-4 py-3 rounded-xl">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        {{ session('error') }}
-                    </div>
-                @endif
-                {{ $slot ?? '' }}
-                @hasSection('content')
-                    @yield('content')
-                @endif
-            </main>
+                    @endisset
+                    @if (session('success'))
+                        <div
+                            class="mb-4 flex items-center gap-3 bg-green-500/10 border border-green-500/20 text-green-600 text-sm px-4 py-3 rounded-xl">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    @if (session('warning'))
+                        <div
+                            class="mb-4 flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-sm px-4 py-3 rounded-xl">
+                            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>{{ session('warning') }}</span>
+                        </div>
+                    @endif
+                    @if (session('error'))
+                        <div
+                            class="mb-4 flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-600 text-sm px-4 py-3 rounded-xl">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            {{ session('error') }}
+                        </div>
+                    @endif
+                    {{ $slot ?? '' }}
+                    @hasSection('content')
+                        @yield('content')
+                    @endif
+                </main>
+            </div>
         </div>
     </div>
 
@@ -1894,9 +1566,17 @@
                                     href: '{{ route('hotel.settings.edit') }}',
                                     active: {{ request()->routeIs('hotel.settings*') ? 'true' : 'false' }}
                                 },
-                            @endif
+                            @endif {
+                                section: 'Akun & Notifikasi'
+                            }, {
+                                label: 'Notifikasi',
+                                href: '{{ route('notifications.index') }}',
+                                active: {{ request()->routeIs('notifications*') ? 'true' : 'false' }}
+                            },
                             @if ($user?->isAdmin())
                                 {
+                                    section: 'Pengaturan Perusahaan'
+                                }, {
                                     label: 'Profil Perusahaan',
                                     href: '{{ route('company-profile.index') }}',
                                     active: {{ request()->routeIs('company-profile*') ? 'true' : 'false' }}
@@ -1920,10 +1600,6 @@
                                     label: 'Audit Trail',
                                     href: '{{ route('audit.index') }}',
                                     active: {{ request()->routeIs('audit*') ? 'true' : 'false' }}
-                                }, {
-                                    label: 'Notifikasi',
-                                    href: '{{ route('notifications.index') }}',
-                                    active: {{ request()->routeIs('notifications*') ? 'true' : 'false' }}
                                 }, {
                                     label: 'Bot WA/Telegram',
                                     href: '{{ route('bot.settings') }}',
@@ -2004,438 +1680,172 @@
         };
 
         const ACTIVE_GROUP = '{{ $activeGroup }}';
+
+        const MODULE_LIST = [
+            @if ($user?->isSuperAdmin())
+                {
+                    key: 'home',
+                    label: 'Dashboard',
+                    icon: 'home'
+                }, {
+                    key: 'superadmin',
+                    label: 'Super Admin',
+                    icon: 'building'
+                },
+            @elseif ($user?->isAffiliate()) {
+                    key: 'home',
+                    label: 'Dashboard',
+                    icon: 'home'
+                },
+            @else
+                {
+                    key: 'home',
+                    label: 'Dashboard',
+                    icon: 'home'
+                }, {
+                    key: 'ai',
+                    label: 'AI Chat',
+                    icon: 'sparkle'
+                }, {
+                    key: 'transactions',
+                    label: 'Transaksi',
+                    icon: 'tag'
+                }, {
+                    key: 'inventory',
+                    label: 'Inventori',
+                    icon: 'cube'
+                },
+                @if (!$user?->isKasir() && !$user?->isGudang())
+                    {
+                        key: 'operations',
+                        label: 'Operasional',
+                        icon: 'cog'
+                    }, {
+                        key: 'finance',
+                        label: 'Keuangan',
+                        icon: 'currency'
+                    }, {
+                        key: 'settings',
+                        label: 'Pengaturan',
+                        icon: 'gear'
+                    },
+                @endif
+            @endif
+        ];
+
+        // ── Task 1.3 & 1.4: Alpine.js navSystem Store ──
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('navSystem', {
+                // Launcher state
+                launcherOpen: false,
+
+                // Sidebar state
+                activeModule: '{{ $activeGroup }}',
+                sidebarVisible: {{ $activeGroup !== '' ? 'true' : 'false' }},
+                sidebarCollapsed: false,
+
+                // Search
+                launcherQuery: '',
+                sidebarQuery: '',
+
+                // Recently Visited (from localStorage)
+                recentlyVisited: [],
+
+                init() {
+                    // Restore collapse state from localStorage
+                    try {
+                        this.sidebarCollapsed = localStorage.getItem('nav_sidebar_collapsed') === 'true';
+                    } catch (e) {
+                        this.sidebarCollapsed = false;
+                    }
+
+                    // Restore recently visited
+                    try {
+                        const stored = localStorage.getItem('nav_recently_visited');
+                        this.recentlyVisited = stored ? JSON.parse(stored) : [];
+                    } catch (e) {
+                        this.recentlyVisited = [];
+                    }
+
+                    // Persist collapse state on change.
+                    // NOTE: Alpine stores do NOT have $watch — use Alpine.effect() instead.
+                    Alpine.effect(() => {
+                        const val = this.sidebarCollapsed;
+                        try {
+                            localStorage.setItem('nav_sidebar_collapsed', val);
+                        } catch (e) {}
+                    });
+                },
+
+                toggleLauncher() {
+                    this.launcherOpen = !this.launcherOpen;
+                    if (this.launcherOpen) {
+                        this.launcherQuery = '';
+                        // NOTE: Alpine stores do NOT have $nextTick — use Alpine.nextTick() global.
+                        Alpine.nextTick(() => {
+                            document.getElementById('launcher-search')?.focus();
+                        });
+                    }
+                },
+
+                closeLauncher() {
+                    this.launcherOpen = false;
+                    // NOTE: Alpine stores do NOT have $nextTick — use Alpine.nextTick() global.
+                    Alpine.nextTick(() => {
+                        document.getElementById('launcher-btn')?.focus();
+                    });
+                },
+
+                selectModule(moduleKey) {
+                    if (moduleKey === this.activeModule) {
+                        // Same module — just close launcher (Req 7.2)
+                        this.closeLauncher();
+                        return;
+                    }
+                    this.activeModule = moduleKey;
+                    this.sidebarVisible = true;
+                    this.sidebarQuery = '';
+                    this.closeLauncher();
+                    // Collapse state is preserved (Req 7.5)
+                },
+
+                toggleCollapse() {
+                    this.sidebarCollapsed = !this.sidebarCollapsed;
+                },
+
+                openSidebar() {
+                    this.sidebarCollapsed = false;
+                },
+
+                closeSidebar() {
+                    // Used for mobile drawer close
+                    this.sidebarVisible = false;
+                },
+
+                get filteredModules() {
+                    const q = this.launcherQuery.toLowerCase().trim();
+                    if (!q) return MODULE_LIST;
+                    return MODULE_LIST.filter(m =>
+                        m.label.toLowerCase().includes(q)
+                    );
+                },
+
+                get filteredNavItems() {
+                    const group = NAV_GROUPS[this.activeModule];
+                    if (!group) return [];
+                    const q = this.sidebarQuery.toLowerCase().trim();
+                    if (!q) return group.items;
+                    return group.items.filter(item =>
+                        item.section || (item.label && item.label.toLowerCase().includes(q))
+                    );
+                }
+            });
+        });
     </script>
 
 
     <script>
-        // ── Sidebar Panel Engine — Orbital Design ────────────────────────
-        let currentGroup = null;
-        let allPanelItems = [];
-
-        function buildPanel(groupKey) {
-            const group = NAV_GROUPS[groupKey];
-            if (!group) return;
-
-            // BUG-1.2 FIX: Sync --group-color on BOTH document root AND panel element
-            // so rail button glow dot, panel accent line, and panel header all use the same color.
-            const btn = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
-            const color = btn?.dataset.color || '#60a5fa';
-            const rgb = btn?.dataset.rgb || '96,165,250';
-
-            // Set on root so all CSS var() consumers (rail ::before, panel accent) stay in sync
-            document.documentElement.style.setProperty('--group-color', color);
-            document.documentElement.style.setProperty('--group-rgb', rgb);
-
-            const panel = document.getElementById('sidebar-panel');
-            panel.style.setProperty('--group-color', color);
-            panel.style.setProperty('--group-rgb', rgb);
-            const accent = document.getElementById('panel-accent');
-            if (accent) {
-                accent.style.background = color;
-                accent.style.boxShadow = `0 0 12px ${color}`;
-            }
-
-            document.getElementById('panel-title').textContent = group.title;
-            const search = document.getElementById('panel-search');
-            if (search) search.value = '';
-            allPanelItems = group.items;
-            renderPanelItems(group.items);
-        }
-
-        // Icon map — maps menu labels to emoji icons for quick visual identification
-        const MENU_ICONS = {
-            // Dashboard & Overview
-            'Dashboard': '📊',
-            'KPI Dashboard': '📈',
-            'Laporan': '📋',
-            'AI Forecasting': '🔮',
-            'Proyeksi Arus Kas': '💹',
-            'Deteksi Anomali': '🔍',
-            'Input Cerdas (AI)': '🤖',
-            'Simulasi Keuangan': '🧮',
-            'AI Chat': '💬',
-            'Analytics': '📊',
-            // Contacts
-            'Data Customer': '👥',
-            'Data Supplier': '🏭',
-            'Supplier Scorecard': '⭐',
-            'Supplier Performance': '📊',
-            'Strategic Sourcing': '🎯',
-            // Products & Warehouse
-            'Data Produk': '📦',
-            'Data Gudang': '🏢',
-            'Daftar Harga': '💰',
-            'Kategori Produk': '🏷️',
-            'Variants Manager': '🔀',
-            // Sales & CRM
-            'Sales Order': '🛒',
-            'Penawaran (Quotation)': '📝',
-            'Invoice': '🧾',
-            'Surat Jalan': '🚚',
-            'Uang Muka (DP)': '💵',
-            'Retur Penjualan': '↩️',
-            'CRM & Pipeline': '📈',
-            'Komisi Sales': '💸',
-            'Rule Komisi': '⚙️',
-            'Helpdesk': '🎧',
-            'Knowledge Base': '📚',
-            'Subscription Billing': '🔄',
-            'Plan Langganan': '📋',
-            'Program Loyalitas': '🎁',
-            'Kasir (POS)': '🖥️',
-            'E-Commerce': '🛍️',
-            // Inventory & Purchasing
-            'Inventori': '📦',
-            'Transfer Stok': '🔄',
-            'Pembelian': '🛍️',
-            'Purchase Requisition': '📋',
-            'RFQ': '📨',
-            'Goods Receipt': '📥',
-            '3-Way Matching': '✅',
-            'Retur Pembelian': '↩️',
-            'Landed Cost': '🚢',
-            'Konsinyasi': '🤝',
-            'Partner Konsinyasi': '👤',
-            'Bulk Payment': '💳',
-            // WMS
-            'Zone & Bin': '📍',
-            'Picking List': '📋',
-            'Stock Opname': '🔢',
-            'Putaway Rules': '📐',
-            'ESP32 / Arduino / RPi': '🔌',
-            // Manufacturing & Production
-            'Production Dashboard': '🏭',
-            'Gantt Chart': '📊',
-            'Produksi / WO': '⚙️',
-            'QC Inspections': '🔬',
-            'QC Laboratory': '🧪',
-            'Test Templates': '📝',
-            'BOM Multi-Level': '🧩',
-            'Mix Design Beton': '🧱',
-            'Work Center': '🏗️',
-            'MRP Planning': '📅',
-            'MRP Accuracy': '🎯',
-            'Predictive MRP (AI)': '🤖',
-            'Printing Jobs': '🖨️',
-            'Batch Production': '🏭',
-            // Finance & Accounting
-            'Jurnal': '📒',
-            'Bagan Akun (COA)': '📑',
-            'Neraca Saldo': '📊',
-            'Buku Besar': '📖',
-            'Neraca (Balance Sheet)': '⚖️',
-            'Laba Rugi (P&L)': '📊',
-            'Arus Kas': '💧',
-            'Rekonsiliasi Bank': '🏦',
-            'Rekening Bank': '🏦',
-            'Anggaran': '💼',
-            'Kunci Periode & Backup': '🔒',
-            'Pusat Biaya': '🎯',
-            'Pajak': '🏛️',
-            'Pengeluaran': '💸',
-            'Piutang (AR)': '📥',
-            'Hutang (AP)': '📤',
-            'Amortisasi / Deferral': '📉',
-            'Penghapusan Piutang': '✂️',
-            'Periode Akuntansi': '📅',
-            'Pengaturan Akuntansi': '⚙️',
-            'Aset': '🏠',
-            'Konsolidasi': '🔗',
-            'Grup Perusahaan': '🏢',
-            // HRM & Payroll
-            'SDM & Karyawan': '👤',
-            'Data Karyawan': '👤',
-            'Absensi': '⏰',
-            'Absensi Saya': '⏰',
-            'Jadwal Shift': '📅',
-            'Lembur': '⏱️',
-            'Manajemen Cuti': '🏖️',
-            'Cuti Saya': '🏖️',
-            'Penilaian Kinerja': '⭐',
-            'Rekrutmen': '📢',
-            'Pelatihan & Sertifikasi': '🎓',
-            'Timesheet': '⏱️',
-            'Penggajian': '💰',
-            'Komponen Gaji': '📊',
-            'Slip Gaji': '🧾',
-            'Struktur Organisasi': '🏛️',
-            'Portal Karyawan': '👤',
-            'Surat Peringatan': '⚠️',
-            'Kelola Reimbursement': '💳',
-            'Reimbursement Saya': '💳',
-            'Kontrak': '📄',
-            'Template Kontrak': '📑',
-            // Documents
-            'Dokumen': '📄',
-            'Template Dokumen': '📑',
-            'Tanda Tangan Digital': '✍️',
-            'Import CSV': '📥',
-            'Audit Trail': '📜',
-            // Settings & Admin
-            'Pengaturan': '⚙️',
-            'Kelola Pengguna': '👥',
-            'Izin Akses': '🔐',
-            'Langganan': '💳',
-            'Notifikasi': '🔔',
-            'Persetujuan': '✅',
-            'Approval Workflow': '✅',
-            'Automation Builder': '🤖',
-            'Custom Fields': '🔧',
-            'Batasan Bisnis': '📏',
-            'Integrasi': '🔗',
-            'Integrasi API': '🌐',
-            'API & Webhook': '🌐',
-            'Bot WA/Telegram': '💬',
-            'Memori AI': '🧠',
-            'Pengaturan Modul': '📦',
-            'Profil Perusahaan': '🏢',
-            'Pengingat': '⏰',
-            // Super Admin
-            'Semua Tenant': '🏢',
-            'Kelola Paket': '📦',
-            'Monitoring': '📡',
-            'Popup Iklan': '📢',
-            'Kelola Affiliate': '🤝',
-            'Komisi': '💸',
-            'Payout': '💳',
-            'Fraud Monitor': '🚨',
-            'Pengaturan Platform': '⚙️',
-            // Profile
-            'Profil Saya': '👤',
-            'Keluar': '🚪',
-            'Logout': '🚪',
-            // Hotel
-            'Dashboard Hotel': '🏨',
-            'Kamar': '🛏️',
-            'Tipe Kamar': '🏷️',
-            'Ketersediaan Kamar': '📅',
-            'Reservasi': '📅',
-            'Tamu': '👤',
-            'Check-in / Check-out': '🔑',
-            'Housekeeping': '🧹',
-            'Tarif Kamar': '💰',
-            'Pengaturan Hotel': '⚙️',
-            'Reservations': '📅',
-            'Guests': '👥',
-            'Room Map': '🗺️',
-            'Group Bookings': '👥',
-            'Bookings': '📅',
-            // Healthcare
-            'EMR Dashboard': '🏥',
-            'Pasien': '🩺',
-            'Rawat Inap': '🛏️',
-            'Laboratorium': '🔬',
-            'Radiologi': '📡',
-            'Farmasi': '💊',
-            'Operasi': '🏥',
-            'Telemedicine': '📱',
-            'Antrian': '🎫',
-            // Agriculture & Farming
-            'Manajemen Lahan': '🌾',
-            'Siklus Tanam': '🌱',
-            'Pencatatan Panen': '🌽',
-            'Analisis Biaya Lahan': '📊',
-            'Populasi Ternak': '🐄',
-            'Health & Vaccination': '💉',
-            'Breeding': '🧬',
-            'Dairy Management': '🥛',
-            'Poultry Management': '🐔',
-            // Fisheries
-            'Dashboard Perikanan': '🐟',
-            'Fishing Operations': '🎣',
-            'Aquaculture': '🐠',
-            'Cold Chain': '❄️',
-            'Species & Grading': '📊',
-            'Export Documentation': '📄',
-            'Waste Management': '♻️',
-            // Telecom
-            'Internet Packages': '📡',
-            'Customer Subscriptions': '📋',
-            'Network Devices': '🔌',
-            'Voucher Management': '🎫',
-            // Tour & Travel
-            'Tour Packages': '✈️',
-            'Tour Bookings': '📅',
-            'Tour Analytics': '📊',
-            // Shipping & Fleet
-            'Pengiriman': '🚚',
-            'Fleet Kendaraan': '🚛',
-            'Driver': '👨‍✈️',
-            'Trip / Penugasan': '🗺️',
-            'Log BBM': '⛽',
-            'Maintenance': '🔧',
-            // Cosmetic
-            'Cosmetic Formulas': '🧪',
-            'BPOM Registrations': '📋',
-            'Channel Distribution': '🚛',
-            'Cosmetic Analytics': '📊',
-            'Packaging & Labels': '🏷️',
-            'Expiry & Recalls': '⚠️',
-            'Distribution Channels': '🚛',
-            // Construction & Projects
-            'Manajemen Proyek': '📐',
-            'Project Billing': '💰',
-        };
-
-        function getMenuIcon(label) {
-            if (MENU_ICONS[label]) return MENU_ICONS[label];
-            // Fallback: try partial match for dynamic labels
-            const lower = label.toLowerCase();
-            if (lower.includes('dashboard')) return '📊';
-            if (lower.includes('laporan') || lower.includes('report')) return '📋';
-            if (lower.includes('pengaturan') || lower.includes('setting')) return '⚙️';
-            if (lower.includes('data ')) return '📁';
-            if (lower.includes('manajemen') || lower.includes('kelola')) return '📂';
-            return '👤'; // Default: person icon (works for profile name etc.)
-        }
-
-        function renderPanelItems(items) {
-            const nav = document.getElementById('panel-nav');
-            nav.innerHTML = '';
-            let activeEl = null;
-            items.forEach(item => {
-                if (item.section) {
-                    const s = document.createElement('div');
-                    s.className = 'panel-section';
-                    s.textContent = item.section;
-                    nav.appendChild(s);
-                    return;
-                }
-                const a = document.createElement('a');
-                a.href = item.href === '#logout' ? '#' : item.href;
-                a.className = 'panel-link' + (item.active ? ' active' : '');
-                if (item.danger) a.style.color = '#f87171';
-                const icon = getMenuIcon(item.label);
-                let inner = `<span class="panel-icon">${icon}</span>`;
-                if (item.meta) inner +=
-                    `<span style="display:block;font-size:10px;color:#64748b;margin-bottom:1px">${item.meta}</span>`;
-                inner += `<span>${item.label}</span>`;
-                if (item.badge && item.badge !== 'null') {
-                    inner += `<span class="badge ${item.badgeClass || ''}">${item.badge}</span>`;
-                }
-                a.innerHTML = inner;
-                if (item.href === '#logout') {
-                    a.addEventListener('click', e => {
-                        e.preventDefault();
-                        document.getElementById('logout-form').submit();
-                    });
-                }
-                // Auto-close sidebar on mobile after clicking a link
-                if (window.innerWidth < 1024) {
-                    a.addEventListener('click', () => closeMobileSidebar());
-                }
-                nav.appendChild(a);
-                if (item.active) activeEl = a;
-            });
-            // Scroll active item into view so it's visible when panel opens
-            if (activeEl) {
-                requestAnimationFrame(() => activeEl.scrollIntoView({
-                    block: 'nearest',
-                    behavior: 'smooth'
-                }));
-            }
-        }
-
-        function filterPanel(q) {
-            if (!q.trim()) {
-                renderPanelItems(allPanelItems);
-                return;
-            }
-            const filtered = allPanelItems.filter(item =>
-                !item.section && item.label.toLowerCase().includes(q.toLowerCase())
-            );
-            renderPanelItems(filtered);
-        }
-
-        function openGroup(groupKey) {
-            currentGroup = groupKey;
-            buildPanel(groupKey);
-            document.getElementById('sidebar-panel').classList.add('panel-open');
-            // Only show backdrop on mobile — on desktop the content shifts via padding
-            if (window.innerWidth < 1024) {
-                document.getElementById('panel-backdrop').classList.remove('hidden');
-            }
-            document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('rail-active'));
-            const btn = document.querySelector(`.rail-btn[data-group="${groupKey}"]`);
-            if (btn) btn.classList.add('rail-active');
-            // Clear closed flag when user explicitly opens a group
-            sessionStorage.removeItem('sidebar_panel_closed');
-        }
-
-        function closePanel() {
-            currentGroup = null;
-            document.getElementById('sidebar-panel').classList.remove('panel-open');
-            document.getElementById('panel-backdrop').classList.add('hidden');
-            document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('rail-active'));
-            // Remember that user manually closed the panel
-            sessionStorage.setItem('sidebar_panel_closed', '1');
-            // On mobile, also close the whole sidebar
-            if (window.innerWidth < 1024) {
-                document.getElementById('sidebar-rail').classList.remove('mobile-open');
-                document.getElementById('sidebar-overlay')?.classList.add('hidden');
-            }
-        }
-
-        function toggleGroup(groupKey) {
-            if (window.innerWidth < 1024) {
-                // BUG-1.5 FIX: Mobile mutual exclusion — opening panel closes rail overlay
-                document.getElementById('sidebar-rail').classList.remove('mobile-open');
-                document.getElementById('sidebar-overlay').classList.add('hidden');
-                openGroup(groupKey);
-            } else {
-                if (currentGroup === groupKey) {
-                    closePanel();
-                } else {
-                    openGroup(groupKey);
-                }
-            }
-        }
-
-        // Auto-open active group on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const isMobile = () => window.innerWidth < 1024;
-            const panel = document.getElementById('sidebar-panel');
-            const main = document.getElementById('main-wrap');
-
-            function updateMainPadding() {
-                if (isMobile()) {
-                    main.style.paddingLeft = '0px';
-                    return;
-                }
-                const open = panel.classList.contains('panel-open');
-                main.style.paddingLeft = open ? '296px' : '56px';
-            }
-
-            // Observe panel open/close → shift main content (desktop only)
-            const obs = new MutationObserver(() => {
-                main.style.transition = 'padding-left 0.26s cubic-bezier(.16,1,.3,1)';
-                updateMainPadding();
-            });
-            obs.observe(panel, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-
-            // Handle window resize (orientation change, desktop↔mobile)
-            window.addEventListener('resize', () => {
-                updateMainPadding();
-                if (!isMobile()) {
-                    // Reset mobile state when going back to desktop
-                    document.getElementById('sidebar-rail').classList.remove('mobile-open');
-                    document.getElementById('sidebar-overlay')?.classList.add('hidden');
-                }
-            });
-
-            // Auto-open active group on desktop only IF user hasn't manually closed it
-            const panelClosedKey = 'sidebar_panel_closed';
-            const userClosed = sessionStorage.getItem(panelClosedKey) === '1';
-            if (!isMobile() && ACTIVE_GROUP && NAV_GROUPS[ACTIVE_GROUP] && !userClosed) {
-                openGroup(ACTIVE_GROUP);
-            }
-            updateMainPadding();
-        });
-
-        // Notification dropdown
+        // ── Notification dropdown ──────────────────────────────────────────────
         function toggleNotif() {
             document.getElementById('notif-dropdown')?.classList.toggle('hidden');
         }
@@ -2446,23 +1856,70 @@
             }
         });
 
-        function toggleMobileSidebar() {
-            const rail = document.getElementById('sidebar-rail');
-            const isOpen = rail.classList.contains('mobile-open');
-            if (isOpen) {
-                closeMobileSidebar();
-            } else {
-                // BUG-1.5 FIX: Mutual exclusion — opening rail overlay closes any open panel first
-                closePanel();
-                rail.classList.add('mobile-open');
-                document.getElementById('sidebar-overlay').classList.remove('hidden');
-            }
+        // ── Profile dropdown ──────────────────────────────────────────────
+        function toggleProfile() {
+            document.getElementById('profile-dropdown')?.classList.toggle('hidden');
         }
+        document.addEventListener('click', e => {
+            const w = document.getElementById('profile-wrapper');
+            if (w && !w.contains(e.target)) {
+                document.getElementById('profile-dropdown')?.classList.add('hidden');
+            }
+        });
 
-        function closeMobileSidebar() {
-            document.getElementById('sidebar-rail').classList.remove('mobile-open');
-            document.getElementById('sidebar-overlay').classList.add('hidden');
-            closePanel();
+        // ── DOMContentLoaded: track recently visited ───────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            // Task 5.3: Track recently visited page
+            try {
+                trackRecentlyVisited();
+            } catch (e) {}
+        });
+
+        // Task 5.1 & 5.2: Recently Visited Tracking
+        function trackRecentlyVisited() {
+            const key = 'nav_recently_visited';
+            const maxEntries = 5;
+            const currentUrl = window.location.href;
+
+            // Task 5.2: Extract clean page title (strip after " — " or " | ")
+            const rawTitle = document.title || '';
+            const currentTitle = rawTitle.split(/\s[—|]\s/)[0].trim() || rawTitle;
+
+            // Guard: only track if Alpine store is available and activeModule is set
+            if (typeof Alpine === 'undefined') return;
+            const store = Alpine.store('navSystem');
+            if (!store || !store.activeModule) return;
+
+            const currentModule = store.activeModule;
+
+            let entries = [];
+            try {
+                entries = JSON.parse(localStorage.getItem(key) || '[]');
+            } catch (e) {
+                entries = [];
+            }
+
+            // Task 5.1: Dedup by URL — remove existing entry for same URL
+            entries = entries.filter(e => e.url !== currentUrl);
+
+            // Add new entry at front
+            entries.unshift({
+                url: currentUrl,
+                title: currentTitle,
+                module: currentModule,
+                visitedAt: Date.now()
+            });
+
+            // Slice to max 5 entries
+            entries = entries.slice(0, maxEntries);
+
+            try {
+                localStorage.setItem(key, JSON.stringify(entries));
+                // Update Alpine store so launcher shows updated list immediately
+                store.recentlyVisited = entries;
+            } catch (e) {
+                // localStorage unavailable (private browsing / storage full) — fail silently
+            }
         }
 
         // PWA + Push Notifications
@@ -2633,6 +2090,9 @@
         </div>
     </div>
 
+    {{-- Task 3.10: Launcher Overlay --}}
+    @include('layouts._nav_launcher')
+
     @stack('scripts')
 
     <script>
@@ -2705,7 +2165,7 @@
 
     {{-- Overlay restore fullscreen (muncul saat pindah halaman dalam mode fullscreen) --}}
     <div id="fs-restore-overlay" onclick="_doRestoreFs()" class="hidden fixed inset-0 z-[9999] cursor-pointer"
-        style="background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);">
+        style="background: rgba(0,0,0,0.7);">
         <div
             style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#fff;pointer-events:none;">
             <div

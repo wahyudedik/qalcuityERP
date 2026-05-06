@@ -1,6 +1,6 @@
 # Qalcuity ERP — Product Overview
 
-Qalcuity ERP is a multi-tenant, web-based business management system built on Laravel. It serves a wide range of business types through a single unified platform, with an integrated AI assistant powered by Google Gemini.
+Qalcuity ERP is a multi-tenant, web-based business management system built on Laravel. It serves a wide range of Indonesian SMEs and enterprises through a single unified platform, with an integrated AI assistant powered by Google Gemini.
 
 ## Core Modules
 - **Accounting & Finance** — journals, ledger, balance sheet, P&L, cash flow, bank reconciliation, multi-currency, tax (PPN/PPh), cost centers, consolidation
@@ -20,5 +20,5 @@ Multi-tenant with full data isolation, subscription plans, approval workflows, a
 ## Integrations
 E-commerce (Shopee, Tokopedia, Lazada), Payment (Midtrans, Xendit, Duitku), Shipping (RajaOngkir, JNE, J&T), Messaging (WhatsApp, Telegram), Accounting (Jurnal.id, Accurate Online), Auth (Google OAuth)
 
-## Target Market
-Indonesian SMEs and enterprises. UI language is Indonesian (Bahasa Indonesia); code comments are often in Indonesian.
+## Target Market & Language
+Indonesian SMEs and enterprises. UI language is **Bahasa Indonesia**; code comments are often in Indonesian. Locale defaults to `id`, timezone to `Asia/Jakarta`.

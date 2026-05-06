@@ -1073,7 +1073,7 @@
     
     <?php if(!empty($popupAd)): ?>
         <div x-data="{ open: true }" x-show="open" x-cloak
-            class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60"
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">

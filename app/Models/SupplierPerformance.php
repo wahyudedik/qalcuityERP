@@ -9,9 +9,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * Supplier Performance Tracking
- * 
+ *
  * Tracks supplier metrics: lead time, quality, delivery, cost
- * 
+ *
  * @property Carbon|null $expected_delivery_date
  * @property Carbon|null $actual_delivery_date
  */
@@ -177,15 +177,15 @@ class SupplierPerformance extends Model
 
     /**
      * Calculate responsiveness score (0-100)
-     * 
+     *
      * TODO: Phase 2 Enhancement - Implement when communication tracking needed
-     * 
+     *
      * Future implementation options:
      * 1. PO acknowledgment time tracking
      * 2. Email response time monitoring
      * 3. Quote request-to-response duration
      * 4. Issue resolution turnaround time
-     * 
+     *
      * Current: Returns baseline score of 75 (neutral)
      * Impact: Only affects 15% of overall score, system is 85% functional without this
      * Priority: Low - Focus on delivery/quality/cost first
@@ -307,7 +307,7 @@ class SupplierPerformance extends Model
         $qualityScores = [];
         $costScores = [];
 
-        foreach ($grouped->sortByKeys() as $date => $dayRecords) {
+        foreach ($grouped->sortKeys() as $date => $dayRecords) {
             $labels[] = $date;
             $overallScores[] = round($dayRecords->avg('overall_score'), 2);
             $deliveryScores[] = round($dayRecords->avg('delivery_score'), 2);

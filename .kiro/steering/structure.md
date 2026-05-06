@@ -12,7 +12,7 @@ resources/
   views/              # Blade templates
   js/                 # Frontend JavaScript
   css/                # Stylesheets (Tailwind)
-  lang/               # Translations
+  lang/               # Translations (primary: id)
 routes/
   web.php             # Main web routes
   api.php             # API routes
@@ -38,7 +38,7 @@ app/
   Imports/            # Maatwebsite Excel import classes
   Jobs/               # Queued jobs
   Listeners/          # Event listeners
-  Models/             # Eloquent models (~529 models)
+  Models/             # Eloquent models (~544 models)
   Notifications/      # Laravel notification classes
   Observers/          # Eloquent observers
   Policies/           # Authorization policies
@@ -52,13 +52,13 @@ app/
 ## Controllers Organization
 Controllers are grouped by domain under `app/Http/Controllers/`:
 - Top-level controllers for core modules (e.g. `AccountingController`, `InventoryController`, `HrmController`)
-- Subdirectories for complex domains: `Admin/`, `AI/`, `Analytics/`, `Api/`, `Auth/`, `Healthcare/`, `Telecom/`, `SuperAdmin/`, etc.
+- Subdirectories for complex domains: `Admin/`, `AI/`, `Analytics/`, `Api/`, `Auth/`, `Healthcare/`, `Telecom/`, `SuperAdmin/`
 - AI-specific controllers follow the pattern `{Module}AiController` (e.g. `AccountingAiController`, `SalesAiController`)
 
 ## Services Organization
-`app/Services/` contains business logic, organized as:
+`app/Services/` contains business logic:
 - Flat service files for core features (e.g. `GeminiService`, `JournalService`, `PayrollCalculationService`)
-- Subdirectories for complex domains: `AI/`, `Agent/`, `DemoData/`, `ERP/`, `Fisheries/`, `Healthcare/`, `Integrations/`, `Manufacturing/`, `Marketplace/`, `MultiCompany/`, `Security/`, `Telecom/`
+- Subdirectories for complex domains: `AI/`, `Agent/`, `Audit/`, `DemoData/`, `ERP/`, `Fisheries/`, `Healthcare/`, `Integrations/`, `Manufacturing/`, `Marketplace/`, `MultiCompany/`, `Security/`, `Telecom/`
 - AI services follow the pattern `{Module}AiService` (e.g. `AccountingAiService`, `SalesAiService`, `HrmAiService`)
 
 ## Views Organization

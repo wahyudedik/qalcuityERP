@@ -52,6 +52,7 @@ Promise.all([
 // Load non-module scripts that don't need lazy loading
 import './recently-used-tracker.js'; // TASK-016: Recently used menu tracking
 import './form-wizard.js'; // TASK-018: Multi-step form wizard
+import './navigation-progress.js'; // Navigation progress bar (replaces blur effect)
 
 // ═══════════════════════════════════════════════════════════
 // LAZY LOADED MODULES (loaded on demand)

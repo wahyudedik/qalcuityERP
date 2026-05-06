@@ -1,46 +1,135 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id" class="h-full">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Kasir POS — Qalcuity</title>
+    <title>Kasir POS � Qalcuity</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="shortcut icon" href="/favicon.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="/favicon.png">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/offline-manager.js'])
+
+    {{-- Force Light Mode Script --}}
+    <script>
+        // Aggressive light mode enforcement for POS
+        (function() {
+            // Clear all theme-related localStorage
+            ['theme', 'color-theme', 'darkMode', 'dark-mode'].forEach(key => {
+                localStorage.removeItem(key);
+            });
+
+            // Force light mode
+            localStorage.setItem('theme', 'light');
+            localStorage.setItem('color-theme', 'light');
+
+            // Remove dark class from html and body
+            function forceLightMode() {
+                const html = document.documentElement;
+                const body = document.body;
+
+                if (html) {
+                    html.classList.remove('dark');
+                    html.setAttribute('data-theme', 'light');
+                    html.style.colorScheme = 'light';
+                }
+
+                if (body) {
+                    body.classList.remove('dark');
+                }
+            }
+
+            // Apply immediately
+            forceLightMode();
+
+            // Apply when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', forceLightMode);
+            } else {
+                forceLightMode();
+            }
+
+            // Monitor for changes and reapply
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' &&
+                        (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme')
+                    ) {
+                        forceLightMode();
+                    }
+                });
+            });
+
+            // Start observing
+            if (document.documentElement) {
+                observer.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['class', 'data-theme']
+                });
+            }
+
+            // Override matchMedia to disable system dark mode detection
+            if (window.matchMedia) {
+                const originalMatchMedia = window.matchMedia;
+                window.matchMedia = function(query) {
+                    if (query.includes('prefers-color-scheme: dark')) {
+                        return {
+                            matches: false,
+                            addListener: function() {},
+                            removeListener: function() {}
+                        };
+                    }
+                    return originalMatchMedia(query);
+                };
+            }
+
+            // Inject CSS to override any dark styles
+            const style = document.createElement('style');
+            style.textContent = `
+                html, body {
+                    background-color: #ffffff !important;
+                    color: #1f2937 !important;
+                }
+                .dark {
+                    background-color: #ffffff !important;
+                    color: #1f2937 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+    </script>
 </head>
 
-<body class="h-full bg-gray-950 font-[Inter,sans-serif] text-white overflow-hidden">
+<body class="h-full bg-white font-[Inter,sans-serif] text-gray-900 overflow-hidden">
 
     <div class="flex h-full" id="pos-app">
 
-        {{-- ── Left: Product Grid ─────────────────────────────── --}}
+        {{-- -- Left: Product Grid ------------------------------- --}}
         <div class="flex-1 flex flex-col min-w-0">
 
             {{-- Topbar --}}
-            <div class="flex items-center gap-2 px-3 sm:px-4 h-14 bg-gray-900 border-b border-gray-800 shrink-0">
-                <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-white transition shrink-0">
+            <div class="flex items-center gap-2 px-3 sm:px-4 h-14 bg-white border-b border-gray-200 shrink-0">
+                <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-900 transition shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </a>
-                <span class="font-semibold text-white shrink-0">Kasir POS</span>
+                <span class="font-semibold text-gray-900 shrink-0">Kasir POS</span>
                 <span
                     class="text-xs text-gray-500 ml-1 hidden sm:inline shrink-0">{{ now()->format('d M Y, H:i') }}</span>
 
                 {{-- Indikator sesi kasir --}}
                 @if (isset($activeSession) && $activeSession)
                     <a href="{{ route('pos.sessions.close-form', $activeSession) }}"
-                        title="Sesi aktif — klik untuk tutup sesi"
+                        title="Sesi aktif � klik untuk tutup sesi"
                         class="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition">
                         <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
                         Sesi Aktif
@@ -57,7 +146,7 @@
 
                 {{-- POS Settings button --}}
                 <button onclick="openPosSettings()" title="Pengaturan POS"
-                    class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition rounded-lg hover:bg-gray-800">
+                    class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 transition rounded-lg hover:bg-gray-100">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -68,7 +157,7 @@
 
                 {{-- Fullscreen button --}}
                 <button onclick="toggleFullscreen()" id="btn-fullscreen" title="Layar penuh (F11)"
-                    class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition rounded-lg hover:bg-gray-800">
+                    class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 transition rounded-lg hover:bg-gray-100">
                     {{-- Expand icon (default) --}}
                     <svg id="icon-fullscreen-enter" class="w-4 h-4" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -93,7 +182,7 @@
                 {{-- Barcode search --}}
                 <div class="flex-1 max-w-sm ml-2 sm:ml-4 relative">
                     <input id="barcode-input" type="text" placeholder="Scan barcode atau cari..."
-                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 pr-20">
+                        class="w-full bg-gray-100 border border-gray-300 rounded-xl px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 pr-20">
                     {{-- Camera scan button --}}
                     <button id="btn-camera-scan" onclick="openCameraScanner()" title="Scan barcode via kamera"
                         class="absolute right-8 top-1.5 w-7 h-7 flex items-center justify-center text-gray-400 hover:text-blue-400 transition">
@@ -112,12 +201,12 @@
                 {{-- Category filter (hidden on very small screens) --}}
                 <div class="hidden sm:flex gap-1 overflow-x-auto" id="category-tabs">
                     <button onclick="filterCategory('')" data-cat=""
-                        class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white whitespace-nowrap">
+                        class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-gray-900 whitespace-nowrap">
                         Semua
                     </button>
                     @foreach ($products->pluck('category')->filter()->unique() as $cat)
                         <button onclick="filterCategory('{{ $cat }}')" data-cat="{{ $cat }}"
-                            class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-700 text-gray-300 hover:bg-gray-600 whitespace-nowrap">
+                            class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 whitespace-nowrap">
                             {{ $cat }}
                         </button>
                     @endforeach
@@ -125,13 +214,13 @@
 
                 {{-- Cart toggle button (mobile only) --}}
                 <button onclick="toggleCart()" id="cart-toggle-btn"
-                    class="sm:hidden relative shrink-0 w-9 h-9 bg-gray-800 rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition">
+                    class="sm:hidden relative shrink-0 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-gray-700 hover:text-gray-900 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span id="cart-badge"
-                        class="hidden absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center font-bold">0</span>
+                        class="hidden absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-gray-900 text-xs flex items-center justify-center font-bold">0</span>
                 </button>
             </div>
 
@@ -140,15 +229,15 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3" id="product-grid">
                     @foreach ($products ?? [] as $product)
                         @php $outOfStock = $product->total_stock <= 0; @endphp
-                        <div class="product-card bg-gray-800 rounded-2xl p-3 transition select-none relative
-                     {{ $outOfStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-700 hover:ring-2 hover:ring-blue-500' }}"
+                        <div class="product-card bg-gray-100 rounded-2xl p-3 transition select-none relative
+                     {{ $outOfStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-200 hover:ring-2 hover:ring-blue-500' }}"
                             data-id="{{ $product->id }}" data-name="{{ $product->name }}"
                             data-price="{{ $product->price_sell }}" data-stock="{{ $product->total_stock }}"
                             data-sku="{{ $product->sku }}" data-barcode="{{ $product->barcode }}"
                             data-category="{{ $product->category }}"
                             onclick="{{ $outOfStock ? 'showToast(\'Stok ' . addslashes($product->name) . ' habis\', \'warning\')' : 'addToCart(this)' }}">
                             <div
-                                class="w-full aspect-square bg-gray-700 rounded-xl mb-2 flex items-center justify-center overflow-hidden relative">
+                                class="w-full aspect-square bg-gray-200 rounded-xl mb-2 flex items-center justify-center overflow-hidden relative">
                                 @if ($product->image)
                                     <img src="{{ $product->image }}" class="w-full h-full object-cover rounded-xl"
                                         alt="">
@@ -163,11 +252,11 @@
                                     <div
                                         class="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
                                         <span
-                                            class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-lg tracking-wide">HABIS</span>
+                                            class="bg-red-600 text-gray-900 text-xs font-bold px-2 py-1 rounded-lg tracking-wide">HABIS</span>
                                     </div>
                                 @endif
                             </div>
-                            <p class="text-xs font-medium text-white leading-tight line-clamp-2">{{ $product->name }}
+                            <p class="text-xs font-medium text-gray-900 leading-tight line-clamp-2">{{ $product->name }}
                             </p>
                             <p class="text-xs text-blue-400 font-semibold mt-1">Rp
                                 {{ number_format($product->price_sell, 0, ',', '.') }}</p>
@@ -181,21 +270,21 @@
             </div>
         </div>
 
-        {{-- ── Right: Cart & Payment ───────────────────────────── --}}
+        {{-- -- Right: Cart & Payment ----------------------------- --}}
         <div id="cart-panel"
-            class="fixed inset-y-0 right-0 z-30 w-80 xl:w-96 bg-gray-900 border-l border-gray-800 flex flex-col shrink-0 translate-x-full sm:translate-x-0 sm:relative sm:inset-auto transition-transform duration-300">
+            class="fixed inset-y-0 right-0 z-30 w-80 xl:w-96 bg-white border-l border-gray-200 flex flex-col shrink-0 translate-x-full sm:translate-x-0 sm:relative sm:inset-auto transition-transform duration-300">
 
             {{-- Cart Header --}}
-            <div class="flex items-center justify-between px-4 h-14 border-b border-gray-800 shrink-0">
-                <span class="font-semibold text-white">Keranjang</span>
+            <div class="flex items-center justify-between px-4 h-14 border-b border-gray-200 shrink-0">
+                <span class="font-semibold text-gray-900">Keranjang</span>
                 <button onclick="clearCart()"
                     class="text-xs text-red-400 hover:text-red-300 transition">Kosongkan</button>
             </div>
 
             {{-- Customer --}}
-            <div class="px-4 py-2 border-b border-gray-800 shrink-0">
+            <div class="px-4 py-2 border-b border-gray-200 shrink-0">
                 <select id="customer-select" onchange="onCustomerChange(this.value)"
-                    class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                     <option value="">Pelanggan umum</option>
                     @foreach ($customers ?? [] as $c)
                         <option value="{{ $c->id }}">{{ $c->name }}
@@ -207,7 +296,7 @@
                     class="hidden mt-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3 py-2">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
-                            <span class="text-sm">⭐</span>
+                            <span class="text-sm">?</span>
                             <span class="text-xs text-yellow-300 font-medium">Poin: <span
                                     id="loyalty-balance-display">0</span></span>
                         </div>
@@ -221,14 +310,14 @@
                         <div class="flex items-center gap-2">
                             <input type="number" id="loyalty-redeem-input" min="0" value="0"
                                 placeholder="Jumlah poin"
-                                class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-500"
+                                class="flex-1 bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-yellow-500"
                                 oninput="onLoyaltyRedeemChange()">
                             <button onclick="applyLoyaltyRedeem()"
-                                class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-medium rounded-lg transition">
+                                class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-gray-900 text-xs font-medium rounded-lg transition">
                                 Terapkan
                             </button>
                             <button onclick="clearLoyaltyRedeem()"
-                                class="px-2 py-1.5 text-gray-500 hover:text-red-400 text-xs transition">✕</button>
+                                class="px-2 py-1.5 text-gray-500 hover:text-red-400 text-xs transition">?</button>
                         </div>
                         <p id="loyalty-redeem-preview" class="text-xs text-yellow-400 mt-1"></p>
                     </div>
@@ -237,11 +326,11 @@
 
             {{-- Cart Items --}}
             <div class="flex-1 overflow-y-auto px-4 py-2 space-y-2" id="cart-items">
-                <p class="text-center text-gray-600 text-sm py-8" id="cart-empty">Belum ada item</p>
+                <p class="text-center text-gray-400 text-sm py-8" id="cart-empty">Belum ada item</p>
             </div>
 
             {{-- Totals --}}
-            <div class="px-4 py-3 border-t border-gray-800 space-y-2 shrink-0">
+            <div class="px-4 py-3 border-t border-gray-200 space-y-2 shrink-0">
                 <div class="flex justify-between text-sm text-gray-400">
                     <span>Subtotal</span>
                     <span id="subtotal-display">Rp 0</span>
@@ -249,22 +338,22 @@
                 <div class="flex justify-between text-sm text-gray-400 items-center">
                     <span>Diskon</span>
                     <input id="discount-input" type="number" min="0" value="0" placeholder="0"
-                        class="w-28 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-blue-500"
+                        class="w-28 bg-gray-100 border border-gray-300 rounded-lg px-2 py-1 text-sm text-right text-gray-900 focus:outline-none focus:border-blue-500"
                         oninput="recalculate()">
                 </div>
                 <div class="flex justify-between text-sm text-gray-400 items-center">
                     <span>Pajak (PPN)</span>
                     <input id="tax-input" type="number" min="0" value="0" placeholder="0"
-                        class="w-28 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-right text-white focus:outline-none focus:border-blue-500"
+                        class="w-28 bg-gray-100 border border-gray-300 rounded-lg px-2 py-1 text-sm text-right text-gray-900 focus:outline-none focus:border-blue-500"
                         oninput="recalculate()">
                 </div>
                 {{-- Loyalty discount row (hidden when 0) --}}
                 <div id="loyalty-discount-row"
                     class="hidden flex justify-between text-sm text-yellow-400 items-center">
-                    <span>Diskon Poin ⭐</span>
+                    <span>Diskon Poin ?</span>
                     <span id="loyalty-discount-display">- Rp 0</span>
                 </div>
-                <div class="flex justify-between font-bold text-white text-base pt-1 border-t border-gray-700">
+                <div class="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-300">
                     <span>Total</span>
                     <span id="total-display">Rp 0</span>
                 </div>
@@ -273,17 +362,17 @@
             {{-- Payment Method --}}
             <div class="px-4 pb-2 shrink-0">
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    @foreach (['cash' => ['label' => 'Tunai', 'icon' => '💵'], 'card' => ['label' => 'Kartu', 'icon' => '💳'], 'qris' => ['label' => 'QRIS', 'icon' => '📱'], 'split' => ['label' => 'Split', 'icon' => '⚡']] as $val => $info)
+                    @foreach (['cash' => ['label' => 'Tunai', 'icon' => '??'], 'card' => ['label' => 'Kartu', 'icon' => '??'], 'qris' => ['label' => 'QRIS', 'icon' => '??'], 'split' => ['label' => 'Split', 'icon' => '?']] as $val => $info)
                         <button onclick="setPayment('{{ $val }}')" data-method="{{ $val }}"
-                            class="pay-btn py-2 rounded-xl text-xs font-medium border border-gray-700 text-gray-400 hover:border-blue-500 hover:text-blue-400 transition flex items-center justify-center gap-1.5">
+                            class="pay-btn py-2 rounded-xl text-xs font-medium border border-gray-300 text-gray-400 hover:border-blue-500 hover:text-blue-400 transition flex items-center justify-center gap-1.5">
                             <span>{{ $info['icon'] }}</span><span>{{ $info['label'] }}</span>
                         </button>
                     @endforeach
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-3">
-                    @foreach (['transfer' => ['label' => 'Transfer', 'icon' => '🏦'], 'bank_transfer' => ['label' => 'Bank', 'icon' => '🏛']] as $val => $info)
+                    @foreach (['transfer' => ['label' => 'Transfer', 'icon' => '??'], 'bank_transfer' => ['label' => 'Bank', 'icon' => '??']] as $val => $info)
                         <button onclick="setPayment('{{ $val }}')" data-method="{{ $val }}"
-                            class="pay-btn py-2 rounded-xl text-xs font-medium border border-gray-700 text-gray-400 hover:border-blue-500 hover:text-blue-400 transition flex items-center justify-center gap-1.5">
+                            class="pay-btn py-2 rounded-xl text-xs font-medium border border-gray-300 text-gray-400 hover:border-blue-500 hover:text-blue-400 transition flex items-center justify-center gap-1.5">
                             <span>{{ $info['icon'] }}</span><span>{{ $info['label'] }}</span>
                         </button>
                     @endforeach
@@ -295,16 +384,16 @@
                         <span class="text-xs text-gray-500">Uang diterima</span>
                     </div>
                     <input id="paid-input" type="text" value="0" readonly
-                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-right text-lg font-bold text-white mb-2 focus:outline-none">
-                    {{-- Kembalian display — prominent --}}
+                        class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-right text-lg font-bold text-gray-900 mb-2 focus:outline-none">
+                    {{-- Kembalian display � prominent --}}
                     <div id="change-display-box" class="hidden rounded-xl px-3 py-2 mb-2 text-center">
                         <span class="text-xs text-gray-400 block">Kembalian</span>
                         <span id="change-display" class="text-2xl font-bold text-green-400"></span>
                     </div>
                     <div class="grid grid-cols-3 gap-1.5">
-                        @foreach (['7', '8', '9', '4', '5', '6', '1', '2', '3', '000', '0', '⌫'] as $k)
+                        @foreach (['7', '8', '9', '4', '5', '6', '1', '2', '3', '000', '0', '?'] as $k)
                             <button onclick="numpad('{{ $k }}')"
-                                class="py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-sm font-medium text-white transition active:scale-95">
+                                class="py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-medium text-gray-900 transition active:scale-95">
                                 {{ $k }}
                             </button>
                         @endforeach
@@ -312,7 +401,7 @@
                     <div class="grid grid-cols-3 gap-1.5 mt-1.5">
                         @foreach (['Pas' => 'exact', '+50rb' => '50000', '+100rb' => '100000'] as $label => $val)
                             <button onclick="quickCash({{ $val === 'exact' ? 'null' : $val }})"
-                                class="py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-xs font-medium text-gray-300 transition">
+                                class="py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-xs font-medium text-gray-700 transition">
                                 {{ $label }}
                             </button>
                         @endforeach
@@ -321,9 +410,9 @@
 
                 {{-- Card payment section --}}
                 <div id="card-section" class="mb-3 hidden">
-                    <div class="bg-gray-800 rounded-xl p-4 text-center">
-                        <div class="text-3xl mb-2">💳</div>
-                        <p class="text-sm font-semibold text-white mb-1">Pembayaran Kartu</p>
+                    <div class="bg-gray-100 rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">??</div>
+                        <p class="text-sm font-semibold text-gray-900 mb-1">Pembayaran Kartu</p>
                         <p class="text-xs text-gray-400 mb-3">Gesek/tap kartu debit atau kredit pada mesin EDC</p>
                         <div class="flex gap-2 justify-center mb-2">
                             <button onclick="setCardType('debit')" id="btn-card-debit"
@@ -331,31 +420,31 @@
                                 Debit
                             </button>
                             <button onclick="setCardType('credit')" id="btn-card-credit"
-                                class="card-type-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-700 text-gray-400 transition">
+                                class="card-type-btn px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-400 transition">
                                 Kredit
                             </button>
                         </div>
                         <p class="text-xs text-gray-500">Total: <span id="card-total-display"
-                                class="text-white font-semibold">Rp 0</span></p>
+                                class="text-gray-900 font-semibold">Rp 0</span></p>
                     </div>
                 </div>
 
                 {{-- QRIS payment section --}}
                 <div id="qris-section" class="mb-3 hidden">
-                    <div class="bg-gray-800 rounded-xl p-4 text-center" id="qris-container">
+                    <div class="bg-gray-100 rounded-xl p-4 text-center" id="qris-container">
                         {{-- Initial state: generate QR --}}
                         <div id="qris-initial">
-                            <div class="text-3xl mb-2">📱</div>
-                            <p class="text-sm font-semibold text-white mb-1">Pembayaran QRIS</p>
+                            <div class="text-3xl mb-2">??</div>
+                            <p class="text-sm font-semibold text-gray-900 mb-1">Pembayaran QRIS</p>
                             <p class="text-xs text-gray-400 mb-3">Klik tombol di bawah untuk generate QR code</p>
                             <button onclick="generateQrisCode()" id="btn-generate-qris"
-                                class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-semibold text-white transition">
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-xl text-xs font-semibold text-gray-900 transition">
                                 Generate QR Code
                             </button>
                         </div>
                         {{-- Loading state --}}
                         <div id="qris-loading" class="hidden">
-                            <div class="text-3xl mb-2 animate-pulse">⏳</div>
+                            <div class="text-3xl mb-2 animate-pulse">?</div>
                             <p class="text-sm text-gray-400">Membuat QR code...</p>
                         </div>
                         {{-- QR code display --}}
@@ -366,7 +455,7 @@
                                     class="w-40 h-40 object-contain">
                             </div>
                             <p class="text-xs text-gray-500 mb-1">Total: <span id="qris-total-display"
-                                    class="text-white font-semibold">Rp 0</span></p>
+                                    class="text-gray-900 font-semibold">Rp 0</span></p>
                             <div id="qris-timer" class="text-xs text-amber-400 mb-2"></div>
                             <div id="qris-status-badge" class="mb-2">
                                 <span
@@ -377,7 +466,7 @@
                             <div id="qris-success-badge" class="hidden mb-2">
                                 <span
                                     class="px-3 py-1 rounded-full text-xs font-semibold bg-green-900/50 text-green-300">
-                                    ✓ Pembayaran berhasil!
+                                    ? Pembayaran berhasil!
                                 </span>
                             </div>
                             <button onclick="cancelQris()" id="btn-cancel-qris"
@@ -387,10 +476,10 @@
                         </div>
                         {{-- Error state --}}
                         <div id="qris-error" class="hidden">
-                            <div class="text-3xl mb-2">❌</div>
+                            <div class="text-3xl mb-2">?</div>
                             <p class="text-sm text-red-400 mb-2" id="qris-error-msg">Gagal membuat QR code</p>
                             <button onclick="generateQrisCode()"
-                                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl text-xs text-white transition">
+                                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-xl text-xs text-gray-900 transition">
                                 Coba Lagi
                             </button>
                         </div>
@@ -399,12 +488,12 @@
 
                 {{-- Transfer / Bank Transfer section --}}
                 <div id="transfer-section" class="mb-3 hidden">
-                    <div class="bg-gray-800 rounded-xl p-4 text-center">
-                        <div class="text-3xl mb-2">🏦</div>
-                        <p class="text-sm font-semibold text-white mb-1">Transfer Bank</p>
+                    <div class="bg-gray-100 rounded-xl p-4 text-center">
+                        <div class="text-3xl mb-2">??</div>
+                        <p class="text-sm font-semibold text-gray-900 mb-1">Transfer Bank</p>
                         <p class="text-xs text-gray-400 mb-3">Konfirmasi setelah pelanggan melakukan transfer</p>
                         <p class="text-xs text-gray-500">Total: <span id="transfer-total-display"
-                                class="text-white font-semibold">Rp 0</span></p>
+                                class="text-gray-900 font-semibold">Rp 0</span></p>
                     </div>
                 </div>
 
@@ -416,14 +505,14 @@
                         class="w-full py-2 border border-dashed border-gray-600 rounded-xl text-xs text-gray-400 hover:border-blue-500 hover:text-blue-400 transition">
                         + Tambah Metode
                     </button>
-                    <div class="flex justify-between text-xs mt-2 pt-2 border-t border-gray-700">
+                    <div class="flex justify-between text-xs mt-2 pt-2 border-t border-gray-300">
                         <span class="text-gray-400">Sisa belum dibayar:</span>
                         <span id="split-remaining" class="font-semibold text-amber-400">Rp 0</span>
                     </div>
                 </div>
 
                 <button onclick="processCheckout()"
-                    class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold text-white transition text-sm active:scale-95">
+                    class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold text-gray-900 transition text-sm active:scale-95">
                     Proses Pembayaran
                 </button>
             </div>
@@ -453,10 +542,10 @@
 
     {{-- Camera Barcode Scanner Modal --}}
     <div id="camera-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
-        <div class="bg-gray-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-                <p class="text-sm font-semibold text-white">Scan Barcode via Kamera</p>
-                <button onclick="closeCameraScanner()" class="text-gray-400 hover:text-white transition">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                <p class="text-sm font-semibold text-gray-900">Scan Barcode via Kamera</p>
+                <button onclick="closeCameraScanner()" class="text-gray-400 hover:text-gray-900 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -486,18 +575,18 @@
                 </div>
                 {{-- Status --}}
                 <div id="camera-status" class="absolute bottom-3 left-0 right-0 text-center">
-                    <span class="text-xs text-white/70 bg-black/50 px-3 py-1 rounded-full">Arahkan kamera ke
+                    <span class="text-xs text-gray-900/70 bg-black/50 px-3 py-1 rounded-full">Arahkan kamera ke
                         barcode</span>
                 </div>
             </div>
             {{-- Fallback: manual input --}}
-            <div class="px-4 py-3 border-t border-gray-800">
+            <div class="px-4 py-3 border-t border-gray-200">
                 <p class="text-xs text-gray-500 mb-2">Atau ketik barcode manual:</p>
                 <div class="flex gap-2">
                     <input id="manual-barcode-input" type="text" placeholder="Masukkan barcode..."
-                        class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
+                        class="flex-1 bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500">
                     <button onclick="submitManualBarcode()"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition">
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 text-sm font-medium rounded-xl transition">
                         Cari
                     </button>
                 </div>
@@ -552,14 +641,14 @@
                         Cetak Struk
                     </button>
                     <button onclick="closeReceipt()"
-                        class="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">
+                        class="flex-1 py-2.5 bg-blue-600 text-gray-900 rounded-xl text-sm font-medium hover:bg-blue-500 transition">
                         Transaksi Baru
                     </button>
                 </div>
                 {{-- Row 2: Email + WhatsApp --}}
                 <div class="flex gap-2">
                     <button onclick="openSendEmail()"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-50 transition">
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 rounded-xl text-xs font-medium text-gray-400 hover:bg-gray-50 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -591,7 +680,7 @@
                 <button onclick="closeSendEmail()"
                     class="flex-1 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition">Batal</button>
                 <button onclick="doSendEmail()" id="btn-do-send-email"
-                    class="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500 transition">
+                    class="flex-1 py-2 bg-blue-600 text-gray-900 rounded-xl text-sm font-medium hover:bg-blue-500 transition">
                     Kirim
                 </button>
             </div>
@@ -610,7 +699,7 @@
                 <button onclick="closeSendWa()"
                     class="flex-1 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition">Batal</button>
                 <button onclick="doSendWhatsApp()" id="btn-do-send-wa"
-                    class="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-500 transition">
+                    class="flex-1 py-2 bg-green-600 text-gray-900 rounded-xl text-sm font-medium hover:bg-green-500 transition">
                     Kirim
                 </button>
             </div>
@@ -620,39 +709,39 @@
     {{-- POS Settings Modal --}}
     <div id="pos-settings-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
         <div
-            class="bg-gray-900 rounded-2xl w-full max-w-md shadow-2xl border border-gray-800 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-800">
-                <h3 class="font-semibold text-white">⚙ Pengaturan POS</h3>
-                <button onclick="closePosSettings()" class="text-gray-400 hover:text-white">✕</button>
+            class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                <h3 class="font-semibold text-gray-900">? Pengaturan POS</h3>
+                <button onclick="closePosSettings()" class="text-gray-400 hover:text-gray-900">?</button>
             </div>
             <div class="p-5 space-y-5">
                 {{-- Printer Settings --}}
                 <div>
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">🖨 Printer Struk</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">?? Printer Struk</h4>
                     <div class="space-y-3">
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Aktifkan cetak struk</span>
+                            <span class="text-sm text-gray-700">Aktifkan cetak struk</span>
                             <input type="checkbox" id="pos-print-enabled" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Auto-print setelah checkout</span>
+                            <span class="text-sm text-gray-700">Auto-print setelah checkout</span>
                             <input type="checkbox" id="pos-auto-print" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Metode Cetak</label>
+                            <label class="block text-sm text-gray-700 mb-1">Metode Cetak</label>
                             <select id="pos-print-method" onchange="savePosSettings()"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                                 <option value="browser">Browser Print (semua printer)</option>
                                 <option value="thermal">Thermal Printer (USB/Serial)</option>
                                 <option value="bluetooth">Bluetooth Printer</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Lebar Kertas</label>
+                            <label class="block text-sm text-gray-700 mb-1">Lebar Kertas</label>
                             <select id="pos-paper-width" onchange="savePosSettings()"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                                 <option value="58">58mm (Thermal kecil)</option>
                                 <option value="80">80mm (Thermal standar)</option>
                                 <option value="a4">A4 (Printer biasa)</option>
@@ -660,66 +749,66 @@
                         </div>
                         <div id="thermal-connect-section" class="hidden">
                             <button onclick="connectThermalPrinter()" id="btn-connect-printer"
-                                class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition">
-                                🔌 Hubungkan Printer Thermal
+                                class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 text-sm font-medium rounded-xl transition">
+                                ?? Hubungkan Printer Thermal
                             </button>
                             <p id="printer-status" class="text-xs text-gray-500 mt-1 text-center"></p>
                         </div>
                         <button onclick="testPrint()"
-                            class="w-full py-2 border border-gray-700 text-gray-300 text-sm rounded-xl hover:bg-gray-800 transition">
-                            🧪 Test Print
+                            class="w-full py-2 border border-gray-300 text-gray-700 text-sm rounded-xl hover:bg-gray-100 transition">
+                            ?? Test Print
                         </button>
                     </div>
                 </div>
 
                 {{-- Scanner Settings --}}
                 <div>
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">📷 Scanner Barcode</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">?? Scanner Barcode</h4>
                     <div class="space-y-3">
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Aktifkan scanner kamera</span>
+                            <span class="text-sm text-gray-700">Aktifkan scanner kamera</span>
                             <input type="checkbox" id="pos-camera-enabled" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Aktifkan scanner hardware (USB)</span>
+                            <span class="text-sm text-gray-700">Aktifkan scanner hardware (USB)</span>
                             <input type="checkbox" id="pos-hw-scanner-enabled" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Suara saat scan berhasil</span>
+                            <span class="text-sm text-gray-700">Suara saat scan berhasil</span>
                             <input type="checkbox" id="pos-scan-sound" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                     </div>
                 </div>
 
                 {{-- Receipt Settings --}}
                 <div>
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">🧾 Struk</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">?? Struk</h4>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Nama Toko di Struk</label>
+                            <label class="block text-sm text-gray-700 mb-1">Nama Toko di Struk</label>
                             <input type="text" id="pos-store-name" onchange="savePosSettings()"
                                 placeholder="{{ auth()->user()->tenant?->name ?? 'Nama Toko' }}"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Alamat di Struk</label>
+                            <label class="block text-sm text-gray-700 mb-1">Alamat di Struk</label>
                             <input type="text" id="pos-store-address" onchange="savePosSettings()"
                                 placeholder="Alamat toko"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-300 mb-1">Footer Struk</label>
+                            <label class="block text-sm text-gray-700 mb-1">Footer Struk</label>
                             <input type="text" id="pos-receipt-footer" onchange="savePosSettings()"
                                 placeholder="Terima kasih atas kunjungan Anda!"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
                         </div>
                         <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-300">Tampilkan logo di struk</span>
+                            <span class="text-sm text-gray-700">Tampilkan logo di struk</span>
                             <input type="checkbox" id="pos-show-logo" onchange="savePosSettings()"
-                                class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500">
+                                class="rounded bg-gray-200 border-gray-600 text-blue-500 focus:ring-blue-500">
                         </label>
                     </div>
                 </div>
@@ -761,7 +850,7 @@
         let paymentMethod = 'cash';
         let lastReceipt = null;
 
-        // ── Loyalty Points ────────────────────────────────────────────────────────
+        // -- Loyalty Points --------------------------------------------------------
         let loyaltyBalance = 0;
         let loyaltyPointsToRedeem = 0;
         let loyaltyDiscountValue = 0;
@@ -862,7 +951,7 @@
             recalculate();
         }
 
-        // ── Toast ─────────────────────────────────────────────────────────────────
+        // -- Toast -----------------------------------------------------------------
         function showToast(message, type = 'success') {
             const colors = {
                 success: '#16a34a',
@@ -871,10 +960,10 @@
                 info: '#2563eb'
             };
             const icons = {
-                success: '✓',
-                error: '✕',
-                warning: '⚠',
-                info: 'ℹ'
+                success: '?',
+                error: '?',
+                warning: '?',
+                info: '?'
             };
             const toast = document.createElement('div');
             toast.style.cssText =
@@ -892,7 +981,7 @@
             }, 3000);
         }
 
-        // ── Cart ──────────────────────────────────────────────────────────────────
+        // -- Cart ------------------------------------------------------------------
 
         function toggleCart() {
             const panel = document.getElementById('cart-panel');
@@ -955,24 +1044,24 @@
             const empty = document.getElementById('cart-empty');
 
             if (cart.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-600 text-sm py-8">Belum ada item</p>';
+                container.innerHTML = '<p class="text-center text-gray-400 text-sm py-8">Belum ada item</p>';
                 recalculate();
                 updateCartBadge();
                 return;
             }
 
             container.innerHTML = cart.map(item => `
-        <div class="flex items-center gap-2 bg-gray-800 rounded-xl px-3 py-2">
+        <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium text-white truncate">${item.name}</p>
+                <p class="text-xs font-medium text-gray-900 truncate">${item.name}</p>
                 <p class="text-xs text-blue-400">${formatRp(item.price)}</p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-                <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm flex items-center justify-center">−</button>
-                <span class="w-6 text-center text-sm font-medium text-white">${item.qty}</span>
-                <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm flex items-center justify-center">+</button>
+                <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 text-sm flex items-center justify-center">-</button>
+                <span class="w-6 text-center text-sm font-medium text-gray-900">${item.qty}</span>
+                <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 text-sm flex items-center justify-center">+</button>
             </div>
-            <button onclick="removeFromCart(${item.id})" class="text-gray-600 hover:text-red-400 transition ml-1">
+            <button onclick="removeFromCart(${item.id})" class="text-gray-400 hover:text-red-400 transition ml-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -995,7 +1084,7 @@
             }
         }
 
-        // ── Totals ────────────────────────────────────────────────────────────────
+        // -- Totals ----------------------------------------------------------------
 
         function recalculate() {
             const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -1050,12 +1139,12 @@
             return Math.max(0, subtotal - discount + tax - loyaltyDiscountValue);
         }
 
-        // ── Numpad ────────────────────────────────────────────────────────────────
+        // -- Numpad ----------------------------------------------------------------
 
         function numpad(key) {
             const input = document.getElementById('paid-input');
             let val = input.value.replace(/\./g, '');
-            if (key === '⌫') {
+            if (key === '?') {
                 val = val.slice(0, -1) || '0';
             } else if (key === '000') {
                 val = val === '0' ? '0' : val + '000';
@@ -1077,7 +1166,7 @@
             updateChange();
         }
 
-        // ── Payment Method ────────────────────────────────────────────────────────
+        // -- Payment Method --------------------------------------------------------
 
         let cardType = 'debit'; // 'debit' or 'credit'
         let splitRows = []; // [{method, amount}]
@@ -1088,7 +1177,7 @@
                 const active = b.dataset.method === method;
                 b.classList.toggle('border-blue-500', active);
                 b.classList.toggle('text-blue-400', active);
-                b.classList.toggle('border-gray-700', !active);
+                b.classList.toggle('border-gray-300', !active);
                 b.classList.toggle('text-gray-400', !active);
             });
 
@@ -1122,7 +1211,7 @@
             updateChange();
         }
 
-        // ── QRIS Payment Gateway Integration ─────────────────────────────────────
+        // -- QRIS Payment Gateway Integration -------------------------------------
 
         let qrisTransactionNumber = null;
         let qrisPendingOrderId = null;
@@ -1354,12 +1443,12 @@
                 const active = b.id === 'btn-card-' + type;
                 b.classList.toggle('border-blue-500', active);
                 b.classList.toggle('text-blue-400', active);
-                b.classList.toggle('border-gray-700', !active);
+                b.classList.toggle('border-gray-300', !active);
                 b.classList.toggle('text-gray-400', !active);
             });
         }
 
-        // ── Split Payment ─────────────────────────────────────────────────────────
+        // -- Split Payment ---------------------------------------------------------
 
         const SPLIT_METHODS = {
             cash: 'Tunai',
@@ -1390,7 +1479,7 @@
             container.innerHTML = splitRows.map(row => `
         <div class="flex items-center gap-2" id="split-row-${row.id}">
             <select onchange="updateSplitRow(${row.id}, 'method', this.value)"
-                class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                class="flex-1 bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-blue-500">
                 ${Object.entries(SPLIT_METHODS).map(([v, l]) =>
                     `<option value="${v}" ${row.method === v ? 'selected' : ''}>${l}</option>`
                 ).join('')}
@@ -1398,8 +1487,8 @@
             <input type="number" min="0" value="${row.amount || ''}" placeholder="0"
                 onchange="updateSplitRow(${row.id}, 'amount', parseFloat(this.value)||0)"
                 oninput="updateSplitRow(${row.id}, 'amount', parseFloat(this.value)||0)"
-                class="w-28 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-right text-white focus:outline-none focus:border-blue-500">
-            <button onclick="removeSplitRow(${row.id})" class="text-gray-600 hover:text-red-400 transition shrink-0">
+                class="w-28 bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-right text-gray-900 focus:outline-none focus:border-blue-500">
+            <button onclick="removeSplitRow(${row.id})" class="text-gray-400 hover:text-red-400 transition shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -1426,7 +1515,7 @@
             }
         }
 
-        // ── Checkout ──────────────────────────────────────────────────────────────
+        // -- Checkout --------------------------------------------------------------
         // (implementasi lengkap dengan offline support ada di bawah)
 
         function showReceipt(data) {
@@ -1466,11 +1555,11 @@
             // Show earned points if any
             if (data.earned_points > 0) {
                 body.innerHTML +=
-                    `<div class="mt-2 text-center text-xs text-yellow-600 font-medium">⭐ +${data.earned_points.toLocaleString('id-ID')} poin diperoleh</div>`;
+                    `<div class="mt-2 text-center text-xs text-yellow-600 font-medium">? +${data.earned_points.toLocaleString('id-ID')} poin diperoleh</div>`;
             }
             if (data.loyalty_discount > 0) {
                 body.innerHTML +=
-                    `<div class="text-center text-xs text-yellow-600">⭐ ${loyaltyPointsToRedeem.toLocaleString('id-ID')} poin ditukarkan</div>`;
+                    `<div class="text-center text-xs text-yellow-600">? ${loyaltyPointsToRedeem.toLocaleString('id-ID')} poin ditukarkan</div>`;
             }
 
             document.getElementById('receipt-modal').classList.remove('hidden');
@@ -1504,7 +1593,7 @@
             }
         }
 
-        // ── Send Receipt via Email ────────────────────────────────────────────────
+        // -- Send Receipt via Email ------------------------------------------------
         function openSendEmail() {
             // Pre-fill with customer email if available
             document.getElementById('send-email-input').value = '';
@@ -1563,7 +1652,7 @@
             }
         }
 
-        // ── Send Receipt via WhatsApp ─────────────────────────────────────────────
+        // -- Send Receipt via WhatsApp ---------------------------------------------
         function openSendWhatsApp() {
             document.getElementById('send-wa-input').value = '';
             document.getElementById('send-wa-status').classList.add('hidden');
@@ -1628,13 +1717,13 @@
             el.classList.remove('hidden');
         }
 
-        // ── Search & Filter ───────────────────────────────────────────────────────
+        // -- Search & Filter -------------------------------------------------------
 
         // Barcode scanner detection: hardware scanners type very fast (< 50ms between chars)
         // and end with Enter. We track timing to distinguish scanner from keyboard.
         let barcodeBuffer = '';
         let barcodeLastKeyTime = 0;
-        const BARCODE_SPEED_THRESHOLD = 50; // ms between keystrokes — scanner is faster
+        const BARCODE_SPEED_THRESHOLD = 50; // ms between keystrokes � scanner is faster
         const BARCODE_MIN_LENGTH = 3;
 
         // Debounce timer for text search
@@ -1647,7 +1736,7 @@
                 searchDropdown = document.createElement('div');
                 searchDropdown.id = 'search-dropdown';
                 searchDropdown.className =
-                    'absolute left-0 right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto hidden';
+                    'absolute left-0 right-0 top-full mt-1 bg-gray-100 border border-gray-300 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto hidden';
                 document.getElementById('barcode-input').parentElement.appendChild(searchDropdown);
             }
             return searchDropdown;
@@ -1667,14 +1756,14 @@
             }
             dd.innerHTML = results.map(p => {
                 const outOfStock = p.stock <= 0;
-                return `<div class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-700 cursor-pointer transition ${outOfStock ? 'opacity-50' : ''}"
+                return `<div class="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-200 cursor-pointer transition ${outOfStock ? 'opacity-50' : ''}"
                      onclick="addProductFromSearch(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-            <div class="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+            <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                 ${p.image_url ? `<img src="${p.image_url}" class="w-full h-full object-cover rounded-lg" alt="">` : '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium text-white truncate">${p.name}</p>
-                <p class="text-xs text-gray-500">${p.sku || ''} ${p.barcode ? '· ' + p.barcode : ''}</p>
+                <p class="text-xs font-medium text-gray-900 truncate">${p.name}</p>
+                <p class="text-xs text-gray-500">${p.sku || ''} ${p.barcode ? '� ' + p.barcode : ''}</p>
             </div>
             <div class="text-right shrink-0">
                 <p class="text-xs font-semibold text-blue-400">${formatRp(p.price)}</p>
@@ -1701,7 +1790,7 @@
                 return;
             }
 
-            // Product not in DOM (loaded via search) — add directly to cart
+            // Product not in DOM (loaded via search) � add directly to cart
             const existing = cart.find(i => i.id === p.id);
             if (existing) {
                 if (existing.qty >= p.stock) {
@@ -1837,14 +1926,14 @@
             document.querySelectorAll('.cat-btn').forEach(b => {
                 const active = b.dataset.cat === cat;
                 b.className =
-                    `cat-btn px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${active ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+                    `cat-btn px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${active ? 'bg-blue-600 text-gray-900' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
             });
             document.querySelectorAll('.product-card').forEach(card => {
                 card.style.display = (!cat || card.dataset.category === cat) ? '' : 'none';
             });
         }
 
-        // ── Keyboard shortcuts ────────────────────────────────────────────────────
+        // -- Keyboard shortcuts ----------------------------------------------------
         document.addEventListener('keydown', e => {
             if (e.key === 'F2') document.getElementById('barcode-input').focus();
             if (e.key === 'F12') processCheckout();
@@ -1854,12 +1943,12 @@
             }
         });
 
-        // ── Helpers ───────────────────────────────────────────────────────────────
+        // -- Helpers ---------------------------------------------------------------
         function formatRp(n) {
             return 'Rp ' + Math.round(n).toLocaleString('id-ID');
         }
 
-        // ── Offline Queue (IndexedDB) ─────────────────────────────────────────────
+        // -- Offline Queue (IndexedDB) ---------------------------------------------
         const DB_NAME = 'qalcuity-pos';
         const DB_VERSION = 1;
         let posDb = null;
@@ -2014,7 +2103,7 @@
                     if (failed > 0) showToast(`${failed} transaksi gagal disinkronisasi, akan dicoba lagi`, 'warning');
                 }
             } catch (e) {
-                // Network still unavailable — restore badge
+                // Network still unavailable � restore badge
                 console.warn('[POS] Flush queue failed:', e);
             }
 
@@ -2022,7 +2111,7 @@
             await updateOfflineBadge();
         }
 
-        // ── Offline / Online detection ────────────────────────────────────────────
+        // -- Offline / Online detection --------------------------------------------
         async function updateOfflineBadge() {
             const badge = document.getElementById('offline-badge');
             const badgeText = document.getElementById('offline-badge-text');
@@ -2074,7 +2163,7 @@
             });
         }
 
-        // ── Checkout (dengan offline support) ────────────────────────────────────
+        // -- Checkout (dengan offline support) ------------------------------------
         async function processCheckout() {
             if (cart.length === 0) {
                 showToast('Keranjang kosong', 'warning');
@@ -2167,7 +2256,7 @@
                         `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>${formatRp(i.price * i.qty)}</span></div>`
                     ).join('') +
                     `<div class="flex justify-between mt-2 font-bold"><span>Total</span><span>${formatRp(total)}</span></div>
-        <div class="mt-2 text-xs text-amber-600 text-center">⚠ Transaksi offline — akan disinkronisasi saat online</div>`;
+        <div class="mt-2 text-xs text-amber-600 text-center">? Transaksi offline � akan disinkronisasi saat online</div>`;
                 document.getElementById('receipt-modal').classList.remove('hidden');
                 document.getElementById('receipt-modal').classList.add('flex');
 
@@ -2206,13 +2295,13 @@
                     showToast('Gagal memproses transaksi', 'error');
                 }
             } catch (e) {
-                // Network error while supposedly online — queue it
+                // Network error while supposedly online � queue it
                 await queueTransaction(payload);
                 showToast('Koneksi bermasalah. Transaksi disimpan untuk sinkronisasi.', 'warning');
             }
         }
 
-        // ── Camera Barcode Scanner ────────────────────────────────────────────────
+        // -- Camera Barcode Scanner ------------------------------------------------
         let cameraStream = null;
         let barcodeDetector = null;
         let scanInterval = null;
@@ -2275,7 +2364,7 @@
                     if (barcodes.length > 0) {
                         const code = barcodes[0].rawValue;
                         clearInterval(scanInterval);
-                        setCameraStatus('✓ Barcode terdeteksi: ' + code, false, true);
+                        setCameraStatus('? Barcode terdeteksi: ' + code, false, true);
                         await handleScannedBarcode(code);
                     }
                 } catch {
@@ -2308,7 +2397,7 @@
                     if (result) {
                         codeReader.reset();
                         const code = result.getText();
-                        setCameraStatus('✓ Barcode terdeteksi: ' + code, false, true);
+                        setCameraStatus('? Barcode terdeteksi: ' + code, false, true);
                         handleScannedBarcode(code);
                     }
                 });
@@ -2391,11 +2480,11 @@
 
         function setCameraStatus(msg, isError = false, isSuccess = false) {
             const el = document.getElementById('camera-status');
-            const color = isError ? 'text-red-400' : isSuccess ? 'text-green-400' : 'text-white/70';
+            const color = isError ? 'text-red-400' : isSuccess ? 'text-green-400' : 'text-gray-900/70';
             el.innerHTML = `<span class="text-xs ${color} bg-black/50 px-3 py-1 rounded-full">${msg}</span>`;
         }
 
-        // ── Service Worker Registration ───────────────────────────────────────────
+        // -- Service Worker Registration -------------------------------------------
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js', {
@@ -2409,7 +2498,7 @@
             });
         }
 
-        // ── POS Settings ──────────────────────────────────────────────────────────
+        // -- POS Settings ----------------------------------------------------------
         const POS_SETTINGS_KEY = 'qalcuity_pos_settings';
         let posSettings = {
             printEnabled: false,
@@ -2473,7 +2562,7 @@
                 'browser');
         }
 
-        // ── Fullscreen (persisten antar halaman) ─────────────────────────────────
+        // -- Fullscreen (persisten antar halaman) ---------------------------------
         const FS_KEY = 'qalcuity_fullscreen';
 
         function toggleFullscreen() {
@@ -2541,7 +2630,7 @@
             m.classList.remove('flex');
         }
 
-        // ── Thermal Printer (Web Serial API) ──────────────────────────────────────
+        // -- Thermal Printer (Web Serial API) --------------------------------------
         async function connectThermalPrinter() {
             if (!('serial' in navigator)) {
                 showToast('Browser tidak mendukung Web Serial API. Gunakan Chrome/Edge.', 'error');
@@ -2553,12 +2642,12 @@
                     baudRate: 9600
                 });
                 thermalWriter = thermalPort.writable.getWriter();
-                document.getElementById('printer-status').textContent = '✅ Printer terhubung';
-                document.getElementById('btn-connect-printer').textContent = '✅ Terhubung';
+                document.getElementById('printer-status').textContent = '? Printer terhubung';
+                document.getElementById('btn-connect-printer').textContent = '? Terhubung';
                 document.getElementById('btn-connect-printer').classList.replace('bg-blue-600', 'bg-green-600');
                 showToast('Printer thermal terhubung', 'success');
             } catch (e) {
-                document.getElementById('printer-status').textContent = '❌ Gagal: ' + e.message;
+                document.getElementById('printer-status').textContent = '? Gagal: ' + e.message;
                 showToast('Gagal menghubungkan printer: ' + e.message, 'error');
             }
         }
@@ -2571,7 +2660,7 @@
 
         async function printToThermal(receiptText) {
             if (!thermalWriter) {
-                showToast('Printer belum terhubung. Buka Settings → Hubungkan Printer.', 'warning');
+                showToast('Printer belum terhubung. Buka Settings ? Hubungkan Printer.', 'warning');
                 return;
             }
             try {
@@ -2601,7 +2690,7 @@
             }
         }
 
-        // ── Receipt Builder ───────────────────────────────────────────────────────
+        // -- Receipt Builder -------------------------------------------------------
         function buildReceiptText(data) {
             const now = new Date();
             const date = now.toLocaleDateString('id-ID', {
@@ -2666,7 +2755,7 @@
     </div>`;
         }
 
-        // ── Print Dispatcher ──────────────────────────────────────────────────────
+        // -- Print Dispatcher ------------------------------------------------------
         async function printReceiptSmart(data) {
             if (!posSettings.printEnabled) return;
 
@@ -2702,7 +2791,7 @@
             }, 300);
         }
 
-        // ── Bluetooth Printer ─────────────────────────────────────────────────────
+        // -- Bluetooth Printer -----------------------------------------------------
         async function printViaBluetooth(text) {
             if (!('bluetooth' in navigator)) {
                 showToast('Browser tidak mendukung Bluetooth. Gunakan Chrome.', 'error');
@@ -2751,7 +2840,7 @@
             printReceiptSmart(testData);
         }
 
-        // ── Scanner Sound ─────────────────────────────────────────────────────────
+        // -- Scanner Sound ---------------------------------------------------------
         const scanBeep = new Audio('data:audio/wav;base64,UklGRl9vT19teleVBFTVQAAAAGIAAABkYXRhAAAA');
 
         function playScanSound() {
@@ -2771,3 +2860,4 @@
 </body>
 
 </html>
+
