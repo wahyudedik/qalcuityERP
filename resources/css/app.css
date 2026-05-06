@@ -26,6 +26,7 @@
 /* ═══════════════════════════════════════════════
    Base styles for form elements
    Applies background/text to all inputs, selects, textareas.
+   Uses !important to override @tailwindcss/forms base resets.
 ═══════════════════════════════════════════════ */
 @layer base {
 
@@ -34,4 +35,12 @@
     textarea {
         @apply bg-white text-gray-900 border-gray-300 focus:ring-blue-500 placeholder:text-gray-400;
     }
+}
+
+/* Fallback: ensure select/option text is always dark on light backgrounds.
+   This catches cases where utility classes are missing or overridden. */
+select:not([class*="text-"]),
+select option {
+    color: #111827;
+    /* gray-900 */
 }
