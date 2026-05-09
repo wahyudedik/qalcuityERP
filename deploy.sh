@@ -1,19 +1,14 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  Qalcuity ERP — Production Deployment Script
+#  Qalcuity ERP — Production Deployment Script (Ubuntu)
 #  Jalankan via SSH setiap kali ada update code ke production
+#  Path: /www/wwwroot/qalcuity.com
 # ═══════════════════════════════════════════════════════════════
 
-# @REM # 1. Pertama kali — beri permission executable
-# @REM chmod +x deploy.sh
-
-# @REM # 2. Masuk ke folder project
-# @REM cd /var/www/qalcuity-erp   # sesuaikan path project kamu
-
-# @REM # 3. Jalankan
-# @REM ./deploy.sh
-
 set -e
+
+# Supaya Composer tidak warning soal root
+export COMPOSER_ALLOW_SUPERUSER=1
 
 echo ""
 echo "============================================================"
@@ -37,12 +32,17 @@ composer install --no-dev --optimize-autoloader --no-interaction
 echo ""
 
 # ── 4. Install NPM dependencies & build assets ──────────────
-echo "[4/10] Install NPM dependencies..."
-npm ci --omit=dev || npm install --omit=dev
+echo "[4/10] Install NPM dependencies (termasuk devDependencies untuk build)..."
+npm ci
 echo ""
 
 echo "[5/10] Build frontend assets..."
-npm run build || npm run build:memory
+npx vite build || npm run build:memory
+echo ""
+
+# Hapus devDependencies setelah build selesai
+echo "    Membersihkan devDependencies..."
+npm prune --omit=dev
 echo ""
 
 # ── 5. Jalankan database migrations ─────────────────────────
@@ -83,5 +83,4 @@ echo "  Checklist pasca-deploy:"
 echo "  - Pastikan queue worker berjalan: sudo supervisorctl status"
 echo "  - Pastikan scheduler cron aktif: crontab -l"
 echo "  - Cek log: tail -f storage/logs/laravel.log"
-echo "  - Test akses website"
 echo ""

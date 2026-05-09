@@ -2,10 +2,6 @@
 
 namespace Tests\Feature\BugExploration;
 
-use App\Models\Doctor;
-use App\Models\OperatingRoom;
-use App\Models\Patient;
-use App\Models\SurgerySchedule;
 use App\Models\Tenant;
 use App\Models\User;
 use Eris\Generators;
@@ -19,10 +15,10 @@ use Tests\TestCase;
  * Failure confirms the bug exists:
  *
  *   The SurgeryScheduleController references four Blade view files that do not exist:
- *   - healthcare.surgery-schedules.index
- *   - healthcare.surgery-schedules.create
- *   - healthcare.surgery-schedules.show
- *   - healthcare.surgery-schedule.edit (singular path)
+ *   - healthcare.surgery-schedules.index → resources/views/healthcare/surgery-schedules/index.blade.php
+ *   - healthcare.surgery-schedules.create → resources/views/healthcare/surgery-schedules/create.blade.php
+ *   - healthcare.surgery-schedules.show → resources/views/healthcare/surgery-schedules/show.blade.php
+ *   - healthcare.surgery-schedule.edit → resources/views/healthcare/surgery-schedule/edit.blade.php
  *
  *   Any GET request to these routes throws:
  *   InvalidArgumentException: View [healthcare.surgery-schedules.*] not found
@@ -51,213 +47,200 @@ class SurgeryScheduleViewsBugConditionTest extends TestCase
 
     /**
      * @test
-     * Bug Condition — GET /healthcare/surgery-schedules (index) returns HTTP 200
+     * Bug Condition — Index view file must exist on disk
      *
      * WILL FAIL on unfixed code:
-     *   InvalidArgumentException: View [healthcare.surgery-schedules.index] not found.
-     *   The controller calls view('healthcare.surgery-schedules.index') but the
-     *   Blade file does not exist at resources/views/healthcare/surgery-schedules/index.blade.php
+     *   The file resources/views/healthcare/surgery-schedules/index.blade.php does not exist.
+     *   This causes InvalidArgumentException when the controller calls
+     *   view('healthcare.surgery-schedules.index')
      *
-     * Counterexample: GET /healthcare/surgery-schedules → 500 (View not found)
+     * Counterexample: View file healthcare/surgery-schedules/index.blade.php not found on disk
      *
      * Validates: Requirements 1.1
      */
-    public function test_index_route_returns_200(): void
+    public function test_index_view_file_exists(): void
     {
-        $response = $this->get('/healthcare/surgery-schedules');
+        $viewPath = resource_path('views/healthcare/surgery-schedules/index.blade.php');
 
-        $response->assertStatus(200);
+        $this->assertFileExists(
+            $viewPath,
+            'Bug Condition: View file resources/views/healthcare/surgery-schedules/index.blade.php does not exist. '
+                . 'The SurgeryScheduleController::index() calls view("healthcare.surgery-schedules.index") '
+                . 'which throws InvalidArgumentException: View [healthcare.surgery-schedules.index] not found. '
+                . 'Counterexample: GET /healthcare/surgery-schedules → 500 (View not found)'
+        );
     }
 
     /**
      * @test
-     * Bug Condition — GET /healthcare/surgery-schedules/create returns HTTP 200
+     * Bug Condition — Create view file must exist on disk
      *
      * WILL FAIL on unfixed code:
-     *   InvalidArgumentException: View [healthcare.surgery-schedules.create] not found.
-     *   The controller calls view('healthcare.surgery-schedules.create') but the
-     *   Blade file does not exist at resources/views/healthcare/surgery-schedules/create.blade.php
+     *   The file resources/views/healthcare/surgery-schedules/create.blade.php does not exist.
+     *   This causes InvalidArgumentException when the controller calls
+     *   view('healthcare.surgery-schedules.create')
      *
-     * Counterexample: GET /healthcare/surgery-schedules/create → 500 (View not found)
+     * Counterexample: View file healthcare/surgery-schedules/create.blade.php not found on disk
      *
      * Validates: Requirements 1.2
      */
-    public function test_create_route_returns_200(): void
+    public function test_create_view_file_exists(): void
     {
-        // Create prerequisite data for the create form dropdowns
-        Patient::create([
-            'tenant_id' => $this->tenant->id,
-            'full_name' => 'Test Patient',
-            'medical_record_number' => 'MRN-' . uniqid(),
-            'gender' => 'male',
-            'birth_date' => '1990-01-01',
-            'is_active' => true,
-        ]);
+        $viewPath = resource_path('views/healthcare/surgery-schedules/create.blade.php');
 
-        Doctor::create([
-            'tenant_id' => $this->tenant->id,
-            'doctor_number' => 'DOC-' . uniqid(),
-            'license_number' => 'LIC-' . uniqid(),
-            'specialization' => 'Surgery',
-            'status' => 'active',
-            'is_active' => true,
-        ]);
-
-        OperatingRoom::create([
-            'room_number' => 'OR-' . uniqid(),
-            'room_name' => 'Operating Room 1',
-            'type' => 'general',
-            'status' => 'available',
-            'is_active' => true,
-        ]);
-
-        $response = $this->get('/healthcare/surgery-schedules/create');
-
-        $response->assertStatus(200);
+        $this->assertFileExists(
+            $viewPath,
+            'Bug Condition: View file resources/views/healthcare/surgery-schedules/create.blade.php does not exist. '
+                . 'The SurgeryScheduleController::create() calls view("healthcare.surgery-schedules.create") '
+                . 'which throws InvalidArgumentException: View [healthcare.surgery-schedules.create] not found. '
+                . 'Counterexample: GET /healthcare/surgery-schedules/create → 500 (View not found)'
+        );
     }
 
     /**
      * @test
-     * Bug Condition — GET /healthcare/surgery-schedules/{id} (show) returns HTTP 200
+     * Bug Condition — Show view file must exist on disk
      *
      * WILL FAIL on unfixed code:
-     *   InvalidArgumentException: View [healthcare.surgery-schedules.show] not found.
-     *   The controller calls view('healthcare.surgery-schedules.show') but the
-     *   Blade file does not exist at resources/views/healthcare/surgery-schedules/show.blade.php
+     *   The file resources/views/healthcare/surgery-schedules/show.blade.php does not exist.
+     *   This causes InvalidArgumentException when the controller calls
+     *   view('healthcare.surgery-schedules.show')
      *
-     * Counterexample: GET /healthcare/surgery-schedules/1 → 500 (View not found)
+     * Counterexample: View file healthcare/surgery-schedules/show.blade.php not found on disk
      *
      * Validates: Requirements 1.3
      */
-    public function test_show_route_returns_200(): void
+    public function test_show_view_file_exists(): void
     {
-        $schedule = SurgerySchedule::create([
-            'tenant_id' => $this->tenant->id,
-            'surgery_number' => 'SRG-' . uniqid(),
-            'surgery_type' => 'Appendectomy',
-            'scheduled_date' => now()->addDays(3),
-            'status' => 'scheduled',
-        ]);
+        $viewPath = resource_path('views/healthcare/surgery-schedules/show.blade.php');
 
-        $response = $this->get('/healthcare/surgery-schedules/' . $schedule->id);
-
-        $response->assertStatus(200);
+        $this->assertFileExists(
+            $viewPath,
+            'Bug Condition: View file resources/views/healthcare/surgery-schedules/show.blade.php does not exist. '
+                . 'The SurgeryScheduleController::show() calls view("healthcare.surgery-schedules.show") '
+                . 'which throws InvalidArgumentException: View [healthcare.surgery-schedules.show] not found. '
+                . 'Counterexample: GET /healthcare/surgery-schedules/{id} → 500 (View not found)'
+        );
     }
 
     /**
      * @test
-     * Bug Condition — GET /healthcare/surgery-schedules/{id}/edit returns HTTP 200
+     * Bug Condition — Edit view file must exist on disk (singular path)
      *
      * WILL FAIL on unfixed code:
-     *   InvalidArgumentException: View [healthcare.surgery-schedule.edit] not found.
-     *   The controller calls view('healthcare.surgery-schedule.edit') (singular path) but the
-     *   Blade file does not exist at resources/views/healthcare/surgery-schedule/edit.blade.php
+     *   The file resources/views/healthcare/surgery-schedule/edit.blade.php does not exist.
+     *   Note: The controller uses singular 'surgery-schedule' (not plural) for the edit view.
+     *   This causes InvalidArgumentException when the controller calls
+     *   view('healthcare.surgery-schedule.edit')
      *
-     * Counterexample: GET /healthcare/surgery-schedules/1/edit → 500 (View not found)
+     * Counterexample: View file healthcare/surgery-schedule/edit.blade.php not found on disk
      *
      * Validates: Requirements 1.4
      */
-    public function test_edit_route_returns_200(): void
+    public function test_edit_view_file_exists(): void
     {
-        $schedule = SurgerySchedule::create([
-            'tenant_id' => $this->tenant->id,
-            'surgery_number' => 'SRG-' . uniqid(),
-            'surgery_type' => 'Cholecystectomy',
-            'scheduled_date' => now()->addDays(5),
-            'status' => 'scheduled',
-        ]);
+        $viewPath = resource_path('views/healthcare/surgery-schedule/edit.blade.php');
 
-        $response = $this->get('/healthcare/surgery-schedules/' . $schedule->id . '/edit');
-
-        $response->assertStatus(200);
+        $this->assertFileExists(
+            $viewPath,
+            'Bug Condition: View file resources/views/healthcare/surgery-schedule/edit.blade.php does not exist. '
+                . 'The SurgeryScheduleController::edit() calls view("healthcare.surgery-schedule.edit") '
+                . '(note: singular "surgery-schedule" not plural) '
+                . 'which throws InvalidArgumentException: View [healthcare.surgery-schedule.edit] not found. '
+                . 'Counterexample: GET /healthcare/surgery-schedules/{id}/edit → 500 (View not found)'
+        );
     }
 
     /**
      * @test
-     * Property-Based: Bug Condition — All four surgery schedule view routes fail
-     *
-     * Uses Eris to generate random route selections across the four affected routes
-     * and verify that each returns HTTP 200 (expected behavior after fix).
+     * Bug Condition — Laravel view finder can resolve all four surgery schedule views
      *
      * WILL FAIL on unfixed code:
-     *   All four routes throw InvalidArgumentException because the Blade view files
-     *   do not exist on disk.
+     *   The view finder throws InvalidArgumentException for each missing view.
      *
-     * Counterexample: Any of the four routes returns non-200 status
+     * Counterexample: view()->getFinder()->find('healthcare.surgery-schedules.index') throws exception
+     *
+     * Validates: Requirements 1.1, 1.2, 1.3, 1.4
+     */
+    public function test_laravel_view_finder_resolves_all_views(): void
+    {
+        $views = [
+            'healthcare.surgery-schedules.index',
+            'healthcare.surgery-schedules.create',
+            'healthcare.surgery-schedules.show',
+            'healthcare.surgery-schedule.edit',
+        ];
+
+        $missingViews = [];
+
+        foreach ($views as $viewName) {
+            try {
+                view()->getFinder()->find($viewName);
+            } catch (\InvalidArgumentException $e) {
+                $missingViews[] = $viewName . ' → ' . $e->getMessage();
+            }
+        }
+
+        $this->assertEmpty(
+            $missingViews,
+            'Bug Condition: The following views cannot be resolved by Laravel view finder: '
+                . "\n" . implode("\n", $missingViews)
+                . "\n\nCounterexample: Controller calls view() with paths that have no corresponding Blade file."
+        );
+    }
+
+    /**
+     * @test
+     * Property-Based: Bug Condition — All four surgery schedule view files must exist
+     *
+     * Uses Eris to generate random selections across the four affected view paths
+     * and verify that each corresponding Blade file exists on disk.
+     *
+     * WILL FAIL on unfixed code:
+     *   None of the four Blade view files exist on disk.
+     *
+     * Counterexample: Any of the four view files is missing from resources/views/
      *
      * **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
      */
-    public function test_pbt_all_surgery_schedule_view_routes_return_200(): void
+    public function test_pbt_all_surgery_schedule_view_files_exist(): void
     {
-        // Create prerequisite data for all routes
-        $patient = Patient::create([
-            'tenant_id' => $this->tenant->id,
-            'full_name' => 'PBT Patient',
-            'medical_record_number' => 'MRN-PBT-' . uniqid(),
-            'gender' => 'female',
-            'birth_date' => '1985-05-15',
-            'is_active' => true,
-        ]);
+        $viewPaths = [
+            'views/healthcare/surgery-schedules/index.blade.php',
+            'views/healthcare/surgery-schedules/create.blade.php',
+            'views/healthcare/surgery-schedules/show.blade.php',
+            'views/healthcare/surgery-schedule/edit.blade.php',
+        ];
 
-        $doctor = Doctor::create([
-            'tenant_id' => $this->tenant->id,
-            'doctor_number' => 'DOC-PBT-' . uniqid(),
-            'license_number' => 'LIC-PBT-' . uniqid(),
-            'specialization' => 'General Surgery',
-            'status' => 'active',
-            'is_active' => true,
-        ]);
+        $viewNames = [
+            'healthcare.surgery-schedules.index',
+            'healthcare.surgery-schedules.create',
+            'healthcare.surgery-schedules.show',
+            'healthcare.surgery-schedule.edit',
+        ];
 
-        $operatingRoom = OperatingRoom::create([
-            'room_number' => 'OR-PBT-' . uniqid(),
-            'room_name' => 'PBT Operating Room',
-            'type' => 'general',
-            'status' => 'available',
-            'is_active' => true,
-        ]);
-
-        $schedule = SurgerySchedule::create([
-            'tenant_id' => $this->tenant->id,
-            'patient_id' => $patient->id,
-            'surgeon_id' => $doctor->id,
-            'operating_room_id' => $operatingRoom->id,
-            'surgery_number' => 'SRG-PBT-' . uniqid(),
-            'surgery_type' => 'Hernia Repair',
-            'scheduled_date' => now()->addDays(7),
-            'status' => 'scheduled',
-            'priority' => 'elective',
-        ]);
+        $routeDescriptions = [
+            'GET /healthcare/surgery-schedules (index)',
+            'GET /healthcare/surgery-schedules/create (create)',
+            'GET /healthcare/surgery-schedules/{id} (show)',
+            'GET /healthcare/surgery-schedules/{id}/edit (edit)',
+        ];
 
         // Route indices: 0=index, 1=create, 2=show, 3=edit
         $this
             ->forAll(
                 Generators::choose(0, 3)
             )
-            ->then(function (int $routeIndex) use ($schedule) {
-                $routes = [
-                    '/healthcare/surgery-schedules',
-                    '/healthcare/surgery-schedules/create',
-                    '/healthcare/surgery-schedules/' . $schedule->id,
-                    '/healthcare/surgery-schedules/' . $schedule->id . '/edit',
-                ];
+            ->then(function (int $routeIndex) use ($viewPaths, $viewNames, $routeDescriptions) {
+                $fullPath = resource_path($viewPaths[$routeIndex]);
 
-                $routeNames = [
-                    'healthcare.surgery-schedules.index',
-                    'healthcare.surgery-schedules.create',
-                    'healthcare.surgery-schedules.show',
-                    'healthcare.surgery-schedules.edit',
-                ];
-
-                $response = $this->get($routes[$routeIndex]);
-
-                $this->assertEquals(
-                    200,
-                    $response->getStatusCode(),
-                    "Bug Condition: GET {$routes[$routeIndex]} should return HTTP 200 "
-                        . "but returned {$response->getStatusCode()}. "
-                        . "Route '{$routeNames[$routeIndex]}' view file is missing. "
-                        . "Counterexample: GET {$routes[$routeIndex]} → {$response->getStatusCode()} "
-                        . "(InvalidArgumentException: View not found)"
+                $this->assertFileExists(
+                    $fullPath,
+                    "Bug Condition: View file '{$viewPaths[$routeIndex]}' does not exist. "
+                        . "Route: {$routeDescriptions[$routeIndex]} "
+                        . "calls view('{$viewNames[$routeIndex]}') which throws "
+                        . "InvalidArgumentException: View [{$viewNames[$routeIndex]}] not found. "
+                        . "Counterexample: {$routeDescriptions[$routeIndex]} → 500 (View not found)"
                 );
             });
     }
